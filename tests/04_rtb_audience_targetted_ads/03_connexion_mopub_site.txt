@@ -1,0 +1,178 @@
+*** Settings ***
+Resource      			rtb_mopub_imports.txt
+Force Tags          	RTB      MOPUB    CONNEXIONS     A5	
+Test Template			Mopub Lat Lon Request SITE Template
+
+*** Variables ***
+${rtb_host}						qa-rtb:8080
+${mopub_site_id_01_05}			MOPUB_CONNEXIONS_SITE_01_8183
+${mopub_site_id_06_20}			MOPUB_CONNEXIONS_SITE_02_8184
+${mopub_site_id_21_50}			MOPUB_CONNEXIONS_SITE_03_8185
+${mopub_site_id_51}				MOPUB_CONNEXIONS_SITE_04_8186
+${mopub_site_id_53}				MOPUB_CONNEXIONS_SITE_05_8187
+${image_name_01_05} 			320x50_Connexion01.jpg
+${image_name_06_20} 			320x50_Connexion02.jpg
+${image_name_21_50} 			320x50_Connexion03.jpg
+${image_name_51} 				320x50_Connexion04.jpg
+${image_name_53} 				320x50_Connexion05.jpg
+${adgroup_id_01_05} 						14808
+${adgroup_id_06_20} 						14810
+${adgroup_id_21_50} 						14812
+${adgroup_id_51} 								14814
+${adgroup_id_53} 								14816
+
+#Starting in 7.3 we no longer use geonear, we use device to HHID
+*** Test Cases ***   
+########   CONNEXIONS 01 - 05 
+#Test Case                                      LAT                   	 		LON                        		EXPECT_ERROR
+# SEGMENT 01
+Lat_Lon For Segment 01 DMA 501 New York                               ${rtb_host}       ${mopub_site_id_01_05}	       42.2475				-72.4427              		${image_name_01_05}        ${adgroup_id_01_05}      200		device_id=ABCD0082-8069-4443-9B01-74A9536ACAFE
+         [TAGS]    BUILD_SANITY 	  
+Lat_Lon For Segment 01 DMA 501 Within 50m                             ${rtb_host}       ${mopub_site_id_01_05}	       42.2475				-72.4428                     ${image_name_01_05}        ${adgroup_id_01_05}      200	device_id=ABCD0082-8069-4443-9B02-74A9536ACAFE
+         [TAGS]    BUILD_SANITY   
+#Lat_Lon For Segment 01 DMA 501 More Than 50m Should Not Serve         ${rtb_host}       ${mopub_site_id_01_05}	       42.2475				-72.4490                     ${image_name_01_05}        ${adgroup_id_01_05}      204	device_id=ABCDE077-8003-4443-9B01-74A9536ACAFE
+#         [TAGS]    BUILD_SANITY   https://jira.adhaven.com/browse/ADH-3051 
+#Lat_Lon For Segment 01 DMA 501 With 2 Decimal Precision Should Not Serve            ${rtb_host}       ${mopub_site_id_01_05}	       42.24				-72.44      ${image_name_01_05}        ${adgroup_id_01_05}      204		device_id=ABCDE077-8003-4443-9B01-74A9536ACAFE
+#         [TAGS]    BUILD_SANITY   https://jira.adhaven.com/browse/ADH-3051 
+#Lat_Lon For Segment 01 DMA 501 With 3 Decimal Precision Should Not Serve            ${rtb_host}       ${mopub_site_id_01_05}	       42.247				-72.442     ${image_name_01_05}        ${adgroup_id_01_05}      204		device_id=ABCDE077-8003-4443-9B01-74A9536ACAFE
+#         [TAGS]    BUILD_SANITY   https://jira.adhaven.com/browse/ADH-3051 
+#Lat_Lon For Segment 01 DMA 501 With 6 Decimal Precision               ${rtb_host}       ${mopub_site_id_01_05}	       40.8921            	-72.514399               	${image_name_01_05}        ${adgroup_id_01_05}      200		device_id=ABCDE077-8003-4443-9B01-74A9536ACAFE
+#         [TAGS]    BUILD_SANITY   
+# Different DMAs
+Lat_Lon For Segment 01 DMA 500 Portland - Auburn                      ${rtb_host}       ${mopub_site_id_01_05}	       43.1357				-70.6905                     ${image_name_01_05}        ${adgroup_id_01_05}      200	device_id=ABCD0082-8069-4443-9B03-74A9536ACAFE
+         [TAGS]    BUILD_SANITY   
+Lat_Lon For Segment 01 DMA 501 New York - Second                      ${rtb_host}       ${mopub_site_id_01_05}	       41.4102				-73.3205                    	${image_name_01_05}        ${adgroup_id_01_05}   200	device_id=ABCD0082-8069-4443-9B04-74A9536ACAFE
+         [TAGS]    BUILD_SANITY   
+Lat_Lon For Segment 01 DMA 504 Philadelphia                           ${rtb_host}       ${mopub_site_id_01_05}	       39.8209				-74.8609                     ${image_name_01_05}        ${adgroup_id_01_05}      200	device_id=ABCD0082-8069-4443-9B05-74A9536ACAFE
+#Lat_Lon For Segment 01 DMA 521 Providence - New Bedford              ${rtb_host}       ${mopub_site_id_01_05}	       41.7271				-71.2954                     ${image_name_01_05}        ${adgroup_id_01_05}      200
+Lat_Lon For Segment 01 DMA 523 Burlington - Plattsburgh               ${rtb_host}       ${mopub_site_id_01_05}	       44.4518				-73.0872                     ${image_name_01_05}        ${adgroup_id_01_05}      200	device_id=ABCD0082-8069-4443-9B06-74A9536ACAFE
+Lat_Lon For Segment 01 DMA 533 Hartford & New Haven                   ${rtb_host}       ${mopub_site_id_01_05}	       41.7935				-72.8994                     ${image_name_01_05}        ${adgroup_id_01_05}      200	device_id=ABCD0082-8069-4443-9B07-74A9536ACAFE
+Lat_Lon For Segment 01 DMA 537 Bangor				                 ${rtb_host}       ${mopub_site_id_01_05}	       44.7614				-68.8107                     ${image_name_01_05}        ${adgroup_id_01_05}      200	device_id=ABCD0082-8069-4443-9B08-74A9536ACAFE
+Lat_Lon For Segment 01 DMA 552 Presque Isle		                 	${rtb_host}       ${mopub_site_id_01_05}	       47.3374				-68.3315                     ${image_name_01_05}        ${adgroup_id_01_05}      200	device_id=ABCD0082-8069-4443-9B09-74A9536ACAFE
+# SEGMENT 02
+Lat_Lon For Segment 02 DMA 501 New York                      			${rtb_host}       ${mopub_site_id_01_05}	       40.8899				-72.5214                     ${image_name_01_05}        ${adgroup_id_01_05}      200	device_id=ABCD0082-8070-4443-9B01-74A9536ACAFE
+Lat_Lon For Segment 03 DMA 501 New York                              	${rtb_host}       ${mopub_site_id_01_05}	       40.8223				-72.7152                     ${image_name_01_05}        ${adgroup_id_01_05}      200	device_id=ABCD0082-8071-4443-9B01-74A9536ACAFE
+Lat_Lon For Segment 04 DMA 501 New York                                ${rtb_host}       ${mopub_site_id_01_05}	       40.9564 		   		-72.7676                  		${image_name_01_05}        ${adgroup_id_01_05}      200		device_id=ABCD0082-8072-4443-9B01-74A9536ACAFE
+Lat_Lon For Segment 05 DMA 501 New York                             	${rtb_host}       ${mopub_site_id_01_05}	       40.8001				-72.7701                     ${image_name_01_05}        ${adgroup_id_01_05}      200	device_id=ABCD0082-8073-4443-9B01-74A9536ACAFE
+
+
+########   CONNEXIONS 06 - 20                                             
+# SEGMENT 06
+Lat_Lon For Segment 06 DMA 702 La Crosse - Eau Claire                 ${rtb_host}       ${mopub_site_id_06_20}	       43.8139                -91.3062                  ${image_name_06_20}        ${adgroup_id_06_20}      200			device_id=ABCD0083-8074-4BE4-BF01-DFD564E5221D
+Lat_Lon For Segment 06 DMA 749 Laredo                                 ${rtb_host}       ${mopub_site_id_06_20}	       27.5056                -99.4865                  ${image_name_06_20}        ${adgroup_id_06_20}      200			device_id=ABCD0083-8075-4BE4-BF01-DFD564E5221D
+          [TAGS]      Known_Issue_Verify_In_Prod  
+Lat_Lon For Segment 06 DMA 800 Bakersfield                            ${rtb_host}       ${mopub_site_id_06_20}	       35.1752                -118.9237                ${image_name_06_20}        ${adgroup_id_06_20}      200			device_id=ABCD0083-8075-4BE4-BF01-DFD564E5221D
+# SEGMENT 07
+Lat_Lon For Segment 07 DMA 705 Wausau - Rhinelander          			${rtb_host}       ${mopub_site_id_06_20}	       44.9046                -89.6474                   ${image_name_06_20}        ${adgroup_id_06_20}      200   device_id=ABCD0083-8076-4BE4-BF01-DFD564E5221D        
+Lat_Lon For Segment 07 DMA 754 Butte - Bozeman                		${rtb_host}       ${mopub_site_id_06_20}	       46.0143                -112.5421                  ${image_name_06_20}        ${adgroup_id_06_20}      200      device_id=ABCD0083-8076-4BE4-BF02-DFD564E5221D   
+Lat_Lon For Segment 07 DMA 839 Las Vegas                              ${rtb_host}       ${mopub_site_id_06_20}	       35.9759                -114.8418                  ${image_name_06_20}        ${adgroup_id_06_20}      200     device_id=ABCD0083-8076-4BE4-BF03-DFD564E5221D
+# SEGMENT 08
+Lat_Lon For Segment 08 DMA 638 St. Joseph                             ${rtb_host}       ${mopub_site_id_06_20}	       39.7389                -94.2317                   ${image_name_06_20}        ${adgroup_id_06_20}      200      device_id=ABCD0083-8077-4BE4-BF01-DFD564E5221D
+Lat_Lon For Segment 08 DMA 693 Little Rock - Pine Bluff      	 	${rtb_host}       ${mopub_site_id_06_20}	       34.5052                -93.0311                   ${image_name_06_20}        ${adgroup_id_06_20}      200      device_id=ABCD0083-8077-4BE4-BF02-DFD564E5221D   
+Lat_Lon For Segment 08 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5638                -122.6753                 ${image_name_06_20}        ${adgroup_id_06_20}      200       device_id=ABCD0083-8077-4BE4-BF03-DFD564E5221D   
+# No data for DMA 698
+# SEGMENT 09
+Lat_Lon For Segment 09 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5596                -122.8368                 ${image_name_06_20}        ${adgroup_id_06_20}      200       device_id=ABCD0083-8078-4BE4-BF03-DFD564E5221D    
+# SEGMENT 10
+
+
+#Lat_Lon For Segment 10 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5618                -122.7105                 ${image_name_06_20}        ${adgroup_id_06_20}      200            
+# SEGMENT 11
+#Lat_Lon For Segment 11 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5618                -122.7068                  ${image_name_06_20}        ${adgroup_id_06_20}      200          
+# SEGMENT 12
+#Lat_Lon For Segment 12 DMA 819 Seattle - Tacoma             	 		${rtb_host}       ${mopub_site_id_06_20}	       47.5616                -122.8427                 ${image_name_06_20}        ${adgroup_id_06_20}      200           
+# SEGMENT 13
+#Lat_Lon For Segment 13 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5699                -122.6992                  ${image_name_06_20}        ${adgroup_id_06_20}      200    
+# SEGMENT 14
+#Lat_Lon For Segment 14 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5603                -122.6577                  ${image_name_06_20}        ${adgroup_id_06_20}      200      
+# SEGMENT 15
+#Lat_Lon For Segment 15 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5597                -122.7068                 ${image_name_06_20}        ${adgroup_id_06_20}      200          
+# SEGMENT 16
+#Lat_Lon For Segment 16 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5594                -122.6893                 ${image_name_06_20}        ${adgroup_id_06_20}      200        
+# SEGMENT 17
+#Lat_Lon For Segment 17 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       48.5292                -122.2612                  ${image_name_06_20}        ${adgroup_id_06_20}      200          
+# SEGMENT 18
+#Lat_Lon For Segment 18 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5608                -122.6708                ${image_name_06_20}        ${adgroup_id_06_20}      200            
+# SEGMENT 19
+#Lat_Lon For Segment 19 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5589                -122.6574                 ${image_name_06_20}        ${adgroup_id_06_20}      200           
+# SEGMENT 20
+#Lat_Lon For Segment 20 DMA 819 Seattle - Tacoma              	 	${rtb_host}       ${mopub_site_id_06_20}	       47.5698                -122.6572                 ${image_name_06_20}        ${adgroup_id_06_20}      200        
+
+
+########   CONNEXIONS 21 - 50           
+#Test Case                                                             				
+# SEGMENT 21
+#Lat_Lon For Segment 21 DMA 634 Amarillo                       		${rtb_host}       ${mopub_site_id_21_50}	       34.3806                -103.1921                  ${image_name_21_50}        ${adgroup_id_21_50}      200    
+# SEGMENT 22
+#Lat_Lon For Segment 22 DMA 634 Amarillo                       		${rtb_host}       ${mopub_site_id_21_50}	       34.4144                -103.1833                  ${image_name_21_50}        ${adgroup_id_21_50}      200            
+# SEGMENT 23
+#Lat_Lon For Segment 23 DMA 634 Amarillo                       		${rtb_host}       ${mopub_site_id_21_50}	       34.3848                -103.1952                  ${image_name_21_50}        ${adgroup_id_21_50}      200                
+# SEGMENT 24
+#Lat_Lon For Segment 24 DMA 634 Amarillo                       		${rtb_host}       ${mopub_site_id_21_50}	       34.3176                -103.1957                  ${image_name_21_50}        ${adgroup_id_21_50}      200         
+# SEGMENT 25
+#Lat_Lon For Segment 25 DMA 634 Amarillo                       		${rtb_host}       ${mopub_site_id_21_50}	       34.3769                -103.2008                   ${image_name_21_50}        ${adgroup_id_21_50}      200                  
+# SEGMENT 26
+#Lat_Lon For Segment 26 DMA 634 Amarillo                       		${rtb_host}       ${mopub_site_id_21_50}	       34.3321                -103.1995                  ${image_name_21_50}        ${adgroup_id_21_50}      200                  
+# SEGMENT 27
+#Lat_Lon For Segment 27 DMA 634 Amarillo                       		${rtb_host}       ${mopub_site_id_21_50}	       34.3763                -103.2007                  ${image_name_21_50}        ${adgroup_id_21_50}      200                 
+# SEGMENT 28
+#Lat_Lon For Segment 28 DMA 634 Amarillo                       		${rtb_host}       ${mopub_site_id_21_50}	       34.3808                -103.1944                   ${image_name_21_50}        ${adgroup_id_21_50}      200                  
+# SEGMENT 29
+#Lat_Lon For Segment 29 DMA 634 Amarillo                       		${rtb_host}       ${mopub_site_id_21_50}	       34.3774                -103.1966                   ${image_name_21_50}        ${adgroup_id_21_50}      200                  
+# SEGMENT 30
+#Lat_Lon For Segment 30 DMA 725 Sioux Falls (Mitchell)         		${rtb_host}       ${mopub_site_id_21_50}	       43.6532                -96.2052                    ${image_name_21_50}        ${adgroup_id_21_50}      200                  
+# SEGMENT 31
+#Lat_Lon For Segment 31 DMA 725 Sioux Falls (Mitchell)         		${rtb_host}       ${mopub_site_id_21_50}	       43.6525                -96.2175                    ${image_name_21_50}        ${adgroup_id_21_50}      200                  
+# SEGMENT 32
+#Lat_Lon For Segment 32 DMA 725 Sioux Falls (Mitchell)         		${rtb_host}       ${mopub_site_id_21_50}	       42.8764                -100.5452                  ${image_name_21_50}        ${adgroup_id_21_50}      200                 
+# SEGMENT 33
+#Lat_Lon For Segment 33 DMA 725 Sioux Falls (Mitchell)         		${rtb_host}       ${mopub_site_id_21_50}	       43.6516                -96.2148                    ${image_name_21_50}        ${adgroup_id_21_50}      200                        
+# SEGMENT 34
+#Lat_Lon For Segment 34 DMA 725 Sioux Falls (Mitchell)         		${rtb_host}       ${mopub_site_id_21_50}	       43.9972                -96.3206                    ${image_name_21_50}        ${adgroup_id_21_50}      200                  
+# SEGMENT 35
+#Lat_Lon For Segment 35 DMA 725 Sioux Falls (Mitchell)         		${rtb_host}       ${mopub_site_id_21_50}	       43.5634                -96.2129                    ${image_name_21_50}        ${adgroup_id_21_50}      200                            
+# SEGMENT 36
+#Lat_Lon For Segment 36 DMA 725 Sioux Falls (Mitchell)         		${rtb_host}       ${mopub_site_id_21_50}	       43.6466                -96.2163                    ${image_name_21_50}        ${adgroup_id_21_50}      200                    
+# SEGMENT 37
+#Lat_Lon For Segment 37 DMA 725 Sioux Falls (Mitchell)         		${rtb_host}       ${mopub_site_id_21_50}	       43.6466                -96.2136                    ${image_name_21_50}        ${adgroup_id_21_50}      200                     
+# SEGMENT 38
+#Lat_Lon For Segment 38 DMA 725 Sioux Falls (Mitchell)         		${rtb_host}       ${mopub_site_id_21_50}	       43.6553                -96.2091                    ${image_name_21_50}        ${adgroup_id_21_50}      200                          
+# SEGMENT 39
+#Lat_Lon For Segment 39 DMA 725 Sioux Falls (Mitchell)         		${rtb_host}       ${mopub_site_id_21_50}	       43.6563                -96.2098                    ${image_name_21_50}        ${adgroup_id_21_50}      200                
+# SEGMENT 40
+#Lat_Lon For Segment 40 DMA 755 Great Falls                                 	 									${rtb_host}       ${mopub_site_id_21_50}	       46.9824                -108.8222                   ${image_name_21_50}        ${adgroup_id_21_50}      200                
+# SEGMENT 41
+#Lat_Lon For Segment 41 DMA 755 Great Falls                    		${rtb_host}       ${mopub_site_id_21_50}	       47.5038                -111.2555                   ${image_name_21_50}        ${adgroup_id_21_50}      200                          
+# SEGMENT 42
+#Lat_Lon For Segment 42 DMA 755 Great Falls                    		${rtb_host}       ${mopub_site_id_21_50}	       47.5074                -111.2851                   ${image_name_21_50}        ${adgroup_id_21_50}      200                 
+# SEGMENT 43
+#Lat_Lon For Segment 43 DMA 755 Great Falls                    		${rtb_host}       ${mopub_site_id_21_50}	       48.1559                -106.5933                   ${image_name_21_50}        ${adgroup_id_21_50}      200                 
+# SEGMENT 44
+#Lat_Lon For Segment 44 DMA 755 Great Falls                    		${rtb_host}       ${mopub_site_id_21_50}	       47.5041                -111.2903                   ${image_name_21_50}        ${adgroup_id_21_50}      200                 
+# SEGMENT 45
+#Lat_Lon For Segment 45 DMA 755 Great Falls                    		${rtb_host}       ${mopub_site_id_21_50}	       47.5064                -111.2591                   ${image_name_21_50}        ${adgroup_id_21_50}      200                
+# SEGMENT 46
+#Lat_Lon For Segment 46 DMA 755 Great Falls                    		${rtb_host}       ${mopub_site_id_21_50}	       47.5042                -111.2513                   ${image_name_21_50}        ${adgroup_id_21_50}      200                  
+# SEGMENT 47
+#Lat_Lon For Segment 47 DMA 755 Great Falls                    		${rtb_host}       ${mopub_site_id_21_50}	       47.5053                -111.2503                   ${image_name_21_50}        ${adgroup_id_21_50}      200                  
+# SEGMENT 48
+#Lat_Lon For Segment 48 DMA 755 Great Falls                    		${rtb_host}       ${mopub_site_id_21_50}	       47.5042                -111.2493                   ${image_name_21_50}        ${adgroup_id_21_50}      200                 
+# SEGMENT 49
+#Lat_Lon For Segment 49 DMA 755 Great Falls                    		${rtb_host}       ${mopub_site_id_21_50}	       46.8474                -108.9213                   ${image_name_21_50}        ${adgroup_id_21_50}      200                 
+# SEGMENT 50
+#Lat_Lon For Segment 50 DMA 755 Great Falls                    		${rtb_host}       ${mopub_site_id_21_50}	       47.5041                -111.2493                   ${image_name_21_50}        ${adgroup_id_21_50}      200               
+            
+            
+########   CONNEXIONS 51              
+#Lat_Lon For Segment 51 DMA 736 Bowling Green                  		${rtb_host}       ${mopub_site_id_51}	       		36.9004                -86.5455                   ${image_name_51}        			${adgroup_id_51}      200               
+            
+            
+########   CONNEXIONS 53
+#Lat_Lon For Segment 53 881 Spokane                            		${rtb_host}       ${mopub_site_id_53}	       		46.3694               -116.9725                   ${image_name_53}        		${adgroup_id_53}      200              
+            
+            
+
+
+
+
+         

@@ -1,0 +1,26 @@
+
+
+*** Settings ***
+Resource            connexions_imports.txt
+Force Tags          ACE    CONNEXIONS    4.0    CONNEXIONS_51          MEDIATION
+Test Template       Connexions Ad Serving Test
+Test Setup            Open Browser       ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+Test Teardown      Close All Browsers
+Documentation       Tests for Connexions Audience 
+...                 CONNEXION SEGMENTS
+...                 51	Tech-Free Frontier
+
+*** Variables ***
+${engine}           ${DEFAULT_AUDIENCE_ENGINE}
+${image_name}       320x50_Connexion04.jpg
+${location}         *.google.*
+${page_title}       Google
+${api_key}          96a3be339dc3269b
+${placement_id}     ${CONNEX_08_PLACEMENTID}
+*** Test Cases ***
+#Test Case                                                                  							LAT                    LON                        	EXPECT_ERROR    
+
+# SEGMENT 51
+Lat_Lon For Segment 51 DMA 736 Bowling Green                                36.9004                -86.5455                   0              
+
+            

@@ -1,0 +1,39 @@
+*** Settings ***
+Resource             rtb_imports.txt
+Force Tags          RTB      MOPUB     BATCH1   	PROD_BATCH2		GZIP
+
+*** Variables ***
+
+${data}		{"app":{"bundle":"xxcom.bambuna.podcastaddict","cat":["IAB1","IAB12","entertainment","news"],"id":"65432","name":"Podcast & Radio Addict","publisher":{"id":"d9b9d669fddb4c8eade1de28b5833597","name":"Appdictive Studio"},"ver":"3.22.7"},"at":2,"bcat":["IAB25","IAB26","IAB3-7"],"device":{"carrier":"311-480","connectiontype":2,"dnt":0,"geo":{"city":"West Monroe","country":"USA","metro":"555","region":"NY","zip":"13167"},"h":960,"ifa":"3d3ee7e4-4c95-4532-ab1e-fa5a8812118a","ip":"108.176.245.18","js":1,"language":"en","make":"motorola","model":"XT1528","os":"Android","osv":"5.1","ua":"Mozilla/5.0 (Linux; Android 5.1; XT1528 Build/LPI23.29-17.5; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/50.0.2661.86 Mobile Safari/537.36","w":540},"id":"be0a5791-73e4-409e-b1db-385cf37e2112","imp":[{"banner":{"api":[3,5],"battr":[3,6,7,8,10,14],"btype":[4],"h":50,"pos":1,"w":320},"bidfloor":0.00210,"displaymanager":"mopub","displaymanagerver":"4.6.0","ext":{"brsrclk":1,"dlp":1},"id":"1","instl":0,"secure":0,"tagid":"a4f48821568e4ac7aff6947dbfcb3925"}],"user":{"keywords":"Arts"}}
+${uri}		bid-engine/bidder/${RTB_MOPUB_API}/getBidOffer	
+*** Test Cases *** 
+
+RTB Bid Request gzip encoding (Accept-Encoding=gzip) - use gzip
+	Create Session   api_post_session    http://${BID_ENGINE_ONE}:8080		disable_warnings=1
+    ${headers}    Create Dictionary     Accept=application/json		Content-Type=application/json		Accept-Encoding=gzip
+    ${resp}=    Post Request    api_post_session    ${uri}    headers=${headers}		data=${data}
+    Set Test Variable    ${resp}    ${resp}
+    Log    Response: '${resp.content}'
+    Log		'${resp.headers}'
+    Should Match Regexp			'${resp.headers}'					'Content-Encoding': 'gzip'
+    Should Match Regexp			'${resp.headers}'					'Content-Type': 'application/json;charset=UTF-8'
+    
+RTB Bid Request gzip encoding (Accept-Encoding=other,gzip,zip,other) - use gzip
+	Create Session   api_post_session    http://${BID_ENGINE_ONE}:8080		disable_warnings=1
+    ${headers}    Create Dictionary     Accept=application/json		Content-Type=application/json		Accept-Encoding=other,gzip,zip,other
+    ${resp}=    Post Request    api_post_session    ${uri}    headers=${headers}		data=${data}
+    Set Test Variable    ${resp}    ${resp}
+    Log    Response: '${resp.content}'
+    Log		'${resp.headers}'
+    Should Match Regexp			'${resp.headers}'					'Content-Encoding': 'gzip'    
+    Should Match Regexp			'${resp.headers}'					'Content-Type': 'application/json;charset=UTF-8'
+    
+RTB Bid Request gzip encoding (Accept-Encoding=zip,other) - response no encoding
+	Create Session   api_post_session    http://${BID_ENGINE_ONE}:8080		disable_warnings=1
+    ${headers}    Create Dictionary     Accept=application/json		Content-Type=application/json		Accept-Encoding=zip,other
+    ${resp}=    Post Request    api_post_session    ${uri}    headers=${headers}		data=${data}
+    Set Test Variable    ${resp}    ${resp}
+    Log    Response: '${resp.content}'
+    Log		'${resp.headers}'
+    Should Not Match Regexp			'${resp.headers}'					'Content-Encoding': 'gzip'   
+    Should Match Regexp			'${resp.headers}'					'Content-Type': 'application/json;charset=UTF-8' 

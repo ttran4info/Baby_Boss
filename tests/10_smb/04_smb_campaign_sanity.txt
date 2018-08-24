@@ -1,0 +1,100 @@
+
+*** Settings ***
+Resource    smb_imports.txt
+Force Tags          SMB    BUILD_SANITY       QA_ONLY    BATCH6      SMB_READ    SMB_CAMPAIGN 		EXCLUDE    
+
+
+*** Test Cases ***
+
+# Campaign
+
+Retrieve Information For Existing Campaign 
+		SMB Header Setup
+		SMB Read Campaign       			   975			200
+		Should Match Regexp 				${response_content} 					{\\"success\\":true,\\"
+		[Tags]				https://jira.adhaven.com/browse/ADH-4892			https://jira.adhaven.com/browse/ADH-5076
+		
+Retrieve Information For Non-Existing Campaign Numeric
+		SMB Header Setup
+		SMB Read Campaign       			   88888888			404
+		Retrieve Element And Validate Value Match JSON			 ${response_content} 					/success	     		false
+		[Tags]				https://jira.adhaven.com/browse/ADH-4892			https://jira.adhaven.com/browse/ADH-4973
+
+Retrieve Information For Non-Existing Campaign Alpha
+		SMB Header Setup
+		SMB Read Campaign       			  apple					400
+		Retrieve Element And Validate Value Match JSON			 ${response_content} 					/success	     		false
+		[Tags]				https://jira.adhaven.com/browse/ADH-4892			https://jira.adhaven.com/browse/ADH-4973
+
+Retrieve Information For Existing Campaign Non-SMB
+		SMB Header Setup
+		SMB Read Campaign       			  925					403
+		Retrieve Element And Validate Value Match JSON			 ${response_content} 					/success	     		false
+		[Tags]				https://jira.adhaven.com/browse/ADH-4892			ACL
+
+Retrieve Information For Existing Campaign Posse 9 (Datamyx) With SMB Posse 2 User Should Give Error
+		SMB Header Setup
+		SMB Read Campaign       			  1687					403
+		Retrieve Element And Validate Value Match JSON			 ${response_content} 					/success	     		false
+		[Tags]				https://jira.adhaven.com/browse/ADH-4892			ACL			ERROR_CODE		https://jira.adhaven.com/browse/ADH-4979
+		
+Retrieve Information For Existing Campaign Posse 1 Should Be Okay With Admin User Belonging to Posse 1
+		SMB Header Setup					auth=${SMB_AUTH_Admin}
+		SMB Read Campaign       			  1865					200
+		Retrieve Element And Validate Value Match JSON			 ${response_content} 					/success	     		true
+		[Tags]				https://jira.adhaven.com/browse/ADH-4892			ACL		https://jira.adhaven.com/browse/ADH-4979    
+
+List All Campaigns For Advertiser Acxiom Corporation Should Return Campaign Information
+		SMB Header Setup
+		List All Campaigns For Advertiser      485         200
+		# Should this return an empty list or message saying none found?
+		[Tags]				https://jira.adhaven.com/browse/ADH-4885				https://jira.adhaven.com/browse/ADH-5076
+
+List All Campaigns For Advertiser ACME (Datamyx) Using Admin User Should Return Error 400
+		SMB Header Setup						auth=${SMB_AUTH_Admin}
+		List All Campaigns For Advertiser      655         400
+		[Tags]				ACL
+		
+List All Campaigns For Advertiser QA_REGRESSION_TEST (Non-SMB) Should Not Return Any Information
+		SMB Header Setup
+		List All Campaigns For Advertiser      274         400 
+		Should Match Regexp 				${response_content} 					{\\"success\\":false,\\"reason_code\\":\\"200-015\\",\\"reason_desc\\":\\"Specified advertiser does not exist.\\"
+		[Tags]				https://jira.adhaven.com/browse/ADH-4885           https://jira.adhaven.com/browse/ADH-4903			https://jira.adhaven.com/browse/ADH-4886		ERROR_CODE
+		
+		
+Loop Through All Advertisers Not With ID 6 And Ensure No Campaign Data Is Visible
+		Retrieve All Non-SMB Advertisers  
+		SMB Header Setup
+		:FOR       ${item} 				IN      @{all_non_smb_list}
+		\ 					Log       Item: ${item}
+		\					List All Campaigns For Advertiser      ${item}         400 
+		\ 					Should Match Regexp 				${response_content} 					{\\"success\\":false,\\"reason_code\\":\\"200-015\\",\\"reason_desc\\":\\"Specified advertiser does not exist.\\"
+		[Tags]			https://jira.adhaven.com/browse/ADH-4903 					https://jira.adhaven.com/browse/ADH-4886			ERROR_CODE
+		
+Loop Through All Advertisers With ID 6 And Ensure Campaign Data Is Retrieved WIth Minimal Validation For Posse 2
+		Retrieve All SMB Advertisers      posse_id=2
+		SMB Header Setup
+		:FOR       ${item} 				IN      @{all_smb_list}
+		\ 					Log       Item: ${item}
+		\					List All Campaigns For Advertiser      ${item}        200 
+		\ 					Should Match Regexp 				   ${response_content} 					{\\s*\\"success\\":true,\\"campaigns\\":\\[{\\"id\\":\\d+,|{\\"success\\":true,\\"campaigns\\":\\[\\]}
+		# If advertiser has campaing, it must match regex: {\\"success\\":true,\\"campaigns\\":\\[{\\"id\\":\\d+,\\"advertiser_id\\":${item},
+		# If advertiser has not campaigns, it must match regex: {\\"success\\":true,\\"campaigns\\":\\[\\]}
+		\					Retrieve Element And Validate Value Match JSON			 ${response_content} 					/success	     							true
+#		\					Retrieve Element And Validate Value Match JSON			 ${response_content} 					/campaigns/advertiser_id			${item}
+#		\                   ${advertiser_id}=      Get Json Value     ${response_content}      /campaigns[1]/advertiser_id
+#		\					Should Be Equal As Strings    ${advertiser_id}    ${item}
+		[Tags]			https://jira.adhaven.com/browse/ADH-5076      Exclude
+		
+Loop Through All Advertisers With ID 6 And Ensure Campaign Data Is Retrieved WIth Minimal Validation For Posse 1 Should Give Error 403
+		Retrieve All SMB Advertisers      posse_id=1
+		SMB Header Setup
+		:FOR       ${item} 				IN      @{all_smb_list}
+		\ 					Log       Item: ${item}
+		\					List All Campaigns For Advertiser      ${item}        403
+#		\ 					Should Match Regexp 				   ${response_content} 					{\\"success\\":true,\\"campaigns\\":\\[{\\"id\\":\\d+,|{\\"success\\":true,\\"campaigns\\":\\[\\]}
+		# If advertiser has campaing, it must match regex: {\\"success\\":true,\\"campaigns\\":\\[{\\"id\\":\\d+,\\"advertiser_id\\":${item},
+		# If advertiser has not campaigns, it must match regex: {\\"success\\":true,\\"campaigns\\":\\[\\]}
+		\					Retrieve Element And Validate Value Match JSON			 ${response_content} 					/success	     		false
+		[Tags]       ACL   
+				

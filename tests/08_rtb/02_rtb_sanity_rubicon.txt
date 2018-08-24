@@ -1,0 +1,36 @@
+*** Settings ***
+Resource             rtb_imports.txt
+Force Tags          RTB      RUBICON     BATCH1		PROD_BATCH2
+
+*** Variables ***
+${app_id}          		15588
+${site_id_web}          15589
+
+${app_site_zip}			94110
+${online_zip}			94111
+*** Test Cases *** 
+#Rubicon is located at QA_REGRESSION_TESTS>23_Exchange_Sepcific
+# To do
+#1. Change the ID
+#2. Change the Data
+#3. Change the Expected adgroup.
+
+Rubicon app served
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific
+    Set Test Variable    	${data}         		 {"id":"ceb57210dd867b4a413c15493afb4f40ecf34f32","at":2,"tmax":69,"imp":[{"id":"1","tagid":"247720","secure":0,"iframebuster":[],"banner":{"pos":0,"battr":[3,8,9],"api":[3,5],"topframe":0,"w":320,"h":50,"ext":{"sizes":[{"w":320,"h":50,"fmt":[43]}]}},"instl":0}],"app":{"id":"${app_id}","cat":["IAB3","IAB14","IAB19","IAB20"],"storeurl":"https://play.google.com/store/apps/details?id=com.talkatone.android","name":"talkatone free calls & texting","domain":"http://www.xxad.com","bundle":"xxcom.talkatone.android","publisher":{"id":"13132"}},"device":{"os":"Android","model":"android 2.0","geo":{"lat":42.37196,"lon":-83.105835,"type":1,"country":"USA","region":"OH","zip":"${app_site_zip}","utcoffset":-300,"ext":{"latlonconsent":1}},"osv":"2.0","js":1,"ext":{"xff":""},"dpidmd5":"69bc4f580247a82dc5cfe9f1a95cbc12","ip":"66.87.114.23","connectiontype":3,"dpidsha1":"bfcf86409f417512f365b9af2d5364378556f908","ua":"Mozilla/5.0 (Linux; Android 5.1.1; 5017B Build/LMY47V; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/46.0.2490.76 Mobile Safari/537.36","carrier":"Sprint Nextel","devicetype":1,"language":"en","make":"generic","ifa":"7979e608-6955-481e-968d-e9e13eae536b","lmt":0},"user":{"id":"332622b8b5eeab57234894c00d7cc3845c007bea","ext":{"sessiondepth":0}}}
+    RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=200  	adgroup_expected=86697      submit_client_impression_event=YES
+
+Rubicon web served
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific
+    Set Test Variable    	${data}         		{"id":"22d4c57311286ec7484bda0ef9091200d6926af1","at":2,"tmax":98,"imp":[{"id":"1","tagid":"106510","secure":0,"iframebuster":[],"banner":{"pos":3,"battr":[14018,14019,1,3,6,7,8,9,10,12,14,14005,14014],"api":[],"topframe":0,"w":320,"h":50,"ext":{"sizes":[{"w":320,"h":50,"fmt":[15]}]}},"instl":0}],"site":{"id":"${site_id_web}","domain":"http://xnypost.com","name":"NY Post_MWeb","cat":["IAB12-3"],"page":"xhttp://nypost.com/","publisher":{"id":"11076"},"ext":{"mopt":1}},"device":{"os":"iOS","model":"iPhone","connectiontype":0,"geo":{"country":"USA","region":"NJ","zip":"${app_site_zip}","utcoffset":-300},"osv":"9.1","js":1,"ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1","devicetype":1,"language":"en","make":"Apple","ext":{"xff":"","res":"320x568"},"ip":"70.199.67.136"},"user":{"id":"19acabe84f5937ee15bace67ee3983cbb06d5bd2","ext":{"sessiondepth":0}}}
+    RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=200  	adgroup_expected=86697      submit_client_impression_event=YES
+
+Rubicon online served
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific
+    Set Test Variable    	${data}         		{"id":"ae94781ce4bb7ae96937b9ee082228bdd0f96ce9","at":2,"tmax":51,"imp":[{"id":"1","tagid":"107752","secure":0,"iframebuster":[],"banner":{"pos":3,"battr":[14018,14019,1,2,3,5,6,7,8,9,10,12,13,14,14005,14015,14014],"api":[],"topframe":0,"w":320,"h":50,"ext":{"sizes":[{"w":320,"h":50,"fmt":[10]}]}},"instl":0}],"site":{"id":"REGRESSION RUBICON ONLINE","domain":"http://www.xcnn.com","name":"http://www.cnn.com","cat":["IAB12-3","IAB12-1","IAB12-2"],"page":"xhttp://www.cnn.com","publisher":{"id":"208543"},"ext":{"page_id":"aa01ebaeb3d161f025b97adaa901fd4335fd233e"}},"device":{"connectiontype":0,"geo":{"country":"USA","region":"TX","zip":"${online_zip}","utcoffset":-360},"js":1,"ua":"Mozilla/5.0(WindowsNT6.1;WOW64;Trident/7.0;rv:11.0)likeGecko","devicetype":2,"language":"en","ext":{"xff":""},"ip":"72.46.213.231"},"user":{"id":"f8ec151e7b319465e91d041d668992cc18cbd8b2","buyeruid":"2703973059714703816","ext":{"sessiondepth":0}}}
+    RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=200  	adgroup_expected=86699     submit_client_impression_event=YES
+
+    
+    
+    
+    

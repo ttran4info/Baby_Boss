@@ -1,0 +1,168 @@
+
+
+*** Settings ***
+Resource            ad_groups_and_targeting_imports.txt
+Force Tags          ADVERTISERS    TARGETING      BUILD_SANITY          BATCH1    EXCLUDE
+
+*** Variables ***
+${banner_type}=                		GENERIC
+${banner_file_name}=        		320x50_Group01.jpg 
+${test_campaign_name_prefix}=      	07_TEST_CAMPAIGN
+
+*** Test Cases ***
+#Clean Up All Existing Data For 03_create_advertiser_and_ads Tests
+#        Cleanup Campaign Data By Campaign Name        campaign_name=${test_campaign_name_prefix}
+
+Start the Browser And Login To The Adhaven UI
+       Start the Browser And Login To The Adhaven UI
+
+Create A New Campaign, Adgroup, And Ad With Traffic Type Targeting For Web
+	   Set Test Variable      ${screen_type}				1
+	   Set Test Variable	   ${traffic_type}				1
+	   Create Default MOBILE Adgroup With Single Child And Ad				banner_file_name=${banner_file_name}
+      Retrieve Adgroup_ID By Adgroup Name     ${ag_adgroup_name} 
+      Add Adgroup Targetting        advertiser_name=${DEFAULT_ADVERTISER}       campaign_name=${campaign_name}     ag_adgroup_name=${ag_adgroup_name}     traffic_type_flag=1      traffic_type_id_from_db_selection=3
+      Capture Page Screenshot With Timestamp
+	  Reload All Cache
+#       Sleep     ${CACHE_WAIT_TIME}
+       Placement Ad Serving Test    ad_engine=${DEFAULT_AUDIENCE_ENGINE}     api_key=${DEFAULT_API_KEY}     placement_id=${DEFAULT_PLACEMENT}    image_name=${banner_file_name}
+       Go To      ${URL} 
+       Retrieve Ad_ID By Ad Name And Ad_Group_Bundle       child_ag_ad_name=${ag_ad_name}       parent_ag_bundle_id=${ag_adgroup_id}
+       Remove Ad By Child_AdGroup_ID And Child_Ad_ID     child_ad_group_id=${child_ad_group_id}     child_ad_id=${child_ad_id}
+       Remove AdGroup By BundleID      ${ag_adgroup_id}
+       Remove Campaign By CampaignID     ${campaign_id} 
+
+             
+Create A New Campaign, Adgroup, And Ad With Traffic Type Targeting For Web
+       ${default_start}=       get_default_start_date
+       ${default_end}=        get_default_end_date
+       Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name}
+       Add Campaign To Advertiser    advertiser_name=${DEFAULT_ADVERTISER}    campaign_name=${test_campaign_name_prefix}    campaign_start_date=${default_start}    campaign_end_date=${default_end} 	campaign_time_zone=Eastern   campaign_total_budget=100000     
+       Retrieve Campaign_ID By Campaign Name       ${campaign_name}
+       Log     CAMPAIGN_ID: ${campaign_id} 
+       Add Adgroup To Campaign Without Targeting         advertiser_name=${DEFAULT_ADVERTISER}     
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=02_TEST_ADGROUP     
+       ...                       ag_start_date=${default_start}
+       ...                       ag_end_date=${default_end}
+      ...                        ag_target_placement=${DEFAULT_PLACEMENT} 
+      ...                        timestamp_flag=1
+      Capture Page Screenshot With Timestamp
+      Validate Adgroup Added To Campaign Without Targeting        advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name} 
+       ...                       ag_start_date=${default_start}
+       ...                       ag_end_date=${default_end}
+      ...                        ag_target_placement=${DEFAULT_PLACEMENT} 
+      Retrieve Adgroup_ID By Adgroup Name     ${ag_adgroup_name} 
+      Add Adgroup Targetting        advertiser_name=${DEFAULT_ADVERTISER}       campaign_name=${campaign_name}     ag_adgroup_name=${ag_adgroup_name}     traffic_type_flag=1      traffic_type_id_from_db_selection=3
+      Capture Page Screenshot With Timestamp
+      Add A Banner Ad Under Adgroup With Banner Type Static Image      advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name} 
+       ...                       ag_adgroup_id=${ag_adgroup_id}
+      ...                        ag_ad_type=${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_name=Ad_01      
+      ...                        ag_ad_text=Ad_01
+      ...                        ag_ad_banner_type=${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_default_destination_type=Click to Web
+      ...                        ag_ad_url=
+      ...                        ag_ad_3rd_party_url=
+      ...                        ag_ad_3rd_party_click=
+      ...                        ag_ad_weight=1
+      ...                        ag_ad_allocation_gain=Normal
+      ...                        ag_ad_allocation_overwrite_flag=0
+      ...                        ag_ad_banner_size=${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      ...                        ag_ad_banner_file_path=${banner_file}
+      ...                        ag_ad_specific_url=${DEFAULT_BROWSER_HOME}
+      ...                        ag_ad_specific_3rd_party_url=
+      ...                        ag_ad_specific_3rd_party_click=
+      ...                        ag_ad_truste_icon_location=Bottom Right
+      ...                        ag_ad_paused_flag=0
+       ...                       timestamp_flag=1
+#       Sleep     ${CACHE_WAIT_TIME}
+		Reload All Cache
+       Placement Ad Serving Test    ad_engine=${DEFAULT_AUDIENCE_ENGINE}     api_key=${DEFAULT_API_KEY}     placement_id=${DEFAULT_PLACEMENT}    image_name=${banner_file_name}
+       Go To      ${URL} 
+       Retrieve Ad_ID By Ad Name And Ad_Group_Bundle       child_ag_ad_name=${ag_ad_name}       parent_ag_bundle_id=${ag_adgroup_id}
+       Remove Ad By Child_AdGroup_ID And Child_Ad_ID     child_ad_group_id=${child_ad_group_id}     child_ad_id=${child_ad_id}
+       Remove AdGroup By BundleID      ${ag_adgroup_id}
+       Remove Campaign By CampaignID     ${campaign_id} 
+       [Tags]     EXCLUDE
+
+       
+Create A New Campaign, Adgroup, And Ad With Audience Targeting Prizm
+       ${default_start}=       get_default_start_date
+       ${default_end}=        get_default_end_date
+       Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name}
+       Add Campaign To Advertiser    advertiser_name=${DEFAULT_ADVERTISER}    campaign_name=${test_campaign_name_prefix}    campaign_start_date=${default_start}    campaign_end_date=${default_end}  	campaign_time_zone=Eastern	  campaign_total_budget=100000     
+       Retrieve Campaign_ID By Campaign Name       ${campaign_name}
+       Log     CAMPAIGN_ID: ${campaign_id} 
+       Add Adgroup To Campaign Without Targeting         advertiser_name=${DEFAULT_ADVERTISER}     
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=02_TEST_ADGROUP     
+       ...                       ag_start_date=${default_start}
+       ...                       ag_end_date=${default_end}
+      ...                        ag_target_placement=${DEFAULT_PLACEMENT} 
+      ...                        timestamp_flag=1
+      Capture Page Screenshot With Timestamp
+      Validate Adgroup Added To Campaign Without Targeting        advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name} 
+       ...                       ag_start_date=${default_start}
+       ...                       ag_end_date=${default_end}
+      ...                        ag_target_placement=${DEFAULT_PLACEMENT} 
+      Retrieve Adgroup_ID By Adgroup Name     ${ag_adgroup_name} 
+      Add Adgroup Targetting        advertiser_name=${DEFAULT_ADVERTISER}       campaign_name=${campaign_name}     ag_adgroup_name=${ag_adgroup_name}     audience_flag=1      audience_selection=AA_PRIZM_02_06
+      Capture Page Screenshot With Timestamp
+      Add A Banner Ad Under Adgroup With Banner Type Static Image      advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name} 
+       ...                       ag_adgroup_id=${ag_adgroup_id}
+      ...                        ag_ad_type=${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_name=Ad_01      
+      ...                        ag_ad_text=Ad_01
+      ...                        ag_ad_banner_type=${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_default_destination_type=Click to Web
+      ...                        ag_ad_url=
+      ...                        ag_ad_3rd_party_url=
+      ...                        ag_ad_3rd_party_click=
+      ...                        ag_ad_weight=1
+      ...                        ag_ad_allocation_gain=Normal
+      ...                        ag_ad_allocation_overwrite_flag=0
+      ...                        ag_ad_banner_size=${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      ...                        ag_ad_banner_file_path=${banner_file}
+      ...                        ag_ad_specific_url=${DEFAULT_BROWSER_HOME}
+      ...                        ag_ad_specific_3rd_party_url=
+      ...                        ag_ad_specific_3rd_party_click=
+      ...                        ag_ad_truste_icon_location=Bottom Right
+      ...                        ag_ad_paused_flag=0
+       ...                       timestamp_flag=1
+#       Sleep     ${CACHE_WAIT_TIME}
+#       Sleep      1m
+		Reload All Cache
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=${DEFAULT_API_KEY}    placement_id=${DEFAULT_PLACEMENT}    header_user-agent=iPhone      lat_lon=61.0614,-149.7509
+       :FOR        ${index}      IN RANGE       10
+       \             Go To   ${ad_request_url}
+       \             ${source}=   Get Source   
+       \             Log   ${source}       
+       \             Run Keyword Unless        '${source}' == '${EMPTY}'              Validate Ad Is Served And Page Source Contains Image File    ${source}    ${banner_file_name}
+       \             Run Keyword Unless        '${source}' == '${EMPTY}'              Exit For Loop       
+       Go To      ${URL} 
+       Retrieve Ad_ID By Ad Name And Ad_Group_Bundle       child_ag_ad_name=${ag_ad_name}       parent_ag_bundle_id=${ag_adgroup_id}
+       Remove Ad By Child_AdGroup_ID And Child_Ad_ID     child_ad_group_id=${child_ad_group_id}     child_ad_id=${child_ad_id}
+       Remove AdGroup By BundleID      ${ag_adgroup_id}
+       Remove Campaign By CampaignID     ${campaign_id}    
+       
+Log Out of AdHaven UI and Verify
+       Go To      ${URL} 
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+#Clean Up All Existing Data For 03_create_advertiser_and_ads Tests - Teardown
+#        Cleanup Campaign Data By Campaign Name        campaign_name=${test_campaign_name_prefix}       
+#        Sleep    1m
+        
+       

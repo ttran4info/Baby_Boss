@@ -1,0 +1,25 @@
+*** Settings ***
+Resource             rtb_imports.txt
+Force Tags           BATCH1		SPOTXCHANGE 	RTB			PROD_BATCH2
+Test Teardown     Close All Browsers
+Suite Teardown    Close All Browsers
+
+*** variables ***
+ ${app_id}					13742
+ ${site_id}					13745
+ ${exchange_id}				19543f2b13f14db3a71c64c258228b8a
+ ${app_site_zip}			94110
+${online_zip}			94111
+*** Test Cases ***
+
+
+Spotxchange app served
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    Set Test Variable    	${data}         		 {"app":{"bundle":"xx372648912","cat":["IAB24","social_networking"],"id":"${app_id}","name":"MeetMeiPhone","publisher":{"id":"c3584d1c40cb43619e043c065caee33a","name":"MeetMe,Inc."},"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8&uo=4","ver":"10.2.0"},"at":2,"badv":["badoo"],"bcat":["IAB3-7"],"device":{"carrier":"310-VZW","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"48c3040de548a237e433da08436787ec","dpidsha1":"8f53a94aed87a4574dc618d9fc3b3e9c1ec5a1a5","ifa":"A1711077-EB58-4ADA-A4EA-3C649AEE051D","geo":{"city":"Kissimmee","country":"USA","lat":32.962295,"lon":-111.525334,"metro":"534","region":"FL","zip":"${app_site_zip}"},"ip":"184.91.208.99","js":1,"language":"en","make":"Apple","model":"iPhone4S","os":"iOS","osv":"8.1.2","ua":"Mozilla/5.0(iPhone;CPUiPhoneOS8_1_2likeMacOSX)AppleWebKit/600.1.4(KHTML,likeGecko)Mobile/12B440"},"id":"9ccf6ae8-5af7-4a31-9782-d14620c43628","imp":[{"banner":{"api":[3,5],"battr":[1,3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0039,"displaymanager":"mopub","displaymanagerver":"3.7.0","id":"1","instl":0,"tagid":"f5ea2d24c9bb46a38713cf98dffd8252"}],"user":{"keywords":"AGE:24,GENDER:m"}}
+    RTB Request 				API=${RTB_SPOTXCHANGE_API}          data=${data}		response_code=200  	adgroup_expected=86697      submit_client_impression_event=YES
+
+Spotxchange site served
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    Set Test Variable    	${data}         		{"at":2,"badv":["joysound.com"],"bcat":["FineArt"],"device":{"dnt":0,"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS8_3likeMacOSX)AppleWebKit/600.1.4(KHTML,likeGecko)Mobile/12F70QuantcastSDK/iOS_1.4.7/1ash4s7hukmtddti-p5028vkzyy4gw2bk","ip":"165.236.183.1","geo":{"lat":30.26719665527344,"lon":-97.74310302734375,"region":"US-TX","zip":"${app_site_zip}"},"dpidsha1":"","dpidmd5":"","carrier":"","ifa":"","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"8.3","devicetype":4},"id":"4725d328edf011e49ebd11250708394f","imp":[{"id":"1","pmp":{"deals":[{"at":2,"bidfloor":0.0020,"ext":{"priority":"1"},"id":"13426.658f9.229a"}],"private_auction":0},"secure":0,"tagid":"http://search.spotxchange.com/vast/2.00/79391?VPAID=1&content_page_url=http://cbs.com&cb=24352","video":{"api":[1],"companionad":[{"h":250,"id":"1","w":300}],"companiontype":[1,2,3],"delivery":[2],"ext":{"initiationtype":0,"spxplayersize":0},"linearity":1,"maxduration":60,"mimes":["video/x-flv","video/mp4","application/x-shockwave-flash"],"minduration":1,"protocols":[2,5],"startdelay":0}}],"site":{"content":{"videoquality":0},"id":"${site_id}","page":"http://xcbs.com","publisher":{"domain":"xcbs.com","id":"78886"}},"tmax":500,"user":{"id":"0ee5d1d1d1be290e269ceec71f45b5e7"}}
+    RTB Request 				API=${RTB_SPOTXCHANGE_API}          data=${data}		response_code=200  	adgroup_expected=86698      submit_client_impression_event=VAST
+    

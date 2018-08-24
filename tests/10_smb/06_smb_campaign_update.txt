@@ -1,0 +1,74 @@
+
+*** Settings ***
+Resource         smb_imports.txt
+Resource         smb_templates.txt
+Force Tags          SMB    QA_ONLY    BATCH6      SMB_CAMPAIGN		SMB_UPDATE      EXCLUDE
+Test Template           TEMPLATE Update Campaign And Validate Using Full Object
+Suite Setup				 Run Keywords         	Create Default Test Advertiser For Campaign Update 				Create Default Test Campaign For Campaign Update
+Suite Teardown        	 Run Keywords			Remove Default Campaign Used for Update        						Remove Default Advertiser Used for Update						
+*** Variables ***
+${invalid_post_request_code}         400
+${success_code}							 200
+
+*** Keywords ***
+
+Remove Default Advertiser Used for Update
+		Remove Advertiser By ID     ${advertiser_id}
+
+Remove Default Campaign Used for Update
+		Remove Campaign By CampaignID       ${campaign_id}
+
+
+Create Default Test Advertiser For Campaign Update 
+		SMB Header Setup
+		${data}=    Set Variable           {"advertiser_external_id": "adv_ext_id123","advertiser_name": "SMB_TEST_CAMPAIGN_UPDATE_ADVERTISER","contact":{"name": "John Doe","address": {"line1": "123 Elm St","line2": "Apt 100","city": "Santa Monica","state": "CA","zip": "24444","country": "USA","phone": "408 408 1111","email": "joe@att.net"}}}
+     	Log		Request: ${data}
+     	${resp}    RequestsLibrary.Post Request    smb   api/v1/advertisers/     data=${data}    headers=${headers}  
+     	Log    Response: '${resp.content}'
+     	Set Suite Variable       ${response_content}     ${resp.content}
+     	Should Be Equal As Strings       ${resp.status_code}      200
+     	Should Be Valid Json 	${response_content}
+     	${advertiser_id}=          Get Json Value     ${response_content}      /advertiser/id
+     	Set Suite Variable        ${advertiser_id}         ${advertiser_id}
+     	Validate SMB Advertiser           	advertiser_id=${advertiser_id}          advertiser_external_id=adv_ext_id123            	advertiser_name=SMB_TEST_CAMPAIGN_UPDATE_ADVERTISER		   
+    	...									contact_name=John Doe			        contact_address_line1=123 Elm St					contact_address_line2=Apt 100		contact_city=Santa Monica
+     	...									contact_state=CA						contact_zip=24444									contact_country=USA					contact_phone=408 408 1111
+     	...									contact_email=joe@att.net				response_content=${response_content}           
+
+Create Default Test Campaign For Campaign Update 
+	${timestamp}=      get_timestamp
+	 Set Suite Variable    ${campaign_name}    TEST_CAMPAIGN_UPDATE_${timestamp}
+	 SMB Header Setup
+	 ${data}=    Set Variable            {"advertiser_id": ${advertiser_id},"campaign_name": "${campaign_name}","order_id": "cp_oid","txn_ref_id": "cp_rid","txn_date": "cp_date","txn_status": "cstatus","txn_return_code": "cp_rc","available_qty": 15000, "selected_qty": 8000, "duration": 14,"start_date": "2014-03-01","target_list_URL": "http://www.4info.com","target_list_ID": "cp_targetlist_id","time_zone": "GMT","vertical": "IAB2","segment": "IAB2-2","creative_id": [20],"billing": {"name": "Chieu","address": {"line1": "155 Bovet Road","line2": "Suite 200","city": "San Mateo","state": "CA","zip": "94402","country": "USA","phone": "408-123-4567","email": "cpham@4info.com"}}}
+     Log		Request: ${data}
+     ${resp}    RequestsLibrary.Post Request    smb   api/v1/campaigns/     data=${data}    headers=${headers}  
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}      200
+     Should Be Valid Json 	${response_content}  
+     ${campaign_id}=          Get Json Value     ${response_content}      /campaign/id
+     Set Suite Variable        ${campaign_id}         ${campaign_id}
+	 Validate SMB Campaign          campaign_id=${campaign_id}
+	 ...							advertiser_id=${advertiser_id}
+     ... 							campaign_name=${campaign_name} 
+     ...							order_id=cp_oid			txn_ref_id=cp_rid			txn_date=cp_date			txn_status=cstatus		txn_return_code=cp_rc
+     ...							available_qty=15000			selected_qty=8000
+     ...							duration=14		start_date=2014-03-01
+     ...							target_list_URL=cp_targetlist_url		target_list_ID=cp_targetlist_id
+     ...							time_zone=GMT
+     ...							vertical=IAB2		segment=IAB2-2
+     ...							creative_id=${EMPTY}
+     ...							billing_name=Chieu        billing_address_line1=155 Bovet Road			billing_address_line2=Suite 200     		billing_city=San Mateo    	billing_state=CA  		billing_zip=94402        billing_country=USA    	billing_phone=408-123-4567     	billing_email=cpham@4info.com  
+     ...							response_content=${response_content}    
+
+
+*** Test Cases ***
+#     Test Description                  															AUTH												CAMPAIGN_ID											ADVERTISER_ID														CAMPAIGN_NAME				ORDER_ID			TXN_REF_ID		TXN_DATE				TXN_STATUS			TXN_RETURN_CODE			AVAILABLE_QTY			SELECTED_QTY			DURATION			START_DATE				TARGETLIST_URL							TARGET_LIST_ID		TIMEZONE			VERTICAL		SEGMENT			CREATIVE_ID				BILLING_NAME				ADDRESS1				ADDRESS2				CITY							STATE			ZIP				COUNTRY			PHONE						EMAIL								CODE 																				
+
+Update Campaign - Campaign Name 																	${SMB_AUTH}           							${campaign_id} 										${advertiser_id}														SMB_TEST_01					11111				22222				33333						PASS						33333								15000							4000							30							2014-03-01				http://www.4info.com   				44444						GMT					IAB2				IAB2-1				${EMPTY}					Jane Smith					123 Abc Dr.			Addy2					San Mateo					CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																						
+		[Tags]			https://jira.adhaven.com/browse/ADH-4917			https://jira.adhaven.com/browse/ADH-4935       AAA222
+
+Update Campaign - Wrong AdvertiserID From Another Campaign Should Give Error 						${SMB_AUTH}           							${campaign_id} 										${SMB_DEFAULT_ADVERTISER_UPDATE}					SMB_RC_TEST					11111				22222				33333						PASS						33333								15000							4000							30							2014-03-01				http://www.4info.com   				44444						GMT					IAB2				20						${EMPTY}					Jane Smith					123 Abc Dr.			Addy2					San Mateo					CA				95401			USA					408-123-4567			cpham@4info.com			${invalid_post_request_code} 																	
+		[Tags]			https://jira.adhaven.com/browse/ADH-4932
+
+

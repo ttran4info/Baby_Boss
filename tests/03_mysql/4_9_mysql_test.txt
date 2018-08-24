@@ -1,0 +1,59 @@
+
+
+*** Settings ***
+Resource            mysql_imports.txt
+Force Tags          DATABASE    4.9     QA_ONLY      EXCLUDE    BATCH1
+Suite Setup         Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+Suite Teardown      Disconnect From Database
+*** Variables ***
+
+*** Test Cases ***
+
+        
+Validate Table rhino.target_device_model Contains Some New Models Added
+       @{query_results}     Query    select * from rhino.target_device_model where model in ("iPhone", "iPhoneOS MMS Client", "MAUI WAP Browser", "GT-E2222", "S808"); 
+        Log Many     @{query_results}
+        Length Should Be      ${query_results}     5 
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        [TAGS]      ADH-3705   QA_ONLY
+        
+Validate Table rhino.target_device_manufacturer Contains Some New Manufacturers Added
+       @{query_results}     Query    select * from rhino.target_device_manufacturer where manufacturer in ("Motorola", "Opera", "Toshiba", "Nokia", "Huawei", "Apple", "firefox", "i-mobile", "ZTE", "Dopod", "Vodafone"); 
+        Log Many     @{query_results}
+        Length Should Be      ${query_results}     11
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        [TAGS]      ADH-3705        
+        
+Validate Table rhino.placement Contains New Column Cap
+       @{query_results}     Query    select distinct cap from rhino.placement;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        [TAGS]      ADH-3624                
+        
+Validate Table rhino.placement Contains No Negative Caps
+       @{query_results}     Query    select * from rhino.placement where cap < 0; 
+        Log Many     @{query_results}
+        Length Should Be      ${query_results}     0
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        [TAGS]      ADH-3624                        
+        
+Validate Table rhino.batch_tracker_daily Exists        
+        @{query_results}     Query    desc rhino.batch_tracker_daily; 
+        Log Many     @{query_results}
+        Length Should Be      ${query_results}     13
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        [TAGS]       QA_ONLY
+    
+Validate Table rhino.log_uploader_daily Exists        
+        @{query_results}     Query    desc rhino.log_uploader_daily;
+        Log Many     @{query_results}
+        Length Should Be      ${query_results}     5
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+         [TAGS]       QA_ONLY
+        

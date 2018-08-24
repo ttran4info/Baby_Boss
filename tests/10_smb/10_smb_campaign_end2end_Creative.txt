@@ -1,0 +1,140 @@
+
+*** Settings ***
+Resource         smb_imports.txt
+Resource         smb_templates.txt
+Force Tags          SMB    QA_ONLY    BATCH6      SMB_CAMPAIGN		SMB_END2END     
+#Suite Setup			Clean Up SMB Campaign		
+#Suite Teardown         Clean Up SMB Campaign
+#Suite Teardown			Remove SMB Campaign And Associated Adgroups			${campaign_id}		${smb_parent_adgroup_id}	${smb_child_adgroup_id}
+Test Teardown           Close All Browsers
+Documentation 			Steps for SMB End to End Test
+...						1. Create an advertiser 
+...						2. Create a campaign mapped to the advertiser created with or without creative
+...						3. Create a creative 
+...						4. Attach a creative with rejected status
+...						5. Attach a creative with unapproved status
+...						6. Attach an approved creative
+...						7. Edit the smb_list_status in the database manually to update the status to 1
+...						8. Make any update to campaign via the api
+...						9. Check to ensure that the campaign status is set to LIVE when everything is set correctly
+...					   10. Since we do not have list attachments for qa, we do not validate the ads serving.   
+*** Variables ***
+${invalid_post_request_code}         400
+${success_code}						 200
+
+*** Test Cases ***
+	
+Create A New SMB Campaign Under Existing Advertiser SMB_DEFAULT_ADVERTISER_END2END
+	SMB Header Setup       	${SMB_AUTH}
+	Get Current Date Format YYYY-MM-DD
+	Get Tomorrow Date Format YYYY-MM-DD
+	Log     current_date_formatted_yyyy_mm_dd:[${current_date_formatted_yyyy_mm_dd}]
+	Log     tomorrow_formatted_yyyy_mm_dd:[${tomorrow_formatted_yyyy_mm_dd}]
+	Create SMB Campaign		advertiser_id=${SMB_DEFAULT_ADVERTISER_END2END}
+    ...						campaign_name=End2End SMB Campaign
+    ...						order_id=888
+    ...						txn_ref_id=111112222233333
+    ...						txn_date=${current_date_formatted_yyyy_mm_dd}
+    ...						txn_status=LIVE
+    ...						txn_return_code=1111
+    ...						available_qty=15000
+    ...						selected_qty=4000
+    ...						duration=30
+    ...						start_date=${tomorrow_formatted_yyyy_mm_dd}
+    ...						target_list_URL=http://host/campaign.com
+    ...						target_list_ID=wmx_segment_1375_20151204.txt.gz
+    ...						time_zone=GMT
+    ...						vertical=IAB2
+    ...						segment=IAB2-1
+    ...						billing_name=John Doe                                                 
+    ...						billing_address_line1=12345 Abcd Drive
+    ...						billing_address_line2=Suite 1
+    ...						billing_city=San Mateo
+    ...						billing_state=CA
+    ...						billing_zip=94041    
+    ...						billing_country=USA 
+    ...						billing_phone=408-123-4567
+    ...	   					billing_email=cpham@4info.com
+    ...						expected_response_code=${success_code}
+    ...                     timestamp_flag=1
+	SMB Validate Campaign Via DB				${campaign_id}
+	Set Test Variable    ${start_date}    ${tomorrow_formatted_yyyy_mm_dd}
+	SMB Validate Campaign Via API Call
+
+Create A New Creative With Reject In the Name
+	SMB Create Creative    ${SMB_DEFAULT_ADVERTISER}			smb_end2end_reject_creative				https://4info.pc.cdn.bitgravity.com/ad/banner/qa/11689/GMT.jpg   		http://www.google.com			320			50			${success_code}			1	
+   	Retrieve SMB Creative Information		${creative_id}
+
+Reject the Newly "Reject" creative Created Creative
+   	Reject Creative With Random Rejection Feedback 		${creative_id}
+   	Retrieve SMB Creative Information					${creative_id}
+    
+Attach Creative to Campaign Which Has Been Rejected
+	Log       Campaign ID: ${campaign_id}
+	Log       Creative ID: ${creative_id}
+	Retrieve SMB Creative Information		${creative_id}
+	Sleep     180s
+	Attach Creative To SMB Campaign		${campaign_id}		${creative_id}		${invalid_post_request_code}
+
+Validate Campaign Status is Still NEW Because Creative is Rejected
+	Retrieve Campaign Information		${campaign_id}	
+	${campaign_status}=         Get From Dictionary				${campaign_db_information}				rhino_campaign_status
+	Should Be Equal As Strings				${campaign_status}		-1
+	SMB Read Campaign        campaign_id=${campaign_id}       
+	Retrieve Element And Validate Value Match JSON      ${response_content}		/campaign/status		"NEW"
+	
+Create A New Creative Without Reject In the Name But Do Not Approve 
+	SMB Create Creative    ${SMB_DEFAULT_ADVERTISER}			smb_end2end_creative				https://4info.pc.cdn.bitgravity.com/ad/banner/qa/11689/GMT.jpg   		http://www.google.com			320			50			${success_code}			1	
+   	Retrieve SMB Creative Information		${creative_id}
+
+Attach Creative to Campaign Which Has Not Been Approved
+	Log       Campaign ID: ${campaign_id}
+	Log       Creative ID: ${creative_id}
+	Retrieve SMB Creative Information		${creative_id}
+	Sleep     180s
+	Attach Creative To SMB Campaign		${campaign_id}		${creative_id}		${invalid_post_request_code}
+	
+Validate Campaign Status is Still NEW Because Creative is Not Approved
+	Retrieve Campaign Information		${campaign_id}	
+	${campaign_status}=         Get From Dictionary				${campaign_db_information}				rhino_campaign_status
+	Should Be Equal As Strings				${campaign_status}		-1
+	SMB Read Campaign        campaign_id=${campaign_id}       
+	Retrieve Element And Validate Value Match JSON      ${response_content}		/campaign/status		"NEW"
+
+Approve the Newly Created Creative
+   	Approve SMB Creative 					${creative_id}
+   	Retrieve SMB Creative Information		${creative_id}
+
+Attach Approved Creative to Campaign 
+	Log       Campaign ID: ${campaign_id}
+	Log       Creative ID: ${creative_id}
+	Retrieve SMB Creative Information		${creative_id}
+	Sleep     180s
+	Attach Creative To SMB Campaign		${campaign_id}		${creative_id}		${success_code}
+
+QA Only - Simulate SMB List Attachment By Editing smb_list_status to 1
+	Update SMB List Status       ${campaign_id}
+	
+Make An SMB Campaign Update - Campaign Start Date And Time Zone
+    Log   Start Date: ${start_date}		
+    Log   Time Zone: ${time_zone}
+	Update SMB Campaign Start Date And Timezone			${campaign_id}		${start_date}		${time_zone}		
+	Retrieve Campaign Information		${campaign_id}
+
+Validate Campaign Status is PENDING
+	Retrieve Campaign Information		${campaign_id}	
+	${campaign_status}=         Get From Dictionary				${campaign_db_information}				rhino_campaign_status
+	Should Be Equal As Strings				${campaign_status}		1
+	SMB Read Campaign        campaign_id=${campaign_id}       
+	Retrieve Element And Validate Value Match JSON      ${response_content}		/campaign/status		"PENDING"
+
+QA Only - Added SMB Default Placement To Newly Created Campaign
+	Retrieve SMB Hierarchy Information By Campaign ID   ${campaign_id}	
+	Add Default SMB Placement To SMB Campaigns		${smb_child_adgroup_id}
+	Log    CampaignID:[${campaign_id}] Parent_AdgroupID:[${smb_parent_adgroup_id}] Child_AdgroupID:[${smb_child_adgroup_id}]		console=yes		
+	
+Delete the Campaign Created From Database
+	Remove AdGroup By BundleID				${smb_child_adgroup_id}
+	Remove AdGroup By BundleID				${smb_parent_adgroup_id}
+	Remove Campaign By CampaignID			${campaign_id}
+	

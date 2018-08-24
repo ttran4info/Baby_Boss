@@ -1,0 +1,33 @@
+
+
+*** Settings ***
+Resource            prizm_imports.txt
+Force Tags          ACE   QA    PRIZM    3.11   PRIZM_12_13_14_15_16		MEDIATION
+Test Template       Prizm Ad Serving Test
+Test Setup            Open Browser       ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+Test Teardown      Close All Browsers
+Documentation       Tests for Prizm Audience 
+...                 Prizm Targetting Set: 12,13,14,15,16
+...                 Ad Group:  CP_PRIZM_TEST_ADGROUP_1857
+...                 Ad Should Serve:  PRIZM 23
+...                 Sample Request:  http://qa-engine1:8080/ad-engine/ad-groups/getAd?api_key=96a3be339dc3269b&placement_id=1864&header_user-agent=iPhone&lat_lon=61.2041,-149.8396&response_type=markup
+...                 PRIZM SEGMENTS
+...                 12	Brite Lites, Li'l City
+...                 13	Upward Bound
+...                 14	New Empty Nests
+...                 15	Pools & Patios
+...                 16	Bohemian Mix
+*** Variables ***
+${default_engine}      ${DEFAULT_AUDIENCE_ENGINE}
+${image_name}          320x50_Prizm23.jpg
+${target_url}             ${DEFAULT_BROWSER_HOME}
+${page_title}             Google
+${placement_id}        ${PRIZM_07_PLACEMENTID}
+*** Test Cases ***
+#Test Case                                                                                                  																ENGINE                    		API_KEY                             			PLACEMENT_ID                    		LAT                    		LON                            		IMAGE NAME             	TARGET URL         PAGE TITLE        	EXPECT_ERROR
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 12 DMA 635                                                     								${default_engine}         96a3be339dc3269b                    ${placement_id}                      29.8747					    -97.9524                       	${image_name}          	${target_url}       	${page_title}         0                  
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 13 DMA 800                                                     								${default_engine}         96a3be339dc3269b                    ${placement_id}                      35.2536						-118.9114                      	${image_name}          	${target_url}     		${page_title}         0                  
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 14 DMA 512                                                     								${default_engine}         96a3be339dc3269b                    ${placement_id}                      38.9151						-76.4591                       	${image_name}          	${target_url}      	${page_title}         0                  
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 15 DMA 537                                                     								${default_engine}         96a3be339dc3269b                    ${placement_id}                      44.8097						-68.7507                       	${image_name}          	${target_url}     		${page_title}         0                  
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 16 DMA 866                                                     								${default_engine}         96a3be339dc3269b                    ${placement_id}                      36.7407 						-119.7195                      	${image_name}          	${target_url}        	${page_title}         0                  
+

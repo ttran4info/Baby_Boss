@@ -1,0 +1,1192 @@
+
+*** Settings ***
+Resource            ad_groups_and_targeting_imports.txt
+Force Tags          ADVERTISERS     TARGETING         UI        AD_GROUP_SAVE      BATCH5    EXCLUDE
+Suite Setup           Run Keywords                      Start the Browser And Login To The Adhaven UI          Verify Default Page Information
+Suite Teardown        Run Keywords                      Logout of AdHaven UI            Close All Browsers
+
+
+*** Variables ***
+${ADGROUP}                                     GENERIC_MOBILE_ADGROUP
+#${ADGROUP}									   [PARENT] GENERIC_MOBILE_ADGROUP
+${CAMPAIGN}                                    CP_Campaign
+${ADVERTISER}                                  ${DEFAULT_ADVERTISER}
+
+*** Keywords ***
+Go To Test Adgroup
+#         Go To Existing Adgroup       advertiser_name=${ADVERTISER}          campaign_name=${CAMPAIGN}       ag_adgroup_name=${ADGROUP}
+		 Go To Existing Campaign 6.0			 advertiser_name=${ADVERTISER}          campaign_name=${CAMPAIGN} 
+         Click Link       CHILD_MOBILE_GENERIC_111
+         Sleep     2s
+         Run Keyword And Ignore Error                   Confirm Action
+         Sleep     3s
+
+         
+Additional Validation For Deadlock Issue
+          Sleep    2s 
+          Page Should Contain                   Advertisers
+      	  Page Should Contain Link 			${ADGROUP}  				
+          Capture Page Screenshot With Timestamp  
+
+*** Test Cases ***
+Clear Out All Targetting For Mobile Adgroup
+          Go To Test Adgroup
+          Disable All Targetting But Placement For Mobile Adgroup
+          Click Element                           ${AG_SAVE_BUTTON}
+          Additional Validation For Deadlock Issue
+
+          
+Validate Number of Targeting Options For Existing Mobile Adgroup
+         Go To Test Adgroup
+         ${targeting_options}=         Get Matching Xpath Count           //ul[@id='targeting']/li
+         Log      Total Targeting Options: ${targeting_options}     
+         #Element Should Not Be Visible          ${AG_TARGETING_APPNEXUS_OS_CHECKBOX}
+         #Element Should Not Be Visible          ${AG_TARGETING_APPNEXUS_BROWSER_CHECKBOX}         
+         Element Should Be Disabled				${AG_TARGETING_APPNEXUS_OS_CHECKBOX}
+         Element Should Be Disabled				${AG_TARGETING_APPNEXUS_BROWSER_CHECKBOX}
+         Page Should Contain Checkbox      		${AG_TARGETING_LOCATION_TYPE_CHECKBOX}
+#         Element Should Not Be Visible          ${AG_TARGETING_COOKIE_CHECKBOX} 
+         Should Be Equal      ${targeting_options}        22
+         # Release 6.3 23 with the addition of location (at home/away/etc)
+         # Release 6.16 removal of 5 targeting options https://jira.adhaven.com/browse/ADH-5918    
+         [Tags]              BUILD_SANITY 	
+	
+
+Validate Targeting Options For Existing Mobile Adgroup
+         Go To Test Adgroup
+         Page Should Contain Checkbox      ${AG_TRAFFIC_TYPE_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_CATEGORY_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_PLACEMENT_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_DAYOFWEEK_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_TIMEOFDAY_CHECKBOX} 
+#         Page Should Contain Checkbox      ${AG_TARGETING_STATE_CHECKBOX} 
+         Page Should Contain Checkbox      ${AG_TARGETING_COUNTRY_CHECKBOX}
+#         Page Should Contain Checkbox      ${AG_TARGETING_DMA_CHECKBOX} 
+		 Page Should Contain Checkbox      ${AG_TARGETING_REQUEST_STATE_CHECKBOX}
+		 Page Should Contain Checkbox      ${AG_TARGETING_REQUEST_DMA_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_ZIP_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_HH_STATE_CHECKBOX}
+		 Page Should Contain Checkbox      ${AG_TARGETING_HH_DMA_CHECKBOX} 
+		 Page Should Contain Checkbox      ${AG_TARGETING_HH_ZIP_CHECKBOX} 
+		 
+#         Page Should Not Contain Checkbox      ${AG_TARGETING_CONNECTION_TYPE_CHECKBOX} 
+         Page Should Contain Checkbox      ${AG_TARGETING_CARRIER_CHECKBOX}
+#         Page Should Not Contain Checkbox      ${AG_TARGETING_GENDER_CHECKBOX}
+#         Page Should Not Contain Checkbox      ${AG_TARGETING_AGE_RANGE_CHECKBOX}
+#         Page Should Not Contain Checkbox      ${AG_TARGETING_INCOME_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_DEVICEOS_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_DEVICETYPE_CHECKBOX}
+#         Page Should Not Contain Checkbox      ${AG_TARGETING_DEVICEID_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_DEVICEMFG_CHECKBOX}
+#         Page Should Contain Checkbox      ${AG_TARGETING_AUDIENCE_CHECKBOX}
+#         Page Should Contain Checkbox      ${AG_TARGETING_GEOFENCE_CHECKBOX}
+         Page Should Contain Checkbox 		${AG_TARGETING_APPNEXUS_OS_CHECKBOX}
+         Page Should Contain Checkbox 		${AG_TARGETING_APPNEXUS_BROWSER_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_LOCATION_TYPE_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_LANGUAGE_CHECKBOX}
+         Click Button      ${AG_CANCEL_BUTTON}
+         Additional Validation For Deadlock Issue
+         [Tags]              BUILD_SANITY     	       
+
+#Clicking on that + button to ad new child adgroup to the parent ad (20601)
+Validate Targeting Options For New Mobile Adgroup
+        Go To Existing Campaign 6.0			 advertiser_name=${ADVERTISER}          campaign_name=${CAMPAIGN} 
+#         Click Link             ${CREATE_ADGROUP_LINK_TOP_6_0} 
+		 #Click Link 			//a[@href='adGroupsAddEditNew.html?partnerId=183&campaignId=2290&adGroupBundleId=20601&pageMode=add&agLevel=child']
+         Click Element 			//tr[@id='tr20601']/td[2]/ul/li/i
+         Sleep    5s
+         Click Element			${AG_ONLINE_MOBILE_RADIO_MOBILE}
+         Page Should Contain Checkbox      ${AG_TRAFFIC_TYPE_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_CATEGORY_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_PLACEMENT_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_DAYOFWEEK_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_TIMEOFDAY_CHECKBOX} 
+         Page Should Contain Checkbox      ${AG_TARGETING_COUNTRY_CHECKBOX}
+		 Page Should Contain Checkbox      ${AG_TARGETING_REQUEST_STATE_CHECKBOX}
+		 Page Should Contain Checkbox      ${AG_TARGETING_REQUEST_DMA_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_ZIP_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_HH_STATE_CHECKBOX}
+		 Page Should Contain Checkbox      ${AG_TARGETING_HH_DMA_CHECKBOX} 
+		 Page Should Contain Checkbox      ${AG_TARGETING_HH_ZIP_CHECKBOX} 
+         Page Should Contain Checkbox      ${AG_TARGETING_CARRIER_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_DEVICEOS_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_DEVICETYPE_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_DEVICEMFG_CHECKBOX}
+         Page Should Contain Checkbox 		${AG_TARGETING_APPNEXUS_OS_CHECKBOX}
+         Page Should Contain Checkbox 		${AG_TARGETING_APPNEXUS_BROWSER_CHECKBOX}
+         Element Should Be Disabled				${AG_TARGETING_APPNEXUS_OS_CHECKBOX}
+         Element Should Be Disabled				${AG_TARGETING_APPNEXUS_BROWSER_CHECKBOX}         
+         Page Should Contain Checkbox      ${AG_TARGETING_LOCATION_TYPE_CHECKBOX}
+         Page Should Contain Checkbox      ${AG_TARGETING_LANGUAGE_CHECKBOX}
+         Click Button      ${AG_CANCEL_BUTTON}
+         Additional Validation For Deadlock Issue
+         [Tags]              BUILD_SANITY 		   
+         
+
+Validate Adgroup Targeting Traffic Type For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetTrafficType
+        ${checkbox}=                 Set Variable           ${AG_TRAFFIC_TYPE_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${AG_TRAFFIC_TYPE_CHECKBOX}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${AG_TRAFFIC_TYPE_CHECKBOX}
+        #Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             App
+        #Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             Mobile Web        
+        Element Should Be Enabled		id=chkTrafficType-3				#Mobile Web
+        Element Should Be Enabled		id=chkTrafficType-4				#App
+        Element Should Be Disabled		id=chkTrafficType-5				#Desktop
+        # Loop through and try saving each option and verifying
+        ${traffic_types_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Traffic Type Count: ${traffic_types_count}
+        Should Be Equal       ${traffic_types_count}     3
+        #since traffic type is now combine app/web/online, we are only using the first 2 for mobile
+        :FOR        ${index}      IN RANGE       1    ${traffic_types_count}
+        \            Enabled Checkbox ${AG_TRAFFIC_TYPE_CHECKBOX}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}        
+
+ 
+Validate Adgroup Targeting Category For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable            targetCategory
+        ${checkbox}=                 Set Variable           ${AG_TARGETING_CATEGORY_CHECKBOX} 
+        Page Should Contain Checkbox     ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${AG_TARGETING_CATEGORY_CHECKBOX} 
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${AG_TARGETING_CATEGORY_CHECKBOX} 
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label               African American
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label               Automotive
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label               Beauty and Health
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[4]/label               Business and Finance
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[5]/label               Dating
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[6]/label               Education
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[7]/label               Entertainment
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[8]/label               Family
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[9]/label               Fashion
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[10]/label             Food and Cooking
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[11]/label             Gaming
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[12]/label             Hispanic
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[13]/label             Music
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[14]/label             News
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[15]/label             Shopping
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[16]/label             Social Networking
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[17]/label             Spanish Language
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[18]/label             Sports
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[19]/label             Technology
+#        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[20]/label             Travel
+        Page Should Contain                                 African American
+        Page Should Contain                                Automotive
+        Page Should Contain                                Beauty and Health
+        Page Should Contain                                Business and Finance
+        Page Should Contain                                Dating
+        Page Should Contain                                Education
+        Page Should Contain                                Entertainment
+        Page Should Contain                                Family
+        Page Should Contain                                Fashion
+        Page Should Contain                              Food and Cooking
+        Page Should Contain                              Gaming
+        Page Should Contain                              Hispanic
+        Page Should Contain                              Music
+        Page Should Contain                              News
+        Page Should Contain                              Shopping
+        Page Should Contain                              Social Networking
+        Page Should Contain                              Spanish Language
+        Page Should Contain                              Sports
+        Page Should Contain                              Technology
+        Page Should Contain                              Travel
+        Page Should Contain                              Weather
+        Page Should Contain                              Home and Garden
+        Page Should Contain                              Environment
+        Page Should Contain                              Uncategorized
+        Page Should Contain                              Blocked
+ 
+        # Loop through and try saving each option and verifying
+        #${category_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        ${category_count}=         Get Matching Xpath Count           /html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[2]/div[5]/div[1]/ul/li
+        Log    Category Count: ${category_count}
+        Should Be Equal       ${category_count}     26
+        :FOR        ${index}      IN RANGE       1    3
+        \            Enabled Checkbox ${AG_TARGETING_CATEGORY_CHECKBOX} 
+        \            ${label_text}=             Get Text           xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[2]/div[5]/div[1]/ul/li[${index}]		
+       \            Log     Selection Text: ${label_text}
+        \            Click Element 							xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[2]/div[5]/div[1]/ul/li[${index}]/div[2]		
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+#        \            Validate Checkbox Enabled ${checkbox_element}
+        \            ${label_text_validate}=             Get Text           xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[2]/div[5]/div[2]/ul/li	
+		\			Should Be Equal As Strings			${label_text}		${label_text_validate}				
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Checkbox Should Not Be Selected 	${AG_TARGETING_CATEGORY_CHECKBOX}        
+
+	[Tags]	
+#Validate Adgroup Targeting Placements For Existing Mobile Adgroup
+#        Go To Existing Adgroup                 advertiser_name=04_TEST_ADVERTISER         campaign_name=${CAMPAIGN}       ag_adgroup_name=${ADGROUP}
+#        Page Should Contain Checkbox      ${AG_TARGETING_PLACEMENT_CHECKBOX}
+#        Validate Checkbox Enabled ${AG_TARGETING_PLACEMENT_CHECKBOX}
+#        Validate Checkbox Enabled ${AG_TARGETING_PLACEMENT_SELECT_CHECKBOX_ID}${DEFAULT_PLACEMENT}
+
+        
+
+Validate Adgroup Targeting Day of Week For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetDayofWeek
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_DAYOFWEEK_CHECKBOX} 
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             sun
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             mon
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label             tue
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[4]/label             wed
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[5]/label             thu
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[6]/label             fri
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[7]/label             sat        
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Day Of Week Count: ${type_count}
+        Should Be Equal       ${type_count}    7
+        :FOR        ${index}      IN RANGE       1    4
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}        
+
+
+Validate Adgroup Targeting Time of Day For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetTimeofDay
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_TIMEOFDAY_CHECKBOX} 
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Add Targeting Time Of Day             time_of_day_selection_from=7pm                   time_of_day_selection_to=1am               time_of_day_selection_timezone=Alaska
+        Capture Page Screenshot With Timestamp
+        Click Element                           ${AG_SAVE_BUTTON}
+        Additional Validation For Deadlock Issue
+        Go To Test Adgroup
+        Validate Targeting Time Of Day       time_of_day_selection_from=7pm                   time_of_day_selection_to=1am               time_of_day_selection_timezone=Alaska
+        Remove Targeting Time Of Day
+        Click Element                           ${AG_SAVE_BUTTON}
+        Additional Validation For Deadlock Issue
+        Go To Test Adgroup
+        Validate Checkbox Disabled ${checkbox}        
+
+
+Validate Adgroup Targeting State For Existing Mobile Adgroup - Old (Household State)
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable           targetHouseholdState
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_HH_STATE_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Set Test Variable						${xpath_household_state}				/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[10]/div[4]/div[1]/ul/li
+        Element Text Should Be                   xpath=${xpath_household_state}[1]             AL
+        Element Text Should Be                   xpath=${xpath_household_state}[5]             CA
+        Element Text Should Be                   xpath=${xpath_household_state}[10]           GA     
+        Element Text Should Be                   xpath=${xpath_household_state}[15]          IA   
+        Element Text Should Be                   xpath=${xpath_household_state}[20]           MD
+        Element Text Should Be                   xpath=${xpath_household_state}[25]          MO
+        Element Text Should Be                   xpath=${xpath_household_state}[30]           NJ
+        Element Text Should Be                   xpath=${xpath_household_state}[35]           OH
+        Element Text Should Be                   xpath=${xpath_household_state}[40]           SC
+        Element Text Should Be                   xpath=${xpath_household_state}[45]           VT
+        Element Text Should Be                   xpath=${xpath_household_state}[50]           WY
+        Element Text Should Be                   xpath=${xpath_household_state}[55]           NL
+        Element Text Should Be                   xpath=${xpath_household_state}[60]           PE
+        Element Text Should Be                   xpath=${xpath_household_state}[63]           YT      
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           ${xpath_household_state}
+        Log    State Count: ${type_count}
+        Should Be Equal       ${type_count}    63
+        #  Only looping through 5 states
+        :FOR        ${index}      IN RANGE       1    3
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           xpath=${xpath_household_state}[${index}]
+        \            Log     Selection Text: ${label_text}
+#        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+#        \            Enabled Checkbox ${checkbox_element}
+		\			Click Element									xpath=${xpath_household_state}[${index}]/div[2]	
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+#        \            Validate Checkbox Enabled ${checkbox_element}
+        \            ${label_text_validate}=             Get Text           xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[10]/div[4]/div[2]/ul/li
+        \            Capture Page Screenshot With Timestamp
+        \			 Should Be Equal As Strings			${label_text}		${label_text_validate}		
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}        
+	[Tags]	
+Validate Adgroup Targeting State For Existing Mobile Adgroup - New (Request State)
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable           targetRequestState
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_REQUEST_STATE_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[1]             AL
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[5]             CA
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[10]           GA     
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[15]          IA   
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[20]           MD
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[25]          MO
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[30]           NJ
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[35]           OH
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[40]           SC
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[45]           VT
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[50]           WY
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[55]           NL
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[60]           PE
+        Element Text Should Be                   xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[63]           YT      
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           /html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li
+        Log    State Count: ${type_count}
+        Should Be Equal       ${type_count}    63
+        #  Only looping through 5 states
+        :FOR        ${index}      IN RANGE       1    3
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[${index}]
+        \            Log     Selection Text: ${label_text}
+#        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+#        \            Enabled Checkbox ${checkbox_element}
+		\			Click Element									xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[1]/ul/li[${index}]/div[2]
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+#        \            Validate Checkbox Enabled ${checkbox_element}
+        \            ${label_text_validate}=             Get Text           xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[7]/div[4]/div[2]/ul/li
+        \			Should Be Equal As Strings			${label_text}		${label_text_validate}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}        
+  	[Tags]	      
+Validate Adgroup Targeting Country For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetCountry
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_COUNTRY_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             United States
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             Canada
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Country Count: ${type_count}
+        Should Be Equal       ${type_count}    4
+        :FOR        ${index}      IN RANGE       1    ${type_count}+1
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}        
+
+
+Validate Adgroup Targeting DMA For Existing Mobile Adgroup - Old (Household DMA)
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable           targetHouseholdDMA
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_HH_DMA_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Set Test Variable	${xpath_dma}		/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[11]/div[5]/div[1]/ul/li
+        Element Text Should Be                   xpath=${xpath_dma}[1]            Abilene-Sweetwater, TX (662)
+        Element Text Should Be                   xpath=${xpath_dma}[10]           Augusta-Aiken, GA-SC (520)
+        Element Text Should Be                   xpath=${xpath_dma}[20]           Binghamton, NY (502)
+        Element Text Should Be                   xpath=${xpath_dma}[30]          Cedar Rapids-Waterloo-Iowa City & Dubuque, IA (637)
+        Element Text Should Be                   xpath=${xpath_dma}[40]           Cincinnati, OH (515)
+        Element Text Should Be                   xpath=${xpath_dma}[50]           Dallas-Ft. Worth, TX (623)
+        Element Text Should Be                   xpath=${xpath_dma}[60]         Erie, PA (516)
+        Element Text Should Be                   xpath=${xpath_dma}[70]           Ft. Wayne, IN (509)
+        Element Text Should Be                   xpath=${xpath_dma}[80]           Greenwood-Greenville, MS (647)
+        Element Text Should Be                   xpath=${xpath_dma}[90]           Idaho Falls-Pocatello (Jackson), ID-WY (758)
+        Element Text Should Be                   xpath=${xpath_dma}[100]          Knoxville, TN (557)
+        Element Text Should Be                  xpath=${xpath_dma}[150]          Portland-Auburn, ME (500)
+        Element Text Should Be                   xpath=${xpath_dma}[200]          Wausau-Rhinelander, WI (705)
+        Element Text Should Be                   xpath=${xpath_dma}[210]         Zanesville, OH (596)
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           ${xpath_dma}
+        Log    DMA Count: ${type_count}
+        Should Be Equal       ${type_count}    210
+        #  Only looping through 5 states
+        :FOR        ${index}      IN RANGE       1    3
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           xpath=${xpath_dma}[${index}]
+        \            Log     Selection Text: ${label_text}
+#        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+		\			Click Element 				xpath=${xpath_dma}[${index}]/div[2]
+#        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+#        \            Validate Checkbox Enabled ${checkbox_element}
+        \            ${label_text_validate}=             Get Text           xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[11]/div[5]/div[2]/ul/li
+        \			Should Be Equal As Strings			${label_text}		${label_text_validate}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}        
+	[Tags]		
+Validate Adgroup Targeting DMA For Existing Mobile Adgroup - New (Request DMA)
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable           targetRequestDMA
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_REQUEST_DMA_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Set Test Variable	${xpath_dma}		/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[8]/div[5]/div[1]/ul/li
+        Element Text Should Be                   xpath=${xpath_dma}[1]            Abilene-Sweetwater, TX (662)
+        Element Text Should Be                   xpath=${xpath_dma}[10]           Augusta-Aiken, GA-SC (520)
+        Element Text Should Be                   xpath=${xpath_dma}[20]           Binghamton, NY (502)
+        Element Text Should Be                   xpath=${xpath_dma}[30]          Cedar Rapids-Waterloo-Iowa City & Dubuque, IA (637)
+        Element Text Should Be                   xpath=${xpath_dma}[40]           Cincinnati, OH (515)
+        Element Text Should Be                   xpath=${xpath_dma}[50]           Dallas-Ft. Worth, TX (623)
+        Element Text Should Be                   xpath=${xpath_dma}[60]         Erie, PA (516)
+        Element Text Should Be                   xpath=${xpath_dma}[70]           Ft. Wayne, IN (509)
+        Element Text Should Be                   xpath=${xpath_dma}[80]           Greenwood-Greenville, MS (647)
+        Element Text Should Be                   xpath=${xpath_dma}[90]           Idaho Falls-Pocatello (Jackson), ID-WY (758)
+        Element Text Should Be                   xpath=${xpath_dma}[100]          Knoxville, TN (557)
+        Element Text Should Be                  xpath=${xpath_dma}[150]          Portland-Auburn, ME (500)
+        Element Text Should Be                   xpath=${xpath_dma}[200]          Wausau-Rhinelander, WI (705)
+        Element Text Should Be                   xpath=${xpath_dma}[210]         Zanesville, OH (596)        
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           ${xpath_dma}
+        Log    DMA Count: ${type_count}
+        Should Be Equal       ${type_count}    210
+        #  Only looping through 5 states
+        :FOR        ${index}      IN RANGE       1    3
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           xpath=${xpath_dma}[${index}]
+        \            Log     Selection Text: ${label_text}
+#        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+		\			Click Element 				xpath=${xpath_dma}[${index}]/div[2]
+#        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+#        \            Validate Checkbox Enabled ${checkbox_element}
+        \            ${label_text_validate}=             Get Text           xpath=/html/body/div[1]/div/div[3]/div[4]/form/dl[2]/dd/ul/li[8]/div[5]/div[2]/ul/li
+        \			Should Be Equal As Strings			${label_text}		${label_text_validate}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}        
+	[Tags]		
+
+Validate Adgroup Targeting Zip For Existing Mobile Adgroup
+        Go To Test Adgroup
+        Run Keyword And Ignore Error                   Confirm Action
+        Sleep      5s
+        ${targetting_type}=        Set Variable          targetRequestZip
+        Add Targeting Zip 95111
+        Capture Page Screenshot With Timestamp
+        Click Element                           ${AG_SAVE_BUTTON}
+		Additional Validation For Deadlock Issue
+        Go To Test Adgroup
+        Sleep      10s
+        Run Keyword And Ignore Error                   Confirm Action
+        Validate Targeting Zip 95111
+        Capture Page Screenshot With Timestamp
+        Remove Targeting Zip
+        Capture Page Screenshot With Timestamp
+        Click Element                           ${AG_SAVE_BUTTON}
+        Additional Validation For Deadlock Issue
+        [Tags]       https://jira.adhaven.com/browse/ADH-4822
+        
+Validate Adgroup Targeting Zip For Existing Mobile Adgroup 2 Zipcodes
+        Go To Test Adgroup
+        Run Keyword And Ignore Error                   Confirm Action
+        Sleep    5s
+        ${targetting_type}=        Set Variable          targetRequestZip
+        Add Targeting Zip 95111,95112
+        Capture Page Screenshot With Timestamp
+        Click Element                           ${AG_SAVE_BUTTON}
+        Additional Validation For Deadlock Issue
+        Go To Test Adgroup
+        Sleep      10s
+        Run Keyword And Ignore Error                   Confirm Action
+        Validate Targeting Zip 95112
+        Validate Targeting Zip 95111
+        Capture Page Screenshot With Timestamp
+        Remove Targeting Zip
+        Capture Page Screenshot With Timestamp
+        Click Element                           ${AG_SAVE_BUTTON}
+        Additional Validation For Deadlock Issue
+        [Tags]       https://jira.adhaven.com/browse/ADH-4822        
+        
+Validate Adgroup Targeting Zip For Existing Mobile Adgroup Multiple Consecutive Commas
+        Go To Test Adgroup
+        Run Keyword And Ignore Error                   Confirm Action
+        ${targetting_type}=        Set Variable          targetRequestZip
+        Add Targeting Zip 95111,,95112
+        Capture Page Screenshot With Timestamp
+        Click Element                           ${AG_SAVE_BUTTON}
+        Additional Validation For Deadlock Issue
+        Go To Test Adgroup
+        Run Keyword And Ignore Error                   Confirm Action
+        Validate Targeting Zip 95112
+        Validate Targeting Zip 95111
+        Capture Page Screenshot With Timestamp
+        Remove Targeting Zip
+        Capture Page Screenshot With Timestamp
+        Click Element                           ${AG_SAVE_BUTTON}
+        Additional Validation For Deadlock Issue
+        [Tags]       https://jira.adhaven.com/browse/ADH-4822   		             
+
+Validate Adgroup Targeting Connection Type For Existing Mobile Adgroup
+        Go To Test Adgroup
+        Sleep      2s
+        Run Keyword And Ignore Error                   Confirm Action
+        Sleep       5s
+        ${targetting_type}=        Set Variable          targetConnectionType
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_CONNECTION_TYPE_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             WiFi
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             OTA
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Connection Type Count: ${type_count}
+        Should Be Equal       ${type_count}    2
+        :FOR        ${index}      IN RANGE       1    ${type_count}+1
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}      
+		[Tags]   Exclude    6.16
+
+Validate Adgroup Targeting Carrier For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetCarrier
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_CARRIER_CHECKBOX} 
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             AT&T
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             Verizon
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label             T-Mobile
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[4]/label             Sprint
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[5]/label             Other OTA Cellular
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[6]/label             MetroPCS
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Carrier Count: ${type_count}
+        Should Be Equal       ${type_count}    6
+        :FOR        ${index}      IN RANGE       1    4
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}      
+
+
+Validate Adgroup Targeting Gender For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetGender
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_GENDER_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             m
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             f
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Gender Count: ${type_count}
+        Should Be Equal       ${type_count}    2
+        :FOR        ${index}      IN RANGE       1    ${type_count}+1
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}        
+        [Tags]   Exclude    6.16
+
+Validate Adgroup Targeting Age Range For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable           targetAgeRange
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_AGE_RANGE_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             Use data from Zip-to-Demo
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             0-11
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label             12-17
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[4]/label             18-24
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[5]/label             25-34
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[6]/label             35-44
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[7]/label             45-54
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[8]/label             55+                                       
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Age Range Count: ${type_count}
+        Should Be Equal       ${type_count}    8
+        :FOR        ${index}      IN RANGE       2    5
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}      
+        [Tags]   Exclude    6.16
+
+Validate Adgroup Targeting Age Range For Existing Mobile Adgroup WIth Zip-to-Demo
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable           targetAgeRange
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_AGE_RANGE_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             Use data from Zip-to-Demo
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             0-11
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label             12-17
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[4]/label             18-24
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[5]/label             25-34
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[6]/label             35-44
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[7]/label             45-54
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[8]/label             55+                                       
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Age Range Count: ${type_count}
+        Should Be Equal       ${type_count}    8
+        :FOR        ${index}      IN RANGE       2    5
+        \            Enabled Checkbox ${checkbox}
+        \            ${z2d_checkbox}=         Set Variable       //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/input
+        \            ${label_text}=             Get Text              //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Enabled Checkbox ${z2d_checkbox}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Validate Checkbox Enabled ${z2d_checkbox}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}      
+        [Tags]      https://jira.adhaven.com/browse/ADH-4813       Exclude    6.16
+
+Validate Adgroup Targeting Income For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable           targetIncome
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_INCOME_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             Use data from Zip-to-Demo
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             0k-15k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label             15k-25k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[4]/label             25k-35k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[5]/label             35k-50k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[6]/label             50k-75k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[7]/label             75k-100k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[8]/label             100k-125k                            
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[9]/label             125k-150k  
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[10]/label             150k-200k  
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[11]/label             200k+       
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Income Count: ${type_count}
+        Should Be Equal       ${type_count}    11
+        :FOR        ${index}      IN RANGE       2    4
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}      
+		[Tags]   Exclude    6.16
+
+Validate Adgroup Targeting Income For Existing Mobile Adgroup With Zip-to-Demo
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable           targetIncome
+        ${checkbox}=                 Set Variable          ${AG_TARGETING_INCOME_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             Use data from Zip-to-Demo
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             0k-15k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label             15k-25k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[4]/label             25k-35k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[5]/label             35k-50k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[6]/label             50k-75k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[7]/label             75k-100k
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[8]/label             100k-125k                            
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[9]/label             125k-150k  
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[10]/label             150k-200k  
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[11]/label             200k+       
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Income Count: ${type_count}
+        Should Be Equal       ${type_count}    11
+        :FOR        ${index}      IN RANGE       2    5
+        \            Enabled Checkbox ${checkbox}
+        \            ${z2d_checkbox}=               Set Variable           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/input
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Enabled Checkbox ${z2d_checkbox}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Validate Checkbox Enabled ${z2d_checkbox}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}      
+        [Tags]      https://jira.adhaven.com/browse/ADH-4813	Exclude    6.16
+
+
+Validate Adgroup Targeting Device OS For Existing Mobile Adgroup
+        Go To Test Adgroup
+        Add Targeting Device OS 3
+        Select From List                             //ul[@id='targeting']/li[@id='targetDeviceOS']/ul/table/tbody/tr[2]/td[2]/select[@id='deviceOsVersionId']     3.2
+        Capture Page Screenshot With Timestamp
+        Click Element                           ${AG_SAVE_BUTTON}
+        Additional Validation For Deadlock Issue
+        Go To Test Adgroup
+        Validate Targeting Device OS 3
+  	    Capture Page Screenshot With Timestamp
+        Remove Targeting Device OS
+        Click Element                           ${AG_SAVE_BUTTON}
+        Additional Validation For Deadlock Issue
+        Go To Test Adgroup
+        Validate Checkbox Disabled ${AG_TARGETING_DEVICEOS_CHECKBOX}
+        
+
+Validate Adgroup Targeting Device Type For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetDeviceType
+        ${checkbox}=                 Set Variable         ${AG_TARGETING_DEVICETYPE_CHECKBOX} 
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             phone
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             tablet
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label             others
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Device Type Count: ${type_count}
+        Should Be Equal       ${type_count}    3
+        :FOR        ${index}      IN RANGE        1    ${type_count}+1
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}        
+
+
+Validate Adgroup Targeting Device ID For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetDeviceID
+        ${checkbox}=                 Set Variable         ${AG_TARGETING_DEVICEID_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             Unhashed Device ID required
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             UDID
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label             IMEI
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[4]/label             Android ID
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[5]/label             Other
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[6]/label             Mac Address   
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Device ID Count: ${type_count}
+        Should Be Equal       ${type_count}    6
+        :FOR        ${index}      IN RANGE        2    5
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}    
+        [Tags]   Exclude    6.16
+        
+Validate Adgroup Targeting Device ID For Existing Mobile Adgroup With Unhash
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetDeviceID
+        ${checkbox}=                 Set Variable         ${AG_TARGETING_DEVICEID_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             Unhashed Device ID required
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             UDID
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label             IMEI
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[4]/label             Android ID
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[5]/label             Other
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[6]/label             Mac Address   
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Device ID Count: ${type_count}
+        Should Be Equal       ${type_count}    6
+        :FOR        ${index}      IN RANGE        2    5
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=                           Get Text                 //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            ${unhash_checkbox}=               Set Variable           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/input
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=             Set Variable             //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}  
+        [Tags]   Exclude    6.16          
+
+Validate Adgroup Targeting Device Manufacturer For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetDeviceManufacturer
+        ${checkbox}=                 Set Variable         ${AG_TARGETING_DEVICEMFG_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Sleep     10s
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label             Access
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label             Acer
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[14]/label           Apple
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[237]/label         ZTE
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Device Mfg Count: ${type_count}
+        Should Be Equal       ${type_count}    237
+        :FOR        ${index}      IN RANGE        1    3
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			  Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}  
+        [Tags]                 https://jira.adhaven.com/browse/ADH-4797         https://jira.adhaven.com/browse/ADH-4798	
+
+Validate Adgroup Targeting Household Segment For Existing Mobile Adgroup
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetAudience
+        ${checkbox}=                 Set Variable         ${AG_TARGETING_AUDIENCE_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Page Should Contain List           ${AG_TARGETING_AUDIENCE_SELECT}
+        Page Should Contain Link          ${AG_TARGETING_AUDIENCE_DETAILS_TEXT}           
+        ${audience_list}=            Get List Items           ${AG_TARGETING_AUDIENCE_SELECT}
+        Log      Audience List: ${audience_list}
+        List Should Contain Value            ${audience_list}        103_carBuyer
+        List Should Contain Value            ${audience_list}        AA_PRIZM_02_06
+        List Should Contain Value            ${audience_list}        Zyrtec NCS/HH revised
+        :FOR        ${index}            IN RANGE            1    3
+        \            Enabled Checkbox ${checkbox}
+        \            ${temp_selection}=               Get From List        ${audience_list}         ${index}
+        \            Log     Audience Selection To Test: ${temp_selection}
+        \            Add Targeting Audience ${temp_selection}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            List Selection Should Be            ${AG_TARGETING_AUDIENCE_SELECT}          ${temp_selection}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}  
+		[Tags]      EXCLUDE 
+		# Exclude for now and move to Parent Adgroup Test
+		
+Validate Adgroup Targeting Location Type For Existing Mobile Adgroup 
+        Go To Test Adgroup
+        ${targetting_type}=        Set Variable          targetLocationType
+        ${checkbox}=                 Set Variable         ${AG_TARGETING_LOCATION_TYPE_CHECKBOX}
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label               Undetermined
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label               Away
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[3]/label               Home
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Location Type Count: ${type_count}
+        Should Be Equal       ${type_count}    3
+        :FOR        ${index}      IN RANGE       1    ${type_count}+1
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}         
+
+Validate Adgroup Targeting Language For Existing Mobile Adgroup 
+        Go To Test Adgroup
+        ${targetting_type}=        	Set Variable          targetLanguage
+        ${checkbox}=                Set Variable          ${AG_TARGETING_LANGUAGE_CHECKBOX} 
+        Page Should Contain Checkbox      ${checkbox}
+        # Ensure that we always start off with the selection being disabled regardless of what it was set to
+        Disabled Checkbox ${checkbox}
+        Capture Page Screenshot With Timestamp
+        # Start test by enabling it and validating the options
+        Enabled Checkbox ${checkbox}
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[1]/label               English
+        Element Text Should Be                   //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[2]/label               Spanish
+
+        # Loop through and try saving each option and verifying
+        ${type_count}=         Get Matching Xpath Count           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li
+        Log    Language Count: ${type_count}
+        Should Be Equal       ${type_count}    2
+        :FOR        ${index}      IN RANGE       1    ${type_count}+1
+        \            Enabled Checkbox ${checkbox}
+        \            ${label_text}=             Get Text           //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/label
+        \            Log     Selection Text: ${label_text}
+        \            ${checkbox_element}=        Set Variable          //ul[@id='targeting']/li[@id='${targetting_type}']/ul/li[${index}]/input
+        \            Enabled Checkbox ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Enabled ${checkbox_element}
+        \            Capture Page Screenshot With Timestamp
+        \            Disabled Checkbox ${checkbox}
+        \            Click Element                           ${AG_SAVE_BUTTON}
+        \			 Additional Validation For Deadlock Issue
+        \            Go To Test Adgroup
+        \            Validate Checkbox Disabled ${checkbox}       
+
+#Validate Adgroup Targeting Geofence For Existing Mobile Adgroup
+#        NOT FOR MOBILE
+
+Clean Up All Targetting For Mobile Adgroup
+          Go To Test Adgroup
+          Disable All Targetting But Placement For Mobile Adgroup
+          Click Element                           ${AG_SAVE_BUTTON}
+          Additional Validation For Deadlock Issue
+
+
+
+

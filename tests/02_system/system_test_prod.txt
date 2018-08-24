@@ -1,0 +1,24 @@
+
+
+*** Settings ***
+Resource            system_imports.txt
+Force Tags          SSH_TEST     PROD_SANITY    EXCLUDE
+#qa-rtb-10 is 10.18.8.8	
+Suite Setup         Run Keyword If		'${ENVIRONMENT}'=='PROD'  SSH Login As Valid User Using Jenkins Key    rtb204
+Suite Teardown      Close All Connections
+*** Variables ***
+${jboss}	/usr/java/jboss-as-7.1.1.Final
+#${jboss}	/usr/java/jboss-5.1.0.GA
+#${jboss}	/usr/java/jboss
+
+*** Test Cases ***
+Validate Event Engine JBoss Status Is Running
+     ${output}    Execute Command   sudo service jboss status
+     Log   ${output}  
+     Should Match Regexp    ${output}    is running          
+
+SSH Into rtb204 And Retrieve Last 10 Lines Available For Requests, Segment Match, Segment No Match Logs
+     ${output}    Execute Command    tail /usr/java/jboss/standalone/log/requests/requests.v11.log ${LOG_PATH}/segments/loc_segments_match.log /usr/java/jboss/standalone/log/segments/loc_segments_no_match.log -n 10
+     Log   ${output}
+
+     

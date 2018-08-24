@@ -1,0 +1,41 @@
+
+
+*** Settings ***
+Resource            mysql_imports.txt
+Force Tags          DATABASE    4.10     QA_ONLY      EXCLUDE    BATCH1
+Suite Setup         Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+Suite Teardown      Disconnect From Database
+*** Variables ***
+
+*** Test Cases ***
+
+    
+Validate Table dw.agg_daily_household_dashboard_detail Exists        
+        @{query_results}     Query    desc dw.agg_daily_household_dashboard_detail;
+        Log Many     @{query_results}
+        Length Should Be      ${query_results}     6
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+         [TAGS]      ADH-3764   ADH-3765     QA_ONLY
+
+Validate Table dw.adgroup_budgeted_revenue Contains New Column adgroup_budgeted_revenue        
+        @{query_results}     Query    desc dw.adgroup_budgeted_revenue;
+        Log Many     @{query_results}
+        Length Should Be      ${query_results}     6
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[5][0]}'               raw_revenue
+         [TAGS]      ADH-3764   ADH-3765        QA_ONLY
+         
+Validate Table rhino.batch_tracker_daily ROLLUP_TYPE Column Is Updated to varchar(100)   
+        @{query_results}     Query    desc rhino.batch_tracker_daily;
+        Log Many     @{query_results}
+        Length Should Be      ${query_results}     13
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[1][0]}'               ROLLUP_TYPE
+        Should Match Regexp              '${queryResults[1][1]}'               varchar
+        Should Match Regexp              '${queryResults[1][1]}'               100
+        [TAGS]    QA_ONLY
+         
+         

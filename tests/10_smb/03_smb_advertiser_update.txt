@@ -1,0 +1,65 @@
+
+*** Settings ***
+Resource         smb_imports.txt
+Resource         smb_templates.txt
+Force Tags          SMB    QA_ONLY    BATCH6      SMB_ADVERTISER      SMB_UPDATE			EXCLUDE
+Test Template           TEMPLATE Update Advertiser And Validate
+Suite Setup				 Cleanup SMB Test Advertisers
+Suite Teardown          Cleanup SMB Test Advertisers
+Test Teardown           Close All Browsers
+*** Variables ***
+${invalid_post_request_code}         400
+${success_code}							 200
+
+*** Test Cases ***
+#     Test Description                  																										AUTH																							ADVERTISER_ID													ADVERTISER_EXTERNAL_ID				ADVERTISER_NAME									CONTACT_NAME				ADDRESS1				ADDRESS2				CITY						STATE			ZIP				COUNTRY			PHONE						EMAIL								CODE 																				
+
+Update Advertiser Name SMB_AUTOMATED With Wrong AUTH Should Give 401 			      				abcd123456            																		${SMB_DEFAULT_ADVERTISER_UPDATE} 			12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			401																							
+Update Advertiser Name SMB_AUTOMATED With Wrong Password Should Give 401				   		    Basic Y3BoYW1ANGluZm8uY29tOjEyMzQ=           							${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			401																								
+		[Tags]  							https://jira.adhaven.com/browse/ADH-4894
+Update Advertiser Name SMB_AUTOMATED With Wrong Username Should Give 401				    			Basic c21iX3VzZXIxQDRpbmZvLmNvbTp0ZXN0MTIzNA==            ${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			401																								
+		[Tags]  							https://jira.adhaven.com/browse/ADH-4894
+Update Advertiser Name SMB_AUTOMATED Without Username Should Give 401				    				Basic OnRlc3QxMjM0														            ${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			401																										
+Update Advertiser Name SMB_AUTOMATED Without Password Should Give 401				    					Basic c21iX3VzZXJANGluZm8uY29tOg==								        ${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			401																								
+Update Advertiser Name SMB_AUTOMATED Without Username/Password Should Give 401				Basic Og==								        												${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			401																										
+
+Update Advertiser Name to SMB_TEST_ADVERTISER_UPDATE1															${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE1				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+Update Advertiser All Fields Should Work																							${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				54321   		 									SMB_TEST_ADVERTISER_UPDATE2				Automation TesterA			123 Def Dr.			Address2				San Francisco		CA				95400			CAN					123-123-4567			robot@4info.com				${success_code}																					   
+Update Advertiser All Fields With Address2 blank Should Work															${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE3				Automation Tester			123 Abc Dr.			${EMPTY}				San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+Update Advertiser All Fields With Address2 NULL Should Work															${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE4				Automation Tester			123 Abc Dr.			NULL						San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+
+Update Advertiser Name to 5.13SMB Should Work																				${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									5.13SMB													Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+Update Advertiser Name to 5.13/SMB Should Work																			${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									5.13/SMB													Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+Update Advertiser Name to 5.13\SMB Should Work																			${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									5.13\SMB													Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+Update Advertiser Name to 5.13$SMB Should Work																			${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									5.13$SMB													Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+Update Advertiser Name to 5.13@SMB Should Work																			${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									5.13@SMB													Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+Update Advertiser Name to NULL Should Give Error																			${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									NULL															Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${invalid_post_request_code}																					   
+Update Advertiser Name to lowercase null Should Give Error																${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									null															Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${invalid_post_request_code}																					   
+Update Advertiser Name to mix case Null Should Give Error																${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									null															Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${invalid_post_request_code}																					   
+
+Update Advertiser Contact Name With #																							${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE5				Chieu#Pham						123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+Update Advertiser Contact Name With //																							${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE6				Chieu//Pham					123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+
+# Mandatory fields
+Update Advertiser Name to blank Should Give Error 																			${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									${EMPTY}													Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${invalid_post_request_code} 																					   
+Update Advertiser Advertiser_ext_id to blank Should Give Error															${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				${EMPTY}   		 								SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${invalid_post_request_code}																					   
+		[Tags] 			https://jira.adhaven.com/browse/ADH-4962
+Update Advertiser Contact Name to blank Should Give Error 																${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				${EMPTY}							123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${invalid_post_request_code} 																					   
+Update Advertiser Contact Address1 to blank Should Give Error														${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			${EMPTY}				Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${invalid_post_request_code} 																					   
+Update Advertiser Contact Address2 to blank Should Be Okay															${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			${EMPTY}				San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																		   
+Update Advertiser Contact City to blank Should Give Error																	${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					${EMPTY}				CA				95401			USA					408-123-4567			cpham@4info.com			${invalid_post_request_code} 
+Update Advertiser Contact State to blank Should Give Error																${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				${EMPTY}		95401			USA					408-123-4567			cpham@4info.com			${invalid_post_request_code} 
+Update Advertiser Contact Zip to blank Should Give Error																	${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				${EMPTY}		USA					408-123-4567			cpham@4info.com			${invalid_post_request_code} 
+Update Advertiser Contact County to blank Should Give Error															${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			${EMPTY}			408-123-4567			cpham@4info.com			${invalid_post_request_code} 
+Update Advertiser Contact Phone to blank Should Be Okay																${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					${EMPTY}					cpham@4info.com			${success_code} 
+Update Advertiser Contact Email to blank Should Give Error																${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			${EMPTY}							${invalid_post_request_code} 
+															   
+
+
+Update Advertiser Contact Email Without At (Invalid Email) Should Give Error																		${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE7				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham4info.com			    ${invalid_post_request_code}																					   
+
+#Update Advertiser With A Name That Already Exist Should Be Okay													${SMB_AUTH}           																		12345   		 									SMB_DO_NOT_REMOVE				Automation Tester1			123 Abc Dr.			Addy2					San Mateo			CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+
+
+Reset Default Advertiser SMB_TEST_ADVERTISER_UPDATE 																	${SMB_AUTH}           																		${SMB_DEFAULT_ADVERTISER_UPDATE}				12345   		 									SMB_TEST_ADVERTISER_UPDATE				Automation Tester			123 Abc Dr.			Addy2					San Mateo				CA				95401			USA					408-123-4567			cpham@4info.com			${success_code}																					   
+

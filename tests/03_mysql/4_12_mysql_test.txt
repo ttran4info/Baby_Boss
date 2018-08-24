@@ -1,0 +1,139 @@
+
+
+*** Settings ***
+Resource            mysql_imports.txt
+Force Tags          DATABASE    4.12     QA_ONLY      EXCLUDE    BATCH1
+Suite Setup         Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+Suite Teardown      Disconnect From Database
+
+*** Variables ***
+
+*** Test Cases ***
+
+Validate Table rhino.ad_group freq_cap_daily_units Column Is Added As int(11)   
+        @{query_results}     Query    desc rhino.ad_group;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[55][0]}'               freq_cap_daily_units
+        Should Match Regexp              '${queryResults[55][1]}'               int
+        Should Match Regexp              '${queryResults[55][1]}'               11
+        [DOCUMENTATION]        https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/01_alter_adgroup_new_frequency_cap.sql
+
+
+Validate Table rhino.ad_group freq_cap_overall_units Column Is Added As int(11)   
+        @{query_results}     Query    desc rhino.ad_group;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[56][0]}'               freq_cap_overall_units
+        Should Match Regexp              '${queryResults[56][1]}'               int
+        Should Match Regexp              '${queryResults[56][1]}'               11
+         [DOCUMENTATION]        https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/01_alter_adgroup_new_frequency_cap.sql
+
+
+Validate Table dw.agg_hourly_detail TOTAL_REVENUE_RTB_CLIENT Column Is Added As DOUBLE
+       [DOCUMENTATION]     https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/02_alter_agg_hourly_detail_jira3893.sql
+       @{query_results}     Query    desc dw.agg_hourly_detail;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[23][0]}'               TOTAL_REVENUE_RTB_CLIENT
+        Should Match Regexp              '${queryResults[23][1]}'               double
+
+Validate Table rhino.users Has first_name Columns Added As Varchar(100)
+       [DOCUMENTATION]     https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/03_alter_users_table.sql
+       @{query_results}     Query    desc rhino.users;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[4][0]}'               first_name
+        Should Match Regexp              '${queryResults[4][1]}'               varchar
+        Should Match Regexp              '${queryResults[4][1]}'               100
+
+Validate Table rhino.users Has last_name Columns Added As Varchar(100)
+       [DOCUMENTATION]     https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/03_alter_users_table.sql
+       @{query_results}     Query    desc rhino.users;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[5][0]}'               last_name
+        Should Match Regexp              '${queryResults[5][1]}'               varchar
+        Should Match Regexp              '${queryResults[5][1]}'               100
+
+Validate Table rhino.users Has reset_request_date Columns Added As Varchar(20)
+       [DOCUMENTATION]     https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/03_alter_users_table.sql
+       ...                 4.13 Updates changes datetime to varchar 20.
+       @{query_results}     Query    desc rhino.users;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[6][0]}'               reset_request_date
+        Should Match Regexp              '${queryResults[6][1]}'               varchar
+        Should Match Regexp              '${queryResults[6][1]}'               20
+        [TAGS]     4.13
+        
+Validate Table rhino.users Has reset_done Columns Added As Tinyint(1)
+       [DOCUMENTATION]     https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/03_alter_users_table.sql
+       @{query_results}     Query    desc rhino.users;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[7][0]}'               reset_done
+        Should Match Regexp              '${queryResults[7][1]}'               tinyint
+        Should Match Regexp              '${queryResults[7][1]}'               1
+        
+Validate Table rhino.users Has last_modified_by Columns Added As Varchar(100)
+       [DOCUMENTATION]     https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/03_alter_users_table.sql
+       @{query_results}     Query    desc rhino.users;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[8][0]}'               last_modified_by
+        Should Match Regexp              '${queryResults[8][1]}'               varchar
+        Should Match Regexp              '${queryResults[8][1]}'               100
+        
+Validate Table rhino.users Has last_modified_date Columns Added As Datetime
+       [DOCUMENTATION]     https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/03_alter_users_table.sql
+       @{query_results}     Query    desc rhino.users;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[9][0]}'               last_modified_date
+        Should Match Regexp              '${queryResults[9][1]}'               datetime
+        
+        
+Validate Table rhino.users Has password Columns Changed To Varchar(100)
+       [DOCUMENTATION]     https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/03_alter_users_table.sql
+       @{query_results}     Query    desc rhino.users;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[1][0]}'               password
+        Should Match Regexp              '${queryResults[1][1]}'               varchar
+        Should Match Regexp              '${queryResults[1][1]}'              100
+         
+Validate Table rhino.users Has enabled Columns Changed To Binary(1)
+       [DOCUMENTATION]     https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/03_alter_users_table.sql
+       @{query_results}     Query    desc rhino.users;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[2][0]}'               enabled
+        Should Match Regexp              '${queryResults[2][1]}'               binary
+        Should Match Regexp              '${queryResults[2][1]}'               1
+         
+Validate Table rhino.users Has authority Columns Changed To Varchar(100)
+       [DOCUMENTATION]     https://svn.4info.com/svn/fourinfo/branches/rhino/4.12/sql/4.12/03_alter_users_table.sql
+       @{query_results}     Query    desc rhino.users;
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[3][0]}'               authority
+        Should Match Regexp              '${queryResults[3][1]}'               varchar
+        Should Match Regexp              '${queryResults[3][1]}'               100
+        
+        
+        
+        
+        

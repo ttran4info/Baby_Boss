@@ -1,0 +1,11 @@
+*** Settings ***
+Library    	    RequestsLibrary
+Library    	    Collections
+Library         String
+Library         adhaven_helper
+Library         Selenium2Library
+Resource      file_operations.txt
+Resource      common_config.txt
+Resource   	utilities_xml.txt
+Resource      rtb.txt
+Resource      log_reader.txt

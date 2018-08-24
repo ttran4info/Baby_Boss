@@ -1,0 +1,27 @@
+
+*** Settings ***
+Resource    smb_imports.txt
+Force Tags          SMB    BUILD_SANITY       QA_ONLY    BATCH6      SMB_READ    SMB_CREATIVE     	EXCLUDE
+
+
+*** Test Cases ***
+
+# Creatives	
+Retrieve Information For Creative - 97 meathouse
+		SMB Header Setup
+		SMB Read Creative    		97 		200
+		Validate SMB Creative				creative_id=97			advertiser_id=473          creative_name=meathouse		
+		...												creative_url=https://www.myacxiompartner.com/InfoServerImages/201407151447104036-MeatHouse_v1.jpg			
+		...												creative_destination_url= http://www.targetlanding.com/the-meat-house/20140707/	
+		...												creative_width=320			creative_height=50				creative_status=APPROVED	
+		[Tags]				SMB_CREATIVE			
+				
+		
+List All Creatives For Advertiser SMB_DO_NOT_DELETE 		
+		SMB Header Setup
+		List All Creatives For Advertiser   		615
+		Should Match Regexp 		${response_content} 		\\"id\\":172
+		Should Match Regexp 		${response_content} 		\\"status\\":\\"APPROVED\\"
+		Retrieve Element And Validate Value Match JSON			${response_content} 					/success	     			true
+		[Tags]				SMB_CREATIVE			https://jira.adhaven.com/browse/ADH-4961
+		
