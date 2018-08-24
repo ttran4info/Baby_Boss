@@ -1,0 +1,26 @@
+*** Settings ***
+Resource             advertisers_imports.txt
+Force Tags           FREQUENCY_CAP    BATCH3   
+
+*** Test Cases ***
+# 
+
+#Frequency Cap Request for Device Frequency Cap Set 1
+#	   ${random_device_id}=         Generate Random String 		36
+#	   Set Test Variable    ${data}   		  {"app":{"bundle":"xKeek Inc.","id":"10074","name":"Keek","publisher":{"id":"8ff414a0b6664db29280173731ac5950","name":"Keek Inc."},"ver":"3.5.0"},"at":2,"badv":["classesusa","classesusa.com","lowermybills","target.com"],"bcat":["IAB7-39","IAB8-5","IAB8-18","IAB9-9","IAB14-1","IAB25","IAB26"],"device":{"connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"1e8be24d907ebca1878d2d28ebfd2a77","dpidsha1":"a624e6ffdb7d20bb546bfb050a6f0b07abe8e2eb","ext":{"idfa":"${random_device_id}"},"geo":{"city":"Arlington","country":"USA","lat":37.4860418122262,"lon":-122.238406576216,"region":"TX","zip":"76014"},"ip":"76.184.26.153","js":1,"language":"en","make":"HUAWEI","model":"Huawei Y301A1","os":"Android","osv":"4.1.1","ua":"Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Huawei Y301A1 Build/HuaweiY301A1) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"},"id":"064846ed-2b14-43de-865b-dcea1c6b4168","imp":[{"banner":{"api":[3],"battr":[3,9,10,6],"btype":[4],"ext":{"mraid":[{"functions":["storePicture","supports","playVideo","createCalendarEvent"],"version":"2.0"}],"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.130,"displaymanager":"mopub","displaymanagerver":"3.2.2","id":"1","instl":0,"tagid":"959f467f1a7f469fa562a78ea58a2aee"}],"user":{"keywords":"carrier:310-260"}}
+#	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=81109
+#	   Sleep     65s   
+#	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   
+#Frequency Cap Request for Device Frequency Cap Set 2
+#	   ${random_device_id}=         Generate Random String 		36
+#	   Set Test Variable    ${data}   		  {"app":{"bundle":"xKeek Inc.","id":"10074","name":"Keek","publisher":{"id":"8ff414a0b6664db29280173731ac5950","name":"Keek Inc."},"ver":"3.5.0"},"at":2,"badv":["classesusa","classesusa.com","lowermybills","target.com"],"bcat":["IAB7-39","IAB8-5","IAB8-18","IAB9-9","IAB14-1","IAB25","IAB26"],"device":{"connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"1e8be24d907ebca1878d2d28ebfd2a77","dpidsha1":"a624e6ffdb7d20bb546bfb050a6f0b07abe8e2eb","ext":{"idfa":"${random_device_id}"},"geo":{"city":"Arlington","country":"USA","lat":37.4860418122262,"lon":-122.238406576216,"region":"TX","zip":"76014"},"ip":"76.184.26.153","js":1,"language":"en","make":"HUAWEI","model":"Huawei Y301A1","os":"Android","osv":"4.1.1","ua":"Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Huawei Y301A1 Build/HuaweiY301A1) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"},"id":"064846ed-2b14-43de-865b-dcea1c6b4168","imp":[{"banner":{"api":[3],"battr":[3,9,10,6],"btype":[4],"ext":{"mraid":[{"functions":["storePicture","supports","playVideo","createCalendarEvent"],"version":"2.0"}],"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.130,"displaymanager":"mopub","displaymanagerver":"3.2.2","id":"1","instl":0,"tagid":"959f467f1a7f469fa562a78ea58a2aee"}],"user":{"keywords":"carrier:310-260"}}
+#	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=81109
+#	   Sleep     65s   
+#	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   
+	   
+	   
+	   
+	   
+	   

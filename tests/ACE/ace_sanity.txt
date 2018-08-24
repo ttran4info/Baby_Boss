@@ -1,0 +1,45 @@
+
+
+*** Settings ***
+Resource            ace_imports.txt
+Force Tags          ACE   BUILD_SANITY      BATCH2
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Retrieve Cookies From The Current Page
+       Get Cookies
+       
+Go to the ACE Tab
+       Go To Geofence Tab
+       Reload Page
+
+Validate All The Table Headers For ACE Are There
+       [TAGS]   3.11
+       Validate ACE Table Headers
+       
+Retrieve Targeting Sets Available And Log Groups of Target Sets
+       Retrieve ACE Targeting Sets Available      total_records=20
+       Log    ${ALL_TARGETS}
+
+Validate There Are Some PRIZM Targetting Sets In The Database
+       Validate PRIZM Targeting List
+
+Validate There Are Some DLX Targetting Sets In The Database
+       Validate DLX Targeting List
+       
+Validate There Are Some CONNEXIONS Targetting Sets In The Database
+       Validate CONNEXIONS Targeting List
+       
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+       
+       

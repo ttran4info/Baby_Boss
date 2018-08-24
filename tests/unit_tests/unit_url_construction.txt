@@ -1,0 +1,23 @@
+
+*** Settings ***
+Resource            adhaven_general.txt
+Force Tags          UNIT
+
+*** Variables ***
+
+*** Test Cases ***
+Test Standard Generation Of Ad URL
+      Construct REST API Ad Request     ad_engine=qa-engine1    api_key=350b0f15eefa1b42    date=Tue, 22 Jul 2008 22:56:23 UTC    header_user-agent=iPhone     placement_id=1865
+      
+Test Prism Ad URL
+      ${lat}=   Set Variable   32.4561                
+      ${lon}=   Set Variable   -99.7071
+      Construct REST API Ad Request     ad_engine=qa-engine1    api_key=350b0f15eefa1b42    placement_id=1865    header_user-agent=iPhone   lat_lon=${lat},${lon}    response_type=markup
+
+UNIT Test Cache Refresh - RTB
+		Reload Cache on RTB     ${RTB_HOST}
+		[Tags]   cache_refresh
+
+UNIT Test Cache Refresh - UI
+		Reload Cache on UI    
+		[Tags]   cache_refresh

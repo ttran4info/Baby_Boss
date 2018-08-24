@@ -1,0 +1,57 @@
+
+
+*** Settings ***
+Resource            partners_imports.txt
+Force Tags          PARTNERS    4.3         BATCH2
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Go to the Partners Tab
+       Go To Partners Tab
+
+Validate All The Table Headers For Partners Are There
+       Validate Partners Table Headers
+        
+Retrieve Partners Available And Log
+       Retrieve Partners Available           total_partners=10
+       Log     ${ALL_PARTNERS}
+
+Retrieve and Validate Partner - 4INFO
+       Retrieve Partners Information Available For Partner      partner=4INFO       total_to_retrieve=10
+       Capture Page Screenshot With Timestamp
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude
+       
+Create A New Site & App Under 4INFO - Mobile Website
+       Create A New Site & App         partner=4INFO        
+      ...              site_type=${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_WEBSITE}
+      ...              site_name=Test_Mobile_Site_Create
+      ...              platform=${EMPTY}
+      ...              link_to_app=${EMPTY}
+      ...              site_url=http://www.4info.com
+      Remove Site from System By Name   ${site_name}
+      [Tags]     Exclude     
+       
+Create A New Site & App Under 4INFO - Mobile App
+       Create A New Site & App         partner=4INFO        
+      ...              site_type=${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_APP}
+      ...              site_name=Test_Mobile_App_Create
+      ...              platform=${PARTNERS_INFO_PLATFORM_RADIO_BUTTON_ANDROID}
+      ...              link_to_app=${DEFAULT_BROWSER_HOME}
+      ...              site_url=${EMPTY}
+      Remove Site from System By Name   ${site_name}
+      [Tags]     Exclude  
+
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+       
+       

@@ -1,0 +1,38 @@
+
+
+*** Settings ***
+Resource            partners_imports.txt
+Force Tags          PARTNERS_SEARCH    4.3   ADH-3199   SANITY     BATCH2
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Go to the Partners Tab
+       Go To Partners Tab
+
+Validate Cache Is Refreshed Every 5 Minutes To Load New Placement
+      Create A Placement      partner=4INFO     
+      ...                             site_name=4INFO test pages
+      ...                             placement_name=Test_Placement_Cache
+      ...                             placement_status=LIVE
+      Sleep   6m
+      Find Item In Partners Suggested Search     ${placement_name}    Placement-> ${placement_name}
+      Click Link     Placement-> ${placement_name}
+      Capture Page Screenshot With Timestamp
+      Click Element                  ${PLACEMENT_CANCEL_BUTTON}
+      Remove Placement from System By ID   ${placement_id} 
+#      2015-04  Removed 4INFO partner and placements for targetting
+      [Tags]   Exclude    Known_Issue    https://jira.adhaven.com/browse/ADH-3256    https://jira.adhaven.com/browse/ADH-3257
+
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+       
+       

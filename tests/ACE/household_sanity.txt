@@ -1,0 +1,59 @@
+
+
+*** Settings ***
+Resource            ace_imports.txt
+Force Tags          ACE    HOUSEHOLD   BUILD_SANITY    BATCH2   EXCLUDE 
+#  Excluding this (release 6.12) due to Jira for Household lookup taking a long time.  Tom made a fix but it is still taking a very long time for data to come back.
+#  Since this is only used by HP to find data, we will remove this from the test suite.
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Retrieve Cookies From The Current Page
+       Get Cookies
+       
+Go To The Household Lookup Page
+       Go To Household Lookup
+       Reload Page
+
+Lookup Household Segment By Address Abilene Texas
+       Household Lookup With Address       address=802 Harwell St, Abilene, TX 79601
+       ...                                 prizm=14 - New Empty Nests\n15 - Pools & Patios\n19 - Home Sweet Home\n39 - Domestic Duos\n49 - American Classics
+       ...                                 connexions=11 - WiFi Warriors\n35 - Broadband Boulevards\n46 - Old-Time Media\n50 - Early-Bird TV\n52 - The Unconnected\n53 - Last to Adopt
+              
+Lookup Household Segment By Address Los Altos Hills CA
+       Household Lookup With Address       address=27060 Old Trace Ln, Los Alto Hills, CA 94022
+       ...                                 prizm=01 - Upper Crust
+       ...                                 connexions=13 - Cyber Sophisticates
+
+
+Lookup Household Segment By Lat/Lon With Prizm 02,39 Connexions 19,50
+       Household Lookup With Lat/Lon       lat=32.4561     lon=-99.7071      
+       ...                                 prizm=02 - Blue Blood Estates\n14 - New Empty Nests\n15 - Pools & Patios\n39 - Domestic Duos\n49 - American Classics
+       ...                                 connexions=19 - Gadgets Galore\n35 - Broadband Boulevards\n46 - Old-Time Media\n50 - Early-Bird TV\n52 - The Unconnected\n53 - Last to Adopt
+
+Lookup Household Segment By Lat/Lon - No Prizm Or Connexions - California
+       Household Lookup With Lat/Lon       lat=32.9022     lon=-115.4234      
+       ...                                 prizm=None Found 	    
+       ...                                 connexions=None Found 	
+
+Lookup Household Segment By Lat/Lon - 6 Prizm Segments And 11 Connexions Segments - Hawaii
+       Household Lookup With Lat/Lon       lat=21.3646     lon=-157.9355      
+       ...                                 prizm=10 - Second City Elite\n53 - Mobility Blues
+       ...                                 connexions=29 - IM Nation\n42 - Tech Skeptics
+
+Lookup Household Segment By Address - 6 Prizm Segments And 11 Connexions Segments - Hawaii
+       Household Lookup With Address       address=99-41 Ohiaku St Aiea, HI 96701
+       ...                                 prizm=10 - Second City Elite
+       ...                                 connexions=42 - Tech Skeptics
+      
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       

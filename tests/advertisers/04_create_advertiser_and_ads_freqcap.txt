@@ -1,0 +1,101 @@
+
+
+*** Settings ***
+Resource             advertisers_imports.txt
+Force Tags           ADVERTISERS    FREQUENCY_CAP     4.12       BATCH3   	EXCLUDE			
+
+*** Variables ***
+${banner_type}=                GENERIC
+${banner_file_name}=        320x50_Group01.jpg 
+${freq_cap_daily}=      	10
+${freq_cap_overall}=      	20
+${test_campaign_name_prefix}=     			04_FREQCAP_CAMPAIGN
+${generic_mopub_app_request_data}=   			{"app":{"aid":"MOPUB_DEFAULT_PLACEMENT_MOPUB33333","cat":["IAB14","IAB24","lifestyle"],"global_aid":"372648912","name":"Meet New People - myYearbook Flirting & Fun for Friends and Singles of Any Sex iOS","paid":0,"pid":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYzdeVEgw","pub":"myYearbook.com"},"at":2,"device":{"city":"Tyrone","country":"USA","dpid":"9B55BA53-6586-48D6-8B46-AC52EA5855DB","ext":{"idfa":"42C6857E-D0F0-4920-91F6-F8BAFD10A7F4"},"ip":"96.247.185.120","js":1,"loc":"40.60843,-75.49018","make":"Apple","model":"iPod","os":"iPhone OS","osv":"6.0.1","state":"PA","ua":"Mozilla/5.0 (iPod; CPU iPhone OS 6_0_1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Mobile/10A523","zip":"16686"},"id":"e505c063-5fd9-428f-b658-526bc9dd5d7e","imp":[{"battr":["8","9","10","14","6"],"h":50,"impid":"e505c063-5fd9-428f-b658-526bc9dd5d7e","instl":0,"w":320}],"pf":0.090,"restrictions":{"badv":["areyouinterested","badoo","howaboutwe","meetmoi","skout","twoo","alertid.com","funzio.com","howaboutwe","http://platform.mdotm.com/promote/mock/c81f742b","m.wildbuddies.com","naughtyflirts.mobi","skout","t.zoosk.com/mkt/*","twoo","www.ngmoco.com/bloodbrothers"],"bcat":["IAB7-39","IAB8-5","IAB8-18","IAB9-9","IAB25","IAB26"]},"tmax":300,"user":{"dnt":1,"uid":"9B55BA53-6586-48D6-8B46-AC52EA5855DB"}}
+${generic_mopub_site_request_data}=   			{"site":{"aid":"9500","cat":["IAB14","IAB24","lifestyle"],"global_aid":"372648912","name":"Meet New People - myYearbook Flirting & Fun for Friends and Singles of Any Sex iOS","paid":0,"pid":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYzdeVEgw","pub":"myYearbook.com"},"at":2,"device":{"city":"Tyrone","country":"USA","dpid":"9B55BA53-6586-48D6-8B46-AC52EA5855DB","ip":"96.247.185.120","js":1,"loc":"40.60843,-75.49018","make":"Apple","model":"iPod","os":"iPhone OS","osv":"6.0.1","state":"PA","ua":"Mozilla/5.0 (iPod; CPU iPhone OS 6_0_1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Mobile/10A523","zip":"16686"},"id":"e505c063-5fd9-428f-b658-526bc9dd5d7e","imp":[{"battr":["8","9","10","14","6"],"h":50,"impid":"e505c063-5fd9-428f-b658-526bc9dd5d7e","instl":0,"w":320}],"pf":0.090,"restrictions":{"badv":["areyouinterested","badoo","howaboutwe","meetmoi","skout","twoo","alertid.com","funzio.com","howaboutwe","http://platform.mdotm.com/promote/mock/c81f742b","m.wildbuddies.com","naughtyflirts.mobi","skout","t.zoosk.com/mkt/*","twoo","www.ngmoco.com/bloodbrothers"],"bcat":["IAB7-39","IAB8-5","IAB8-18","IAB9-9","IAB25","IAB26"]},"tmax":300,"user":{"dnt":1,"uid":"9B55BA53-6586-48D6-8B46-AC52EA5855DB"}}
+
+*** Test Cases ***
+Clean Up All Existing Data For Frequency Cap Tests
+       #Cleanup Campaigns For Frequency Cap Tests
+
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD} 
+       Login with "${USER}" and "${PASSWORD}"
+
+UI-Add A New Campaign 04_FREQCAP_CAMPAIGN And Add Adgroup With Timestamp To An Existing Advertiser ${DEFAULT_ADVERTISER} And Frequency Cap Overall ${freq_cap_overall}
+	   Set Test Variable      ${screen_type}				1
+	   Set Test Variable	   ${traffic_type}				1
+	   Create Default MOBILE Adgroup With Single Child And Ad			test_campaign_name_prefix=${test_campaign_name_prefix}		banner_file_name=${banner_file_name}		hh_freq_cap_overall_flag=1     hh_freq_cap_overall_no_times=${freq_cap_overall}
+       Submit a Request to Jenkins to Run Smart Bidder for QA
+       Modify Margin      advertiser_name=${DEFAULT_ADVERTISER}		campaign_name=${campaign_name}		ag_adgroup_name=${child_adgroup_name}		ag_4info_margin=1	
+       #Set Suite Variable	campaign_name=${campaign_name}
+       Reload All Cache
+	   Set Suite Variable 	${campaign_name}		${campaign_name}
+	   #Set Suite Variable 	${parent_adgroup_id}	${parent_adgroup_id}
+	   #Set Suite Variable 	${child_adgroup_id}		${child_adgroup_id}
+
+RTB-Add A New Campaign 04_FREQCAP_CAMPAIGN And Add Adgroup With Timestamp To An Existing Advertiser ${DEFAULT_ADVERTISER} And Frequency Cap Overall ${freq_cap_overall}      
+	   Sleep 	 60s 
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_app_request_data}				requests=${freq_cap_overall}         response_code=200         ad_expected=NA      adgroup_expected=NA		submit_client_impression_event=YES
+	   Set Test Variable       ${rtb_count}				${pass_count}
+	   Sleep     60s    # for logprocessor
+	   #If there's no activity in log, UI does not update, so we are making a random request
+	   Set Test Variable    				${data}      {"app":{"bundle":"x372648912","cat":["IAB24","social_networking"],"id":"12608","name":"MeetMe iPhone","publisher":{"id":"c3584d1c40cb43619e043c065caee33a","name":"MeetMe, Inc."},"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8&uo=4","ver":"10.2.0"},"at":2,"badv":["badoo","chatmeup","fling","happn","howaboutwe","imvu","jaumo","justhookup","landrover","landrover.com","landrovertristate.com","lavaplace","lovoo","meetmoi","meowchat","moco","momo","on.com","pof","sayhi","skout","tagged","tango","thegamebyhotornot","tinder","twoo","wechat","whisper","zoosk"],"bcat":["IAB25","IAB25-2","IAB25-3","IAB25-4","IAB25-5","IAB26","IAB26-1","IAB26-2","IAB26-3","IAB26-4","IAB3-7"],"device":{"carrier":"310-030 ","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"af7045cff2375b9f85af4786f94ad9d6","dpidsha1":"4f5714baa19608cd52caf7ddeac2a4625e64a945","ext":{"idfa":"42C6857E-D0F0-4920-91F6-F8BAFD10A7F3"},"geo":{"city":"Bronx","country":"USA","lat":40.835762,"lon":-73.821533,"metro":"501","region":"NY","zip":"10462"},"ip":"47.18.4.157","js":1,"language":"en","make":"Apple","model":"iPhone 6","os":"iOS","osv":"8.4","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_4 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12H143"},"id":"d50bb64d-f415-4f54-b439-0a64d977ac3b","imp":[{"banner":{"api":[3,5],"battr":[1,3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.7.0","id":"1","instl":0,"tagid":"f5ea2d24c9bb46a38713cf98dffd8252"}],"user":{"keywords":"AGE:26,GENDER:m,MARITAL:single"}}  
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200      submit_client_impression_event=NO	
+ 	   #UI update on the next interval
+ 	   Sleep 	 65s
+	   Validate UI Impression Count For Child Adgroup   				advertiser_name=${DEFAULT_ADVERTISER} 			campaign_name=${campaign_name}  				parent_adgroup_id=${parent_adgroup_id}			child_adgroup_id=${child_adgroup_id}				impression_count_expected=${rtb_count}                                 
+#      Added the below for reliability - not really needed
+       Submit a Request to Jenkins to Run Smart Bidder for QA
+       Sleep   60s
+       Reload All Cache
+       Validate RTB Ad Does Not Serve     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_app_request_data}				requests=1        
+  
+Testme       
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_app_request_data}				requests=${freq_cap_overall}         response_code=200         ad_expected=NA      adgroup_expected=NA		submit_client_impression_event=YES
+	   Set Test Variable       ${rtb_count}				${pass_count}
+   [Tags]	exclude        
+#Add A New Campaign 04_FREQCAP_CAMPAIGN And Add Adgroup With Timestamp To An Existing Advertiser ${DEFAULT_ADVERTISER} And Frequency Cap Overall ${freq_cap_overall}
+#	   Set Test Variable      ${screen_type}				1
+#	   Set Test Variable	   ${traffic_type}				1
+#	   Create Default MOBILE Adgroup With Single Child And Ad				test_campaign_name_prefix=${test_campaign_name_prefix_feq}         banner_file_name=${banner_file_name}     
+#	   ...																	hh_freq_cap_overall_flag=1     hh_freq_cap_overall_no_times=${freq_cap_overall}
+#	   Reload All Cache
+#	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_app_request_data}				requests=${freq_cap_overall}         response_code=200         ad_expected=NA      adgroup_expected=NA
+#	   Set Test Variable       ${rtb_count}				${pass_count}
+#	   Sleep     65s   
+#	   Validate UI Impression Count For Child Adgroup   				advertiser_name=${DEFAULT_ADVERTISER} 			campaign_name=${campaign_name}  				parent_adgroup_id=${parent_adgroup_id}			child_adgroup_id=${child_adgroup_id}				impression_count_expected=${rtb_count}                                 
+#	   Sleep     5s
+#	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_app_request_data}				requests=1         response_code=204         ad_expected=NA      adgroup_expected=NA
+	   
+#Add A New Campaign 04_FREQCAP_CAMPAIGN And Add Adgroup With Timestamp To An Existing Advertiser ${DEFAULT_ADVERTISER} And Frequency Cap Overall ${freq_cap_overall} (DEPRECATED 6.0)
+#       [Documentation]    Test Steps: Create a new campaign.  Within the new campaign, create a new ad group and ad under it. 
+#       ...                         Set the frequency cap for the particular ad group to have 50 impressions per consumer id overall only. 
+#       ...                         Wait 6 minutes for cache to pick up the new ad group and for ads to start serving.
+#       ...                         Make 50 ad requests, validate that the ad is served for the particular ag id and ad_group id.
+#       ...                         Pass in device ID to ensure that the Consumer ID is unique every time. 
+#       ...                         Wait 6 minutes.
+#       ...                         Make another ad request to validate that the ad is no longer served. 
+ 
+       
+#Add A New Campaign 04_FREQCAP_CAMPAIGN And Add Adgroup With Timestamp To An Existing Advertiser ${DEFAULT_ADVERTISER} With Daily And Overall Frequency Caps
+#       [Documentation]    Test Steps: Create a new campaign.  Within the new campaign, create a new ad group and ad under it. 
+#       ...                         Set the frequency cap for the particular ad group to have 50 impressions per consumer id overall only. 
+#       ...                         Wait 6 minutes for cache to pick up the new ad group and for ads to start serving.
+#       ...                         Make 50 ad requests, validate that the ad is served for the particular ag id and ad_group id.
+#       ...                         Pass in device ID to ensure that the Consumer ID is unique every time. 
+#       ...                         Wait 6 minutes.
+#       ...                         Make another ad request to validate that the ad is no longer served. 
+
+      
+Log Out of AdHaven UI and Verify
+       Go To      ${URL} 
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+Clean Up All Existing Data For Frequency Cap Tests - Teardown
+        #Cleanup Campaign Data By Campaign Name        campaign_name=${test_campaign_name_prefix}
+        Reload All Cache
+       [Tags] Exclude	

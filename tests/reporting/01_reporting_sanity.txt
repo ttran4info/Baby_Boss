@@ -1,0 +1,81 @@
+*** Settings ***
+Resource            reporting_imports.txt
+Force Tags          REPORTING    QA_ONLY     BATCH4		EXCLUDE
+*** Variables ***
+
+*** Test Cases ***
+
+Ensure Workflow Manager Is Running on QA HOST SERVER With Only 1 instance
+     Validate Workflow Manager Is Running       ${SSH_HOST}
+	#starting to exclude reporting 8.11
+	[Tags]	Exclude     
+Ensure Log Uploader Is Running on QA HOST SERVER With Only 1 instance
+     Validate Log Uploader Is Running               ${SSH_HOST}
+     
+Ensure Daily Process Job Is Running on QA HOST SERVER With Only 1 instance
+     Validate Daily Process Job Is Running         ${SSH_HOST}
+
+Check If Restore Process Job Is Running on QA HOST SERVER
+     Run Keyword And Ignore Error      Validate Restore Process Job Is Running         ${SSH_HOST}   
+     
+Ensure SERVERNUMBER Environment Variable Is Set Correctly on QA HOST SERVER
+	${expected_server_number}=		Set Variable If		'${SSH_HOST}'=='qa-engine1'		1	7
+	Log 	Expected Server Number:${expected_server_number}
+     Validate Server Number Settings                ${SSH_HOST}
+     Should Match Regexp             ${server_number}          ${expected_server_number}
+     
+Ensure SERVERNUMBER Environment Variable Is Set Correctly on QA HOST SERVER
+     Validate Server Number Settings                ${SSH_HOST}
+     Should Match Regexp             ${server_number}          7     
+	[Tags]		Exclude
+Ensure Log Uploader Is Running on QA-ENGINE2
+     Validate Log Uploader Is Running               ${SSH_HOST2}
+     [Tags]	      EXCLUDE
+     
+Ensure SERVERNUMBER Environment Variable Is Set Correctly on QA-ENGINE2
+     Validate Server Number Settings                ${SSH_HOST2}
+     Should Match Regexp             ${server_number}          2   
+	[Tags]	      EXCLUDE
+	
+Ensure Log Uploader Is Running on QA-RTB
+     Validate Log Uploader Is Running               qa-rtb
+     
+Ensure SERVERNUMBER Environment Variable Is Set Correctly on QA-RTB
+     Validate Server Number Settings                qa-rtb
+     Should Match Regexp             ${server_number}          3  
+
+
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${QA_REPORTING_USER} Password: ${QA_REPORTING_PASSWORD}
+       Login with "${QA_REPORTING_USER}" and "${QA_REPORTING_PASSWORD}"
+       [Tags]     UI
+       
+Retrieve Cookies From The Current Page
+       Get Cookies
+       [Tags]     UI
+       
+Go To Reports Tab
+       Go To Reports Tab
+       [Tags]     UI    	EXCLUDE
+       
+# Validate Reports     
+#Validate Publisher Reports Are Available
+#       Go To Publisher Reports 
+#       [Tags]     UI
+
+#Validate Advertiser Reports Are Available  
+#       Go To Advertiser Reports 
+#       Validate Advertiser Reports UI
+#       [Tags]     UI
+       
+       
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       [Tags]     UI
+       
+Close The Browsers Opened
+      Close All Browsers
+      [Tags]     UI 
+       
+       

@@ -1,0 +1,72 @@
+*** Settings ***
+Resource            partners_imports.txt
+Force Tags          PARTNERS   	BATCH2     EXCLUDE    ADDPLACEMENT
+Test Template           TEMPLATE Add Placement
+Suite Setup                Start the Browser And Login To The Adhaven UI
+Test Setup 				 Go To Partners Tab
+Suite Teardown			 Close All Browsers
+*** Keywords ***
+TEMPLATE Add Placement
+	[Arguments]				${placement_name}=				${status}=
+	Create A Placement      partner=Test App Developer  
+      ...                             site_name=Test App Developer
+      ...                             placement_name=${placement_name}
+      ...                             placement_status=${status}
+	  Log     ${placement_id}
+
+
+*** Variables ***
+
+*** Test Cases ***
+#																NAME 									STATUS
+Add Placement TA_001								TA_001									LIVE
+Add Placement TA_002								TA_002									LIVE
+Add Placement TA_003								TA_003									LIVE
+Add Placement TA_004								TA_004									LIVE
+Add Placement TA_005								TA_005									LIVE
+Add Placement TA_006								TA_006									LIVE
+Add Placement TA_007								TA_007									LIVE
+Add Placement TA_008								TA_008									LIVE
+Add Placement TA_009								TA_009									LIVE
+Add Placement TA_010								TA_010									LIVE
+Add Placement TA_011								TA_011									LIVE
+Add Placement TA_012								TA_012									LIVE
+Add Placement TA_013								TA_013									LIVE
+Add Placement TA_014								TA_014									LIVE
+Add Placement TA_015								TA_015									LIVE
+Add Placement TA_016								TA_016									LIVE
+Add Placement TA_017								TA_017									LIVE
+Add Placement TA_018								TA_018									LIVE
+Add Placement TA_019								TA_019									LIVE
+Add Placement TA_020								TA_020									LIVE
+Add Placement TA_021								TA_021									LIVE
+Add Placement TA_022								TA_022									LIVE
+Add Placement TA_023								TA_023									LIVE
+Add Placement TA_024								TA_024									LIVE
+Add Placement TA_025								TA_025									LIVE
+Add Placement TA_026								TA_026									LIVE
+Add Placement TA_027								TA_027									LIVE
+Add Placement TA_028								TA_028									LIVE
+Add Placement TA_029								TA_029									LIVE
+Add Placement TA_030								TA_030									LIVE
+Add Placement TA_031								TA_031									LIVE
+Add Placement TA_032								TA_032									LIVE
+Add Placement TA_033								TA_033									LIVE
+Add Placement TA_034								TA_034									LIVE
+Add Placement TA_035								TA_035									LIVE
+Add Placement TA_036								TA_036									LIVE
+Add Placement TA_037								TA_037									LIVE
+Add Placement TA_038								TA_038									LIVE
+Add Placement TA_039								TA_039									LIVE
+Add Placement TA_040								TA_040									LIVE
+Add Placement TA_041								TA_041									LIVE
+Add Placement TA_042								TA_042									LIVE
+Add Placement TA_043								TA_043									LIVE
+Add Placement TA_044								TA_044									LIVE
+Add Placement TA_045								TA_045									LIVE
+Add Placement TA_046								TA_046									LIVE
+Add Placement TA_047								TA_047									LIVE
+Add Placement TA_048								TA_048									LIVE
+Add Placement TA_049								TA_049									LIVE
+Add Placement TA_050								TA_050									LIVE
+

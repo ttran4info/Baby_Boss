@@ -1,0 +1,12 @@
+
+*** Settings ***
+Resource    adhaven_general.txt
+Resource    database.txt
+Resource    reports.txt
+Resource    ssh_lib.txt
+
+Library    	    RequestsLibrary
+Library    	    Collections
+Resource   	utilities_json.txt
+
+

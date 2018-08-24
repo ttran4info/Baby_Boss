@@ -1,0 +1,51 @@
+
+
+*** Settings ***
+Resource            ace_imports.txt
+Force Tags          ACE   BUILD_SANITY   3.11   4.0    QA_ONLY    BATCH2     EXCLUDE
+Documentation 		2014-10-15 Marked as exclude because DLX was removed in release 6.7
+			...    	2018-08-17 - 7.2 Release has changes to remove Connexion/Prizm removed from ACE tab.
+			
+*** Test Cases ***
+
+Remove All DLX Database Reports Generated
+       Remove DLX Reports From DB           
+       
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Retrieve Cookies From The Current Page
+       Get Cookies
+       
+Go to the ACE Tab
+       Go To Geofence Tab
+       Reload Page
+
+Validate All The Table Headers For ACE Are There
+       [TAGS]   3.11
+       Validate ACE Table Headers
+ 
+Create a DLX Targeting Set
+        Create Base ACE Targeting With DMA        cpham@4info.com     DLX_${ENVIRONMENT}_    520   800   820
+        Select Segment Type For Targetting    DLX   
+        Sleep    5s
+        Add DLX Segment To Selection      dlx_parent_segment=Married                      dlx_sub_segment=W172-Y 
+        Add DLX Segment To Selection      dlx_parent_segment=Dwelling Type                dlx_sub_segment=Z26-S
+        Add DLX Segment To Selection      dlx_parent_segment=Travel - Timeshare           dlx_sub_segment=W223-Y
+        Save And Validate ACE Targeting Set       Married    Dwelling Type     Travel - Timeshare    Augusta    Bakersfield     Portland, OR
+        
+
+Create a DLX Targeting Set With ALL DMA Selection
+        Create Base ACE Targeting With DMA        cpham@4info.com     DLX_${ENVIRONMENT}_    all
+        Select Segment Type For Targetting    DLX   
+        Add DLX Segment To Selection      dlx_parent_segment=Married          dlx_sub_segment=W172-Y 
+        Save And Validate ACE Targeting Set       Married    all   
+        
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       

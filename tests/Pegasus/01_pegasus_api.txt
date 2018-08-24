@@ -1,0 +1,449 @@
+*** Settings ***
+Resource        pegasus_specific_imports.txt
+Force Tags      PEGASUS		BATCH13			EXCLUDE
+
+*** variables ***
+ ${app_id}					13189
+ ${site_id}					13192
+ ${wrong_token}             0000b2ca-8e6b-4290-872d-22e6b8775805
+ ${no_token}				 
+
+*** Test Cases **
+  
+TC_001 Login of existing user with correct credentials & valid token
+	[Documentation]		User to be succesfully logged in with valid credentials
+	[Tags] 	test
+	PEGASUS Login Request
+	Should Be Valid JSON  {"access_token":"${token}","token_type":"bearer","expires_in":17141,"scope":"read"}
+
+TC_002 Login of new user with correct credentials
+	[Documentation]		New user has to login succesfully
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user_name=jdoe16		password=hello123  client_credentials=client_credentials
+	Should Be Valid JSON  {"access_token":"${token}","token_type":"bearer","expires_in":17141,"scope":"read"}
+
+TC_003 Login of existing user with incorrect credentials - wrong client_secret
+	[Documentation]		User won't be able to login with invalid password
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user=jdoe		password=welcome123+  client_credentials=client_credentials	expected_status_code=401
+	Should Be Valid JSON  {"error":"invalid_client","error_description":"Bad client credentials"}
+
+TC_004 Login of existing user with incorrect credentials - wrong client_id
+	[Documentation]		User won't be able to login with invalid username
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user=jdoe_X		password=welcome123  client_credentials=client_credentials	expected_status_code=401
+	Should Be Valid JSON  {"error":"invalid_client","error_description":"Bad client credentials"}
+
+TC_005 Login of existing user with incorrect credentials - missing client_id
+	[Documentation]		User won't be able to login with correct password without username
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user=	password=welcome123  client_credentials=client_credentials	expected_status_code=401
+	Should Be Valid JSON  {"error":"invalid_client","error_description":"Bad client credentials"}  
+
+TC_006 Login of existing user with incorrect credentials - missing username	
+	[Documentation]		User won't be able to login with valid password without username
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user=	password=welcome123  client_credentials=client_data	expected_status_code=401
+	Should Be Valid JSON  {"error":"invalid_client","error_description":"Bad client credentials"}  
+	
+TC_007 Login with valid credentials - space before client_id	
+	[Documentation]		User won't be able to login with valid password with space before username
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user= jdoe	password=welcome123  client_credentials=client_data	expected_status_code=401
+	Should Be Valid JSON  {"error":"invalid_client","error_description":"Given client ID does not match authenticated client"}  
+ 
+TC_008 Login with valid credentials - space after client_id
+	[Documentation]		User won't be able to login with valid password with space after username
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user=jdoe 	password=welcome123  client_credentials=client_data	expected_status_code=401
+	Should Be Valid JSON  {"error":"invalid_client","error_description":"Given client ID does not match authenticated client"}  
+ 
+TC_009 Login with valid credentials - space before client_secret
+	[Documentation]		User won't be able to login with valid password with space before password
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user=jdoe 	password= welcome123  client_credentials=client_data	expected_status_code=401
+	Should Be Valid JSON  {"error":"invalid_client","error_description":"Given client ID does not match authenticated client"}  
+ 
+ TC_010 Login with valid credentials - space after client_secret
+	[Documentation]		User won't be able to login with valid password with space after password
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user=jdoe 	password=welcome123   client_credentials=client_data	expected_status_code=401
+	Should Be Valid JSON  {"error":"invalid_client","error_description":"Given client ID does not match authenticated client"}  
+
+TC_011 Login with valid credentials - user with special chars in client_secret
+	[Documentation]		User must be able to login with password containing special characters
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user=jdoe17	password=welcome123^? client_credentials=client_data	expected_status_code=401
+	Should Be Valid JSON  {"access_token":"${token}","token_type":"bearer","expires_in":17141,"scope":"read"}
+
+#TC_011_5h Expired Token - sleep 5hours before adGroup login
+#	[Tags] 	 s
+#	Sleep  5 hours 	 Waiting 5 hours until token becomes expired. 	
+	
+TC_012 send GET request for existing group with valid token
+	[Documentation]		User must be able to login with with valid token
+	[Tags] 	test	t_12
+	PEGASUS Pegasus Request		uri=/pegasus/adGroup/campaign/237
+	Should Be Valid JSON  {"adGroupId": 1035,"adGroupName": "1"}
+	#Should Be Equal As Strings    ${resp.status_code}    200
+		 
+TC_013 send GET request for uregistered group	
+	[Documentation]		User must get an error while sending request for uregistered group
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/adGroup/campaign/200	expected_status_code=401
+	#Should Contain Match  {${resp.content}}  {^(?=.*?\b200\b).*$}
+	Should Be Valid JSON	{"errorCode": 401, "errorMsg": "Unauthorized access"}
+
+# opened JIRA: is that an expected behavour? (look for email from Sarvesh 10.20.2015)
+TC_014 send an empty GET request 	
+	[Documentation]		User must get an error while sending empty request
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/adGroup/campaign/	expected_status_code=404
+	#Fail	*HTML*<h1>HTTP Status 404 - </h1>
+	
+TC_015 send GET request for existing group with invalid token
+	[Documentation]		User must get an error while sending request with invalid token
+	[Tags] 	test
+	PEGASUS Pegasus Request bad Token	uri=/pegasus/adGroup/campaign/237  expected_status_code=401
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: 00ec6ebd-d3d3-4e46-b90f-927ff50d9d68"}
+
+#TC_016 send GET request for existing group with expired token
+#	[Tags] 	expired 	exf		m
+#	PEGASUS Pegasus Request with expired token		uri=/pegasus/adGroup/campaign/237
+#	Should Be Valid JSON  {"error":"invalid_token","error_description":"Access token expired: ${token}"}
+	#Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_017 send GET request for existing group with old (previous) token
+	[Documentation]		User must get an error while sending request with invalid token, JSON response should be correct
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user_name=jdoe		password=welcome123  client_credentials=client_credential
+	Set Test Variable 	${token_old}		${token}
+	PEGASUS Pegasus Request		uri=/pegasus/adGroup/campaign/237	
+	PEGASUS Pegasus Request old token
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: ${token_old}"}
+	
+TC_018 send GET request with missing token
+	[Documentation]		User must get an error message while sending request with missing
+	[Tags] 	test	
+	PEGASUS Pegasus Request missing Token  uri=/pegasus/adGroup/campaign/237	expected_status_code=401
+    Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: "}    	
+    
+TC_019 send GET request for existing campaign
+	[Documentation]		User must get correct JSON while sending request for existing campaign 
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/campaign/237
+	Should Be Valid JSON   {"id": 237,"name": "advertisera-campaign","partnerName": "z TEST advertisera","partnerID": 182,"endDate": "06/30/11","startDate": "05/19/11","impressionServed": 15237498,"totalImpression": 35330053,"budgetUsed": 30474.84,"totalBudget": 50660,"adgroupsCount": 1,"status": "expired"}
+	#Should Be Equal As Strings    ${resp.status_code}    200
+	
+TC_020 send GET request for not existing campaign	
+	[Documentation]		User must get an error message while sending request for not existing campaign, JSON response should contain correct error message
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/campaign/238	expected_status_code=401
+	Should Be Valid JSON   {"errorCode": 401,"errorMsg": "Unauthorized access"}
+	
+TC_021 send an empty GET request
+	[Documentation]		User must get status code 404 for empty request
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/campaign/	expected_status_code=404
+	
+TC_022 send GET request for existing campaign without token
+	[Documentation]		User must get an error message while sending request without token, JSON response should contain correct error message
+	[Tags] 	test
+	PEGASUS Pegasus Request missing Token	uri=/pegasus/campaign/237	
+    Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: "}	
+    
+TC_023 send GET request for permission by existing campaign with valid token
+	[Documentation]		User must get an error message while sending request for existing partner with valid token
+	[Tags]  test	
+	PEGASUS Pegasus Request		uri=/pegasus/permissions/partner/226
+	Should Be Valid JSON  [{"campaignId":329,"permissionName":"CREATE_CAMPAIGNS,READ_CAMPAIGNS,UPDATE_CAMPAIGNS,READ_CREATIVE,UPDATE_CREATIVE,VIEW_DASHBOARD_CARD,VIEW_DASHBOARD_FUNNEL"},{"campaignId":347,"permissionName":"READ_CREATIVE,UPDATE_CREATIVE,VIEW_DASHBOARD_CARD,VIEW_DASHBOARD_FUNNEL,CREATE_CAMPAIGNS,READ_CAMPAIGNS,UPDATE_CAMPAIGNS"},{"campaignId":360,"permissionName":"VIEW_DASHBOARD_CARD,VIEW_DASHBOARD_FUNNEL,CREATE_CAMPAIGNS,READ_CAMPAIGNS,UPDATE_CAMPAIGNS,READ_CREATIVE,UPDATE_CREATIVE"},{"campaignId":405,"permissionName":"CREATE_CAMPAIGNS,READ_CAMPAIGNS,UPDATE_CAMPAIGNS,READ_CREATIVE,UPDATE_CREATIVE,VIEW_DASHBOARD_CARD,VIEW_DASHBOARD_FUNNEL"}]
+	#Should Be Equal As Strings    ${resp.status_code}    200 
+    
+TC_024 send GET request for permission by not existing partner ID
+	[Documentation]		User must get an error message with error code 401, while sending request for not existing partner
+	[Tags] 	test401
+	PEGASUS Pegasus Request		uri=/pegasus/permissions/partner/00000001	expected_status_code=401
+	Should Be Valid JSON	{"error":"401-001","error_description":"Unauthorized access"}
+	    
+TC_025 send an empty GET request for permission
+	[Documentation]		User must get an error message with error code 404, while sending request without partner ID
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/permissions/partner/	expected_status_code=404
+	Should Be Valid JSON	{"errorCode": 404,"errorMsg": "Data not found"}
+	
+TC_026 send GET request for permission by existing partner without token
+	[Documentation]		User must get an error message with error code 401 for existing partner without token
+	[Tags] 	test
+	PEGASUS Pegasus Request missing Token	uri=/pegasus/permissions/partner/226	
+    Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: "}	
+
+TC_027 send GET request for permission by existing partner with invalid token
+	[Documentation]		User must get an error message with error code 401 for existing partner with invaid token
+	[Tags] 	test	
+	PEGASUS Pegasus Request bad Token	uri=/pegasus/permissions/partner/226	expected_status_code=401
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: 00ec6ebd-d3d3-4e46-b90f-927ff50d9d68"}
+
+#TC_028 send GET request for permission by existing partner with expired token
+#	[Tags] 	28	expired		exf		m
+#	PEGASUS Pegasus Request with expired token		uri=/pegasus/permissions/partner/226
+#	Should Be Valid JSON  {"error":"invalid_token","error_description":"Access token expired: ${token}"}
+	#Should Be Equal As Strings    ${resp.status_code}    401
+
+TC_029 send GET request for permission by existing partner with old (previous) token
+	[Documentation]		User must get an error message with error code 404 for existing partner with old/previous token
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user_name=jdoe		password=welcome123  client_credentials=client_credential
+	Set Test Variable 	${token_old}		${token}
+	PEGASUS Pegasus Request		uri=/pegasus/authentication/logout	
+	PEGASUS Pegasus Request old token
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: ${token_old}"}
+		
+TC_030 send GET request for partner with valid token
+	[Documentation]		User must get response code 200 for partner with valid token, JSON response should be correct
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/partner
+	Should Be Valid JSON	{"182": {"name": "z TEST advertisera","live": 0,"paused": 0,"expired": 1,"completed": 0,"pending": 0,"total": 1,"id": 182},"195": {"name": "4INFO Onboarding","live": 0,"paused": 1,"expired": 0,"completed": 0,"pending": 0,"total": 1,"id": 195},"226": {"name": "4INFO","live": 0,"paused": 0,"expired": 3,"completed": 1,"pending": 0,"total": 4,"id": 226}}
+	
+TC_031 send GET request for partner without token
+	[Documentation]		User must get an error message with error code 401 for existing partner without token
+	[Tags] 	test
+	PEGASUS Pegasus Request missing Token	uri=/pegasus/partner	
+    Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: "}	
+    #Should Be Equal As Strings    ${resp.status_code}    401	
+	
+TC_032 send GET request for partner with invalid token
+	[Documentation]		User must get an error message with error code 401 for existing partner with invald token, JSON response should be correct
+	[Tags] 	test	
+	PEGASUS Pegasus Request bad Token	uri=/pegasus/partner	expected_status_code=401
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: 00ec6ebd-d3d3-4e46-b90f-927ff50d9d68"}
+
+#TC_033 send GET request for partner with expired token
+#	[Tags] 	expired 	exf		m
+#	PEGASUS Pegasus Request with expired token		uri=/pegasus/partner
+#	Should Be Valid JSON  {"error":"invalid_token","error_description":"Access token expired: ${token}"}
+	#Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_034 send GET request for partner with old (previous) token
+	[Documentation]		User must get an error message with error code 404 for existing partner with old/previous token, JSON response should be correct
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user_name=jdoe		password=welcome123  client_credentials=client_credential
+	Set Test Variable 	${token_old}		${token}
+	PEGASUS Pegasus Request		/pegasus/partner	
+	PEGASUS Pegasus Request old token
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: ${token_old}"}		
+	
+TC_035 send GET request for existing permission By Campaign with valid token
+	[Documentation]		User must get correct response code 200 for existing campaign, JSON response should be correct
+	[Tags]  test
+	PEGASUS Pegasus Request		uri=/pegasus/permissions/campaign/329
+	Should Be Valid JSON  {"campaignId": 329,"permissionName": "CREATE_CAMPAIGNS,READ_CAMPAIGNS,UPDATE_CAMPAIGNS,READ_CREATIVE,UPDATE_CREATIVE,VIEW_DASHBOARD_CARD,VIEW_DASHBOARD_FUNNEL"}
+	#Should Be Equal As Strings    ${resp.status_code}    200
+	
+TC_036 send GET request for not existing permission By Campaign ID
+	[Documentation]		User must get an error message with error code 401 for not existing permission, JSON response should be correct
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/permissions/campaign/330	expected_status_code=401
+	Should Be Valid JSON	{"errorCode": 401,"errorMsg": "Unauthorized access"}
+
+TC_037 send an empty GET request for permission By Campaign
+	[Documentation]		User must get an error message with error code 404 with empty request for permission
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/permissions/campaign/	expected_status_code=404
+	#Set Test Message  *HTML*<h1>HTTP Status 404 - </h1>
+	#Should Be Valid JSON	{"errorCode": 404,"errorMsg": "Data not found"}
+	
+TC_038 send GET request for permission By existing Campaign without token
+	[Documentation]		User must get an error message with error code 401 for existing Campaign without token
+	[Tags] 	test
+	PEGASUS Pegasus Request missing Token	uri=/pegasus/permissions/campaign/237	
+    Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: "}	
+    #Should Be Equal As Strings    ${resp.status_code}    401
+    
+TC_039 send GET request for permission By existing Campaign with invalid token	
+	[Documentation]		User must get an error message with error code 404 for existing Campaign with invalid token
+	[Tags] 	test	
+	PEGASUS Pegasus Request bad Token	uri=/pegasus/permissions/campaign/329	expected_status_code=401
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: 00ec6ebd-d3d3-4e46-b90f-927ff50d9d68"}
+
+#TC_040 send GET request for permission By existing Campaign ID with expired token
+#	[Tags] 	expired 	ex		m
+#	PEGASUS Pegasus Request with expired token		uri=/pegasus/permissions/campaign/329
+#	Should Be Valid JSON  {"error":"invalid_token","error_description":"Access token expired: ${token}"}
+	#Should Be Equal As Strings    ${resp.status_code}    401
+
+TC_041 send GET request for permission By existing campaign ID with old (previous) token    
+	[Documentation]		User must get an error message with error code 404 for existing campaign ID with old/previous token, JSON response should be correct
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user_name=jdoe		password=welcome123  client_credentials=client_credential
+	Set Test Variable 	${token_old}		${token}
+	PEGASUS Pegasus Request		/pegasus/permissions/campaign/329	
+	PEGASUS Pegasus Request old token
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: ${token_old}"}		
+	   
+TC_042 send GET request for AdGroup by existing campaign with valid token
+ 	[Documentation]		User must get correct response code 200 for AdGroup by existing campaign with valid token, JSON response should be correct
+ 	[Tags]  test
+	PEGASUS Pegasus Request		uri=/pegasus/adGroup/adGroupsDetail/campaign/237
+	Should Be Valid JSON  [{"adGroupId":1035,"adGroupName":"1","deliveredImpressions":15230053,"budget":30460,"ecpm":0,"startDate":"05/19/11","endDate":"06/30/11","unitSold":15230053,"status":"completed"},{"adGroupId":1037,"adGroupName":"2_1037","deliveredImpressions":7289,"budget":200,"ecpm":0,"startDate":"05/19/11","endDate":"05/31/11","unitSold":100000,"status":"expired"},{"adGroupId":1039,"adGroupName":"3","deliveredImpressions":95,"budget":10000,"ecpm":0,"startDate":"05/19/11","endDate":"05/31/11","unitSold":10000000,"status":"expired"},{"adGroupId":1041,"adGroupName":"4","deliveredImpressions":61,"budget":10000,"ecpm":0,"startDate":"05/19/11","endDate":"05/31/11","unitSold":10000000,"status":"expired"}]
+ 	#Should Be Equal As Strings    ${resp.status_code}    200
+ 	
+TC_043 send GET request for AdGroup by not existing campaign ID
+	[Documentation]		User must get an error message with error code 401 for AdGroup, while sending request for not existing campaign ID
+ 	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/adGroup/adGroupsDetail/campaign/200	expected_status_code=401
+	Should Be Valid JSON   {"errorCode": 401,"errorMsg": "Unauthorized access"}  
+    
+TC_044 send an empty GET request for AdGroup 
+	[Documentation]		User must get an error message with error code 404 for existing AdGroup while sending empty request, JSON response should be correct
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/adGroup/adGroupsDetail/campaign/   expected_status_code=404
+	Should Be Valid JSON	{"errorCode": 404,"errorMsg": "Data not found"}
+	#Should Be Equal As Strings    ${resp.status_code}    404
+	#
+	#${status}=  Get Response Status 
+	#Log   Status:${status}
+	#Log   ${resp.status_code}
+	#Should Start With  404 ${status}
+	
+TC_045 send GET request for existing AdGroup by campaign without token
+	[Documentation]		User must get an error message with error code 401 for existing AdGroup without token
+	[Tags] 	test
+	PEGASUS Pegasus Request missing Token	uri=/pegasus/adGroup/adGroupsDetail/campaign/
+    Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: "}	
+    #Should Be Equal As Strings    ${resp.status_code}    401
+
+TC_046 send GET request for AdGroup by existing campaign with invalid token
+	[Documentation]		User must get an error message with error code 401 for existing AdGroup with invalid token
+	[Tags] 	test	
+	PEGASUS Pegasus Request bad Token	uri=/pegasus/adGroup/adGroupsDetail/campaign/	expected_status_code=401
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: 00ec6ebd-d3d3-4e46-b90f-927ff50d9d68"}
+
+#TC_047 send GET request for AdGroup by existing campaign with expired token
+#	[Tags] 	expired 	ex		m
+#	PEGASUS Pegasus Request with expired token		uri=/pegasus/adGroup/adGroupsDetail/campaign/237
+#	Should Be Valid JSON  {"error":"invalid_token","error_description":"Access token expired: ${token}"}
+	#Should Be Equal As Strings    ${resp.status_code}    401
+
+TC_048 send GET request for AdGroup by existing campaign with old (previous) token
+	[Documentation]		User must get an error message with error code 404 for AdGroup with old/previous token, JSON response should be correct
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user_name=jdoe		password=welcome123  client_credentials=client_credential	
+	Set Test Variable 	${token_old}		${token}
+	PEGASUS Pegasus Request		/pegasus/adGroup/adGroupsDetail/campaign/237	
+	PEGASUS Pegasus Request old token
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: ${token_old}"}	
+
+TC_049 send GET request for Target Engagement by existing campaign with valid token
+ 	[Documentation]		User must get correct response code 200 for Target Engagement by existing campaign with valid token, JSON response should be correct
+ 	[Tags]  test
+	PEGASUS Pegasus Request		uri=/pegasus/campaign/campaignTargetEngagement/237/all
+	Should Be Valid JSON  {"targetImpression":35330053,"targetHouseHold":0,"enggImpression":15237498,"enggHouseHold":0,"targetClicks":0,"enggClicks":1440}
+ 	#Should Be Equal As Strings    ${resp.status_code}    200
+ 	 
+TC_050 send GET request for Target Engagement by not existing campaign ID
+	[Documentation]		User must get an error message with error code 401 for Target Engagement, while sending request for not existing campaign ID
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/campaign/campaignTargetEngagement/200/all	expected_status_code=401
+	Should Be Valid JSON   {"errorCode": 401,"errorMsg": "Unauthorized access"}
+	#Should Be Equal As Strings    ${resp.status_code}    401
+	
+TC_051 send an empty GET request for Target Engagement 
+	[Documentation]		User must get an error message with error code 404 for Target Engagement while sending empty request, JSON response should be correct
+	[Tags] 	test	
+	PEGASUS Pegasus Request		uri=/pegasus/campaign/campaignTargetEngagement/all	expected_status_code=404
+	Should Be Valid JSON	{"errorCode": 404,"errorMsg": "Data not found"}
+	
+TC_052 send GET request for Target Engagement by existing campaign without token
+	[Documentation]		User must get an error message with error code 401 for Target Engagement without token
+	[Tags] 	test
+	PEGASUS Pegasus Request missing Token	uri=/pegasus/campaign/campaignTargetEngagement/237/all
+    Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: "}	
+    #Should Be Equal As Strings    ${resp.status_code}    401
+    
+TC_053 send GET request for Target Engagement by existing campaign with invalid token
+	[Documentation]		User must get an error message with error code 401 for Target Engagement with invalid token
+	[Tags] 	test	
+	PEGASUS Pegasus Request bad Token	uri=/pegasus/campaign/campaignTargetEngagement/237/all	expected_status_code=401
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: 00ec6ebd-d3d3-4e46-b90f-927ff50d9d68"}
+
+#TC_054 send GET request for Target Engagement by existing campaign with expired token
+#	[Tags] 	expired 	ex		m
+#	PEGASUS Pegasus Request with expired token		uri=/pegasus/campaign/campaignTargetEngagement/237/all
+#	Should Be Valid JSON  {"error":"invalid_token","error_description":"Access token expired: ${token}"}
+	#Should Be Equal As Strings    ${resp.status_code}    401
+
+TC_055 send GET request for Target Engagement by existing campaign with old (previous) token
+	[Documentation]		User must get an error message with error code 404 for Target Engagement with old/previous token, JSON response should be correct
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user_name=jdoe		password=welcome123  client_credentials=client_credential	
+	Set Test Variable 	${token_old}		${token}
+	PEGASUS Pegasus Request		/pegasus/campaign/campaignTargetEngagement/237/all	
+	PEGASUS Pegasus Request old token
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: ${token_old}"}	
+
+TC_056 send GET request for existing Campaign List with valid token
+ 	[Documentation]		User must get correct response code 200 for existing Campaign List by existing partner, JSON response should be correct
+ 	[Tags]  test 	
+	PEGASUS Pegasus Request		uri=/pegasus/campaign/partner/226
+	Should Be Valid JSON  [{"id":237,"name":"advertisera-campaign","status":"expired","startDate":"05/19/11","endDate":"06/30/11","adGroupStartDate":"05/19/11","adGroupEndDate":"06/30/11","impressionServed":"15237498","totalImpression":"35330053","noOfDaysLeft":"1567","budgetUsed":"30474.84","totalBudget":"50660.0","adgroupsCount":"4","pacingStatus":"expired","pacingUnitsSold":"155430053","pacingUnitsDelivered":"15237498","pacingStartDate":"05/19/11","pacingEndDate":"06/30/11","pacing":"0.0","partnerName":"z TEST advertisera","partnerID":182}]
+ 	#Should Be Equal As Strings    ${resp.status_code}    200
+ 	
+TC_057 send GET request for Campaign List not existing partner ID
+	[Documentation]		User must get correct error message and code 401 for existing Campaign List for not existing partner ID, JSON response should be correct
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/campaign/partner/185	expected_status_code=401
+	Should Be Valid JSON   {"errorCode": 401,"errorMsg": "Unauthorized access"}
+	
+TC_058 send an empty GET request for Campaign List
+	[Documentation]		User must get correct error message and code 400 with empty request for existing Campaign List and without partner ID
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/campaign/partner/	expected_status_code=400
+	Should Be Valid JSON	{"errorCode": 404,"errorMsg": "Data not found"}
+
+TC_059 send GET request for existing or Campaign List without token
+	[Documentation]		User must get correct error message and code 401 with empty request for existing Campaign List without token
+	[Tags] 	test
+	PEGASUS Pegasus Request missing Token	uri=/pegasus/campaign/partner/185
+    Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: "}	
+    #Should Be Equal As Strings    ${resp.status_code}    401
+    
+TC_060 send GET request for existing or Campaign List with invalid token
+	[Documentation]		User must get correct error message and code 401 with empty request for existing Campaign List with invalid token
+	[Tags] 	test
+	PEGASUS Pegasus Request bad Token	uri=/pegasus/campaign/partner/185	expected_status_code=401
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: 00ec6ebd-d3d3-4e46-b90f-927ff50d9d68"}
+
+#TC_061 send GET request for existing or Campaign List with expired token
+#	[Tags] 	expired 	exf		m
+#	PEGASUS Pegasus Request with expired token		uri=/pegasus/campaign/partner/182
+#	Should Be Valid JSON  {"error":"invalid_token","error_description":"Access token expired: ${token}"}
+	#Should Be Equal As Strings    ${resp.status_code}    401
+
+TC_062 send GET request for existing or Campaign List with old (previous) token
+	[Documentation]		User must get an error message with error code 404 for Campaign List with old/previous token, JSON response should be correct
+	[Tags] 	test
+	PEGASUS Pegasus Get Token new user  user_name=jdoe		password=welcome123  client_credentials=client_credential	
+	Set Test Variable 	${token_old}		${token}
+	PEGASUS Pegasus Request		/pegasus/campaign/partner/182	
+	PEGASUS Pegasus Request old token
+	Should Be Valid JSON   {"error": "invalid_token","error_description": "Invalid access token: ${token_old}"}	
+
+TC_063 send logout GET request for existing or Campaign List with valid token
+ 	[Documentation]		User must get correct message with code 200 for Campaign List with valid token while logging out
+	[Tags] 	test
+	PEGASUS Pegasus Request		uri=/pegasus/authentication/logout
+	#Should Be Equal As Strings    ${resp.status_code}    200
+ 
+TC_064 send logout GET request for existing or Campaign List with invalid token
+	[Documentation]		User must get an error message with error code 401 for Campaign List with invalid token while logging out
+	[Tags] 	test		
+	PEGASUS Pegasus Request bad Token	uri=/pegasus/authentication/logout	expected_status_code=401
+	Should Be Valid JSON  {"error":"invalid_token","error_description":"Invalid access token"}
+
+TC_065 Verify response status is 401
+	[Documentation]		User must get an error message with error code 401 while logging out
+	[Tags] 	test
+	PEGASUS Pegasus Request bad Token	uri=/pegasus/authentication/logout	expected_status_code=401
+	Log  Resp: ${resp.status_code}
+    Should Be Equal As Strings 	    ${resp.status_code}    401
+	

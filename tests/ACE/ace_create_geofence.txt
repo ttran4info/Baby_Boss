@@ -1,0 +1,63 @@
+
+
+*** Settings ***
+Resource            ace_imports.txt
+Force Tags          ACE    BUILD_SANITY   GEOFENCE    BATCH2	EXCLUDE 	#obsolete since db dump different poi everytime
+
+*** Variables ***
+
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+      [Tags]	
+Go to the ACE Tab
+       Go To Geofence Tab
+       Reload Page
+	[Tags]	
+Validate All The Table Headers For ACE Are There
+       Validate ACE Table Headers
+     [Tags]	3.11 	
+Create a GEOFENCE Targeting Set - BORDERS Half Mile DMA Honolulu
+        #Create Base ACE Targeting With DMA        cpham@4info.com     GEOFENCE_     744
+        Create Base ACE Targeting With DMA        email=cpham@4info.com     target_set_name=GEOFENCE
+        Select Segment Type For Targetting    Geo Fence
+        Sleep     10s
+        #Add GEOFENCE Segments To Selection       poi_category_name=BOOK STORES       poi_name=BORDERS
+        Add GEOFENCE Segments To Selection       poi_category_name=OFFICES AND CLINICS OF MEDICAL DOCTORS        poi_name=GAMBRO HEALTHCARE 
+        
+        Add GEOFENCE Radius        0.5 
+        SSH Login As Valid User    SSH_HOST=${DEFAULT_AUDIENCE_ENGINE}     TIMEOUT=300
+        Write    tail -F ~/server/4info/log/server.log
+        Save ACE Target Set 
+#        ${output}=    Read Until Regexp 	    .*results emailed to cpham@4info.com
+        ${output}=    Read Until Regexp 	    .*Target Full List Cache Refresh Result: Success
+        #Validate Target Set Is Created Successfully     ${TARGET_SET_NAME_TIMESTAMPED}      Points Of Interest (within 0.50 mi)        BOOK STORES (81) - BORDERS (341)        Honolulu         (744)
+        #Validate Target Set Is Created Successfully     ${TARGET_SET_NAME_TIMESTAMPED}      Points Of Interest (within 0.50 mi)        BOOK STORES (81) - BORDERS (341)                 
+        Validate Target Set Is Created Successfully     ${TARGET_SET_NAME_TIMESTAMPED}      Points Of Interest (within 0.50 mi)        OFFICES AND CLINICS OF MEDICAL DOCTORS  (642) - GAMBRO HEALTHCARE (941) 
+        ${location}=      Get Location
+        ${process_id}=       extract_matching_regex          ${location}        .+?id=(.+?)$
+        Log     ProcessID: ${process_id}
+        Log     SSH Output: ${output}
+#        ${ssh_poi_count}=                 extract_matching_regex          ${output}        .+?Geo Fence has\\s([0-9]+?)\\spoints of interest.+?
+#        ${ssh_tile_count}=                 extract_matching_regex          ${output}         .+?points of interest.\\s([0-9]+?)\\stiles were generated.+?
+#Manually input the ssh_poi_count since log no longer provide this data.
+		Set Test Variable 	${ssh_poi_count}	6
+		Set Test Variable 	${ssh_tile_count}	6
+        Log     SSH POI COUNT: ${ssh_poi_count} 
+        Log     SSH TILE COUNT: ${ssh_tile_count}
+        Close All Connections       
+        Retrieve POI Count For Target Set         poi_category_id=${poi_category_id}          poi_id=${poi_id}           dma=744
+        Should Be Equal As Numbers          ${ssh_poi_count}      ${poi_db_count}
+	[Tags]	
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+Remove All GEOFENCE Database Reports Generated
+      Remove GEOFENCE Reports From DB      
+         

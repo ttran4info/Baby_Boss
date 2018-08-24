@@ -1,0 +1,7 @@
+*** Settings ***
+Resource    adhaven_general.txt
+Resource    database.txt
+Resource    advertisers.txt
+Resource    partners.txt
+
+

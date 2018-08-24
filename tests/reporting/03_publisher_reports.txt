@@ -1,0 +1,27 @@
+
+
+*** Settings ***
+Resource            reporting_imports.txt
+Force Tags          REPORTING_PUBLISHER      REPORTING   QA_ONLY     BATCH4		EXCLUDE
+*** Variables ***
+${start_date}        20140115
+${end_date}         20140131
+
+*** Test Cases ***
+
+Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - Overall Report
+             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/publisherReportUI?apiKey=96a3be339dc3269b
+             ...                             &reportId=PublisherReport&startDate=20130301&endDate=20130315
+             ...                             &placementId=11,2148&timeZone=GMT[+00:00]
+             Retrieve API Key And PartnerID From Partner Name          partner_name=4INFO
+             Retrieve Placements Belonging to Partner By PartnerID     partner_id=${partner_id} 
+             Log       PartnerID: ${partner_id} 
+             Log       First Placement: ${PLACEMENT_ID_LIST[0][0]} 
+             Log       ${PLACEMENT_ID_LIST} 
+             Retrieve Output File Path     PUBLISHER_REPORT_${partner_id}.csv
+             Construct Publisher Report API     ${api_key}     PublisherReport     ${start_date}     ${end_date}     GMT     @{PLACEMENT_ID_LIST} 
+             Log          ${output_directory} 
+             Log          ${publisher_api_call} 
+             download_file_from_url    ${output_directory}      ${publisher_api_call} 
+             print_csv_contents     ${output_directory} 
+ 

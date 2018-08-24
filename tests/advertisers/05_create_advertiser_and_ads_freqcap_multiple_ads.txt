@@ -1,0 +1,481 @@
+
+
+*** Settings ***
+Resource              advertisers_imports.txt
+Force Tags           ADVERTISERS    FREQUENCY_CAP     4.12       BATCH3   EXCLUDE
+
+*** Variables ***
+${banner_type}=                GENERIC
+${banner_file_name}=          320x50_Group02.jpg 
+${banner_file_name2}=        320x50_Group03.jpg 
+${freq_cap_daily}=         10
+${freq_cap_overall}=      50
+${freq_cap_campaign_name_prefix}=      05_FREQCAP_CAMPAIGN
+
+*** Test Cases ***
+Clean Up All Existing Data For Frequency Cap Tests
+       Cleanup Campaigns For Frequency Cap Tests
+
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD} 
+       Login with "${USER}" and "${PASSWORD}"
+             
+Add A New Campaign 05_FREQCAP_CAMPAIGN And Add Adgroup To An Existing Advertiser ${DEFAULT_ADVERTISER} And Frequency Cap Daily ${freq_cap_daily}
+       [Documentation]    Test Steps: Create a new campaign.  Within the new campaign, create a new ad group and 2 ads under it. 
+       ...                         Set the frequency cap for the particular ad group to have 10 impressions per consumer id daily only. 
+       ...                         Wait 6 minutes for cache to pick up the new ad group and for ads to start serving.
+       ...                         Make 10 ad requests, validate that the ad is served for the particular ag id and ad_group id.
+       ...                         Pass in device ID to ensure that the Consumer ID is unique every time. 
+       ...                         Wait 6 minutes.
+       ...                         Make another ad request to validate that the ad is no longer served. 
+       ${default_start}=       get_default_start_date
+       ${default_end}=        get_default_end_date
+       Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name}
+#     Current QA environment has partner id = 423
+       Go To      ${URL} 
+       Add Campaign To Advertiser    advertiser_name=${DEFAULT_ADVERTISER}    campaign_name=${freq_cap_campaign_name_prefix}    campaign_start_date=${default_start}    campaign_end_date=${default_end} 	 campaign_time_zone=Eastern	  campaign_total_budget=100000     
+       Retrieve Campaign_ID By Campaign Name       ${campaign_name}
+       Log     CAMPAIGN_ID: ${campaign_id} 
+       Add Adgroup To Campaign Without Targeting         advertiser_name=${DEFAULT_ADVERTISER}     
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=04_AG_FREQCAP_DAILY      
+       ...                       ag_start_date=${default_start}
+       ...                       ag_end_date=${default_end}
+       ...                       ag_delivery_strategy=Guaranteed
+      ...                        ag_pacing=Normal     
+      ...                        ag_payment_model=CPM     
+      ...                        ag_cpm_cpc_value=1
+      ...                        ag_impression_goal=9999
+      ...                        ag_ad_delivery=${AG_SET_AD_WEIGHTS_MANUALLY_RADIO_BUTTON_VALUE}
+      ...                        ag_frequency_cap_daily_flag=1
+      ...                        ag_frequency_cap_daily_no_times=${freq_cap_daily}
+      ...                        ag_frequency_cap_overall_flag=0
+      ...                        ag_frequency_cap_overall_no_times=0
+      ...                        ag_app_download_tracking_flag=0     
+      ...                        ag_app_id=0
+      ...                        ag_geo_targeting_data_source=${AG_GEO_TARGETING_DATA_SOURCE_IP_WIFI_RADIO_BUTTON_VALUE}
+      ...                        ag_use_placeiq_flag=0     
+#      Removed in Release 5.6    JIRA-4468
+#      ...                        ag_spoc_flag=0     
+      ...                        ag_pause_flag=0     
+      ...                        ag_enable_behavior_targeting_flag=0     
+      ...                        ag_target_placement=${DEFAULT_PLACEMENT} 
+      ...                        timestamp_flag=1
+      Capture Page Screenshot With Timestamp
+      Validate Adgroup Added To Campaign Without Targeting        advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name}    
+       ...                       ag_start_date=${default_start}
+       ...                       ag_end_date=${default_end}
+       ...                       ag_delivery_strategy=Guaranteed
+      ...                        ag_pacing=Normal     
+      ...                        ag_payment_model=CPM  
+      ...                        ag_cpm_cpc_value=1
+      ...                        ag_impression_goal=9999
+      ...                        ag_ad_delivery=${AG_SET_AD_WEIGHTS_MANUALLY_RADIO_BUTTON_VALUE}
+      ...                        ag_frequency_cap_daily_flag=1
+      ...                        ag_frequency_cap_daily_no_times=${freq_cap_daily}
+      ...                        ag_frequency_cap_overall_flag=0
+      ...                        ag_frequency_cap_overall_no_times=0
+      ...                        ag_app_download_tracking_flag=0     
+      ...                        ag_app_id=
+      ...                        ag_geo_targeting_data_source=${AG_GEO_TARGETING_DATA_SOURCE_IP_WIFI_RADIO_BUTTON_VALUE}
+      ...                        ag_use_placeiq_flag=0     
+#      Removed in Release 5.6    JIRA-4468
+#      ...                        ag_spoc_flag=0     
+      ...                        ag_pause_flag=0     
+      ...                        ag_enable_behavior_targeting_flag=0     
+      ...                        ag_target_placement=${DEFAULT_PLACEMENT} 
+      Retrieve Adgroup_ID By Adgroup Name     ${ag_adgroup_name} 
+      Add A Banner Ad Under Adgroup With Banner Type Static Image      advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name} 
+       ...                       ag_adgroup_id=${ag_adgroup_id}
+      ...                        ag_ad_type=${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_name=Ad_01      
+      ...                        ag_ad_text=Ad_01
+      ...                        ag_ad_banner_type=${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_default_destination_type=Click to Web
+      ...                        ag_ad_url=
+      ...                        ag_ad_3rd_party_url=
+      ...                        ag_ad_3rd_party_click=
+      ...                        ag_ad_weight=1
+      ...                        ag_ad_allocation_gain=Normal
+      ...                        ag_ad_allocation_overwrite_flag=0
+      ...                        ag_ad_banner_size=${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      ...                        ag_ad_banner_file_path=${banner_file}
+      ...                        ag_ad_specific_url=${DEFAULT_BROWSER_HOME}
+      ...                        ag_ad_specific_3rd_party_url=
+      ...                        ag_ad_specific_3rd_party_click=
+      ...                        ag_ad_truste_icon_location=Bottom Right
+      ...                        ag_ad_paused_flag=0
+       ...                       timestamp_flag=1
+       Set Test Variable    ${ad_name_1}         ${ag_ad_name}
+       Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name2}
+       Add A Banner Ad Under Adgroup With Banner Type Static Image      advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name} 
+       ...                       ag_adgroup_id=${ag_adgroup_id}
+      ...                        ag_ad_type=${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_name=Ad_02   
+      ...                        ag_ad_text=Ad_02
+      ...                        ag_ad_banner_type=${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_default_destination_type=Click to Web
+      ...                        ag_ad_url=
+      ...                        ag_ad_3rd_party_url=
+      ...                        ag_ad_3rd_party_click=
+      ...                        ag_ad_weight=1
+      ...                        ag_ad_allocation_gain=Normal
+      ...                        ag_ad_allocation_overwrite_flag=0
+      ...                        ag_ad_banner_size=${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      ...                        ag_ad_banner_file_path=${banner_file}
+      ...                        ag_ad_specific_url=${DEFAULT_BROWSER_HOME}
+      ...                        ag_ad_specific_3rd_party_url=
+      ...                        ag_ad_specific_3rd_party_click=
+      ...                        ag_ad_truste_icon_location=Bottom Right
+      ...                        ag_ad_paused_flag=0
+       ...                       timestamp_flag=1
+       Set Test Variable    ${ad_name_2}         ${ag_ad_name}
+       Log      AdID1: ${ad_name_1}
+       Log      AdID2: ${ad_name_2}
+       Retrieve Ad_ID By Ad Name And Ad_Group_Bundle       child_ag_ad_name=${ad_name_1}       parent_ag_bundle_id=${ag_adgroup_id}
+       Set Test Variable     ${child_ad_id1}                    ${child_ad_id}
+       Set Test Variable     ${child_ad_group_id1}         ${child_ad_group_id}
+       Set Test Variable     ${ad_id_string}                    aId=${child_ad_id}
+       Set Test Variable     ${ad_group_id_string}         agId=${child_ad_group_id}
+       Retrieve Ad_ID By Ad Name And Ad_Group_Bundle       child_ag_ad_name=${ad_name_2}       parent_ag_bundle_id=${ag_adgroup_id}
+       Set Test Variable      ${child_ad_id2}                    ${child_ad_id}
+       Set Test Variable      ${child_ad_group_id2}         ${child_ad_group_id}
+       ${ad_id_string}=                Set Variable               ${ad_id_string}|aId=${child_ad_id}
+       ${ad_group_id_string}=     Set Variable               ${ad_group_id_string}|agId=${child_ad_group_id}
+       Log     Regex Validation For Ad IDs: ${ad_id_string}
+       Log     Regex Validation For AdGroup IDs: ${ad_group_id_string}
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=${DEFAULT_API_KEY}    placement_id=${DEFAULT_PLACEMENT}    header_user-agent=iPhone     device_id=7777777777
+       Log    Ad Request URL: ${ad_request_url}
+#       Sleep     ${CACHE_WAIT_TIME}
+		Reload All Cache
+       :FOR    ${index}    IN RANGE   0    ${freq_cap_daily}
+       \     Validate Ad Serving    ad_url=${ad_request_url}    image_name=${banner_file_name}|${banner_file_name2}    
+       \     Log      Page Source: ${temp_source}
+       \     Should Match Regexp    ${temp_source}     ${ad_id_string}
+       \     Should Match Regexp    ${temp_source}     ${ad_group_id_string}
+#       Sleep     ${CACHE_WAIT_TIME}
+		Reload All Cache
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=${banner_file_name}     expect_error=1     source_validation_string=${AD_NOT_SERVED_HTML_VALIDATION}
+       Log      Page Source: ${temp_source}
+       Go To      ${URL} 
+       Remove Ad By Child_AdGroup_ID And Child_Ad_ID     child_ad_group_id=${child_ad_group_id1}     child_ad_id=${child_ad_id1}
+       Remove Ad By Child_AdGroup_ID And Child_Ad_ID     child_ad_group_id=${child_ad_group_id2}     child_ad_id=${child_ad_id2}
+       Remove AdGroup By BundleID      ${ag_adgroup_id}
+       Remove Campaign By CampaignID     ${campaign_id} 
+
+Add A New Campaign 05_FREQCAP_CAMPAIGN And Add Adgroup To An Existing Advertiser ${DEFAULT_ADVERTISER} And Frequency Cap Overall ${freq_cap_overall}
+       [Documentation]    Test Steps: Create a new campaign.  Within the new campaign, create a new ad group and ad under it. 
+       ...                         Set the frequency cap for the particular ad group to have 50 impressions per consumer id overall only. 
+       ...                         Wait 6 minutes for cache to pick up the new ad group and for ads to start serving.
+       ...                         Make 50 ad requests, validate that the ad is served for the particular ag id and ad_group id.
+       ...                         Pass in device ID to ensure that the Consumer ID is unique every time. 
+       ...                         Wait 6 minutes.
+       ...                         Make another ad request to validate that the ad is no longer served. 
+       ${default_start}=       get_default_start_date
+       ${default_end}=        get_default_end_date
+       Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name}
+#     Current QA environment has partner id = 423
+       Go To      ${URL} 
+       Add Campaign To Advertiser    advertiser_name=${DEFAULT_ADVERTISER}    campaign_name=${freq_cap_campaign_name_prefix}    campaign_start_date=${default_start}    campaign_end_date=${default_end}   campaign_time_zone=Eastern	 campaign_total_budget=100000     
+       Retrieve Campaign_ID By Campaign Name       ${campaign_name}
+       Log     CAMPAIGN_ID: ${campaign_id} 
+       Add Adgroup To Campaign Without Targeting         advertiser_name=${DEFAULT_ADVERTISER}     
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=04_AG_FREQCAP_OVERALL       
+       ...                       ag_start_date=${default_start}
+       ...                       ag_end_date=${default_end}
+       ...                       ag_delivery_strategy=Guaranteed
+      ...                        ag_pacing=Normal     
+      ...                        ag_payment_model=CPM     
+      ...                        ag_cpm_cpc_value=1
+      ...                        ag_impression_goal=9999
+      ...                        ag_ad_delivery=${AG_SET_AD_WEIGHTS_MANUALLY_RADIO_BUTTON_VALUE}
+      ...                        ag_frequency_cap_daily_flag=0
+      ...                        ag_frequency_cap_daily_no_times=0
+      ...                        ag_frequency_cap_overall_flag=1
+      ...                        ag_frequency_cap_overall_no_times=${freq_cap_overall}
+      ...                        ag_app_download_tracking_flag=0     
+      ...                        ag_app_id=0
+      ...                        ag_geo_targeting_data_source=${AG_GEO_TARGETING_DATA_SOURCE_IP_WIFI_RADIO_BUTTON_VALUE}
+      ...                        ag_use_placeiq_flag=0     
+#      Removed in Release 5.6    JIRA-4468
+#      ...                        ag_spoc_flag=0     
+      ...                        ag_pause_flag=0     
+      ...                        ag_enable_behavior_targeting_flag=0     
+      ...                        ag_target_placement=${DEFAULT_PLACEMENT} 
+      ...                        timestamp_flag=1
+      Capture Page Screenshot With Timestamp
+      Validate Adgroup Added To Campaign Without Targeting        advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name}   
+       ...                       ag_start_date=${default_start}
+       ...                       ag_end_date=${default_end}
+       ...                       ag_delivery_strategy=Guaranteed
+      ...                        ag_pacing=Normal     
+      ...                        ag_payment_model=CPM  
+      ...                        ag_cpm_cpc_value=1
+      ...                        ag_impression_goal=9999
+      ...                        ag_ad_delivery=${AG_SET_AD_WEIGHTS_MANUALLY_RADIO_BUTTON_VALUE}
+      ...                        ag_frequency_cap_daily_flag=0
+      ...                        ag_frequency_cap_daily_no_times=0
+      ...                        ag_frequency_cap_overall_flag=1
+      ...                        ag_frequency_cap_overall_no_times=${freq_cap_overall}
+      ...                        ag_app_download_tracking_flag=0     
+      ...                        ag_app_id=
+      ...                        ag_geo_targeting_data_source=${AG_GEO_TARGETING_DATA_SOURCE_IP_WIFI_RADIO_BUTTON_VALUE}
+      ...                        ag_use_placeiq_flag=0     
+#      Removed in Release 5.6    JIRA-4468
+#      ...                        ag_spoc_flag=0     
+      ...                        ag_pause_flag=0     
+      ...                        ag_enable_behavior_targeting_flag=0     
+      ...                        ag_target_placement=${DEFAULT_PLACEMENT} 
+      Retrieve Adgroup_ID By Adgroup Name     ${ag_adgroup_name} 
+      Add A Banner Ad Under Adgroup With Banner Type Static Image      advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name} 
+       ...                       ag_adgroup_id=${ag_adgroup_id}
+      ...                        ag_ad_type=${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_name=Ad_01      
+      ...                        ag_ad_text=Ad_01
+      ...                        ag_ad_banner_type=${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_default_destination_type=Click to Web
+      ...                        ag_ad_url=
+      ...                        ag_ad_3rd_party_url=
+      ...                        ag_ad_3rd_party_click=
+      ...                        ag_ad_weight=1
+      ...                        ag_ad_allocation_gain=Normal
+      ...                        ag_ad_allocation_overwrite_flag=0
+      ...                        ag_ad_banner_size=${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      ...                        ag_ad_banner_file_path=${banner_file}
+      ...                        ag_ad_specific_url=${DEFAULT_BROWSER_HOME}
+      ...                        ag_ad_specific_3rd_party_url=
+      ...                        ag_ad_specific_3rd_party_click=
+      ...                        ag_ad_truste_icon_location=Bottom Right
+      ...                        ag_ad_paused_flag=0
+       ...                       timestamp_flag=1
+       Set Test Variable    ${ad_name_1}         ${ag_ad_name}
+       Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name2}
+       Add A Banner Ad Under Adgroup With Banner Type Static Image      advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name} 
+       ...                       ag_adgroup_id=${ag_adgroup_id}
+      ...                        ag_ad_type=${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_name=Ad_02      
+      ...                        ag_ad_text=Ad_02
+      ...                        ag_ad_banner_type=${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_default_destination_type=Click to Web
+      ...                        ag_ad_url=
+      ...                        ag_ad_3rd_party_url=
+      ...                        ag_ad_3rd_party_click=
+      ...                        ag_ad_weight=1
+      ...                        ag_ad_allocation_gain=Normal
+      ...                        ag_ad_allocation_overwrite_flag=0
+      ...                        ag_ad_banner_size=${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      ...                        ag_ad_banner_file_path=${banner_file}
+      ...                        ag_ad_specific_url=${DEFAULT_BROWSER_HOME}
+      ...                        ag_ad_specific_3rd_party_url=
+      ...                        ag_ad_specific_3rd_party_click=
+      ...                        ag_ad_truste_icon_location=Bottom Right
+      ...                        ag_ad_paused_flag=0
+       ...                       timestamp_flag=1
+       Set Test Variable    ${ad_name_2}         ${ag_ad_name}
+       Log      AdID1: ${ad_name_1}
+       Log      AdID2: ${ad_name_2}
+       Retrieve Ad_ID By Ad Name And Ad_Group_Bundle       child_ag_ad_name=${ad_name_1}       parent_ag_bundle_id=${ag_adgroup_id}
+       Set Test Variable     ${child_ad_id1}                    ${child_ad_id}
+       Set Test Variable     ${child_ad_group_id1}         ${child_ad_group_id}
+       Set Test Variable     ${ad_id_string}                    aId=${child_ad_id}
+       Set Test Variable     ${ad_group_id_string}         agId=${child_ad_group_id}
+       Retrieve Ad_ID By Ad Name And Ad_Group_Bundle       child_ag_ad_name=${ad_name_2}       parent_ag_bundle_id=${ag_adgroup_id}
+       Set Test Variable      ${child_ad_id2}                    ${child_ad_id}
+       Set Test Variable      ${child_ad_group_id2}         ${child_ad_group_id}
+       ${ad_id_string}=                Set Variable               ${ad_id_string}|aId=${child_ad_id}
+       ${ad_group_id_string}=     Set Variable               ${ad_group_id_string}|agId=${child_ad_group_id}
+       Log     Regex Validation For Ad IDs: ${ad_id_string}
+       Log     Regex Validation For AdGroup IDs: ${ad_group_id_string}
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=${DEFAULT_API_KEY}    placement_id=${DEFAULT_PLACEMENT}    header_user-agent=iPhone     device_id=8888888888
+       Log    Ad Request URL: ${ad_request_url}
+#       Sleep     ${CACHE_WAIT_TIME}
+		Reload All Cache
+       :FOR    ${index}    IN RANGE   0    ${freq_cap_overall}
+       \     Validate Ad Serving    ad_url=${ad_request_url}    image_name=${banner_file_name}|${banner_file_name2}    
+       \     Log      Page Source: ${temp_source}
+       \     Should Match Regexp    ${temp_source}     ${ad_id_string}
+       \     Should Match Regexp    ${temp_source}     ${ad_group_id_string}
+#       Sleep     ${CACHE_WAIT_TIME}
+		Reload All Cache
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=${banner_file_name}     expect_error=1     source_validation_string=${AD_NOT_SERVED_HTML_VALIDATION}
+       Log      Page Source: ${temp_source}
+       Go To      ${URL} 
+       Remove Ad By Child_AdGroup_ID And Child_Ad_ID     child_ad_group_id=${child_ad_group_id1}     child_ad_id=${child_ad_id1}
+       Remove Ad By Child_AdGroup_ID And Child_Ad_ID     child_ad_group_id=${child_ad_group_id2}     child_ad_id=${child_ad_id2}
+       Remove AdGroup By BundleID      ${ag_adgroup_id}
+       Remove Campaign By CampaignID     ${campaign_id}        
+       
+Add A New Campaign 05_FREQCAP_CAMPAIGN And Add Adgroup To An Existing Advertiser ${DEFAULT_ADVERTISER} With Daily And Overall Frequency Caps
+       [Documentation]    Test Steps: Create a new campaign.  Within the new campaign, create a new ad group and ad under it. 
+       ...                         Set the frequency cap for the particular ad group to have 50 impressions per consumer id overall only. 
+       ...                         Wait 6 minutes for cache to pick up the new ad group and for ads to start serving.
+       ...                         Make 50 ad requests, validate that the ad is served for the particular ag id and ad_group id.
+       ...                         Pass in device ID to ensure that the Consumer ID is unique every time. 
+       ...                         Wait 6 minutes.
+       ...                         Make another ad request to validate that the ad is no longer served. 
+       ${default_start}=       get_default_start_date
+       ${default_end}=        get_default_end_date
+       Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name}
+#     Current QA environment has partner id = 423
+       Go To      ${URL} 
+       Add Campaign To Advertiser    advertiser_name=${DEFAULT_ADVERTISER}    campaign_name=${freq_cap_campaign_name_prefix}    campaign_start_date=${default_start}    campaign_end_date=${default_end}    campaign_time_zone=Eastern		campaign_total_budget=100000     
+       Retrieve Campaign_ID By Campaign Name       ${campaign_name}
+       Log     CAMPAIGN_ID: ${campaign_id} 
+       Add Adgroup To Campaign Without Targeting         advertiser_name=${DEFAULT_ADVERTISER}     
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=04_AG_FREQCAP_OVERALL     
+       ...                       ag_start_date=${default_start}
+       ...                       ag_end_date=${default_end}
+       ...                       ag_delivery_strategy=Guaranteed
+      ...                        ag_pacing=Normal     
+      ...                        ag_payment_model=CPM     
+      ...                        ag_cpm_cpc_value=1
+      ...                        ag_impression_goal=9999
+      ...                        ag_ad_delivery=${AG_SET_AD_WEIGHTS_MANUALLY_RADIO_BUTTON_VALUE}
+      ...                        ag_frequency_cap_daily_flag=1
+      ...                        ag_frequency_cap_daily_no_times=${freq_cap_daily}
+      ...                        ag_frequency_cap_overall_flag=1
+      ...                        ag_frequency_cap_overall_no_times=${freq_cap_overall}
+      ...                        ag_app_download_tracking_flag=0     
+      ...                        ag_app_id=0
+      ...                        ag_geo_targeting_data_source=${AG_GEO_TARGETING_DATA_SOURCE_IP_WIFI_RADIO_BUTTON_VALUE}
+      ...                        ag_use_placeiq_flag=0     
+#      Removed in Release 5.6    JIRA-4468
+#      ...                        ag_spoc_flag=0     
+      ...                        ag_pause_flag=0     
+      ...                        ag_enable_behavior_targeting_flag=0     
+      ...                        ag_target_placement=${DEFAULT_PLACEMENT} 
+      ...                        timestamp_flag=1
+      Capture Page Screenshot With Timestamp
+      Validate Adgroup Added To Campaign Without Targeting        advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name}   
+       ...                       ag_start_date=${default_start}
+       ...                       ag_end_date=${default_end}
+       ...                       ag_delivery_strategy=Guaranteed
+      ...                        ag_pacing=Normal     
+      ...                        ag_payment_model=CPM  
+      ...                        ag_cpm_cpc_value=1
+      ...                        ag_impression_goal=9999
+      ...                        ag_ad_delivery=${AG_SET_AD_WEIGHTS_MANUALLY_RADIO_BUTTON_VALUE}
+      ...                        ag_frequency_cap_daily_flag=1
+      ...                        ag_frequency_cap_daily_no_times=${freq_cap_daily}
+      ...                        ag_frequency_cap_overall_flag=1
+      ...                        ag_frequency_cap_overall_no_times=${freq_cap_overall}
+      ...                        ag_app_download_tracking_flag=0     
+      ...                        ag_app_id=
+      ...                        ag_geo_targeting_data_source=${AG_GEO_TARGETING_DATA_SOURCE_IP_WIFI_RADIO_BUTTON_VALUE}
+      ...                        ag_use_placeiq_flag=0     
+#      Removed in Release 5.6    JIRA-4468
+#      ...                        ag_spoc_flag=0     
+      ...                        ag_pause_flag=0     
+      ...                        ag_enable_behavior_targeting_flag=0     
+      ...                        ag_target_placement=${DEFAULT_PLACEMENT} 
+      Retrieve Adgroup_ID By Adgroup Name     ${ag_adgroup_name} 
+      Add A Banner Ad Under Adgroup With Banner Type Static Image      advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name} 
+       ...                       ag_adgroup_id=${ag_adgroup_id}
+      ...                        ag_ad_type=${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_name=Ad_01      
+      ...                        ag_ad_text=Ad_01
+      ...                        ag_ad_banner_type=${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_default_destination_type=Click to Web
+      ...                        ag_ad_url=
+      ...                        ag_ad_3rd_party_url=
+      ...                        ag_ad_3rd_party_click=
+      ...                        ag_ad_weight=1
+      ...                        ag_ad_allocation_gain=Normal
+      ...                        ag_ad_allocation_overwrite_flag=0
+      ...                        ag_ad_banner_size=${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      ...                        ag_ad_banner_file_path=${banner_file}
+      ...                        ag_ad_specific_url=${DEFAULT_BROWSER_HOME}
+      ...                        ag_ad_specific_3rd_party_url=
+      ...                        ag_ad_specific_3rd_party_click=
+      ...                        ag_ad_truste_icon_location=Bottom Right
+      ...                        ag_ad_paused_flag=0
+       ...                       timestamp_flag=1
+       Set Test Variable    ${ad_name_1}         ${ag_ad_name}
+       Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name2}
+       Add A Banner Ad Under Adgroup With Banner Type Static Image      advertiser_name=${DEFAULT_ADVERTISER}
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=${ag_adgroup_name} 
+       ...                       ag_adgroup_id=${ag_adgroup_id}
+      ...                        ag_ad_type=${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_name=Ad_02    
+      ...                        ag_ad_text=Ad_02
+      ...                        ag_ad_banner_type=${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}
+      ...                        ag_ad_default_destination_type=Click to Web
+      ...                        ag_ad_url=
+      ...                        ag_ad_3rd_party_url=
+      ...                        ag_ad_3rd_party_click=
+      ...                        ag_ad_weight=1
+      ...                        ag_ad_allocation_gain=Normal
+      ...                        ag_ad_allocation_overwrite_flag=0
+      ...                        ag_ad_banner_size=${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      ...                        ag_ad_banner_file_path=${banner_file}
+      ...                        ag_ad_specific_url=${DEFAULT_BROWSER_HOME}
+      ...                        ag_ad_specific_3rd_party_url=
+      ...                        ag_ad_specific_3rd_party_click=
+      ...                        ag_ad_truste_icon_location=Bottom Right
+      ...                        ag_ad_paused_flag=0
+       ...                       timestamp_flag=1
+       Set Test Variable    ${ad_name_2}         ${ag_ad_name}
+       Log      AdID1: ${ad_name_1}
+       Log      AdID2: ${ad_name_2}
+       Retrieve Ad_ID By Ad Name And Ad_Group_Bundle       child_ag_ad_name=${ad_name_1}       parent_ag_bundle_id=${ag_adgroup_id}
+       Set Test Variable     ${child_ad_id1}                    ${child_ad_id}
+       Set Test Variable     ${child_ad_group_id1}         ${child_ad_group_id}
+       Set Test Variable     ${ad_id_string}                    aId=${child_ad_id}
+       Set Test Variable     ${ad_group_id_string}         agId=${child_ad_group_id}
+       Retrieve Ad_ID By Ad Name And Ad_Group_Bundle       child_ag_ad_name=${ad_name_2}       parent_ag_bundle_id=${ag_adgroup_id}
+       Set Test Variable      ${child_ad_id2}                    ${child_ad_id}
+       Set Test Variable      ${child_ad_group_id2}         ${child_ad_group_id}
+       ${ad_id_string}=                Set Variable               ${ad_id_string}|aId=${child_ad_id}
+       ${ad_group_id_string}=     Set Variable               ${ad_group_id_string}|agId=${child_ad_group_id}
+       Log     Regex Validation For Ad IDs: ${ad_id_string}
+       Log     Regex Validation For AdGroup IDs: ${ad_group_id_string}
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=${DEFAULT_API_KEY}    placement_id=${DEFAULT_PLACEMENT}    header_user-agent=iPhone     device_id=9999999999
+       Log    Ad Request URL: ${ad_request_url}
+#       Sleep     ${CACHE_WAIT_TIME}
+		Reload All Cache
+       :FOR    ${index}    IN RANGE   0    ${freq_cap_daily}
+       \     Validate Ad Serving    ad_url=${ad_request_url}    image_name=${banner_file_name}|${banner_file_name2}        
+       \     Log      Page Source: ${temp_source}
+       \     Should Match Regexp    ${temp_source}     ${ad_id_string}
+       \     Should Match Regexp    ${temp_source}     ${ad_group_id_string}
+#       Sleep     ${CACHE_WAIT_TIME}
+		Reload All Cache
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=${banner_file_name}     expect_error=1     source_validation_string=${AD_NOT_SERVED_HTML_VALIDATION}
+       Log      Page Source: ${temp_source}
+       Go To      ${URL} 
+       Remove Ad By Child_AdGroup_ID And Child_Ad_ID     child_ad_group_id=${child_ad_group_id1}     child_ad_id=${child_ad_id1}
+       Remove Ad By Child_AdGroup_ID And Child_Ad_ID     child_ad_group_id=${child_ad_group_id2}     child_ad_id=${child_ad_id2}
+       Remove AdGroup By BundleID      ${ag_adgroup_id}
+       Remove Campaign By CampaignID     ${campaign_id}               
+      
+Log Out of AdHaven UI and Verify
+       Go To      ${URL} 
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+Clean Up All Existing Data For Frequency Cap Tests - Teardown
+       Cleanup Campaigns For Frequency Cap Tests
+       
+       

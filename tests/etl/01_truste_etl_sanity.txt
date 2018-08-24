@@ -1,0 +1,93 @@
+*** Settings ***
+Resource            etl_imports.txt
+Force Tags          ETL_TRUSTe    QA_ONLY    TRUSTE       BATCH1	
+Suite Setup         SSH Login As ETL User
+Suite Teardown      Close All Connections
+*** Variables ***
+
+*** Test Cases ***
+
+SSH Into ETL System And Validate rhino.properties For TRUSTe
+     ${output}=    Execute Command    cat /usr/java/jboss/server/4info/conf/rhino.properties
+     Log   ${output}
+     Should Match Regexp    ${output}       <!-- User Opt Out configuration. -->
+     Should Match Regexp    ${output}       <entry key="adhaven.targeting.respect_optouts">1</entry>
+#     Should Match Regexp    ${output}       <entry key="adhaven.targeting.truste_etl_url">https://mobile.truste.com/mobile/services/v1/batch/preference</entry>
+#     Should Match Regexp    ${output}       <entry key="adhaven.targeting.truste_access_token">5fb15a7f-4ba2-4501-a1a3-1a1b96cef411</entry>
+     Should Match Regexp    ${output}       <entry key="adhaven.targeting.truste_js_hostname">choices.truste.com</entry>
+     Should Match Regexp    ${output}       <entry key="adhaven.targeting.truste_encryption_key">a4d6adc5-8b73-42d7-b17f-cdc43acca2ad</entry>
+
+SSH Into ETL System And Validate Local ETL Properties For TRUSTe
+     ${output}=    Execute Command    cat /home/tpreports/scripts/.truste_properties
+     Log   ${output}
+     Should Match Regexp    ${output}       <entry key="adhaven.targeting.truste_etl_url">https://mobile.truste.com/mobile/services/v1/batch/preference.xml</entry>
+     Should Match Regexp    ${output}       <entry key="adhaven.targeting.truste_access_token">5fb15a7f-4ba2-4501-a1a3-1a1b96cef411</entry>
+
+SSH Into ETL System And Validate Files - .mysql_command
+     ${output}=    Execute Command    cat scripts/.mysql_command
+     Log   ${output}
+     Should Match Regexp    ${output}     mysql --host=qa-db-10 --user=rhino --password=rhino
+
+SSH Into ETL System And Validate File Is There - trusteGenerateURL.xsl
+     ${output}=    Execute Command    cat scripts/trusteGenerateURL.xsl
+     Log   ${output}
+     Should Match Regexp    ${output}       <xsl:stylesheet version="1.0"
+     
+SSH Into ETL System And Validate File Is There - trusteGetOptOuts.sh
+     ${output}=    Execute Command    cat scripts/trusteGetOptOuts.sh
+     Log   ${output}
+     Should Match Regexp    ${output}       RHINO_PROPERTIES="/home/tpreports/scripts/.truste_properties"
+     
+SSH Into ETL System And Validate File Is There - trusteLineCount.xsl
+     ${output}=    Execute Command    cat scripts/trusteLineCount.xsl
+     Log   ${output}
+     Should Match Regexp    ${output}       <xsl:stylesheet version="1.0"
+     
+SSH Into ETL System And Validate File Is There - trusteXML2SQL.xsl
+     ${output}=    Execute Command    cat scripts/trusteXML2SQL.xsl
+     Log   ${output}
+     Should Match Regexp    ${output}       <xsl:stylesheet version="1.0"
+     
+#SSH Into ETL System And Ensure There Is Output In TRUSTe Reports For Yesterday
+#     ${day}=   Execute Command    date --date="yesterday" +"%Y-%m-%d"
+#     Log   Yesterday's Date: ${day}
+#     ${output}=    Execute Command    ls -al reports/truste/
+#     Log   ${output}
+#     Should Match Regexp    ${output}       ${day}
+#     ${output}=    Execute Command    cat reports/truste/trusteResponse${day}.xml
+#     Log   ${output}
+     
+SSH Into ETL System And Ensure There Is Output In TRUSTe Reports For 2 Days Ago
+     ${day}=   Execute Command    date --date="-2 day" +"%Y-%m-%d"
+     Log   Date: ${day}
+     ${output}=    Execute Command    ls -al reports/truste/
+     Log   ${output}
+     Should Match Regexp    ${output}       ${day}
+     ${output}=    Execute Command    cat reports/truste/trusteResponse${day}.xml
+     Log   ${output}
+          
+Run ETL Process Manually For Today (Yesterday's Date) And Validate Output File Exist & Log Output
+     ${day}=   Execute Command    date --date="yesterday" +"%Y-%m-%d"
+     Log   Yesterday's Date: ${day}
+     ${output}=    Execute Command    source scripts/trusteGetOptOuts.sh
+     Log   ${output}
+     Sleep    10s
+     ${output}=    Execute Command    cat reports/truste/trusteResponse${day}.xml
+     Log   ${output}
+     
+Run ETL Process Manually Two Times (5 minutes Delay) And Ensure Output Is Identical
+     ${day}=   Execute Command    date --date="yesterday" +"%Y-%m-%d"
+     Log   Yesterday's Date: ${day}
+     ${output}=    Execute Command    source scripts/trusteGetOptOuts.sh
+     Log   ${output}
+     ${output1}=    Execute Command    cat reports/truste/trusteResponse${day}.xml
+     Log   ${output1}
+     Sleep   1m
+     ${output}=    Execute Command    source scripts/trusteGetOptOuts.sh
+     Log   ${output}
+     ${output2}=    Execute Command    cat reports/truste/trusteResponse${day}.xml
+     Log   ${output2}
+     Should Be Equal As Strings    ${output1}      ${output2} 
+      
+     
+     

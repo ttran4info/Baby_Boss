@@ -1,0 +1,37 @@
+
+
+*** Settings ***
+Resource            advertisers_imports.txt
+Force Tags          ADVERTISERS    BUILD_SANITY       BATCH5
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Retrieve Cookies From The Current Page
+       Get Cookies
+       
+Go to the Advertisers Tab
+       Go To Advertisers Tab
+
+Validate All The Table Headers For Advertisers Are There
+       Validate Advertisers Table Headers
+        
+Retrieve Advertisers Available And Log Active/Inactive Advertisers
+       Retrieve Advertisers Available      total_advertisers=10
+       Log     ${ALL_ADVERTISERS}
+       Log     ${ALL_ACTIVE_ADVERTISERS}
+       Log     ${ALL_INACTIVE_ADVERTISERS}
+
+
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+       
+       

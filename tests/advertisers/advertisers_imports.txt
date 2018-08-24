@@ -1,0 +1,9 @@
+
+*** Settings ***
+Resource    adhaven_general.txt
+Resource    advertisers.txt
+Resource    database.txt
+Resource    partners.txt
+Resource    smb.txt
+Resource    adgroup.txt
+Resource    ui_default_ads_template.txt

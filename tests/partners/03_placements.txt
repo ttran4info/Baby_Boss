@@ -1,0 +1,153 @@
+
+
+*** Settings ***
+Resource            partners_imports.txt
+Force Tags          PARTNERS    4.3   ADH-2184          BATCH2
+*** Variables ***
+
+*** Test Cases ***
+
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Go to the Partners Tab
+       Go To Partners Tab
+        
+Validate All The Table Headers For Partners Are There
+       Validate Partners Table Headers
+        
+Retrieve Partners Available And Log
+       Retrieve Partners Available           total_partners=10
+       Log     ${ALL_PARTNERS}
+
+Retrieve and Validate Partner - 4INFO
+       Retrieve Partners Information Available For Partner      partner=4INFO       total_to_retrieve=10
+       Capture Page Screenshot With Timestamp
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude
+    
+Add Placement To Mobile Website For Partner 4INFO and Site 4INFO test pages With Test Status
+      Create A Placement      partner=4INFO     
+      ...                             site_name=4INFO test pages
+      ...                             placement_name=CP_Placement_Test
+      ...                             placement_status=TEST
+	  Log     ${placement_id}     
+      Remove Placement from System By ID   ${placement_id} 
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude
+
+Add Placement To Mobile Website For Partner 4INFO and Site 4INFO test pages With Disabled Status
+      Create A Placement      partner=4INFO     
+      ...                             site_name=4INFO test pages
+      ...                             placement_name=CP_Placement_Disable
+      ...                             placement_status=DISABLED
+      Remove Placement from System By ID   ${placement_id} 
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude      
+
+Add Placement To Mobile Website For Partner 4INFO and Site 4INFO test pages With Live Status
+      Create A Placement      partner=4INFO     
+      ...                             site_name=4INFO test pages
+      ...                             placement_name=CP_Placement_Live
+      ...                             placement_status=LIVE
+      Remove Placement from System By ID   ${placement_id}
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude       
+      
+Validate Existing Placement CP_Placement_Disable Is DISABLED
+      Validate Placement     partner=4INFO     
+      ...                    site_name=4INFO test pages
+      ...                    placement_name=PLACEMENT_DISABLED
+      ...                    placement_status=DISABLED
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude      Known_Issue    https://jira.adhaven.com/browse/ADH-3216    
+
+Validate Existing Placement CP_Placement_Live Is LIVE
+      Validate Placement     partner=4INFO     
+      ...                    site_name=4INFO test pages
+      ...                    placement_name=PLACEMENT_LIVE
+      ...                    placement_status=LIVE
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude      Known_Issue    https://jira.adhaven.com/browse/ADH-3216  
+
+Validate Existing Placement CP_Placement_Test Is TEST
+      Validate Placement     partner=4INFO     
+      ...                    site_name=4INFO test pages
+      ...                    placement_name=PLACEMENT_TEST
+      ...                    placement_status=TEST
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude 
+             
+Edit Placement To Mobile Website For Site 4INFO test pages, ${PLACEMENT_EDIT_NAME} With LIVE Status
+      Switch Browser        1
+      Edit A Placement      partner=4INFO     
+      ...                   site_name=4INFO test pages
+      ...                   placement_name=${PLACEMENT_EDIT_NAME}
+      ...                   placement_status=LIVE
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude 
+             
+Validate Ads Are Served For LIVE Placement - 5 Requests
+#       Sleep   ${CACHE_WAIT_TIME}
+#       Sleep   ${CACHE_WAIT_TIME}
+	  Reload All Cache
+      ${new_browser_index}=   Open Browser              ${URL}    ${BROWSER}
+      Log    New Browser Index: ${new_browser_index}
+      Placement Ad Serving Test Repeating    ad_engine=${DEFAULT_AUDIENCE_ENGINE}     api_key=96a3be339dc3269b    placement_id=${PLACEMENT_EDIT_ID}    image_name=320x50_PL_EDIT.jpg  
+      Close Browser       
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude 
+                
+Edit Placement To Mobile Website For Site 4INFO test pages, ${PLACEMENT_EDIT_NAME} With TEST Status
+      Switch Browser        1
+      Edit A Placement      partner=4INFO     
+      ...                   site_name=4INFO test pages
+      ...                   placement_name=${PLACEMENT_EDIT_NAME}
+      ...                   placement_status=TEST
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude 
+             
+Validate Ads Are Served For TEST Placement - 5 Requests
+#       Sleep   ${CACHE_WAIT_TIME}
+		Reload All Cache
+      ${new_browser_index}=   Open Browser              ${URL}    ${BROWSER}
+      Log    New Browser Index: ${new_browser_index}
+      Placement Ad Serving Test Repeating    ad_engine=${DEFAULT_AUDIENCE_ENGINE}     api_key=96a3be339dc3269b    placement_id=${PLACEMENT_EDIT_ID}    image_name=320x50_PL_EDIT.jpg|320x50_PL_TEST.jpg
+      Close Browser      
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude 
+
+Edit Placement To Mobile Website For Site 4INFO test pages, ${PLACEMENT_EDIT_NAME} With DISABLED Status
+      Switch Browser        1
+      Edit A Placement      partner=4INFO     
+      ...                   site_name=4INFO test pages
+      ...                   placement_name=${PLACEMENT_EDIT_NAME}
+      ...                   placement_status=DISABLED
+#      2015-04  Removed 4INFO partner and placements for targetting
+       [Tags]   Exclude 
+             
+Validate Ads Are Not Served For DISABLED Placement - 5 Requests
+#     Sleep   ${CACHE_WAIT_TIME}
+	  Reload All Cache
+      ${new_browser_index}=   Open Browser              ${URL}    ${BROWSER}
+      Log    New Browser Index: ${new_browser_index}
+      Placement Ad Serving Test Repeating    ad_engine=${DEFAULT_AUDIENCE_ENGINE}     api_key=96a3be339dc3269b    placement_id=${PLACEMENT_EDIT_ID}    expect_error=1     source_validation_string=${DISABLED_PLACEMENT_VALIDATION_STRING}
+      ${source}=   Get Source   
+      Should Match Regexp    ${source}    ${DISABLED_PLACEMENT_VALIDATION_STRING}
+      Close Browser   
+#      2015-04  Removed 4INFO partner and placements for targetting
+      [Tags]    Exclude    Known_Issue    https://jira.adhaven.com/browse/ADH-3216      
+
+Switch Back To Main Browser
+      Switch Browser        1
+
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+       
+       

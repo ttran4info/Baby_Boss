@@ -1,0 +1,78 @@
+
+
+*** Settings ***
+Resource            advertisers_imports.txt
+Force Tags          ADVERTISERS           BATCH5		
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers   
+*** Variables ***
+${test_campaign_name_prefix}=     	01_TEST_CAMPAIGN
+
+*** Test Cases ***
+Clean Up All Existing Data For 12_create_advertiser_and_ads Tests
+        #Cleanup Campaign Data By Campaign Name        campaign_name=${test_campaign_name_prefix}
+        Reload All Cache
+		[Tags]	Exclude
+		#cleanup db is causing db lockup, exclude for now
+			
+#Start the Browser And Login To The Adhaven UI
+#       Start AdHaven UI    ${URL}    ${BROWSER}
+#       Log   Default User: ${USER} Password: ${PASSWORD}
+#       Login with "${USER}" and "${PASSWORD}"
+      
+#Go to the Advertisers Tab
+#       Go To Advertisers Tab
+
+Create A Default New Advertiser With Timestamp
+       Create New Advertiser    advertiser_name=01_TEST_ADVERTISER
+       Remove Advertiser By Name    ${advertiser_name}
+       
+Create A Default New Advertiser Without Timestamp 
+       Create New Advertiser    advertiser_name=02_TEST_ADVERTISER     timestamp_flag=0
+       Remove Advertiser By Name    ${advertiser_name}
+       
+Create A New Advertiser With Values
+       Create New Advertiser    advertiser_name=03_TEST_ADVERTISER     timestamp_flag=1    address1=155 BOVET ROAD    city=SAN MATEO    state=CA    zip=94402
+       Remove Advertiser By Name    ${advertiser_name}      
+
+Add A Campaign To An Existing Advertiser 04_TEST_ADVERTISER
+       ${campaign_start}=       get_default_start_date
+       ${campaign_end}=        get_default_end_date
+#     Current QA environment has partner id = 423
+       Go To      ${URL} 
+       Add Campaign To Advertiser 6.0    advertiser_name=04_TEST_ADVERTISER   campaign_name=${test_campaign_name_prefix}    campaign_start_date=${campaign_start}    campaign_end_date=${campaign_end}   campaign_time_zone=Eastern 	campaign_total_budget=10      
+       Retrieve Campaign_ID By Campaign Name       ${campaign_name}
+       Log     CAMPAIGN_ID: ${campaign_id} 
+       Remove Campaign By CampaignID     ${campaign_id} 
+       
+Add A New Campaign 03_TEST_CAMPAIGN And Add Adgroup With Timestamp To An Existing Advertiser 04_TEST_ADVERTISER And Remove Afterwards In DB
+#	   Set Test Variable          ${test_campaign_name_prefix}       12_TEST_CAMPAIGN
+	   Generate Default Dates For UI Setup
+#     Current QA environment has partner id = 423
+       Add Campaign To Advertiser 6.0    advertiser_name=${DEFAULT_ADVERTISER}    campaign_name=${test_campaign_name_prefix}    campaign_start_date=${ui_start_date}    campaign_end_date=${ui_end_date}   campaign_time_zone=Eastern	 campaign_total_budget=100000     
+       Retrieve Campaign_ID By Campaign Name       ${campaign_name}
+       Log     CAMPAIGN_ID: ${campaign_id} 
+              Add Parent Adgroup To Campaign Without Targeting 6.0         advertiser_name=${DEFAULT_ADVERTISER}     
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=12_PARENT
+       ...                       ag_start_date=${ui_start_date}
+       ...                       ag_end_date=${ui_end_date}
+       ...                       timestamp_flag=1                                              
+      Log    Adgroup ID Created: ${ag_adgroup_id}
+      Capture Page Screenshot With Timestamp
+      Validate Parent Adgroup Added To Campaign Without Targeting 6.0        advertiser_name=${DEFAULT_ADVERTISER}
+      ...                       campaign_name=${campaign_name}     
+      ...                       ag_adgroup_name=${ag_adgroup_name} 
+      ...                       ag_start_date=${ui_start_date}
+      ...                       ag_end_date=${ui_end_date}
+      Remove AdGroup By BundleID        ${ag_adgroup_id}
+      Remove Campaign By CampaignID     ${campaign_id} 
+       
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+#Close The Browsers Opened
+#       Close All Browsers
+       
+       
+       

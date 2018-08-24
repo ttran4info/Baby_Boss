@@ -1,0 +1,95 @@
+
+*** Settings ***
+Resource            mock_setup_imports.txt
+Force Tags         MOCK_DATABASE_SETUP    
+*** Variables ***
+
+*** Keywords ****
+
+*** Test Cases ***
+#admin@4info.net, set password and enable account
+Pause All Campaigns From Production After Mock Happens      
+      Pause All Campaigns From Production After Mock 
+	[Tags]	      	
+Update The UI User Information For QA 4info@admin.net
+      Update QA DB Admin User Information For Mock
+
+Enable Offshore users
+	Update QA DB User Status	user_name=vholkar@4info.com					status=1
+	Update QA DB User Status	user_name=vkatkar@4info.com					status=1
+	Update QA DB User Status	user_name=inarvekar@4info.com				status=1
+	Update QA DB User Status	user_name=tband@4info.com					status=1
+	Update QA DB User Status	user_name=abhandari@4info.com				status=1
+	Update QA DB User Status	user_name=cchaudhari@4info.com				status=1
+	Update QA DB User Status	user_name=awalanj@4info.com					status=1
+	Update QA DB User Status	user_name=vagrawal@4info.com				status=1
+
+Enable Other Accounts users
+	Update QA DB User Status	user_name=rmox2000@hotmail.com				status=1
+	
+Enable Regression users
+	Update QA DB User Status	user_name=${QA_CATALINA_USER}				status=1
+	Update QA DB User Status	user_name=${QA_CATALINA_USER2}				status=1
+	Update QA DB User Status	user_name=${QA_CATALINA_USER3}				status=1
+	Update QA DB User Status	user_name=${QA_CATALINA_AND_QA_USER}		status=1
+	Update QA DB User Status	user_name=${QA_CATALINA_AND_QA_USER2}		status=1
+	Update QA DB User Status	user_name=${QA_CATALINA_AND_QA_USER3}		status=1
+	Update QA DB User Status	user_name=${QA_QA_USER}						status=1
+	Update QA DB User Status	user_name=${QA_INACTIVE_USER}				status=0
+	Update QA DB User Status	user_name=${QA_READONLY_USER}				status=1
+	Update QA DB User Status	user_name=${QA_UNDERTONE_USER}				status=1
+	[Tags]		      
+#add user call Reporting@4info.com
+Insert Reporting User Into Database
+      Insert Reporting User Into Table 
+
+Resume All Adgroup within Advertiser QA_REGRESSION
+	Pause Unpause All Campaign Within Advertiser		advertiser_name=QA_REGRESSION		status=1
+	Pause Unpause All Campaign Within Advertiser		advertiser_name=QA_Performance		status=1 
+	[Tags]		 	
+
+Change Bid Price for all adgroup within Advertiser QA_REGRESSION
+	Update Bid Price For All Adgroup Within Advertiser 	advertiser_name=QA_REGRESSION		bid_value_cpu=0.1
+	Update Bid Price For All Adgroup Within Advertiser 	advertiser_name=QA_Performance		bid_value_cpu=0.1
+	[Tags]	
+Update Smartbidder on QA
+	Update Bidder Version on QA
+
+Update Appnexus Banner Status=1	
+	Update Regression Appnexus Banner
+
+Update Frequency Cap Unit 99999
+	Update Regression Frequency Cap
+#######################################
+#Below test cases are becoming obsolete, or may not be needed
+#########################################                  
+Update System Settings 
+      Update geonames.loc.api.host In Table rhino.system_settings To Archive1
+	[Tags]		Exclude
+	#No longer valid
+	
+#Unsure what this does
+Create View CP_ALL_LIVE_ADGROUPS_VIEW
+     Create CP_ALL_LIVE_ADGROUPS_VIEW
+    [Tags]	Exclude
+
+#Unsure what this does  	  
+Create View CP_DMA_VIEW      
+      Create CP_DMA_VIEW
+    [Tags]	Exclude
+    
+#Unsure what this does          
+Create View CP_VOLUME_ESTIMATION_VIEW    
+      Create CP_VOLUME_ESTIMATION_VIEW
+    [Tags]	Exclude
+    
+#Not needed
+#Update Campaign Impression Goals For Campaigns That Came From Production      
+#      Update All Impression Goals For Test Campaigns That Came From Production For Regression Testing      
+#
+
+#Unpause Regression Test Campaigns
+#      Unpause All Regression Test Campaigns From Production
+      
+     
+      

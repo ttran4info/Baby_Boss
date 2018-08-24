@@ -1,0 +1,142 @@
+
+
+*** Settings ***
+Resource            advertisers_imports.txt
+Force Tags          ADVERTISERS           BATCH5				
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+*** Variables ***
+${banner_type}=                					GENERIC
+${banner_file_name}=        					320x50_Group01.jpg 
+${banner_file_name2}=        					320x50_Group01.jpg 
+${test_campaign_name_prefix}=   				03_TEST_CAMPAIGN
+${generic_mopub_app_request_data}=   			{"app":{"bundle":"xcom.myyearbook.m","cat":["IAB24","social_networking"],"id":"MOPUB_DEFAULT_PLACEMENT_MOPUB33333","name":"MeetMe_Android","publisher":{"id":"87e493a6b4424a6eb0ab7bc187d4345d","name":"Beanstock Media Inc."},"ver":"10.0"},"at":2,"badv":["landrover","landrover.com","landrovertristate.com","pof.com","rangerover.com","skout.com","zoosk.com"],"bcat":["IAB25","IAB26","IAB3-7"],"device":{"carrier":"310-120","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"3fe3fd2a5527d04aaeccb5e76bd295ba","dpidsha1":"9803534ab6d6be3472e98f1b68f809cfbe63d234","ifa":"93804AAF-ABC7-4775-91C7-8F14F0240373","geo":{"city":"Norwalk","country":"USA","lat":41.250885,"lon":-82.612862,"region":"OH","zip":"44857"},"ip":"174.100.132.64","js":1,"make":"samsung","model":"SPH-L720","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0 (Linux; Android 4.4.2; SPH-L720 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id":"b193650a-525c-4655-b6cb-1543028a4565","imp":[{"banner":{"api":[3,5],"battr":[3,8,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.30,"displaymanager":"mopub","displaymanagerver":"3.4.0+kit","id":"1","instl":0,"tagid":"5b5991da24da4b68be268c0bc1e9eb2d"}],"user":{"keywords":"DEV_TYPE:jfltespr,BUILD_TYPE:release,DEV_MODEL:SPH-L720,DEV_MFR:samsung,AGE:20,GENDER:m,DEV_BRAND:samsung"}}
+#${generic_mopub_site_request_data}=   			{"site":{"aid":"9500","cat":["IAB14","IAB24","lifestyle"],"global_aid":"372648912","name":"Meet New People - myYearbook Flirting & Fun for Friends and Singles of Any Sex iOS","paid":0,"pid":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYzdeVEgw","pub":"myYearbook.com"},"at":2,"device":{"city":"Tyrone","country":"USA","ext":{"idfa":"93804AAF-ABC7-4775-91C7-8F14F0240373"}, "dpid":"9B55BA53-6586-48D6-8B46-AC52EA5855DB","ip":"96.247.185.120","js":1,"loc":"40.60843,-75.49018","make":"Apple","model":"iPod","os":"iPhone OS","osv":"6.0.1","state":"PA","ua":"Mozilla/5.0 (iPod; CPU iPhone OS 6_0_1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Mobile/10A523","zip":"16686"},"id":"e505c063-5fd9-428f-b658-526bc9dd5d7e","imp":[{"battr":["8","9","10","14","6"],"h":50,"impid":"e505c063-5fd9-428f-b658-526bc9dd5d7e","instl":0,"w":320}],"pf":0.090,"restrictions":{"badv":["areyouinterested","badoo","howaboutwe","meetmoi","skout","twoo","alertid.com","funzio.com","howaboutwe","http://platform.mdotm.com/promote/mock/c81f742b","m.wildbuddies.com","naughtyflirts.mobi","skout","t.zoosk.com/mkt/*","twoo","www.ngmoco.com/bloodbrothers"],"bcat":["IAB7-39","IAB8-5","IAB8-18","IAB9-9","IAB25","IAB26"]},"tmax":300,"user":{"dnt":1,"uid":"9B55BA53-6586-48D6-8B46-AC52EA5855DB"}}
+${generic_mopub_site_online_request_data}=   	{"id":"060A6B62-C49A-4D64-8A2B-662A87E9BACC","imp":[{"id": "1","tagid": "96088","banner": {"w": 320,"h": 50,"topframe": 1}}],"site": {"id": "9500","domain": "http://www.bigdnet.com","page": "bestbuys.com","ref": "http://show.mediaamped.com/adcode/adcode?site=&crid=469&sourceid=adtech&refUrl=&cbrs=57832803&auction_price=0.1595&zz=51","publisher": {"id": "43472"}},"device": {"ip": "76.23.172.70","ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/534.59.10 (KHTML, like Gecko) Version/5.1.9 Safari/534.59.10","carrier": "Comcast Cable","language": "en-us","js": 1,"geo": {"country": "US","region": "CT","city": "Sharon","metro": "533","lat": 41.8551,"lon": -73.4415,"type": 2,"zip": "06069"},"ext": {"res": "1440x900","freq": 0,"pf": 1}},"user": {"id": "DEE94762-75D9-4074-B1BE-492FE0D86344","ext": {"tmz": "-4"}}}
+
+${freq_cap_overall}=      	20
+${generic_mopub_app_request_data_freq}=   			{"app":{"bundle":"xcom.myyearbook.m","cat":["IAB24","social_networking"],"id":"13193","name":"MeetMe_Android","publisher":{"id":"87e493a6b4424a6eb0ab7bc187d4345d","name":"Beanstock Media Inc."},"ver":"10.0"},"at":2,"badv":["landrover","landrover.com","landrovertristate.com","pof.com","rangerover.com","skout.com","zoosk.com"],"bcat":["IAB25","IAB26","IAB3-7"],"device":{"carrier":"310-120","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"3fe3fd2a5527d04aaeccb5e76bd295ba","dpidsha1":"9803534ab6d6be3472e98f1b68f809cfbe63d234","ifa":"42C6857E-D0F0-4920-91F6-F8BAFD10A7F4","geo":{"city":"Norwalk","country":"USA","lat":41.250885,"lon":-82.612862,"region":"OH","zip":"44857"},"ip":"174.100.132.64","js":1,"make":"samsung","model":"SPH-L720","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0 (Linux; Android 4.4.2; SPH-L720 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id":"b193650a-525c-4655-b6cb-1543028a4565","imp":[{"banner":{"api":[3,5],"battr":[3,8,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.30,"displaymanager":"mopub","displaymanagerver":"3.4.0+kit","id":"1","instl":0,"tagid":"5b5991da24da4b68be268c0bc1e9eb2d"}],"user":{"keywords":"DEV_TYPE:jfltespr,BUILD_TYPE:release,DEV_MODEL:SPH-L720,DEV_MFR:samsung,AGE:20,GENDER:m,DEV_BRAND:samsung"}}
+
+*** Test Cases ***
+Clean Up All Existing Data For 03_create_advertiser_and_ads Tests
+        #Cleanup Campaign Data By Campaign Name        campaign_name=${test_campaign_name_prefix}
+        Reload All Cache
+		[Tags]	Exclude
+		#cleanup db is causing db lockup, exclude for now
+		
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD} 
+       Login with "${USER}" and "${PASSWORD}"
+   [Tags]	Exclude          
+UI - Create A New Campaign, Mobile App Adgroup (UI)
+	   Set Test Variable      ${screen_type}				1
+	   Set Test Variable	   ${traffic_type}				1
+	   Create Default MOBILE Adgroup With Single Child And Ad				banner_file_name=${banner_file_name}		test_campaign_name_prefix=${test_campaign_name_prefix}
+       Submit a Request to Jenkins to Run Smart Bidder for QA
+#       Sleep     30s
+       Modify Margin      advertiser_name=${DEFAULT_ADVERTISER}		campaign_name=${campaign_name}		ag_adgroup_name=${child_adgroup_name}		ag_4info_margin=1	    
+#       Reload All Cache
+	   Set Suite Variable 	${campaign_name_app}		${campaign_name}
+	   Set Suite Variable 	${parent_adgroup_id_app}	${parent_adgroup_id}
+	   Set Suite Variable 	${child_adgroup_id_app}		${child_adgroup_id}
+	   [Tags]
+	   	
+UI - Create A New Campaign, Online Adgroup (UI)
+	   #Start the Browser And Login To The Adhaven UI
+	   Set Test Variable       ${screen_type}				2
+	   Set Test Variable	   ${traffic_type}				5
+	   Create Default ONLINE Adgroup With Single Child And Ad				banner_file_name=${banner_file_name2} 		test_campaign_name_prefix=${test_campaign_name_prefix}
+#       Sleep   10s
+       Submit a Request to Jenkins to Run Smart Bidder for QA
+#       Sleep   30s
+       Modify Margin      advertiser_name=${DEFAULT_ADVERTISER}		campaign_name=${campaign_name}		ag_adgroup_name=${child_adgroup_name}		ag_4info_margin=1	    
+#       Reload All Cache
+       Set Suite Variable 	${campaign_name_online}			${campaign_name}
+	   Set Suite Variable 	${parent_adgroup_id_online}		${parent_adgroup_id}
+	   Set Suite Variable 	${child_adgroup_id_online}		${child_adgroup_id} 
+ 
+UI-Add A New Campaign 04_FREQCAP_CAMPAIGN And Frequency Cap Overall ${freq_cap_overall} (UI)
+	   Set Test Variable      ${screen_type}				1
+	   Set Test Variable	   ${traffic_type}				1
+	   Create Default MOBILE Adgroup With Single Child And Ad			test_campaign_name_prefix=${test_campaign_name_prefix}		banner_file_name=${banner_file_name}		hh_freq_cap_overall_flag=1     hh_freq_cap_overall_no_times=${freq_cap_overall}		ag_target_placement_name=13193
+       Modify Margin      advertiser_name=${DEFAULT_ADVERTISER}		campaign_name=${campaign_name}		ag_adgroup_name=${child_adgroup_name}		ag_4info_margin=1	
+       #Set Suite Variable	campaign_name=${campaign_name}
+       Reload All Cache
+       Submit a Request to Jenkins to Run Smart Bidder for QA
+	   Set Suite Variable 	${campaign_name_freq}		${campaign_name}
+	   Set Suite Variable 	${parent_adgroup_id_freq}	${parent_adgroup_id}
+	   Set Suite Variable 	${child_adgroup_id_freq}	${child_adgroup_id}
+RTB - Create A New Campaign, Mobile App Adgroup (Request 10 times)
+#	   Set Suite Variable 	${campaign_name_app}		03_TEST_CAMPAIGN_2016_02_16_16:21:33
+#	   Set Suite Variable 	${parent_adgroup_id_app}	264219
+#	   Set Suite Variable 	${child_adgroup_id_app}	264220
+#       Sleep     60s
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_app_request_data}				requests=10         response_code=200         ad_expected=NA      adgroup_expected=${child_adgroup_id_app}
+	   Set Test Variable       ${rtb_count}				${pass_count}
+	   Set Suite Variable 	   ${rtb_count_app}		${rtb_count}	
+#	   Sleep     60s    # for logprocessor
+	  
+	  #If there's no activity in log, UI does not update, so we are making a random request
+#	   Set Test Variable    				${data}      {"app":{"bundle":"x372648912","cat":["IAB24","social_networking"],"id":"12608","name":"MeetMe iPhone","publisher":{"id":"c3584d1c40cb43619e043c065caee33a","name":"MeetMe, Inc."},"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8&uo=4","ver":"10.2.0"},"at":2,"badv":["badoo","chatmeup","fling","happn","howaboutwe","imvu","jaumo","justhookup","landrover","landrover.com","landrovertristate.com","lavaplace","lovoo","meetmoi","meowchat","moco","momo","on.com","pof","sayhi","skout","tagged","tango","thegamebyhotornot","tinder","twoo","wechat","whisper","zoosk"],"bcat":["IAB25","IAB25-2","IAB25-3","IAB25-4","IAB25-5","IAB26","IAB26-1","IAB26-2","IAB26-3","IAB26-4","IAB3-7"],"device":{"carrier":"310-030 ","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"af7045cff2375b9f85af4786f94ad9d6","dpidsha1":"4f5714baa19608cd52caf7ddeac2a4625e64a945","ext":{"idfa":"42C6857E-D0F0-4920-91F6-F8BAFD10A7F3"},"geo":{"city":"Bronx","country":"USA","lat":40.835762,"lon":-73.821533,"metro":"501","region":"NY","zip":"10462"},"ip":"47.18.4.157","js":1,"language":"en","make":"Apple","model":"iPhone 6","os":"iOS","osv":"8.4","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_4 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12H143"},"id":"d50bb64d-f415-4f54-b439-0a64d977ac3b","imp":[{"banner":{"api":[3,5],"battr":[1,3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.7.0","id":"1","instl":0,"tagid":"f5ea2d24c9bb46a38713cf98dffd8252"}],"user":{"keywords":"AGE:26,GENDER:m,MARITAL:single"}}  
+#	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200      submit_client_impression_event=NO	
+
+ 	   #UI update on the next interval
+#      Added the below for reliability - not really needed
+#	   Submit a Request to Jenkins to Run Smart Bidder for QA
+#       Reload All Cache
+	[Tags]	
+RTB - Create A New Campaign, Online Adgroup (Request 10 times)      
+#	   Sleep   60s
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_site_online_request_data}				requests=10         response_code=200         ad_expected=NA      adgroup_expected=${child_adgroup_id_online}
+	   Set Test Variable       ${rtb_count}				${pass_count}
+	   Set Suite Variable 	   ${rtb_count_online}		${rtb_count}
+#	   Sleep     60s    # for logprocessor
+
+	  #If there's no activity in log, UI does not update, so we are making a random request
+#	   Set Test Variable    				${data}      {"app":{"bundle":"x372648912","cat":["IAB24","social_networking"],"id":"12608","name":"MeetMe iPhone","publisher":{"id":"c3584d1c40cb43619e043c065caee33a","name":"MeetMe, Inc."},"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8&uo=4","ver":"10.2.0"},"at":2,"badv":["badoo","chatmeup","fling","happn","howaboutwe","imvu","jaumo","justhookup","landrover","landrover.com","landrovertristate.com","lavaplace","lovoo","meetmoi","meowchat","moco","momo","on.com","pof","sayhi","skout","tagged","tango","thegamebyhotornot","tinder","twoo","wechat","whisper","zoosk"],"bcat":["IAB25","IAB25-2","IAB25-3","IAB25-4","IAB25-5","IAB26","IAB26-1","IAB26-2","IAB26-3","IAB26-4","IAB3-7"],"device":{"carrier":"310-030 ","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"af7045cff2375b9f85af4786f94ad9d6","dpidsha1":"4f5714baa19608cd52caf7ddeac2a4625e64a945","ext":{"idfa":"42C6857E-D0F0-4920-91F6-F8BAFD10A7F3"},"geo":{"city":"Bronx","country":"USA","lat":40.835762,"lon":-73.821533,"metro":"501","region":"NY","zip":"10462"},"ip":"47.18.4.157","js":1,"language":"en","make":"Apple","model":"iPhone 6","os":"iOS","osv":"8.4","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_4 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12H143"},"id":"d50bb64d-f415-4f54-b439-0a64d977ac3b","imp":[{"banner":{"api":[3,5],"battr":[1,3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.7.0","id":"1","instl":0,"tagid":"f5ea2d24c9bb46a38713cf98dffd8252"}],"user":{"keywords":"AGE:26,GENDER:m,MARITAL:single"}}  
+#	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200      submit_client_impression_event=NO	
+
+ 	   #UI update on the next interval
+#      Added the below for reliability - not really needed
+#	   Submit a Request to Jenkins to Run Smart Bidder for QA
+#       Reload All Cache	   
+	[Tags]	
+RTB-Add A New Campaign 04_FREQCAP_CAMPAIGN And Frequency Cap Overall ${freq_cap_overall} (RTB request)     
+	   Sleep 	 60s 
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_app_request_data_freq}				requests=${freq_cap_overall}         response_code=200         ad_expected=NA      adgroup_expected=NA		submit_client_impression_event=YES
+	   Set Test Variable       ${rtb_count}				${pass_count}
+	   Set Suite Variable 	   ${rtb_count_freq}		${rtb_count}
+#	   Sleep     60s    # for logprocessor
+	   #If there's no activity in log, UI does not update, so we are making a random request
+#	   Set Test Variable    				${data}      {"app":{"bundle":"x372648912","cat":["IAB24","social_networking"],"id":"12608","name":"MeetMe iPhone","publisher":{"id":"c3584d1c40cb43619e043c065caee33a","name":"MeetMe, Inc."},"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8&uo=4","ver":"10.2.0"},"at":2,"badv":["badoo","chatmeup","fling","happn","howaboutwe","imvu","jaumo","justhookup","landrover","landrover.com","landrovertristate.com","lavaplace","lovoo","meetmoi","meowchat","moco","momo","on.com","pof","sayhi","skout","tagged","tango","thegamebyhotornot","tinder","twoo","wechat","whisper","zoosk"],"bcat":["IAB25","IAB25-2","IAB25-3","IAB25-4","IAB25-5","IAB26","IAB26-1","IAB26-2","IAB26-3","IAB26-4","IAB3-7"],"device":{"carrier":"310-030 ","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"af7045cff2375b9f85af4786f94ad9d6","dpidsha1":"4f5714baa19608cd52caf7ddeac2a4625e64a945","ext":{"idfa":"42C6857E-D0F0-4920-91F6-F8BAFD10A7F3"},"geo":{"city":"Bronx","country":"USA","lat":40.835762,"lon":-73.821533,"metro":"501","region":"NY","zip":"10462"},"ip":"47.18.4.157","js":1,"language":"en","make":"Apple","model":"iPhone 6","os":"iOS","osv":"8.4","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_4 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12H143"},"id":"d50bb64d-f415-4f54-b439-0a64d977ac3b","imp":[{"banner":{"api":[3,5],"battr":[1,3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.7.0","id":"1","instl":0,"tagid":"f5ea2d24c9bb46a38713cf98dffd8252"}],"user":{"keywords":"AGE:26,GENDER:m,MARITAL:single"}}  
+#	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200      submit_client_impression_event=NO	
+ 	   #UI update on the next interval
+# 	   Sleep 	 65s
+ 	[Tags]	
+ 	  
+UI - Create A New Campaign, Mobile App Adgroup (UI validation)
+	   Validate UI Impression Count For Child Adgroup   				advertiser_name=${DEFAULT_ADVERTISER} 			campaign_name=${campaign_name_app}  				parent_adgroup_id=${parent_adgroup_id_app}			child_adgroup_id=${child_adgroup_id_app}				impression_count_expected=${rtb_count_app}                                 
+       [Tags]	      
+UI - Create A New Campaign, Online Adgroup (UI validation)
+	   Validate UI Impression Count For Child Adgroup   				advertiser_name=${DEFAULT_ADVERTISER} 			campaign_name=${campaign_name_online}  				parent_adgroup_id=${parent_adgroup_id_online}		child_adgroup_id=${child_adgroup_id_online}				impression_count_expected=${rtb_count_online}                                 
+	[Tags]	
+UI - Add A New Campaign 04_FREQCAP_CAMPAIGN And Frequency Cap Overall ${freq_cap_overall} (UI Validation)
+	   Validate UI Impression Count For Child Adgroup   				advertiser_name=${DEFAULT_ADVERTISER} 			campaign_name=${campaign_name_freq}  				parent_adgroup_id=${parent_adgroup_id_freq}			child_adgroup_id=${child_adgroup_id_freq}				impression_count_expected=${rtb_count_freq}                                 
+#      Added the below for reliability - not really needed
+#       Submit a Request to Jenkins to Run Smart Bidder for QA
+#       Sleep   60s
+#       Reload All Cache
+       Validate RTB Ad Does Not Serve     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_app_request_data}				requests=1        
+  [Tags]	
+
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+Clean Up All Existing Data For 03_create_advertiser_and_ads Tests - Teardown
+        #Cleanup Campaign Data By Campaign Name        campaign_name=${test_campaign_name_prefix}       
+        Reload All Cache
+	[Tags]	exclude

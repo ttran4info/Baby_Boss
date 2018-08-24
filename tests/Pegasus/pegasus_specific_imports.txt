@@ -1,0 +1,34 @@
+*** Settings ***
+
+#API RESOURCES
+Library    	    RequestsLibrary
+Library    	    Collections
+Library         String
+Library         adhaven_helper
+Library         Selenium2Library
+Library			BuiltIn
+Library     	HttpLibrary.HTTP
+Resource      	common_config.txt
+Resource   		utilities_json.txt
+Resource      	rtb.txt
+Resource		log_reader.txt
+Resource    	ssh_lib.txt
+Resource        pegasus.txt
+
+#UI RESOURCES
+Library				lifetime.py
+Library				get_days_left.py
+Library				get_length.py
+Library				get_impressions.py
+Library				get_string_value.py
+Library				tokens_list.py
+Library				DatabaseLibrary
+Library				remove_pyc.py
+Library				find_days.py
+Library				find_num.py
+Library				find_str.py
+Library  			OperatingSystem
+Resource            common_config.txt
+Resource            adhaven_general.txt
+Resource            ui_object_library.txt
+Resource 			ui_pegasus.txt

@@ -1,0 +1,61 @@
+*** Settings ***
+Resource            ace_imports.txt
+Force Tags          ACE    VOLUME_ESTIMATION    QA_ONLY    BATCH2     EXCLUDE
+Suite Setup         Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+Suite Teardown      Disconnect From Database
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Go to the ACE Tab
+       Go To ACE Tab
+       Reload Page
+       
+Verify Volume Estimation For PRIZM Segments [American Classics|American Dreams|Back Country Folks]
+        Create Base ACE Targeting With DMA        cpham@4info.com     VOLUME_EST_     
+        Select Segment Type For Targetting    PRIZM   
+        Add PRIZM Segments To Selection        50    30    59
+#        ${query_results}     Query    select round(sum(vol_estimation),0) from rhino.CP_VOLUME_ESTIMATION_VIEW where id in (50,30,59)
+        ${query_results}     Query    select round(sum(vol_estimation),0) from rhino.CP_7Day_Volume_Estimate where target_datasource_segments_id in (50,30,59) and dma = -1
+        Log   Result: ${query_results[0][0]}
+        ${formatted}=    format_string_thousands   ${query_results[0][0]}
+        Log   Formatted: ${formatted}
+        Element Text Should Be    ${VOLUME_ESTIMATION_DIV}    ${formatted}
+        Capture Page Screenshot With Timestamp
+        [TAGS]    https://jira.adhaven.com/browse/ADH-3187
+                
+Verify Volume Estimation For PRIZM Segments [Red, White & Blues]
+        Create Base ACE Targeting With DMA        cpham@4info.com     VOLUME_EST_     
+        Select Segment Type For Targetting    PRIZM   
+        Add PRIZM Segments To Selection        43
+        ${query_results}     Query    select round(sum(vol_estimation),0) from rhino.CP_7Day_Volume_Estimate where target_datasource_segments_id in (43) and dma = -1
+        Log   Result: ${query_results[0][0]}
+        ${formatted}=    format_string_thousands   ${query_results[0][0]}
+        Log   Formatted: ${formatted}
+        Element Text Should Be    ${VOLUME_ESTIMATION_DIV}    ${formatted}
+        Capture Page Screenshot With Timestamp
+        [TAGS]    https://jira.adhaven.com/browse/ADH-3187
+
+Verify Volume Estimation For CONNEXIONS Segments [Analoggers|Antenna Land|Big City, Small Tech|Broadband Boulevards]
+        Create Base ACE Targeting With DMA        cpham@4info.com     VOLUME_EST_     
+        Select Segment Type For Targetting        ConneXions   
+        Add Connexions Segments To Selection      90    109    96    103
+        ${query_results}     Query    select round(sum(vol_estimation),0) from rhino.CP_7Day_Volume_Estimate where target_datasource_segments_id in (90,109,96,103) and dma = -1
+        Log   Result: ${query_results[0][0]}
+        ${formatted}=    format_string_thousands   ${query_results[0][0]}
+        Log   Formatted: ${formatted}
+        Element Text Should Be    ${VOLUME_ESTIMATION_DIV}    ${formatted}
+        [TAGS]    https://jira.adhaven.com/browse/ADH-3187
+        
+ Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+              
+        
+                

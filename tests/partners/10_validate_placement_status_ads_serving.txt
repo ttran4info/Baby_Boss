@@ -1,0 +1,22 @@
+
+*** Settings ***
+Resource            partners_imports.txt
+Force Tags          PARTNERS    4.3    ADH-2184        BATCH2    EXCLUDE
+
+Test Setup          Open Browser             ${DEFAULT_BROWSER_HOME}      ${BROWSER}
+Test Teardown       Close Browser
+
+*** Test Cases ***
+DISABLED Placement Should Not Serve Ad
+         Placement Ad Serving Test    ad_engine=${DEFAULT_AUDIENCE_ENGINE}     api_key=${DEFAULT_API_KEY}    placement_id=${PLACEMENT_DISABLED_ID}    image_name=${EMPTY}   expect_error=1     source_validation_string=${DISABLED_PLACEMENT_VALIDATION_STRING}
+
+LIVE Placement Should Serve Ad
+         Placement Ad Serving Test    ad_engine=${DEFAULT_AUDIENCE_ENGINE}     api_key=${DEFAULT_API_KEY}    placement_id=${PLACEMENT_LIVE_ID}    image_name=320x50_PL_LIVE.jpg  
+
+#TEST Placement Should Serve Ad
+#         Placement Ad Serving Test    ad_engine=${DEFAULT_AUDIENCE_ENGINE}     api_key=${DEFAULT_API_KEY}     placement_id=${PLACEMENT_TEST_ID}    image_name=320x50_PL_TEST.jpg  
+         
+         
+          
+
+

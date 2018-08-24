@@ -1,0 +1,6 @@
+
+*** Settings ***
+Resource    adhaven_general.txt
+
+
+   

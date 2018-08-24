@@ -1,0 +1,195 @@
+*** Settings ***
+Resource        pegasus_specific_imports.txt
+Force Tags      PEGASUS		BATCH15.1		EXCLUDE
+Test Setup		Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+Test Teardown	Run Keywords		Disconnect From Database		Close browser		rm pyc
+
+*** Test Cases ***
+
+TC_0051 Verify Username Exist in DB
+	[Tags]	
+	Check If Exists In Database		select username from users where username like ('${USER_UI}'); 	
+	#Should Be Equal		${query_results}		jdoe@4info.com
+	
+TC_0052 Verify token is being created upon login
+	[Tags]	
+	Start Pegasus UI
+	Enter Username
+	Enter Password
+	Sleep   1s 
+	Login
+    ${output} =    Check If Exists In Database   select token_id from oauth_access_token where client_id like ('jdoe@%');
+    Log    ${output}
+    Should Be Equal As Strings    ${output}    None
+    Close Browser
+
+TC_0053 Verify User password Exist in DB and is not duplicated
+	[Tags]		
+	${passwords_count_int}=		Row Count	select password from users where username = '${USER_UI}';
+	${passwords_count}=	Convert to String 		${passwords_count_int}
+	Log 	current Password encounters: ${passwords_count}
+	Should Be Equal 		  ${passwords_count}		1
+	
+TC_0054 Verify User token_id Exists in DB
+	[Tags]		
+	${token_id}= 	Get Token
+	Should Be Equal As Strings   ${token_id}    None 
+	#${token_id_int}=	Row Count	select token_id from oauth_access_token where client_id = '${USER_UI}';
+	#Should Be Equal		${token_id_int}		1
+	#${output}=	Execute SQL String	select token_id from oauth_access_token where client_id like ('jdoe@%');
+	#Log		token: ${output}
+		#execute_sql_string	select count("token_id") from oauth_access_token where client_id like ('jdoe@%');
+		#${token_id}= 	SELECT SUM(CASE WHEN token_id = '1a81593b8ecc648a1bc1eaabfe700b51' THEN 1 ELSE 0 END) AS userNameCount FROM oauth_access_token
+	
+TC_0055 Verify User token_id Exist in DB and is not duplicated	
+	[Tags]		p55
+	@{token_id_int}= 	Query 	select token_id from oauth_access_token where client_id like ('jdoe%');
+	Log Many 	@{token_id_int}
+	@{L}=  Create List
+	:FOR  ${element}  in   @{token_id_int} 
+	\	${t}=	Convert To List	${element}
+	\	Append To List	${L}	${t}
+	Log	Tokens: ${L}
+	List Should Not Contain Duplicates	${L}
+
+
+TC_0056 Verify Tokens are vary for different users
+	[Tags]	
+    @{query_result_1}     Query    select token_id from oauth_access_token where client_id like ('jdoe16@4info.com');
+    @{query_result_2}     Query		select token_id from oauth_access_token where client_id like ('${USER_UI}');
+    #Log Many     @{query_results}
+    #${L1}=	get tokens list 	@{query_result_1}
+    #Log	 tokens:${L}
+    #${c}= 	Count Values In List	@{query_results}
+    #Log 	c: ${c}
+    ${L}=	Create List 	${query_result_1}	${query_result_2}
+	List Should Not Contain Duplicates	${L}
+	
+TC_0057 Verify records are exist in users table
+    [Tags]		
+    ${output} =    Execute SQL String    SELECT * FROM users;
+    Log    ${output}
+    Should Be Equal As Strings    ${output}    None
+    
+TC_0058 Verify user table Description
+    [Tags]  	
+    Comment    Query db for table column descriptions
+    @{queryResults} =    Description    SELECT * FROM users where `username` like ('jdoe@%');
+    Log Many    @{queryResults}
+    Comment    Retrieve user descriptions
+    	${output} =    Set Variable    ${queryResults[0][0]}
+    Should Be Equal As Strings    ${output}    username
+    #(jdoe@4info.com,5858ea228cc2edf88721699b2c8638e5,1,ROLE_USER,Jane,Doe,NULL,NULL,sarvesh.gupta@tavant.com,2015-09-28 14:12:56,1)
+		${output} =    Set Variable    ${queryResults[1][0]}
+	Should Be Equal As Strings    ${output}    password
+		${output} =    Set Variable    ${queryResults[2][0]}
+	Should Be Equal As Strings    ${output}    enabled
+		${output} =    Set Variable    ${queryResults[3][0]}
+	Should Be Equal As Strings    ${output}    authority
+		${output} =    Set Variable    ${queryResults[4][0]}
+	Should Be Equal As Strings    ${output}    first_name
+		${output} =    Set Variable    ${queryResults[5][0]}
+	Should Be Equal As Strings    ${output}    last_name
+		${output} =    Set Variable    ${queryResults[6][0]}
+	Should Be Equal As Strings    ${output}    reset_request_date
+		${output} =    Set Variable    ${queryResults[7][0]}
+	Should Be Equal As Strings    ${output}    reset_done
+		${output} =    Set Variable    ${queryResults[8][0]}
+	Should Be Equal As Strings    ${output}    last_modified_by
+		${output} =    Set Variable    ${queryResults[9][0]}
+	Should Be Equal As Strings    ${output}    last_modified_date
+		${output} =    Set Variable    ${queryResults[10][0]}
+	Should Be Equal As Strings    ${output}    posse_id
+
+TC_0059 Verify number of columns in user Description
+ 	[Tags]  	   
+    Comment    Query db for table column descriptions
+    @{queryResults} =    Description    SELECT * FROM users where `username` like ('jdoe@%');
+    ${NumColumns} =    Get Length    ${queryResults}
+    Should Be Equal As Integers    ${NumColumns}    11
+
+TC_0060 Verify user's credentials
+    [Tags]   
+    Comment    Query db for user's credentials
+    @{queryResults} =    Query    SELECT username, password, first_name, last_name FROM users where username='jdoe@4info.com';
+    		Log Many    @{queryResults}	
+    ${password_value}=	Query		SELECT password FROM users where username='jdoe@4info.com';
+    ${password_str}=	Convert To String 	${password_value}
+    ${password}=	get string value		${password_str}
+    		Log  current password:${password}
+    ${len}= 	Get Length    ${queryResults}
+    :FOR  ${value}  in   ${len}
+    #\	Set Variable    ${queryResults[0][${value}]}
+    \	List Should Contain Value     @{queryResults}		jdoe@4info.com
+    \	List Should Contain Value     @{queryResults}		${password}
+    \	List Should Contain Value     @{queryResults}		Jane
+	\	List Should Contain Value     @{queryResults}		Doe
+	
+TC_0061 Verify access token table Description	
+	[Tags]   	
+    Comment    Query db for table column descriptions
+    @{queryResults} =    Description    SELECT * FROM oauth_access_token where `client_id` like ('jdoe@%');
+    Log Many    @{queryResults}
+    Comment    Retrieve token descriptions
+    	${output} =    Set Variable    ${queryResults[0][0]}
+    Should Be Equal As Strings    ${output}    token_id
+		${output} =    Set Variable    ${queryResults[1][0]}
+	Should Be Equal As Strings    ${output}    authentication
+		${output} =    Set Variable    ${queryResults[2][0]}
+	Should Be Equal As Strings    ${output}    authentication_id
+		${output} =    Set Variable    ${queryResults[3][0]}
+	Should Be Equal As Strings    ${output}    client_id
+		${output} =    Set Variable    ${queryResults[4][0]}
+	Should Be Equal As Strings    ${output}    refresh_token
+		${output} =    Set Variable    ${queryResults[5][0]}
+	Should Be Equal As Strings    ${output}    token
+		${output} =    Set Variable    ${queryResults[6][0]}
+	Should Be Equal As Strings    ${output}    user_name
+
+TC_0062 Verify adgroup names for 4info pixel testing campaign
+		[Tags]	
+		Get to Select Adgroups
+		Click Element	${SELECT_ADGROUP}
+		Comment 	Looking for adgroups on insights page
+			${TITLES}=	Get Matching Xpath Count	${SELECT_GROUP_DRPDOWN}
+			Log 	Titles matches: ${TITLES}	
+			@{adgroup_titiles_list}=		Create List	
+			#:FOR    ${index}    IN RANGE	1	${TITLES}-83
+			:FOR    ${index}    IN RANGE	1	${TITLES}+1
+			\		${TITLE_TEXT}=	Get Text	xpath=(${SELECT_GROUP_DRPDOWN})[${index}]
+			\		Set Test Variable 	${CURRENT_TITLE}		${TITLE_TEXT}
+			\		Append To List	${adgroup_titiles_list}		${CURRENT_TITLE}
+			\		Log Many		${adgroup_titiles_list}
+		Comment 	Looking for matching elements from drop down menu in db
+			@{titiles_list}=		Create List
+			:FOR  ${element}	 IN		@{adgroup_titiles_list}
+			\		Convert To String	${element}
+			\		${in_db}=	Query 	SELECT name FROM ad_group where name in ("${element}");
+			\		Should Not Be Equal    ${in_db}    None
+
+TC_0063 Verify child Adgroup orange exclamations mark corresponds to expired campaign status
+		[Tags]	 
+		Get to Campaign View Page
+		Click Element	${ADGROUPS_86_LINK}
+		Set Selenium Timeout 	2s	
+		${impressions}=	Get Text		${ADGROUP_CHILD_1_IMPRESSION}
+		${impressions_current}=		get current impression		${impressions}
+		${impressions_targeted}=	get targeted impression		${impressions}
+		#${L}=	Convert To List	${impressions_values}
+		Should Be True	 ${impressions_current}<${impressions_targeted}
+		Should Not Be Equal	${impressions_current}	${impressions_targeted}		
+		Page Should Contain Element 	${ADGROUP_707_ORANGE}
+
+TC_0064 Verify child Adgroup green mark corresponds to completed campaign status
+		[Tags]	 
+		Get to Campaign View Page
+		Click Element	${ADGROUPS_86_LINK}
+		Set Selenium Timeout 	2s
+		#Execute Javascript	${SCROLL_DOWN_1}
+		${impressions}=	Get Text		${ADGROUP_CHILD_5_IMPRESSION}
+		${impressions_current}=		get current left		${impressions}
+		${impressions_targeted}=	get targeted impression		${impressions}
+		#${L}=	Convert To List	${impressions_values}
+		Should Be True	 ${impressions_current}>${impressions_targeted}
+		Page Should Contain Element 	${ADGROUP_834_GREEN}
+				

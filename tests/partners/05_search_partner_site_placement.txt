@@ -1,0 +1,86 @@
+
+
+*** Settings ***
+Resource            partners_imports.txt
+Force Tags         PARTNERS_SEARCH   4.3   ADH-3199        BATCH2
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Go to the Partners Tab
+       Go To Partners Tab
+
+Validate All The Table Headers For Partners Are There
+       Validate Partners Table Headers
+
+Search For Partner By Name Upper Case 4INFO
+       Find Item In Partners Suggested Search     4INFO    
+       ...                        Partner-> 4INFO [139]    
+       ...                        Site-> 4INFO demo app [55]    
+       ...                        Site-> 4INFO Mobile Web [2]
+       ...                        Site-> 4INFO test pages [3]
+       ...                        Placement-> 4INFO Top [11]
+#      2015-04  Removed 4INFO partner and placements for targetting       
+#       [Tags]   Exclude		Known_Issue    https://jira.adhaven.com/browse/ADH-3256    https://jira.adhaven.com/browse/ADH-3257
+#		10/20/2015    Re-add the test case and validate the jira
+
+Search For Partner By Name Lower Case 4info
+       Find Item In Partners Suggested Search     4info    
+       ...                        Partner-> 4INFO [139]    
+       ...                        Site-> 4INFO demo app [55]    
+       ...                        Site-> 4INFO Mobile Web [2]
+       ...                        Site-> 4INFO test pages [3]
+       ...                        Placement-> 4INFO Top [11]
+#      2015-04  Removed 4INFO partner and placements for targetting       
+#       [Tags]   Exclude		
+#		10/20/2015    Re-add the test case and validate the jira    
+  
+Search For Partner By Name Upper Case Stel
+       Find Item In Partners Suggested Search     Stel   
+       ...                        Placement-> Stelara [1854]
+#      2015-04  Removed 4INFO partner and placements for targetting         
+#       [Tags]    Exclude 	Known_Issue    https://jira.adhaven.com/browse/ADH-3256    https://jira.adhaven.com/browse/ADH-3257
+#		10/20/2015    Re-add the test case and validate the jira
+       
+Search For Partner By Name Lower Case stel
+       Find Item In Partners Suggested Search     stel   
+       ...                        Placement-> Stelara [1854]
+#      2015-04  Removed 4INFO partner and placements for targetting       
+#       [Tags]   Exclude		
+#		10/20/2015    Re-add the test case and validate the jira
+       
+Search For Partner By Name 4i
+       Find Item In Partners Suggested Search     4i   
+       ...                        Partner-> 4INFO [139]    
+       ...                        Site-> 4INFO demo app [55]    
+       ...                        Site-> 4INFO Mobile Web [2]
+       ...                        Site-> 4INFO test pages [3]
+       ...                        Placement-> 4INFO Top [11]
+#      2015-04  Removed 4INFO partner and placements for targetting       
+#       [Tags]   Exclude	       
+
+Search For Placement By ID ${PARTNER_SEARCH_PLACEMENT_ID_1}
+       Find Item In Partners Suggested Search     ${PARTNER_SEARCH_PLACEMENT_ID_1}
+       ...                        Placement-> ${PARTNER_SEARCH_PLACEMENT_NAME_1} [${PARTNER_SEARCH_PLACEMENT_ID_1}]
+       
+Search For Placement By ID ${PARTNER_SEARCH_PLACEMENT_ID_2}
+       Find Item In Partners Suggested Search     ${PARTNER_SEARCH_PLACEMENT_ID_2}
+       ...                        Placement-> ${PARTNER_SEARCH_PLACEMENT_NAME_2} [${PARTNER_SEARCH_PLACEMENT_ID_2}]
+              
+Search For Site By Name TEST brx app
+       Find Item In Partners Suggested Search     TEST brx app
+       ...                        Site-> TEST BRX app [2553]
+
+
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+       
+       

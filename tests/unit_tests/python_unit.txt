@@ -1,0 +1,62 @@
+
+*** Settings ***
+Resource            adhaven_general.txt
+Resource            database.txt
+Resource  			smb.txt
+Force Tags          UNIT     
+
+*** Variables ***
+
+        
+
+
+*** Test Cases ***
+
+         
+Get The Current Directory
+         Retrieve The Current Directory
+         Log     ${current_lib_directory}
+         
+Get the Banner Files Directory
+         Retrieve The Banner Images Root Directory
+         Log     ${banner_directory} 
+
+Retrieve File for PRIZM 320x50_Prizm11.jpg
+         Retrieve Direct Path For Banner     banner_type=PRIZM     file_name=320x50_Prizm11.jpg    
+         
+Retrieve File for CONNEXIONS 320x50_Connexion01.jpg
+         Retrieve Direct Path For Banner     banner_type=CONNEXIONS     file_name=320x50_Connexion01.jpg   
+         
+Retrieve File for GENERIC 320x50_Group01.jpg
+         Retrieve Direct Path For Banner     banner_type=GENERIC     file_name=320x50_Group01.jpg 
+         
+Retrieve Start Date 
+         ${start}=             get_default_start_date
+         Log    Start: ${start}
+         
+Retrieve End Date 
+         ${end}=             get_default_end_date
+         Log    End: ${end}         
+
+Retrieve Placements for Site & App 4INFO test pages
+          Retrieve Placement Names For Site And App 4INFO Test Pages
+
+Test Impressions And Budget Calculation
+		Calculate Impressions And CPU        					available_qty=15000				selected_qty=4000        duration=30 
+         [Tags]    WIP111
+         
+Test Impressions And Budget Calculation 2 
+		Calculate Impressions And CPU        available_qty=15000				selected_qty=8000        duration=14 
+         [Tags]    WIP111         
+         
+Test Smart Bidder
+		Submit a Request to Jenkins to Run Smart Bidder for QA
+		[Tags]    SMART
+		       
+Test Random Device ID Generation      
+		${random_device_id_pre}=         Generate Random String		1		[0-9][a-f][A-F]         
+        ${random_device_id_post}=        Generate Random String	35		
+        Set Test Variable        ${random_device_id}      ${random_device_id_pre}${random_device_id_post}
+        Log    Random Device ID: ${random_device_id}
+        
+         

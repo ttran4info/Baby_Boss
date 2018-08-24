@@ -1,0 +1,180 @@
+
+
+*** Settings ***
+Resource            reporting_imports.txt
+Force Tags          REPORTING_ADVERTISER       REPORTING    QA_ONLY     BATCH4	EXCLUDE
+*** Variables ***
+${start_date}=        20140115
+${end_date}=         20140131
+${campaign_id}=    712
+
+*** Test Cases ***
+
+#Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - Overall Report By Day
+#             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?advertiserId=357
+#             ...                              &reportId=CampaignPerformanceOverall&campaignId=679
+#             ...                              &startDate=20130301&endDate=20130311&groupTimeFrame=DAY&outputFormat=xls&timeZone=GMT[+00:00]             
+#             Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=QA_REGRESSION_TESTS
+#             Retrieve AdvertiserID By Advertiser Name                                 advertiser_name=QA_REGRESSION_TESTS
+#             Set Suite Variable         @{CAMPAIGN_ID_LIST}      ${campaign_id}
+#             Log     AdvertiserID: ${ADVERTISER_ID_LIST[0]} 
+#             :FOR     ${index}    IN      @{CAMPAIGN_ID_LIST} 
+#             \      Log     ${index[0]} 
+#             \      Retrieve Output File Path     QA_REGRESSION_TESTS_OVERALL_${index[0]}_BYDAY.xls
+#             \      Construct Advertiser Report API     advertiser_id=${ADVERTISER_ID_LIST[0][0]}     report_id=CampaignPerformanceOverall     campaign_id=712     start_date=${start_date}     end_date=${end_date}      groupTimeFrame=DAY      export_as=xls     timezone=GMT
+#             \      Log          ${output_directory} 
+#             \      Log          ${advertiser_api_call}
+#             \      download_file_from_url    ${output_directory}      ${advertiser_api_call}
+#             \      print_workboook_contents     ${output_directory} 
+
+Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - Overall Report By Day
+             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?advertiserId=357
+             ...                              &reportId=CampaignPerformanceOverall&campaignId=679
+             ...                              &startDate=20130301&endDate=20130311&groupTimeFrame=DAY&outputFormat=xls&timeZone=GMT[+00:00]             
+#             Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=QA_REGRESSION_TESTS
+             Retrieve AdvertiserID By Advertiser Name                                 advertiser_name=QA_REGRESSION_TESTS
+#             Set Suite Variable         @{CAMPAIGN_ID_LIST}      ${campaign_id}
+             Log     Campaign: ${campaign_id}
+             Retrieve Output File Path     QA_REGRESSION_TESTS_OVERALL_${campaign_id}_BYDAY.xls
+             Construct Advertiser Report API     advertiser_id=${ADVERTISER_ID_LIST[0][0]}     report_id=CampaignPerformanceOverall     campaign_id=${campaign_id}     start_date=${start_date}     end_date=${end_date}      groupTimeFrame=DAY      export_as=xls     timezone=GMT
+             Log          ${output_directory} 
+             Log          ${advertiser_api_call}
+             download_file_from_url    ${output_directory}      ${advertiser_api_call}
+             print_workboook_contents     ${output_directory} 
+ 
+Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - Overall Report By Week
+             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?advertiserId=357
+             ...                              &reportId=CampaignPerformanceOverall&campaignId=679
+             ...                              &startDate=20130301&endDate=20130311&groupTimeFrame=DAY&outputFormat=xls&timeZone=GMT[+00:00]             
+#             Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=QA_REGRESSION_TESTS
+             Retrieve AdvertiserID By Advertiser Name                                 advertiser_name=QA_REGRESSION_TESTS
+             Log     AdvertiserID: ${ADVERTISER_ID_LIST[0]} 
+             Log     Campaign: ${campaign_id}
+             Retrieve Output File Path     QA_REGRESSION_TESTS_OVERALL_${campaign_id}_ByWeek.xls
+              Construct Advertiser Report API     advertiser_id=${ADVERTISER_ID_LIST[0][0]}     report_id=CampaignPerformanceOverall     campaign_id=${campaign_id}     start_date=${start_date}     end_date=${end_date}      groupTimeFrame=WEEK      export_as=xls     timezone=GMT
+             Log          ${output_directory} 
+             Log          ${advertiser_api_call}
+             download_file_from_url    ${output_directory}      ${advertiser_api_call}
+             print_workboook_contents     ${output_directory} 
+ 
+Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - Overall Report By Day - CSV
+             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?advertiserId=357
+             ...                              &reportId=CampaignPerformanceOverall&campaignId=679
+             ...                              &startDate=20130301&endDate=20130311&groupTimeFrame=DAY&outputFormat=xls&timeZone=GMT[+00:00]             
+#             Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=QA_REGRESSION_TESTS
+             Retrieve AdvertiserID By Advertiser Name                                 advertiser_name=QA_REGRESSION_TESTS
+             Log     AdvertiserID: ${ADVERTISER_ID_LIST[0]} 
+             Log     Campaign: ${campaign_id}
+             Retrieve Output File Path     QA_REGRESSION_TESTS_OVERALL_${campaign_id}_BYDAY.csv
+             Construct Advertiser Report API     advertiser_id=${ADVERTISER_ID_LIST[0][0]}     report_id=CampaignPerformanceOverall     campaign_id=${campaign_id}     start_date=${start_date}     end_date=${end_date}      groupTimeFrame=DAY      export_as=csv     timezone=GMT
+             Log          ${output_directory} 
+             Log          ${advertiser_api_call}
+             download_file_from_url    ${output_directory}      ${advertiser_api_call}
+             print_csv_contents     ${output_directory} 
+ 
+Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - By Banner Size By Day
+             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?advertiserId=357
+             ...                              &reportId=CampaignPerformanceByBanner&campaignId=679
+             ...                              &startDate=20130301&endDate=20130313&groupTimeFrame=WEEK&outputFormat=xls&timeZone=GMT[+00:00]
+#             Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=QA_REGRESSION_TESTS
+             Retrieve AdvertiserID By Advertiser Name                                 advertiser_name=QA_REGRESSION_TESTS
+             Log     AdvertiserID: ${ADVERTISER_ID_LIST[0]} 
+             Log     Campaign: ${campaign_id}
+             Retrieve Output File Path     QA_REGRESSION_TESTS_BANNER_SIZE_${campaign_id}_BYDAY.xls
+             Construct Advertiser Report API     advertiser_id=${ADVERTISER_ID_LIST[0][0]}     report_id=CampaignPerformanceByBanner     campaign_id=${campaign_id}     start_date=${start_date}     end_date=${end_date}      groupTimeFrame=DAY      export_as=xls     timezone=GMT
+             Log          ${output_directory} 
+             Log          ${advertiser_api_call}
+             download_file_from_url    ${output_directory}      ${advertiser_api_call}
+             print_workboook_contents     ${output_directory} 
+
+Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - By Banner Size By Week
+             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?advertiserId=357
+             ...                              &reportId=CampaignPerformanceByBanner&campaignId=679
+             ...                              &startDate=20130301&endDate=20130313&groupTimeFrame=WEEK&outputFormat=xls&timeZone=GMT[+00:00]
+#             Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=QA_REGRESSION_TESTS
+             Retrieve AdvertiserID By Advertiser Name                                 advertiser_name=QA_REGRESSION_TESTS
+             Set Suite Variable         @{CAMPAIGN_ID_LIST}       ${campaign_id}
+             Log     AdvertiserID: ${ADVERTISER_ID_LIST[0]} 
+             Log     Campaign: ${campaign_id}            
+             Retrieve Output File Path     QA_REGRESSION_TESTS_BANNER_SIZE_${campaign_id}_BYWEEK.xls
+             Construct Advertiser Report API     advertiser_id=${ADVERTISER_ID_LIST[0][0]}     report_id=CampaignPerformanceByBanner     campaign_id=${campaign_id}     start_date=${start_date}     end_date=${end_date}      groupTimeFrame=WEEK      export_as=xls     timezone=GMT
+             Log          ${output_directory} 
+             Log          ${advertiser_api_call}
+             download_file_from_url    ${output_directory}      ${advertiser_api_call}
+             print_workboook_contents     ${output_directory} 
+
+Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - By Geography By Day
+             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?advertiserId=357
+             ...                              &reportId=CampaignPerformanceByGeo
+             ...                              &reportSections=geoCountry,geoState,geoDma
+             ...                              &campaignId=679&startDate=20130301&endDate=20130315
+             ...                              &groupTimeFrame=DAY&outputFormat=xls&timeZone=GMT[+00:00]
+#            Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=QA_REGRESSION_TESTS
+             Retrieve AdvertiserID By Advertiser Name                                 advertiser_name=QA_REGRESSION_TESTS
+             Set Suite Variable         @{CAMPAIGN_ID_LIST}       ${campaign_id}
+             Log     AdvertiserID: ${ADVERTISER_ID_LIST[0]} 
+             Log     Campaign: ${campaign_id}            
+             Retrieve Output File Path     QA_REGRESSION_TESTS_GEOGRAPHY_${campaign_id}_BYDAY.xls
+             Construct Advertiser Report API     advertiser_id=${ADVERTISER_ID_LIST[0][0]}     report_id=CampaignPerformanceByGeo     campaign_id=${campaign_id}     start_date=${start_date}     end_date=${end_date}      groupTimeFrame=DAY      export_as=xls     timezone=GMT 
+             Advertiser Report API Append GEO     reportSections=geoCountry,geoState,geoDMA
+             Log          ${output_directory} 
+             Log          ${advertiser_api_call}
+             download_file_from_url    ${output_directory}      ${advertiser_api_call}
+             print_workboook_contents     ${output_directory} 
+ 
+Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - By Geography By Week
+             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?advertiserId=357
+             ...                              &reportId=CampaignPerformanceByGeo
+             ...                              &reportSections=geoCountry,geoState,geoDma
+             ...                              &campaignId=679&startDate=20130301&endDate=20130315
+             ...                              &groupTimeFrame=DAY&outputFormat=xls&timeZone=GMT[+00:00]
+#             Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=QA_REGRESSION_TESTS
+             Retrieve AdvertiserID By Advertiser Name                                 advertiser_name=QA_REGRESSION_TESTS
+             Set Suite Variable         @{CAMPAIGN_ID_LIST}       ${campaign_id}
+             Log     AdvertiserID: ${ADVERTISER_ID_LIST[0]} 
+             Log     Campaign: ${campaign_id}                 
+             Retrieve Output File Path     QA_REGRESSION_TESTS_GEOGRAPHY_${campaign_id}_BYWEEK.xls
+             Construct Advertiser Report API     advertiser_id=${ADVERTISER_ID_LIST[0][0]}     report_id=CampaignPerformanceByGeo     campaign_id=${campaign_id}     start_date=${start_date}    end_date=${end_date}      groupTimeFrame=WEEK      export_as=xls     timezone=GMT
+             Advertiser Report API Append GEO     reportSections=geoCountry,geoState,geoDMA
+             Log          ${output_directory} 
+             Log          ${advertiser_api_call}
+             download_file_from_url    ${output_directory}      ${advertiser_api_call}
+             print_workboook_contents     ${output_directory} 
+ 
+Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - Campaign Placements By Day
+             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?advertiserId=357
+             ...                              &reportId=CampaignPlacement
+             ...                              &campaignId=680&startDate=20130301&endDate=20130313
+             ...                              &groupTimeFrame=WEEK&outputFormat=xls&timeZone=GMT[+00:00]
+#             Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=QA_REGRESSION_TESTS
+             Retrieve AdvertiserID By Advertiser Name                                 advertiser_name=QA_REGRESSION_TESTS
+             Set Suite Variable         @{CAMPAIGN_ID_LIST}       ${campaign_id}
+             Log     AdvertiserID: ${ADVERTISER_ID_LIST[0]} 
+             Log     Campaign: ${campaign_id}         
+             Retrieve Output File Path     QA_REGRESSION_TESTS_CAMPAIGN_PLACEMENTS_${campaign_id}_BYDAY.xls
+             Construct Advertiser Report API     advertiser_id=${ADVERTISER_ID_LIST[0][0]}     report_id=CampaignPlacement     campaign_id=${campaign_id}     start_date=${start_date}     end_date=${end_date}      groupTimeFrame=DAY      export_as=xls     timezone=GMT 
+             Log          ${output_directory} 
+             Log          ${advertiser_api_call}
+             download_file_from_url    ${output_directory}      ${advertiser_api_call}
+             print_workboook_contents     ${output_directory} 
+
+Make API Call for All Campaigns From Advertiser QA_REGRESSION_TESTS - Campaign Placements By Week
+             [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?advertiserId=357
+             ...                              &reportId=CampaignPlacement
+             ...                              &campaignId=680&startDate=20130301&endDate=20130313
+             ...                              &groupTimeFrame=WEEK&outputFormat=xls&timeZone=GMT[+00:00]
+#             Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=QA_REGRESSION_TESTS
+             Retrieve AdvertiserID By Advertiser Name                                 advertiser_name=QA_REGRESSION_TESTS
+             Set Suite Variable         @{CAMPAIGN_ID_LIST}       ${campaign_id}
+             Log     AdvertiserID: ${ADVERTISER_ID_LIST[0]} 
+             Log     Campaign: ${campaign_id}                      
+             Retrieve Output File Path     QA_REGRESSION_TESTS_CAMPAIGN_PLACEMENTS_${campaign_id}_BYWEEK.xls
+             Construct Advertiser Report API     advertiser_id=${ADVERTISER_ID_LIST[0][0]}     report_id=CampaignPlacement     campaign_id=${campaign_id}     start_date=${start_date}     end_date=${end_date}      groupTimeFrame=WEEK      export_as=xls     timezone=GMT
+             Log          ${output_directory} 
+             Log          ${advertiser_api_call}
+             download_file_from_url    ${output_directory}      ${advertiser_api_call}
+             print_workboook_contents     ${output_directory} 
+
+
+
+

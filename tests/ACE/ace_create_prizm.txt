@@ -1,0 +1,61 @@
+
+
+*** Settings ***
+Resource            ace_imports.txt
+Force Tags          ACE    BUILD_SANITY    3.11    4.0       BATCH2		EXCLUDE
+Documentation       2018-08-17 - 7.2 Release has changes to remove Connexion/Prizm removed from ACE tab.
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Retrieve Cookies From The Current Page
+       Get Cookies
+       
+Go to the ACE Tab
+       Go To Geofence Tab
+       Reload Page
+
+Validate All The Table Headers For ACE Are There
+       [TAGS]   3.11
+       Validate ACE Table Headers
+        
+Create a PRIZM Targeting Set
+        Create Base ACE Targeting With DMA        cpham@4info.com     PRIZM_     520   800   820
+        Select Segment Type For Targetting    PRIZM   
+        Add PRIZM Segments To Selection        50    30    59
+        Save And Validate ACE Targeting Set       American Classics    American Dreams    Back Country Folks    Augusta    Bakersfield     Portland, OR
+        
+Create a PRIZM Targeting Set With ALL DMA Selection
+        Create Base ACE Targeting With DMA        cpham@4info.com     PRIZM_     all 
+        Select Segment Type For Targetting    PRIZM   
+        Add PRIZM Segments To Selection        50    30    59
+        Save And Validate ACE Targeting Set       American Classics    American Dreams    Back Country Folks    all  
+        
+        
+Create a PRIZM Targeting Set With No DMA Selection
+        Create Base ACE Targeting With DMA        cpham@4info.com     PRIZM_     
+        Select Segment Type For Targetting    PRIZM   
+        Add PRIZM Segments To Selection        50    30    59
+        Save And Validate ACE Targeting Set
+        [TAGS]    Known_Issue    https://jira.adhaven.com/browse/ADH-2775
+        
+Create a PRIZM Targeting Set With ALL DMA Selection Plus Individual DMAs
+        Create Base ACE Targeting With DMA        cpham@4info.com     PRIZM_     all   820   800
+        Select Segment Type For Targetting    PRIZM   
+        Add PRIZM Segments To Selection        50    30    59
+        Save And Validate ACE Targeting Set       American Classics    American Dreams    Back Country Folks    Bakersfield    Portland, OR
+        
+        
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+Remove All PRIZM Database Reports Generated
+       Remove PRIZM Reports From DB           
+       

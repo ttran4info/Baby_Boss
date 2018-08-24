@@ -1,0 +1,93 @@
+*** Settings ***
+Resource            etl_imports.txt
+Force Tags          PACMAN     ADH-3817     Known_Issue       QA_ONLY     BATCH1   EXCLUDE
+Suite Setup         SSH Login As Pacman User
+Suite Teardown      Close All Connections
+Documentation       Pacman is no longer used due to smart bidder hence tests are excluded.
+*** Variables ***
+
+*** Test Cases ***
+
+SSH Into Pacman System And List Files 
+     ${output}=    Execute Command    ls -al /home/pacman/
+     Log   ${output}
+     Should Match Regexp    ${output}      run_pacman_daily.sh
+     Should Match Regexp    ${output}      run_pacman_hourly.sh
+     Should Match Regexp    ${output}      algorithms.jar
+     Should Match Regexp    ${output}      core.jar
+     Should Match Regexp    ${output}      mysql-connector-java-5.1.6-bin.jar
+     Should Match Regexp    ${output}      output
+     
+SSH Into Pacman System And Validate applicationContext.xml 
+     ${output}=    Execute Command    cat /home/pacman/applicationContext.xml
+     Log    ${output}
+     Should Match Regexp    ${output}      <value>jdbc:mysql://qa-db1:3306/rhino</value>
+    
+SSH Into Pacman System And Ensure There Is Pacing_State Output For Yesterday
+     ${day}=   Execute Command    date --date="yesterday" +"%Y-%m-%d"
+     Log   Yesterday's Date: ${day}
+     ${output}=    Execute Command    ls -al /home/pacman/output/
+     Log   ${output}
+     Should Match Regexp    ${output}       pacing_state_${day}
+     ${output}=    Execute Command    cat /home/pacman/output/pacing_state_${day}*
+     Log   ${output}     
+
+SSH Into Pacman System And Ensure There Is Allocation Output For Yesterday
+     ${day}=   Execute Command    date --date="yesterday" +"%Y-%m-%d"
+     Log   Yesterday's Date: ${day}
+     ${output}=    Execute Command    ls -al /home/pacman/output/
+     Log   ${output}
+     Should Match Regexp    ${output}       allocation_${day}
+     ${output}=    Execute Command    cat /home/pacman/output/allocation_${day}*
+     Log   ${output}     
+
+SSH Into Pacman System And Ensure There Is A Tracker Record For Yesterday
+     ${day}=   Execute Command    date --date="yesterday" +"%Y-%m-%d"
+     Log   Yesterday's Date: ${day}
+     ${output}=    Execute Command    cat /home/pacman/output/tracker | grep "${day}"
+     Log   Run Logs: ${output}
+     Should Match Regexp    ${output}      ${day}
+     
+SSH Into Pacman System And Ensure There Is Pacing_State Output For 2 Days Ago
+     ${day}=   Execute Command    date --date="-2 day" +"%Y-%m-%d"
+     Log   Yesterday's Date: ${day}
+     ${output}=    Execute Command    ls -al /home/pacman/output/
+     Log   ${output}
+     Should Match Regexp    ${output}       pacing_state_${day}
+     ${output}=    Execute Command    cat /home/pacman/output/pacing_state_${day}*
+     Log   ${output}          
+     
+SSH Into Pacman System And Ensure There Is Pacing_State Output For 3 Days Ago
+     ${day}=   Execute Command    date --date="-3 day" +"%Y-%m-%d"
+     Log   Yesterday's Date: ${day}
+     ${output}=    Execute Command    ls -al /home/pacman/output/
+     Log   ${output}
+     Should Match Regexp    ${output}       pacing_state_${day}
+     ${output}=    Execute Command    cat /home/pacman/output/pacing_state_${day}*
+     Log   ${output}               
+     
+Run Daily Pacman Script Manually And Ensure Output Is There     
+     ${day_hour}=   Execute Command    date +"%Y-%m-%d.%k"
+     Log      Date Formatted With Hour: ${day_hour}
+     Start Command    sh /home/pacman/run_pacman_daily.sh
+     ${output}=      Read Command Output   stdout
+     Log        Output: ${output}
+#     Sleep      30s
+     ${output}=    Execute Command    ls -al /home/pacman/output/
+     Log   ${output}
+     Should Match Regexp    ${output}       pacing_state_${day_hour}
+     ${output}=    Execute Command    cat /home/pacman/output/pacing_state_${day_hour}*
+     Log   Allocation Output: ${output}               
+     
+Validate Cronjob Is set to Run Daily At 12:05AM UTC 
+     ${output}=    Execute Command    crontab -l | grep pacman_daily
+     Log    ${output}
+     Should Be Equal As Strings    '${output}'      '5 0 * * * /home/pacman/run_pacman_daily.sh >> /home/pacman/daily.log '
+
+Validate Cronjob Is set to Run Daily At Every 5 Minutes Past The Hour Except 12:05AM UTC
+     ${output}=    Execute Command    crontab -l | grep pacman_hourly
+     Log    ${output}
+     Should Be Equal As Strings    '${output}'      '5 01-23 * * * /home/pacman/run_pacman_hourly.sh >> /home/pacman/hourly.log'
+     
+     
+     

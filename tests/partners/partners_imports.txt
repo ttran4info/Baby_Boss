@@ -1,0 +1,7 @@
+
+*** Settings ***
+Resource    adhaven_general.txt
+Resource    partners.txt
+Resource    database.txt
+
+

@@ -1,0 +1,1128 @@
+*** Settings ***
+Resource        pegasus_specific_imports.txt
+Force Tags      PEGASUS		BATCH15			EXCLUDE
+#Test Setup		Login into Pegasus Dashboard
+#Test Setup		Set Selenium Speed 	${SEL_SPEED}
+#Test Teardown	Close Browser
+Test Teardown	Run Keywords	Close Browser	 rm pyc
+*** Test Cases ***
+
+Check Browser 
+	Log   Browser:[${BROWSER}]
+	
+TC_000 Open Pegasus dashboard Login page for existing user with correct credentials
+	[Tags]	
+	#[Setup]    NONE
+	Start Pegasus UI
+	Log   Default User: ${USER_UI} Password: ${PASSWORD_UI}
+	#[Teardown]   Close Browser
+
+
+TC_001 Pegasus dashboard Login with existing user and valid credentials
+	[Tags] 
+	#[Setup]    NONE
+	Start Pegasus UI
+	Enter Username
+	Enter Password
+	Sleep   1s 
+	Login
+	Sleep  8s
+	Element Should Be Visible	 ${DROP_DOWN_USERNAME}
+	Element Should Be Visible	 ${ADVERTISERS_LIST}
+	#[Teardown]   Close Browser
+		
+TC_002 Retrieve Cookies From The Current Page
+	[Tags]	
+	Login into Pegasus Dashboard
+    Get Cookies
+    #[Teardown]   Close Browser
+      
+TC_003 Validate All The Table Headers For Advertisers List Are Present
+    [Tags]	tt
+    Login into Pegasus Dashboard
+    Sleep 	8s
+    Validate Advertisers List Table Headers     
+	#[Teardown]   Close Browser
+	
+TC_004 Validate Drop Down Menu Options Are Present
+    [Tags]		
+    Login into Pegasus Dashboard
+    Sleep   8s 
+    Validate DropDown Menu Options
+    #[Teardown]   Close Browser	
+	   
+TC_005 Verify View All Campaigns Button becomes available on hover upon Advertiser's Name 
+	  [Tags]	
+	  Login into Pegasus Dashboard
+	  Sleep	8s
+	  Validate View All Campaigns Button on hover
+	  #[Teardown]   Close Browser
+	  
+TC_006 Verify Back To Avdertisers link works as expected
+		[Tags]	
+		Login into Pegasus Dashboard
+		Sleep	8s
+		Click View All Campaigns Button		
+		Sleep	4s
+		Click Element 		${BACK_TO_ADVERTISERS}
+		Page Should Contain Element	 ${ADVERTISERS_LIST}	
+		
+TC_007 Verify Campaign States  
+		[Tags]	
+		Login into Pegasus Dashboard
+		Sleep	10s
+		Validate View All Campaigns Button on hover
+		Click Element 	${VIEW_ALL_CAMPAIGNS}
+		Sleep	6s
+		Element Should Be Visible	${CAMPAIGNS_ALL}
+		Element Should Be Visible	${CAMPAIGNS_LIVE}
+		Element Should Be Visible	${CAMPAIGNS_PAUSED}
+		Element Should Be Visible	${CAMPAIGNS_DOTS}
+		Click Element				${CAMPAIGNS_DOTS}
+		Sleep	2s
+		Element Should Be Visible	${CAMPAIGNS_EXPIRED}
+		Element Should Be Visible	${CAMPAIGNS_COMPLETED}
+		Element Should Be Visible	${CAMPAIGNS_PAUSED}
+		
+TC_008 Verify View Campaign Button takes to Campaign Overview
+	    [Tags]	 		rt8	
+		Login into Pegasus Dashboard
+		Sleep	10s
+		Click View All Campaigns Button
+		Maximize Browser Window
+		Sleep	4s
+		Click Element					${CAMPAIGNS_ALL}
+		Set Selenium Speed 	2s
+		Mouse Over						${TEST_CAMAPAIGN}
+		Wait Until Element Is Visible	${VIEW_CAMPAIGN_TEST_CAMAPAIGN}
+		Double Click Element			${VIEW_CAMPAIGN_TEST_CAMAPAIGN}
+		Sleep 	2s
+		Element Should Be Visible		${APPLY_INSIGHTS}
+		
+		
+TC_009 Verify Campaign-Sorting Elements are present	
+		[Tags]	
+		Login into Pegasus Dashboard
+		Sleep	8s
+		Click View All Campaigns Button
+		Sleep	4s
+		Element Should Be Visible		${SEARCH}
+		Element Should Be Visible		${FILTER}
+		Element Should Be Visible		${TABLE_VIEW}
+		Element Should Be Visible		${ROW_VIEW}	
+
+TC_010 Verify Number of Campagns on advertisers list corresponds to number of campaigns in row view
+		[Tags]	
+		Login into Pegasus Dashboard
+		Sleep	15s
+		#Click Element			${FILTER}
+		#Sleep  2s
+	 	#Click Element			${FILTER_ALPHANUMERIC}	
+	 	#Wait Until Page Contains Element	${04_TEST_ADVERTISER}
+		${NUM_CAMPAIGNS_TXT}=	Get Text			${NUMBER_OF_CAMPAIGNS} 
+		Sleep  2s
+		${NUM_CAMPAIGNS_DIG}= 	get number			${NUM_CAMPAIGNS_TXT}
+		${NUM_CAMPAIGNS}=		Convert To String	${NUM_CAMPAIGNS_DIG}
+		Mouse Over 			${MOUSEOVER_04_TEST_ADVERTISER}
+	    Click Element 		${VIEW_ALL_CAMPAIGNS}
+		Sleep	10s
+		Click Element		${CAMPAIGNS_ALL}
+		Sleep	4s
+		Click Element		${ROW_VIEW}
+		Sleep	4s
+		#Set Selenium Speed        4 seconds
+		Execute Javascript	${SCROLL_TO_BOTTOM}
+		Sleep	2s
+		Execute Javascript	${SCROLL_TO_BOTTOM}
+		Sleep	2s
+		Execute Javascript	${SCROLL_TOP}
+		#Shake The Page
+		${CAMPAIGNS_COUNT}=	Get Matching Xpath Count	${NUMBER_OF_CAMPAIGNS_MATCHING}	
+		Should Be Equal		${NUM_CAMPAIGNS}		${CAMPAIGNS_COUNT}
+		Sleep	4s
+		
+TC_011 Test For Retrieving Advertisers from Advertiser List
+	    [Tags]	
+		Login into Pegasus Dashboard
+		Sleep	10s
+		Set Selenium Speed        2 seconds
+		Sleep  3s
+		Capture Page Screenshot 
+		Retrieve All Pegasus Advertiser Into List
+		Log   List of Pegasus Advertisers: ${all_pegasus_advertiser_list}
+			
+TC_012 Test For Retrieving Advertisers from Campaigns View
+	    [Tags]					
+		Login into Pegasus Dashboard
+		Sleep	8s
+		Click View All Campaigns Button
+		Sleep	3s
+		Click Element		${ADVERTISER_FILTER}
+		Set Selenium Speed        2 seconds 
+		Retrieve Search Data Into List 
+		Log   List of Advertisers Dropdown: ${all_pegasus_dropdown_list}
+
+TC_013 Verify Number of Advertisers corresponds to a Campaign Search creteria
+		[Tags]	
+		Login into Pegasus Dashboard
+		Sleep	15s
+		#:FOR 	${i} 	IN RANGE 	1	10 	
+		#\	Run Keyword If 	'${i}'<=10		Execute Javascript  ${SCROLL_DOWN}
+		#\	Sleep 	2s
+		Execute Javascript  ${SCROLL_DOWN}	
+		Sleep 	2s
+		Execute Javascript  ${SCROLL_DOWN}	
+		Sleep 	2s
+		Execute Javascript  ${SCROLL_DOWN}	
+		Sleep 	2s
+		Execute Javascript  ${SCROLL_DOWN}	
+		Sleep 	2s
+		Execute Javascript  ${SCROLL_DOWN}	
+		Sleep 	2s
+		Execute Javascript  ${SCROLL_DOWN}	
+		Sleep 	2s
+		Execute Javascript  ${SCROLL_DOWN}	
+		Sleep 	2s
+		Execute Javascript  ${SCROLL_DOWN}	
+		Sleep 	2s
+		Execute Javascript  ${SCROLL_DOWN}	
+		Sleep 	2s
+		Execute Javascript  ${SCROLL_DOWN}	
+		Sleep 	2s
+		#Shake The Page
+		#Sleep 	4s
+	#Capture Page Screenshot 
+	#Retrieve All Pegasus Advertiser Into List
+	${COUNT_ADVERTISERS}=	Get Matching Xpath Count	xpath=//*[@id[contains(.,"advertiserList")]]
+	#Get Length		${all_pegasus_advertiser_list}
+		#Locator Should Match X Times		${ADVERTISER_LIST_NAME}		${VERIFIES_ADV_COUNT}		
+		Execute Javascript  ${SCROLL_TOP}
+		Sleep 	2s
+		Click View All Campaigns Button
+		Sleep	6s
+		Click Element		${ADVERTISER_FILTER}
+		Sleep 	4s 
+		Get Total Columns of Search in ${ADV_SEARCH}
+		Log   List: ${total_search_columns}
+		Retrieve Search Data Into List
+		#Locator Should Match X Times		${All_CAMAPIGNS_SEARCH}		${VERIFIES_MCPGN_COUNT}
+	#Should Be Equal		${all_pegasus_advertiser_list}		${all_pegasus_dropdown_list}	
+	#${adv_list}=	Get Length		${all_pegasus_advertiser_list}
+		${drop-down_list}=	Get Length		${all_pegasus_dropdown_list}
+	${COUNT_SEARCH}=	Convert To String	${drop-down_list}
+	#Should Be Equal		${adv_list}	${drop-down_list}
+		Should Be Equal		${COUNT_ADVERTISERS}	${COUNT_SEARCH}
+		
+TC_014 Verify Apply Insights being changed to Demographics
+		[Tags]	  	rt8-19
+		Get to Insights Page 
+		Maximize Browser Window
+		Click Element	${APPLY_INSIGHTS}
+		Sleep 	4s
+		Click Element	${DEMOGRAPHICS_AGE}
+		Sleep   2s
+		Set Selenium Speed	2s
+		Execute Javascript	${SCROLL_TOP}
+		Element Should Be Visible				${INSIGHTS_AGE}		
+		Click Element	${INSIGHTS_AGE}
+		Sleep   2s
+		Set Selenium Speed	2s
+		Execute Javascript	${SCROLL_DOWN_1}
+		Click Element	${DEMOGRAPHICS_MARITAL}	
+		Execute Javascript	${SCROLL_TOP}
+		Element Should Be Visible				${INSIGHTS_MARITAL}
+		Click Element	${INSIGHTS_MARITAL}
+		Sleep   2s
+		Click Element	${DEMOGRAPHICS_MEDIA_USAGE}
+		Execute Javascript	${SCROLL_TOP}
+		Element Should Be Visible			${INSIGHTS_MEDIA_USAGE}
+		Click Element						${INSIGHTS_MEDIA_USAGE}
+		Wait Until Page Contains Element	${INSIGHTS_CLEAR}
+		Click Element						${INSIGHTS_CLEAR}
+		Element Should Be Visible			${APPLY_INSIGHTS}
+		
+TC_015 Verify Apply Insights being changed to Other Dimensions
+	    [Tags]	rt8-19
+	    Get to Insights Page
+	    Maximize Browser Window
+		Click Element	${APPLY_INSIGHTS}
+		Sleep 	2s
+		Element Should Be Visible				${OTHER_DIMESIONS}				
+		Click Element	${OTHER_DIMESIONS}
+		Sleep	2s	
+		Click Element	${OTHER_TIME_OF_DAY}
+		Set Selenium Speed	2s	
+		Sleep 	2s
+		Execute Javascript	${SCROLL_TOP}
+		Element Should Be Visible				${INSIGHTS_TIME_OF_DAY}
+		Click Element	${INSIGHTS_TIME_OF_DAY}
+		Click Element	${INSIGHTS_CLEAR}
+		Element Should Be Visible				${APPLY_INSIGHTS}
+		
+TC_016 Verify Insights Demografic categories
+		[Tags]	rt8-19	
+		Get to Insights Page
+		Sleep 	10s
+		Click Element	${APPLY_INSIGHTS}
+		Sleep 	2s
+		Element Should Be Visible		${DEMOGRAPHICS_AGE}
+		Element Should Be Visible		${DEMOGRAPHICS_GENDER}
+		Element Should Be Visible		${DEMOGRAPHICS_ETHNICITY}
+		Element Should Be Visible		${DEMOGRAPHICS_EDUCATIONAL}
+		Element Should Be Visible		${DEMOGRAPHICS_MARITAL}	
+		Element Should Be Visible		${DEMOGRAPHICS_HOME_OWENRSHIP}
+		Element Should Be Visible		${DEMOGRAPHICS_CHILDREN}
+		Element Should Be Visible		${DEMOGRAPHICS_CREDIT_CARD}
+		Element Should Be Visible		${DEMOGRAPHICS_HOUSEHOLD_INCOME}
+		Element Should Be Visible		${DEMOGRAPHICS_DISPOSABLE_INCOME}
+		Element Should Be Visible		${DEMOGRAPHICS_DISCRET_SPENDING}
+		Element Should Be Visible		${DEMOGRAPHICS_NET_WORTH}
+		Element Should Be Visible		${DEMOGRAPHICS_MEDIA_USAGE}
+
+TC_017 Verify Insights Other Dimensions	
+		[Tags]  rt8-19
+		Get to Insights Page
+		Sleep	60s
+		Wait Until Element Is Visible 	${APPLY_INSIGHTS}
+		Click Element	${APPLY_INSIGHTS}
+		Set Selenium Speed	4s
+		Click Element					${OTHER_DIMESIONS}
+		Element Should Be Visible		${OTHER_TIME_OF_DAY}
+		#depr	Element Should Be Visible		${OTHER_DEVICE_TYPE}
+		Element Should Be Visible		${OTHER_DAY_OF_WEEK}
+		Element Should Be Visible		${OTHER_DEVICE_OEM}
+
+TC_018 Test For Retrieving Selecting Adgroups on Insights Page
+	    [Tags]	rt8-19		
+		Get to Select Adgroups
+		Sleep 	10s
+		Click Element	${SELECT_ADGROUP}
+		Retrieve Adgroup Data Into List 
+		Get Length	 ${all_adgroup_dropdown_list}
+		Log   List of Advertisers Dropdown: ${all_adgroup_dropdown_list}
+
+
+
+#TC_019 Verify amount Selected AdGroups on Insights Page same to Ad Groups count on Campaign View Page
+#		[Tags] 	rt19	rt8-19	 
+#		Get to Select Adgroups
+#		Sleep 	10s
+#		Click Element	${SELECT_ADGROUP}
+#		Sleep 	4s
+#		Retrieve Adgroup Data Into List 
+#		${str1}=	Get Length	 ${all_adgroup_dropdown_list}
+#		Click Element	${BACK_TO_CMPGN_SUMMARIES}
+#		Sleep 	5s
+#		Shake The Page
+#		Sleep  2s
+#		${str2}=	Get Text 	${AD_GROUPS_86}
+#		Convert To Number	 ${result} 
+#		Should be equal 	 ${result}		${str1}	
+				
+TC_020 Verify Forgot Password Page Elements before request to send password
+		[Tags]	 	
+		Start Pegasus UI
+		Click Element	${FORGOT_PASSWORD_LINK}
+		Sleep 	2s
+		Element Should Be Visible	${FORGOT_PASSWORD_TEXT}
+		Element Should Be Visible	${USERNAME_XPATH}
+		Element Should Be Visible	${REQUEST_RESET_LINK_BUTTON}
+
+TC_021 Verify Forgot Password Page Elements after invalid request to send password
+		[Tags]			
+		Start Pegasus UI
+		Click Element	${FORGOT_PASSWORD_LINK}
+		Enter Wrong Username
+		Element Should Be Visible	${FORGOT_PASSWORD_TEXT}
+		Element Should Be Visible	${USERNAME_XPATH}
+		Element Should Be Visible	${REQUEST_RESET_LINK_BUTTON}	
+		Click Element	${REQUEST_RESET_LINK_BUTTON}
+		Sleep 	2s
+		Element Should Be Visible	${ERROR_MESSAGE}	
+
+TC_022 Verify Forgot Password Page Elements after blank request to send password
+		[Tags]	
+		Start Pegasus UI
+		Click Element	${FORGOT_PASSWORD_LINK}
+		Input Text   ${USERNAME_XPATH}  ${MISSINGG_USERNAME}
+		Element Should Be Visible	${FORGOT_PASSWORD_TEXT}
+		Element Should Be Visible	${USERNAME_XPATH}
+		Element Should Be Visible	${REQUEST_RESET_LINK_BUTTON}	
+		Click Element	${REQUEST_RESET_LINK_BUTTON}
+		Sleep 	2s
+		Element Should Be Visible	${MISSING_USERNAME_MESSAGE}		
+			
+TC_023 Verify Reset Link sent successfully
+		[Tags]			
+		Start Pegasus UI
+		Click Element	${FORGOT_PASSWORD_LINK}
+		Enter Username
+		Click Element	${REQUEST_RESET_LINK_BUTTON}
+		Sleep 	3s
+		Wait Until Element Is Visible	${RESET_PASSWORD_SUCCESS}
+		Element Should Be Visible		${RESET_PASSWORD_SUCCESS}
+		${MESSSAGE}=	Get Text		${RESET_PASSWORD_SUCCESS}
+		Should Be Equal		${MESSSAGE} 	Link to reset the password has been sent successfully to the email address.
+			             
+		
+TC_024 Verifiy count panels in row view corresponds to count in panel view - discrepancy met in UI(JIRA ADH-7054)
+	    [Tags]	fails_ADH-7054
+		Get to Select Adgroups
+		Sleep	4s
+		#Click Element	 ${ROW_VIEW_INSIGHTS}			
+   						 ${1}=		Get Text	${ROW_VIEW_TARGET}
+   						 ${2}=		Get Text	${ROW_VIEW_DELIVERY}	
+   						 ${3}=		Get Text 	${ROW_VIEW_ENGAGEMENT}
+   						 ${4}=		Get Text 	${ROW_VIEW_STORE_VISITS}
+   						 ${_4}=		Get Text	${ROW_VIEW_STORE_VISITS}	
+   						 Set Test Variable  	${match_str}	STORE VISITS
+   						 ${4}=		get match 	${_4}			${match_str}	 
+						 Log  match:${_4}
+   						 ${5}=		Get Text	${ROW_VIEW_INFLIGHT_DATA}
+     					 ${6}=		Get Text	${ROW_VIEW_SALES_EFFECT}	
+		@{ROW_LIST}=	 Create List	${1}	${2}	${3}	${4}	${5}	${6}	
+   		Click Element	 ${PANEL_VIEW}
+   						 ${1}=		Get Text	${PANEL_VIEW_TARGET}
+   						 ${2}=		Get Text	${PANEL_VIEW_DELIVERY}
+   						 ${3}=		Get Text	${PANEL_VIEW_ENGAGEMENT}  						    						 
+   						 ${_4}=		Get Text	${PANEL_VIEW_STORE_VISITS}	
+   						 Set Test Variable  	${match_str}	STORE VISITS
+   						 ${4}=		get match 	${_4}			${match_str}	 
+						 Log  match:${_4}
+   						 ${5}=		Get Text	${PANEL_VIEW_INFLIGHT_DATA}
+   						 ${6}=		Get Text	${PANEL_VIEW_SALES_EFFECT}
+   		@{PANEL_LIST}=	Create List		${1}	${2}	${3}	${4}	${5}	${6}	
+   	   	Should be equal 	${ROW_LIST}		${PANEL_LIST}
+
+TC_025 Verifiy Adgroup title appears under Campaign Title after chosing AdGroup
+		[Tags]	
+		Get to Select Adgroups
+		Sleep	 4s
+		Wait Until Element Is Visible	${SELECT_ADGROUP}		 
+		Click ELement					${SELECT_ADGROUP}
+		Click Element					${FIRST_ELEMENT_ADGROUP}	
+		Wait Until Element Is Visible	${ELEMENT_ADGROUP_UNDER}
+		Element Should Be Visible 		${ELEMENT_ADGROUP_UNDER}
+		
+TC_026 Verifiy Adgroup title equal to chosen Adgroup title under Campaign Title		
+		[Tags]	
+		Get to Select Adgroups	
+		Sleep	 2s
+		Wait Until Element Is Visible	${SELECT_ADGROUP} 
+		Click ELement					${SELECT_ADGROUP}
+		Sleep	2s
+		${FIRST_ADGROUP}=	Get Text	${FIRST_ELEMENT_ADGROUP}
+		Log 	FIRST_ELEMENT_ADGROUP:${FIRST_ADGROUP}
+		Click Element					${FIRST_ELEMENT_ADGROUP}
+		Wait Until Element Is Visible	${ELEMENT_ADGROUP_UNDER}
+		${ADGROUP_TITLE}=	Get Text	${ELEMENT_ADGROUP_UNDER}
+		Should be equal	    ${ADGROUP_TITLE}	${FIRST_ADGROUP}
+
+TC_027 Verifiy Adgroup does not appear under Campaign Title after return to Campaign Overview page
+		[Tags]		  
+		Get to Select Adgroups
+		Sleep	 10s
+		Shake The Page
+		Sleep		2s
+		Click ELement					${SELECT_ADGROUP}
+		Click Element					${FIRST_ELEMENT_ADGROUP}
+		#Execute Javascript	     document.documentElement.innerHTML;
+		Shake The Page
+		Sleep	 10s
+		Wait Until Element Is Visible	${ELEMENT_ADGROUP_UNDER}
+		${ADGROUP_TITLE}=	Get Text	${ELEMENT_ADGROUP_UNDER}
+		Click Element					${BACK_TO_CMPGN_SUMMARIES}
+		#Set Selenium Speed 	${SEL_SPEED}
+		Sleep 	4s
+		Click Element 					${CAMPAIGNS_ALL}
+		Mouse Over 						${100_CP_CAMPAIGN}
+		Double Click Element			${VIEW_CAMPAIGN_100_CP}
+		Element Should Not Be Visible		${ELEMENT_ADGROUP_UNDER}
+		#was
+		#Element Should Be Visible		${ELEMENT_ADGROUP_UNDER}
+		#Textarea Value Should Be		${ELEMENT_ADGROUP_UNDER}		${ADGROUP_TITLE}
+
+#TC_028 Verifiy the same Adgroup appears under Campaign Title after chosing other Campaign from Overview 		
+TC_028 Verifiy the same Adgroup does not appear under Campaign Title after chosing other Campaign from Overview 
+		[Tags]
+		Get to Select Adgroups
+		Sleep	 10s 
+		#Double Click Element	${INSIGHTS_ADVERTISERS_FILTER}
+		#Sleep 	4s	 
+		Shake The Page
+		Click ELement					${SELECT_ADGROUP}
+		Sleep 	2s
+		Click Element					${FIRST_ELEMENT_ADGROUP}
+		Click Element					${BACK_TO_CMPGN_SUMMARIES}
+		Sleep  2s
+		Click Element 					${CAMPAIGNS_ALL}
+		Sleep  2s
+		Execute Javascript	${SCROLL_DOWN}
+		Mouse Over 					    ${VIEW_CAMPAIGN_TEST_CAMAPAIGN}
+		Click Element					${VIEW_CAMPAIGN}
+		Sleep  4s
+		Element Should Not Be Visible	${ELEMENT_ADGROUP_UNDER}
+
+#TC_029 Verifiy Adgroup appears under Campaign Title after chosing other Advertiser and return to previous Campaign Overview page
+TC_029 Verifiy Adgroup does not appear under Campaign Title after chosing other Advertiser and return to previous Campaign Overview page	   
+	   [Tags]		  
+		Get to Select Adgroups
+		Sleep	 15s 
+		Shake The Page
+		Click Element					${SELECT_ADGROUP}
+		Sleep 	4s
+		Shake The Page
+		${FIRST_ADGROUP}=	Get Text 	${FIRST_ELEMENT_ADGROUP}
+		Click Element					${FIRST_ELEMENT_ADGROUP}
+		Capture Page Screenshot
+		Sleep 	10s
+		Shake The Page
+		Click Element					${BACK_TO_CMPGN_SUMMARIES}
+		Sleep 	6s
+		Shake The Page
+		Click Element					${BACK_TO_ADVERTISER_LIST}
+		Sleep 	6s
+		#Mouse Over						${Z_TEST_HARPREET_MOUSEOVER}
+		Mouse Over						${MOUSEOVER_04_TEST_ADVERTISER}
+		Set Selenium Speed  2s
+		Click Element					${VIEW_ALL_CAMPAIGNS_BTN}
+		Sleep 	6s
+		#Get to Select Adgroups
+		Mouse Over					${GRID1}
+		Click Element				${VIEW_CAMPAIGN_BTN}
+		Sleep	6s
+		Element Should Not Be Visible	${ELEMENT_ADGROUP_UNDER}
+		
+TC_030 Verifiy Adgroup gets disappear under Campaign Title after click on Campaign Overview		
+		[Tags]	
+		Get to Select Adgroups
+		Sleep	 8s 	 
+		Click ELement					${SELECT_ADGROUP}
+		Sleep 	4s
+		Click Element					${FIRST_ELEMENT_ADGROUP}
+		Sleep 	2s
+		Click Element					${CAMPAIGN_OVERVIEW}
+		Sleep 	2s
+		Element Should Not Be Visible	${ELEMENT_ADGROUP_UNDER}		
+							    			
+TC_031 Verify Adgroup gets disappear under Campaign Title when chosing other Campaign Overview from View Campaign page
+		[Tags]		
+		Get to Select Adgroups
+		Sleep	 10s 	 
+		Click ELement				    ${SELECT_ADGROUP}
+		Sleep 	4s
+		Click Element					${FIRST_ELEMENT_ADGROUP}
+		Sleep 	2s
+		Click Element					${BACK_TO_CMPGN_SUMMARIES}
+		Sleep 	6s
+		Click Element					${CAMPAIGNS_ALL}
+		Sleep 	4s
+		Mouse Over 						${VIEW_CAMPAIGN_TEST_CAMAPAIGN}
+		Double Click Element			${TEST_CAMAPAIGN}
+		Element Should Not Be Visible	${ELEMENT_ADGROUP_UNDER}
+		
+TC_032 Verify Adgroup appears under Campaign Title while Jumping to another Campaign on Insights page
+#TC_032 Verify Adgroup gets disappear under Campaign Title while Jumping to another Campaign on Insights page
+		[Tags]	
+		Get to Select Adgroups
+		Sleep	 15s 	
+		Shake The Page 
+		Click ELement					${SELECT_ADGROUP}
+		Sleep 	10s
+		Click Element					${FIRST_ELEMENT_ADGROUP}
+		Sleep 	4s
+		Shake The Page
+		Click Element					${ADVERTISER_FILTER}
+		Shake The Page
+		Sleep   4s
+		Click Element					${UNDER_ADVERTISER_FILTER}
+		Element Should Not Be Visible	${ELEMENT_ADGROUP_UNDER}
+		#fails - is that expected behavior?	
+		#Element Should Not Be Visible	${ELEMENT_ADGROUP_UNDER}	
+
+TC_033 Verify View Campaign Tab Parameters
+		[Tags]	
+		Get to Campaign View Page
+	#	${grid_count}=	Get Matching Xpath Count	${GRIDS}
+	#	Log	GRIDS: ${grid_count}
+	#		:FOR    ${index}    IN RANGE    1	${grid_count}+1
+	#	\       Element Should Be Visible	${PARAMETER_LIFETIME}[${index}]
+	#	\       Element Should Be Visible	${PARAMETER_IMPRESSIONS}[${index}]
+	#	\       Element Should Be Visible	${PARAMETER_BUDGET}[${index}]
+	#	\       Element Should Be Visible	${AD_GROUPS_86_X}[${index}]
+	#	\		Mouse Over	${GRID_X}${index}
+	#	\		Sleep 	2s  
+		Element Should Be Visible	${PARAMETER_LIFETIME}
+		Element Should Be Visible	${PARAMETER_IMPRESSIONS}
+		Element Should Be Visible	${PARAMETER_BUDGET}
+		Element Should Be Visible	${AD_GROUPS_86_X}
+		
+TC_034 Verify Lifetime is correct for Campaign since Expired - fails ADH-7056
+		[Tags]	rt34
+		Get to Campaign View Page
+		Set Selenium Speed 	3s
+		Click Element 	${CAMPAIGNS_DOTS}
+		Click Element 	${CAMPAIGNS_EXPIRED}
+		${CURRENT_LIFETEIME}=	 Get Text 	${Z_TEST_CAMPAIGN_LIFETIME}
+		${EXPECTED_LIFETIME}=	 lifetime 
+		Should Be Equal 	${CURRENT_LIFETEIME}		${EXPECTED_LIFETIME}
+
+TC_035 Verify All Existing visible Campaign Titles correspond to Titles in Search
+		[Tags]	
+		Get to Campaign View Page
+		Sleep	10s
+		Click Element 	${ROW_VIEW}
+		Set Selenium Speed 	2s
+		Shake The Page
+		${TITLES}=	Get Matching Xpath Count	${CAMPAIGN_TITLE_X}	
+		@{campaign_titile_list}=		Create List	
+		:FOR    ${index}    IN RANGE	1	${TITLES}+1
+		\		Run Keyword If 	'${index}'=='21'	Execute Java Script 	${SCROLL_TO_BOTTOM}
+		\		${TITLE_TEXT}=	Get Text	xpath=(${CAMPAIGN_TITLE_X})[${index}]
+		\		Set Test Variable 	${CURRENT_TITLE}		${TITLE_TEXT}
+		\		Append To List	${campaign_titile_list}		${CURRENT_TITLE}
+		\		Log Many		${campaign_titile_list}	
+		\		Set Selenium Speed 	2s	
+		Execute Javascript 	${SCROLL_TOP}
+		Click Element		${SEARCH}
+		#Select Window		${DROP_DOWN_SEARCH}
+		#Shake The Page
+		Sleep 	2s
+		${TITLES_SEARCH}=	Get Matching Xpath Count	${CAMPAIGN_TITLE_SEARCH_X}
+		@{search_titile_list}=		Create List	
+		:FOR    ${index}    IN RANGE	1	${TITLES_SEARCH}+1
+		#\		Run Keyword If 	'${index}'=='20'	Execute Java Script 	${SCROLL_DOWN}
+		#\		Run Keyword If 	'${index}'=='20'	Shake The Page
+		\		${TITLE_SEARCH_TEXT}=	Get Text	xpath=(${CAMPAIGN_TITLE_SEARCH_X})[${index}]
+		\		Set Test Variable 	${CURRENT_TITLE_SEARCH}		${TITLE_SEARCH_TEXT}
+		\		Append To List	${search_titile_list}			${CURRENT_TITLE_SEARCH}
+		\		Log Many		${search_titile_list}	
+		\		Set Selenium Speed 	2s	
+		Sleep 	2s
+		Should Be Equal	${campaign_titile_list}		${search_titile_list}
+
+TC_036 Verify Sort By Options on Campaign View page
+	    [Tags]	
+		Get to Campaign View Page
+		Click Element	${FILTER}
+		Sleep 	2s
+		${radio_buttons}=	Get Matching Xpath Count	//div[@class="radio"]/label
+		:FOR    ${index}    IN RANGE   1	${radio_buttons}
+		\       Element Should Be Visible	xpath=${FILTER_BUTTON}[ ${index} ]
+ 
+TC_037 Verify Completed Campaigns number and amount on Campaigns on the page are same
+		[Tags]	rt37
+		Get to Campaign View Page
+		Sleep 	4s
+		Maximize Browser Window
+		Click Element	${CAMPAIGNS_DOTS}
+		Sleep 	2s
+		Click Element	${CAMPAIGNS_COMPLETED}
+		Sleep 	2s
+		
+		#${COMPLETED_CAMPAIGNS}= 	Get Text	 ${CAMPAIGNS_COMPLETED_TEXT}
+		${COMPLETED_CAMPAIGNS}=		span text	${CAMPAIGNS_COMPLETED_TEXT}
+		${COMPLETED_CAMPAIGNS_NUM}=  get number  ${COMPLETED_CAMPAIGNS}
+		${COMPLETED_TITLES}=		Get Matching Xpath Count	${CAMPAIGNS_COMPLETED_3}
+		Should Be Equal		${COMPLETED_CAMPAIGNS_NUM}	${COMPLETED_TITLES}
+		
+#		${COMPLETED_TITLES}=		Get Matching Xpath Count	${CAMPAIGNS_COMPLETED_3}	
+#		${COMPLETED_CAMPAIGNS}=		Get Matching Xpath Count	${CAMPAIGNS_COMPLETED_COUNT}
+#	#${COMPLETED_CAMPAIGNS_STRING}=	Convert To String			${COMPLETED_CAMPAIGNS}
+#		Should Contain X Times		${COMPLETED_TITLES}		${COMPLETED_CAMPAIGNS_STRING}		${COMPLETED_CAMPAIGNS}
+#	#Should Be Equal	${COMPLETED_TITLES}		${COMPLETED_CAMPAIGNS_STRING}
+		
+#TC_038 Verify Paused Campaigns number and amount on Campaigns on the page the same
+TC_038 Verify No Record Found message appears when Live Campaigns number is zero
+		[Tags]	
+		Get to Campaign View Page
+		Maximize Browser Window
+		Click Element	${CAMPAIGNS_LIVE}
+		Sleep 	2s	
+		${LIVE_TITLES}=		Get Text			${CAMPAIGNS_LIVE}	
+		#${N_CAMPAIGNS_LIVE}= 	get number	${LIVE_TITLES}	 
+			${MESSAGE}=	Get Matching Xpath Count	${RECORDS_FOUND} 
+			${MESSAGE_STRING}=	Convert To String	${MESSAGE}
+			Should Contain X Times		${LIVE_TITLES}		${MESSAGE_STRING}-1		${N_CAMPAIGNS_ZERO}
+		#Run Keyword If	${MESSAGE}-1 == ${N_CAMPAIGNS_LIVE}		Click Element 	${SEARCH}
+		
+#TC_039 Verify Paused Campaigns number and amount on Campaigns on the page the same
+TC_039 Verify No Record Found message appears when Paused Campaigns number is zero
+		[Tags]	
+		Get to Campaign View Page
+		Maximize Browser Window
+		Click Element	${CAMPAIGNS_PAUSED}
+		Sleep 	2s	
+		${PAUSED_TITLES}=		Get Text			${CAMPAIGNS_PAUSED}		 
+		${MESSAGE}=	Get Matching Xpath Count	${RECORDS_FOUND}
+		${MESSAGE_STRING}=	Convert To String	${MESSAGE}
+		Should Contain X Times		${PAUSED_TITLES}		${MESSAGE_STRING}-1		${N_CAMPAIGNS_ZERO}
+
+#TC_040 Verify Pending Campaigns number and amount on Campaigns on the page the same
+TC_040 Verify No Record Found message appears when Pending Campaigns number is zero
+		[Tags] 		
+		Get to Campaign View Page
+		Maximize Browser Window
+		Click Element	${CAMPAIGNS_PENDING}
+		Sleep 	2s	
+		${PAUSED_TITLES}=		Get Text			${CAMPAIGNS_PENDING}		 
+		${MESSAGE}=	Get Matching Xpath Count	${RECORDS_FOUND}
+		${MESSAGE_STRING}=	Convert To String	${MESSAGE}
+		Should Contain X Times		${PAUSED_TITLES}		${MESSAGE_STRING}-1		${N_CAMPAIGNS_ZERO}
+
+#Verify Header Consistency for All Pages
+TC_041 Verify Navigation Bar elements Consistency for Partner View Page
+		[Tags]	
+		Login into Pegasus Dashboard
+		Sleep 	2s
+		Verify Footer and Header Elements
+		Logout
+		
+TC_042 Verify Navigation Bar elements Consistency for Campaign View Page
+		[Tags]	
+		Get to Campaign View Page
+		Sleep 	2s
+		Verify Footer and Header Elements
+		Logout
+		
+TC_043 Verify Navigation Bar elements Consistency for Breakdown Page		
+		[Tags]	
+		Get to Insights Page
+		Sleep 	2s
+		Click Element	${INSIGHTS_DETAIL}
+		Sleep 	2s
+		Verify Footer and Header Elements
+		Logout
+
+TC_044 Verify Partner View Page filter options
+		[Tags]	
+		Login into Pegasus Dashboard
+		Sleep 	2s
+		Click Element 	${FILTER}
+		@{RADIO_DROPDOWN}=	Create List		${FILTER_RECENT}	${FILTER_ALPHANUM}	${FILTER_CAMPAIGNS}
+		:FOR  ${element}	in		@{RADIO_DROPDOWN}	
+		\	Element Should Be Visible 	${element}
+		
+TC_045 Verify Username placeholder on login page
+		[Tags]		
+		Start Pegasus UI
+		${attr}= 	Get Element Attribute	userName@placeholder
+		Should Be Equal			${attr}		Email
+		
+TC_046 Verify Username placeholder being replaced with Username & we can enter Username
+		[Tags]	
+		Start Pegasus UI
+		Enter Username
+		${attr}= 	Get Element Attribute	userName@value
+		Should Be Equal			${attr}		jdoe@4info.com
+		
+TC_047 Verify Password placeholder on login page
+		[Tags]	
+		Start Pegasus UI
+		${attr}= 	Get Element Attribute	userPassword@placeholder
+		Should Be Equal			${attr}		Password
+
+TC_048 Verify Password placeholder being replaced with password & we can enter Password
+		[Tags]	
+		Start Pegasus UI
+		Enter Password
+		${attr}= 	Get Element Attribute	userPassword@value
+		Should Be Equal			${attr}		welcome123
+		
+TC_049 Verify User Icon in UserName field
+		[Tags]		
+		Start Pegasus UI
+		Element Should Not Be Visible  ${USERNAME_ICON}
+		
+TC_050 Verify Lock Icon in Password field		
+		[Tags]		tc50
+		Start Pegasus UI
+		Element Should Not Be Visible  ${PASSWORD_ICON}
+		
+TC_051 Verify weekdays option is available when Apply Insights
+		[Tags]			
+		Get to Select Adgroups	
+		Click Element 	${APPLY_INSIGHTS}
+		Set Selenium Speed 	1s
+		Click Element 	${DEMOGRAPHICS_AGE}
+		Set Selenium Speed 	1s
+		Element Should Be Visible		${INSIGHTS_SELECT_CATEGORY}
+		
+TC_052 Verify weekdays are present when Apply Insights - fails, are week days missing???
+		[Tags]			
+		Get to Select Adgroups
+		Sleep	2s
+		Click Element 	${APPLY_INSIGHTS}
+		Sleep	4s
+		Click Element 	${DEMOGRAPHICS_AGE}
+		Set Selenium Speed 	2s
+		Click Element 	${INSIGHTS_AGE}
+		Click Element 	${INSIGHTS_OTHER_DIMENSIONS}
+		Click Element 	${OTHER_DAY_OF_WEEK}
+		#Click Element 	${INSIGHTS_OTHER}
+		Sleep 	2s
+		@{days}=	Create list  ${INSIGHTS_MONDAY}  ${INSIGHTS_WEDNESDAY}	${INSIGHTS_FRIDAY}	${INSIGHTS_OTHER}	${INSIGHTS_TUESDAY}		${INSIGHTS_THURSDAY}	${INSIGHTS_SATURDAY}
+		:FOR  ${day}	in	@{days}
+		\	Element Should Be Visible	${day}
+		
+					    						
+TC_053 Verify weekdays option is NOT available when Clear Insights on Insights Page		
+		[Tags]	
+		Get to Select Adgroups	
+		Click Element 	${APPLY_INSIGHTS}
+		Set Selenium Speed 	1s
+		Click Element 	${DEMOGRAPHICS_AGE}
+		Set Selenium Speed 	1s
+		Click Element	${APPLY_INSIGHTS}
+		Click Element	${INSIGHTS_CLEAR}	
+		Element Should Not Be Visible		${INSIGHTS_SELECT_CATEGORY}					
+		
+TC_054 Verify user is being redirecetd to impressions view
+		[Tags]		
+		Get to Select Adgroups
+		Sleep		2s
+		Click Element 	${INSIGHTS_DETAIL}
+		Page Should Contain Element  ${BREAKDOWN_IMPRESSION}
+		Element Should Contain	${BREAKDOWN_IMPRESSION}		IMPRESSION
+		
+TC_055 Verify user drop down options
+		[Tags]	
+		Login into Pegasus Dashboard
+		Sleep 	2s
+		Click Element	${DROP_DOWN_USERNAME}
+		Element Should Be Visible	${DROPDOWN_PROFILE}
+		Element Should Be Visible	${LOGOUT}
+		
+TC_056 Verify user drop down menu works as expected
+		[Tags]	
+		Login into Pegasus Dashboard
+		Sleep		2s
+		Click Element	${DROP_DOWN_USERNAME}
+		Click Element	${4INFO_LOGO}
+		Element Should Not Be Visible	${DROPDOWN_PROFILE}
+		Element Should Not Be Visible	${LOGOUT}
+		Click Element	${DROP_DOWN_USERNAME}
+		Click Element	${DROP_DOWN_USERNAME}
+		Element Should Not Be Visible	${DROPDOWN_PROFILE}
+		Element Should Not Be Visible	${LOGOUT}
+		
+TC_057 Verify header and footer elements are present on the Home page
+		[Tags]	
+		Login into Pegasus Dashboard
+		Verify Header and Footer Elements
+
+TC_058 Verify header and footer elements are present on Campaign View Page
+		[Tags]	
+		Get to Campaign View Page
+		Verify Header and Footer Elements
+
+TC_059 Verify header and footer elements are present on Insights Page
+		[Tags]	
+		#Get to Insights Page
+		Get to Select Adgroups
+		Verify Header and Footer Elements
+		
+TC_060 Verify Selected Adgroup does not uppear under selcted adgroup upon consequent login
+		# extention of TC_027
+		[Tags]	
+		Get to Select Adgroups
+		Sleep	 2s 	 
+		Click ELement					${SELECT_ADGROUP}
+		Click Element					${FIRST_ELEMENT_ADGROUP}
+		Wait Until Element Is Visible	${ELEMENT_ADGROUP_UNDER}
+		Logout
+		Close browser
+		Get to Select Adgroups 
+		#Click View All Campaigns Button
+		#Sleep	2s
+		#Click Element 	${CAMPAIGNS_ALL}
+		#Mouse Over		${VIEW_CAMPAIGN_4INFO}
+		#Wait Until Element Is Visible	${VIEW_CAMPAIGN_86}
+		#Click Element					${VIEW_CAMPAIGN_86}
+		#Sleep 	2s
+		Element Should Not Be Visible		${ELEMENT_ADGROUP_UNDER}
+
+TC_061 Vrerify number of campaigns depicted on Campaign View Page corresponds to amount on AdGroups View	
+		[Tags]	t61
+		Get to Campaign View Page
+		Sleep  2s
+		#Execute Javascript	${zoom_out}
+		${CAMPAIGN_ADGROUPS_TEXT}= 	Get Text	${AD_GROUP_2}
+		${CAMPAIGN_ADGROUPS_NUM}=	get number	${CAMPAIGN_ADGROUPS_TEXT}
+		${CAMPAIGN_ADGROUPS_INT}=	Convert To String	${CAMPAIGN_ADGROUPS_NUM}
+		Maximize Browser Window
+		#Execute Javascript	${SCROLL_DOWN_1}
+		Mouse Over		${ADGROUP_100_CP_MOUSEOVER}
+		Click Element	${AD_GROUP_2_1}
+		Sleep 	4s
+		Mouse Over	    ${ADGROUP_100_TEST_MOUSEOVER}
+		Sleep	2s
+		Click Element	${ADGROUP_VIEW_ADGROUP_BTN}
+		Sleep	4s
+		Click Element	${ELEMENT_100_TEST_ADGROUP}
+		${row_count}=	Get Matching Xpath Count	${ADGROP_ROWS}
+		#Convert To String 	${row_count}
+		Should be Equal 	${CAMPAIGN_ADGROUPS_INT}	  ${row_count}
+
+TC_062 Vrerify Adgroup name appears under advertisers name when chosen on ad group page
+		[Tags]	 
+		Get to Campaign View Page
+		Mouse Over		${GRID1}
+		Click Element	${ADGROUPS_2_LINK_GRID1}
+		Sleep	2s
+		Mouse Over	    ${ADGROUP_100_TEST_MOUSEOVER}
+		Sleep	2s
+		Click Element	${ADGROUP_VIEW_ADGROUP_BTN}
+		Sleep	2s
+		Wait Until Element Is Visible	${ELEMENT_ADGROUP_UNDER}
+		Element Should Be Visible 		${ELEMENT_ADGROUP_UNDER}	
+
+TC_063 Vrerify Adgroup name appears as Selected Adgroup when chosen on ad group page
+		[Tags]	 
+		Get to Campaign View Page
+		Mouse Over		${GRID1}
+		Click Element	${ADGROUPS_2_LINK_GRID1}
+		Sleep  2s
+		Mouse Over	    ${ADGROUP_100_TEST_MOUSEOVER}
+		Sleep  2s
+		Click Element	${ADGROUP_VIEW_ADGROUP_BTN}
+		Sleep	4s
+		Wait Until Element Is Visible	${ELEMENT_100_TEST_ADGROUP}	
+		Element Should Be Visible		${ELEMENT_100_TEST_ADGROUP}
+			
+TC_064 Vrerify Adgroup names are the same on insights page after being chosen on ad group page
+		[Tags]	
+		Get to Campaign View Page
+		Mouse Over		${GRID1}
+		Click Element	${ADGROUPS_2_LINK_GRID1}
+		Sleep  2s
+		Mouse Over	    ${ADGROUP_100_TEST_MOUSEOVER}
+		Set Selenium Timeout 	2s
+		Click Element	${ADGROUP_VIEW_ADGROUP_BTN}
+		Sleep	4s
+		${NAME_UNDER_ADVERTISER}=		Get Text	${ELEMENT_ADGROUP_UNDER}
+		${NAME_AS_SELECTED_ADGROUP}=	Get Text	${ELEMENT_100_TEST_ADGROUP}
+		${NAME_UNDER_ADVERTISER_CAP}=		Convert To Uppercase	${NAME_UNDER_ADVERTISER}
+		Should Be Equal		${NAME_UNDER_ADVERTISER_CAP}	${NAME_AS_SELECTED_ADGROUP}
+		
+TC_065 Vrerify Adgroup names are being changed under selected ad group when other name choosen
+		[Tags]	 
+		Get to Campaign View Page
+		Mouse Over		${GRID1}
+		Click Element	${ADGROUPS_2_LINK_GRID1}
+		Sleep  2s
+		Mouse Over	    ${ADGROUP_100_TEST_MOUSEOVER}
+		Sleep  2s
+		Click Element	${ADGROUP_VIEW_ADGROUP_BTN}
+		Sleep  6s
+		#Click Element	${ADGROUP_100_TEST_ADGROUP}
+		#Sleep	2s
+		${NAME_UNDER_ADVERTISER}=		Get Text	${ELEMENT_ADGROUP_UNDER}
+		${NAME_AS_SELECTED_ADGROUP}=	Get Text	${ELEMENT_100_TEST_ADGROUP}
+		Click Element	${CARET}
+		Sleep  4s
+		Click Element	${SECOND_ELEMENT_ADGROUP}
+		Sleep 	4s
+		${ELEMENT_2_ADGROUP_UNDER_TEXT}=			Get Text 	${ELEMENT_2_ADGROUP_UNDER}
+		${ELEMENT_2_ADGROUP_UNDER_TEXT_CAP}=	Convert To Uppercase	 ${ELEMENT_2_ADGROUP_UNDER_TEXT}
+		${TEST_ADGROUP}=	Get Text 	${ELEMENT_TEST_ADGROUP}
+		Should Be Equal		${ELEMENT_2_ADGROUP_UNDER_TEXT_CAP}		${TEST_ADGROUP}
+		
+TC_066 Verify Edit Profile Page is accessible
+		[Tags]	 
+		Login into Pegasus Dashboard
+    	Sleep 	2s
+    	Click Element 	${DROP_DOWN_USERNAME}
+    	Click Element 	${DROPDOWN_PROFILE}
+    	Sleep  2s
+		Element Text Should Be	${EDIT_YOUR_PROFILE}	Edit Your Profile 
+		
+TC_067 Verify the first and last name are present in corresponding fields
+		[Tags]	 
+		Get to Edit Profile Page
+    	${FIRST_NAME}=	Get Value 	${PROFILE_USERNAME_FIRST}
+    	${LAST_NAME}=	Get Value 	${PROFILE_USERNAME_LAST}
+    	Should Be Equal		${FIRST_NAME}	Jane
+    	Should Be Equal		${LAST_NAME}	Doe
+    	
+TC_068 Verify the first name can not be replaced while editing profile
+ 		[Tags]	jd
+		Get to Edit Profile Page
+    	Click Element	${LEFT_FIELD}
+        Input Text 	${PROFILE_USERNAME_FIRST}	${empty}
+        Sleep  2s	
+    	Capture Page Screenshot
+    	Input Text   ${NEW_PASSWORD}	welcome123
+    	Input Text   ${RE_PASSWORD}		welcome123
+    	Execute Javascript		${SCROLL_DOWN}
+    	Sleep	 2s
+    	Click Element 				${SAVE_CHANGES_BTN}
+    	Element Should Be Visible	${EDIT_PROFILE_ALERT}
+    	Set Name as Jane Doe
+    	
+TC_069 Verify the last name can be replaced while editing profile
+ 		[Tags]	jd
+		Get to Edit Profile Page
+        Input Text 	${PROFILE_USERNAME_LAST}	${empty}	
+    	Capture Page Screenshot
+    	Input Text   ${NEW_PASSWORD}	welcome123
+    	Input Text   ${RE_PASSWORD}		welcome123
+    	Execute Javascript		${SCROLL_DOWN}
+    	Sleep	 2s
+    	Click Element 			${SAVE_CHANGES_BTN}
+		Set Name as Jane Doe
+    	
+TC_070 Verify Timezones on Edit Profile Page
+ 		[Tags]	
+		Get to Edit Profile Page
+    	Click Element	${RIGHT_FIELD}
+    	Sleep  2s
+    	${COUNT_TIMEZONES}=	Get Matching Xpath Count	${EDIT_PROFILE_TIMEZONES}
+    	Should Be Equal		${COUNT_TIMEZONES}	5
+    	
+TC_071 Verify Timezone can be chosen on Edit Profile Page
+		[Tags]	jd
+		Get to Edit Profile Page
+    	Click Element 	${EDIT_PROFILE_TIMEZONES_DROPDOWN}
+    	Click Element	${EDIT_PROFILE_TIMEZONES_DROPDOWN_2}
+    	${CURRENT_TIMEZONE}=		Get Text	${EDIT_PROFILE_TIMEZONES_DROPDOWN}
+    	Execute Javascript		${SCROLL_DOWN}
+    	Click Element 	${SAVE_CHANGES_BTN}
+    	Element Should Contain	${EDIT_PROFILE_TIMEZONES_DROPDOWN}	${CURRENT_TIMEZONE}
+	
+TC_072 Verify the meaasge: Profile updated successfully 
+		[Tags]	
+		Get to Edit Profile Page
+    	Click Element 	${EDIT_PROFILE_TIMEZONES_DROPDOWN}
+    	Click Element	${EDIT_PROFILE_TIMEZONES_DROPDOWN_2}
+    	${CURRENT_TIMEZONE}=		Get Text	${EDIT_PROFILE_TIMEZONES_DROPDOWN}
+    	Execute Javascript		${SCROLL_DOWN}
+    	Click Element 	${SAVE_CHANGES_BTN}
+    	Element Should be visible 	${EDIT_PROFILE_UPDATED_SUCCESSFULLY}
+		Element Should Contain	${EDIT_PROFILE_UPDATED_SUCCESSFULLY}	Profile updated successfuly
+
+TC_073 Verify Profile changes have taken effect upon subsequient login
+		[Tags]	
+		Get to Edit Profile Page
+    	Click Element 	${EDIT_PROFILE_TIMEZONES_DROPDOWN}
+    	Click Element	${EDIT_PROFILE_TIMEZONES_DROPDOWN_2}
+    	${CURRENT_TIMEZONE}=		Get Text	${EDIT_PROFILE_TIMEZONES_DROPDOWN}
+    	Execute Javascript		${SCROLL_DOWN}
+    	Click Element 	${SAVE_CHANGES_BTN}
+    	Click Element 	${LOGOUT}
+    	Get to Edit Profile Page
+    	Element Should Contain	${EDIT_PROFILE_TIMEZONES_DROPDOWN}	${CURRENT_TIMEZONE}
+		Close Browser
+		
+TC_074 Verify Number of Campagns corresponds to a Search creteria - currently fails
+		[Tags]	tt74
+		Login into Pegasus Dashboard
+		Sleep	8s
+		Click Element			${FILTER}
+	 	Click Element			${FILTER_ALPHANUMERIC}	
+	 	Wait Until Page Contains Element	${04_TEST_ADVERTISER}
+		${NUM_CAMPAIGNS_TXT}=	Get Text			${NUMBER_OF_CAMPAIGNS} 
+		${NUM_CAMPAIGNS_DIG}= 	get number			${NUM_CAMPAIGNS_TXT}
+		${NUM_CAMPAIGNS}=		Convert To String	${NUM_CAMPAIGNS_DIG}
+		Mouse Over 			${MOUSEOVER_04_TEST_ADVERTISER}
+	    Click Element 		${VIEW_ALL_CAMPAIGNS}
+		Sleep	4s
+		Click Element		${CAMPAIGNS_ALL}
+		Execute Javascript	${SCROLL_TO_BOTTOM}
+		Set Selenium Speed  	2s
+		Execute Javascript	${SCROLL_TOP}
+		Set Selenium Speed  	4s
+		Click Element		${SEARCH}
+		Set Selenium Speed  	2s
+
+		#Locator Should Match X Times		${SEARCH_DROP_DOWN_CAMPAIGNS}		${NUM_CAMPAIGNS}	
+		
+		#${CAMPAIGNS_COUNT}=	Get Matching Xpath Count	${SEARCH_DROP_DOWN_CAMPAIGNS}	
+		#Should Be Equal		${NUM_CAMPAIGNS}		${CAMPAIGNS_COUNT}
+		@{SEARCH_ELEMENTS}=	 Create List
+		:FOR    ${index}    IN RANGE	1	${NUM_CAMPAIGNS}+1
+		\		${ELEMENT}=	Get Text	xpath=${SEARCH_DROP_DOWN_ELEMENTS}[${index}]
+		\		Set Test Variable 	${CURRENT_EL}		${ELEMENT}
+		\		Append To List		${SEARCH_ELEMENTS}	${CURRENT_EL}
+		\		Log Many			${SEARCH_ELEMENTS}
+		${LIST_LENGTH}=	get list length		{SEARCH_ELEMENTS}
+		Should Be Equal		${LIST_LENGTH}	${NUM_CAMPAIGNS}
+
+
+TC_075 Verify View Campaign Page Tab Parameters similar to depicted on Insights Page - # - depr tc - UI is still being modified
+		[Tags]	
+		Get to Campaign View Page
+		Set Selenium Speed 	3s
+		Click Element 	${CAMPAIGNS_DOTS}
+		Click Element 	${CAMPAIGNS_EXPIRED}
+		#${CP}- test variables for Campaigns Page
+		#get company days since Campaign started on CP
+		${CP1_CP}=	get days	${COMPANY_END_DATE}
+		${CP2}=		Get Text 	${PARAMETER_IMPRESSIONS_DATA}
+		${CP2_CP}=	get number 	${CP2}
+		${CP3}=		Get Text 	${PARAMETER_BUDGET_DATA}
+		${CP3_CP}=	get number 	${CP3}
+		Mouse Over 		${Z_TEST_CAMPAIGN_GRID_MOUSEOVER}
+		Click Element	${Z_TEST_CAMPAIGN_GRID_VIEW_CAMAPIGN}
+		Sleep	2s
+		#${IP}- test variables for Insights Page
+		# get days sinces Campaign started on IP
+		${IP1}=		Get Text 	${PARAMETER_DAYS_INSIGHTS}
+		Sleep 	2s
+		${IP1_D}=	get number 	${IP1}
+		${IP3}=		Get Text 	${PARAMETER_IMPRESSIONS_INSIGHTS}
+		${IP3_D}=	get number	${IP3}
+		${IP4}=		Get Text 	${PARAMETER_BUDGET_INSIGHTS}
+		${IP4_D}=	get number	${IP4}
+		Should be equal	${CP2_CP}	${IP3_D}
+		Should be equal	${CP3_CP}	${IP4_D}
+		Should be equal	${CP1_CP}	${IP1_D}
+
+TC_076 Verify photo on user Profile page
+		[Tags]	t76
+		Get to Edit Profile Page
+		Sleep  2s
+		Element Should Be Visible	${PROFILE_USER_PHOTO}
+				
+TC_077 Verify user Profile fields
+		[Tags]	t77
+		Get to Edit Profile Page
+		Sleep  2s
+		Element Should Be Visible 	${PROFILE_FIRST_NAME}
+		Element Should Be Visible	${PROFILE_LAST_NAME}
+	    Element Should Be Visible	${PROFILE_EMAIL}
+	    Element Should Be Visible	${PROFILE_TIMEZONE}
+	    Element Should Be Visible	${PROFILE_PASSWORD}	
+	    Element Should Be Visible	${PROFILE_NEW_PASSWORD}
+	    Element Should Be Visible	${PROFILE_RE_ENTER_PASSWORD}
+	    Element Should Be Visible	${SAVE_CHANGES_BTN}	
+	    
+TC_078 Verify Email field on user Profile page is readonly and is not editable
+		[Tags]	rt78
+		Get to Edit Profile Page
+		Sleep  2s
+		#${IS_READONLY}=	Get Element Attribute		fname@readonly
+		#Set Selenium Speed   2s
+		#Should Be Equal 	${IS_READONLY}	true
+		${msg}=	Run Keyword and Expect Error 	*	Input Email Text 
+		Should Start With	${msg}	InvalidElementStateException: Message: invalid element state: Element must be user-editable in order to clear it
+		#Should Start With	${msg}	WebDriverException: Message: Element must be user-editable in order to clear it.
+			
+TC_079 Verify user can return to Advertisrs page form Profile using Back link
+		[Tags]	
+		Get to Edit Profile Page
+		Sleep  2s
+		Click Element 	${BACK}
+		Sleep  2s
+		Element Should Be Visible	${ADVERTISERS_LIST}
+		
+TC_080 Verify user can be successfully singed out from Profile using Logout link
+		[Tags]	
+		Get to Edit Profile Page
+		Sleep  2s
+		Click Element 	${DROP_DOWN_USERNAME}
+		Set Selenium Speed   2s
+		Click Element 	${DROPDOWN_LOGOUT}
+		Sleep  2s
+		Element Should Be Visible 	${LOGIN_BTN}
+		

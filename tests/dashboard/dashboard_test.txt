@@ -1,0 +1,46 @@
+
+
+*** Settings ***
+Resource            dashboard_imports.txt
+Force Tags          DASHBOARDn     EXCLUDE
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+       
+Retrieve Cookies From The Current Page
+       Get Cookies
+       
+Go to the Dashboard
+       Go To Dashboard Tab
+
+View the Dashboard Report For Dates (12/01/2012 - 12/05/2012) With Option eCPM
+       View Dashboard Report     start=12/01/2012    end=12/05/2012     option=eCPM
+
+View the Dashboard Report For Dates (12/01/2012 - 12/31/2012) With Option Impressions
+       View Dashboard Report     start=12/01/2012    end=12/31/2012     option=Impressions
+
+View the Dashboard Report For Dates (12/01/2012 - 12/31/2012) With Option Clicks
+       View Dashboard Report     start=12/01/2012    end=12/31/2012     option=Clicks
+
+View the Dashboard Report For Dates (12/01/2012 - 12/31/2012) With Option Revenue
+       View Dashboard Report     start=12/01/2012    end=12/31/2012     option=Revenue
+       
+View the Dashboard Report For Dates (12/01/2012 - 12/31/2012) With Option Requests 
+       View Dashboard Report     start=12/01/2012    end=12/31/2012     option=Requests    
+
+View the Dashboard Report For Dates (12/01/2012 - 12/31/2012) With Option eCPM
+       View Dashboard Report     start=12/01/2012    end=12/31/2012     option=eCPM
+
+       
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+       
+       
