@@ -1,0 +1,51 @@
+
+*** Settings ***
+Resource                a_initial_validations_imports.txt
+Force Tags             SYSTEM_VALIDATIONS   BUILD_SANITY    QA_ONLY    ADJUSTER    REPORTING    BATCH1    EXCLUDE 
+# Excluding Adjuster tests as we don't use it anymore.
+Suite Setup             SSH Login As Valid User    ${SSH_HOST}
+Suite Teardown      Close All Connections
+
+*** Test Cases ***
+
+Validate That Adjuster Daily Job Is Ran For 2 Days Ago Without Any Errors
+     ${day}=   Execute Command    date --date="-2 day" +"%Y-%m-%d"
+     ${output}=    Execute Command    cat /home/dailyProcess/AdHavenDailyProcess.log.${day}
+     Log   CSV Output: ${output}
+     ${output}=    Execute Command    cat /home/dailyProcess/AdHavenDailyProcess.log.${day} | grep -i error | tr "\n" " ";
+     Log   Errors Found: ${output}
+     Run Keyword If                '${output}' == '${EMPTY}'         Log       "Adjuster No Errors Found In Log File - 2 days ago"
+     Run Keyword Unless        '${output}' == '${EMPTY}'          Log       "Adjuster Errors Found In Log File - 2 days ago"             WARN
+
+Validate That Adjuster Report Generated A CSV For 2 Days Ago
+     ${day}=   Execute Command    date --date="-2 day" +"%Y%m%d"
+     Log   Fomatted Yesterday's Date: ${day}
+     ${output}=    Execute Command    cat /home/dailyProcess/tmp/delivery_${day}.csv 
+     Log   CSV Output: ${output}
+
+Validate That Adjuster Daily Job Is Ran For Previous Day Without Any Errors
+     ${day}=   Execute Command    date --date="yesterday" +"%Y-%m-%d"
+     ${output}=    Execute Command    cat /home/dailyProcess/AdHavenDailyProcess.log.${day}
+     Log   CSV Output: ${output}
+     ${output}=    Execute Command    cat /home/dailyProcess/AdHavenDailyProcess.log.${day} | grep -i error | tr "\n" " ";
+     Log   Errors Found: ${output}
+     Run Keyword If                '${output}' == '${EMPTY}'         Log       "Adjuster No Errors Found In Log File - yesterday"
+     Run Keyword Unless        '${output}' == '${EMPTY}'          Log       "Adjuster Errors Found In Log File - yesterday"             WARN
+
+Validate That Adjuster Report Generated A CSV For Previous Day
+     ${day}=   Execute Command    date --date="yesterday" +"%Y%m%d"
+     Log   Fomatted Yesterday's Date: ${day}
+     ${output}=    Execute Command    cat /home/dailyProcess/tmp/delivery_${day}.csv 
+     Log   CSV Output: ${output}
+     Should Match Regexp       ${output}              ID,ADVERTISER ID,ADVERTISER,PONUMBER,NAME
+     Should Match Regexp       ${output}              ID,ORDERID,NAME,STARTDATE,ENDDATE,IMPRESSIONGOAL
+     Should Match Regexp       ${output}              ID,FLIGHTID,CREATIVEID
+     Should Match Regexp       ${output}              COUNTDATE,ADID,IMPRESSIONS,CLICKS
+     Should Match Regexp       ${output}              ID,NAME,HTML
+     Should Match Regexp       ${output}              04_PERFORMANCE_TESTS
+   
+     
+        
+     
+     
+     

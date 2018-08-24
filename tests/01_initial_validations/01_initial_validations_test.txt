@@ -1,0 +1,65 @@
+
+
+*** Settings ***
+Resource            a_initial_validations_imports.txt
+Force Tags          SYSTEM_VALIDATIONS   BUILD_SANITY           BATCH1
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "${USER}" and "${PASSWORD}"
+      [Tags]		
+Retrieve Ad-Engine Revision
+	 @{event_engines}=						String.Split String 					${EVENT_ENGINE}				;	
+	:FOR	${name}		IN		@{event_engines}
+	\	Log		${name}
+	\	Go To       http://${name}:8080/events/svn_revision
+	\	Page Should Contain 				Implementation-Title : events
+	\	Capture Page Screenshot With Timestamp 
+    [Tags]		   
+Retrieve Ad-UI Revision
+       Go To       ${AD_UI_REVISION_URL}  
+       Title Should Be    ${REVISION_TITLE}
+       Capture Page Screenshot With Timestamp
+        [Tags]		https://jira.adhaven.com/browse/ADH-5010
+       
+Retrieve ACE Revision
+       Go To       ${ACE_REVISION_URL}
+       Page Should Contain  			Implementation-Title : ace7
+       Capture Page Screenshot With Timestamp
+       [Tags]		https://jira.adhaven.com/browse/ADH-5010    EXCLUDE		#obsolete since we move to microservice
+
+# Deprecated Function       
+#Retrieve Household Revision
+#      Go To       ${HOUSEHOLD_REVISION_URL}  
+#       Title Should Be    ${REVISION_TITLE}
+#      Capture Page Screenshot With Timestamp
+
+Validate Geonames Services Are Up and Running 
+       Go To       ${GEO_SERVICES_URL}
+       ${source}=   Get Source   
+       Log   ${source}
+       Should Match Regexp    ${source}        <placename>San Francisco</placename>
+	   [Tags]	Exclude
+	
+Validate PlaceIQ Services Are Up and Running
+       Go To       ${PLACEIQ_SERVICES_URL}
+       ${source}=   Get Source   
+       Log   ${source}
+       Should Match Regexp    ${source}        "name": "CMPN"
+       Should Match Regexp    ${source}        "attributes":
+       [Tags]    Exclude     
+
+Go Back To AdHaven Homepage
+       Go To       ${URL}  
+       
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close All Browsers
+       
+       
+       
