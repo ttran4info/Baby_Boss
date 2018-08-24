@@ -1,0 +1,59 @@
+*** Settings ***
+Resource 	  	log_reader.txt
+Resource 	  	ssh_lib.txt
+Resource 	  	rtb.txt
+
+*** Variables ***
+
+*** Keywords ***
+ 
+Mopub Device to HH Template		
+	[Arguments]		${device_id}=NA		${hh_id}=NA		${API}=${RTB_MOPUB_API}			${boosted_hh_id}=NA
+	Log		Device ID input:${device_id}
+	Log		House Hold ID expected: ${hh_id}
+	Log		Boosted HHID: ${boosted_hh_id}
+	Set Test Variable		${data}		{"app":{"bundle":"xxcom.sgiggle.production","cat":["IAB24","social_networking"],"id":"f993c16544bc42ae805d626e7e9b1aef","name":"Tango Android - PRODUCTION","publisher":{"id":"8f2cdeb4f21b486f970dedc3bb1dcaac","name":"Tango"}},"at":2,"badv":["www.wechat.com","www.whatsapp.com"],"bcat":["IAB7-39","IAB8-5","IAB8-18","IAB9-7","IAB9-9","IAB24","IAB25","IAB26","IAB3-7"],"device":{"connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"48460fcc0455dabe659d64a05deaf15a","dpidsha1":"6fc1a52077575bb1bbe9fe75feb259285bf2f299","ifa":"${device_id}","geo":{"city":"Hialeah","country":"USA","lat":-1000.0,"lon":-1000.0,"metro":"528","region":"FL","zip":"33002"},"ip":"172.56.26.119","js":1,"language":"es","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0 (Linux; Android 4.4.2; SM-N900T Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id":"4b940aa3-a434-40ea-8681-43140718dcca","imp":[{"banner":{"api":[3,5],"battr":[3,6,8,9,10,14],"btype":[4],"ext":{"native":{"type":"install","ver":"1.1"},"nativead":{"type":"install","ver":"1.1"}},"h":0,"pos":1,"w":0},"bidfloor":1.750,"displaymanager":"mopub","displaymanagerver":"3.3","id":"1","instl":0,"tagid":"e533c9c9415e4cf6b4cf896c73ffe30b"}],"user":{"gender":"male","keywords":"m_pstnOnboardStatus:1,m_dlpaywal:1,m_dlver:e,m_usertype:0,m_androidpremium:1,m_mcc_mnc:310260,m_dev:sm-n900t_hltetmo,m_locale:es"}}	
+	#Start Tailing Request Logs For HHID			consumer_id=${device_id}
+	RTB Request              API=${API}          data=${data}     response_code=204    submit_client_impression_event=NO
+	#Terminate Read Logs For END
+	Start Read Requests Logs For Consumer Id 	consumer_id=${device_id}
+	Log		Request Log: ${output}
+	${boosted_flag}=		extract_matching_regex			${output}			70=(.+?)
+	Log		Boosted Flag: ${boosted_flag}
+	Should Not Match		'${boosted_flag}'					'NONE_FOUND'
+	
+	Run Keyword If			'${boosted_flag}'=='0' and '${hh_id}'!='NA'						Should Match Regexp		    	${output}	 67=${hh_id}
+	Run Keyword If			'${boosted_flag}'=='0' and '${hh_id}'=='NA'						Should Not Match Regexp	${output}	 67=\\d
+	
+	Run Keyword If			'${boosted_flag}'=='1' and '${boosted_hh_id}'!='NA'				Should Match Regexp		    	${output}	 67=${boosted_hh_id}
+		
+	#Run Keyword Unless 	'${hh_id}'=='NA'		Should Match Regexp		    	${output}	 67=${hh_id}		
+ 	Run Keyword If 		'${hh_id}'=='NA' and '${boosted_hh_id}'=='NA'		Should Not Match Regexp		    ${output}	 67=\\d
+ 	Run Keyword If 		'${hh_id}'!='NA' and '${boosted_hh_id}'!='NA'		Should Match Regexp		    ${output}	 68=1			#assigned hh source 1= device2hh
+ 	Close All Connections
+ 		
+Mopub IP to HH Template		
+	[Arguments]		${ip_address}=NA		${hh_id}=NA		${API}=${RTB_MOPUB_API}			${boosted_hh_id}=NA
+	Log		IP address input:${ip_address}
+	Log		House Hold ID expected: ${hh_id}
+	#Set Test Variable 	${device_id}	ABCDEF000-0000-0000-0000-000000000000
+	${device_id}=		Generate Clear Device ID 
+	Set Test Variable		${data}		{"app":{"bundle":"xxcom.sgiggle.production","cat":["IAB24","social_networking"],"id":"f993c16544bc42ae805d626e7e9b1aef","name":"Tango Android - PRODUCTION","publisher":{"id":"8f2cdeb4f21b486f970dedc3bb1dcaac","name":"Tango"}},"at":2,"badv":["www.wechat.com","www.whatsapp.com"],"bcat":["IAB7-39","IAB8-5","IAB8-18","IAB9-7","IAB9-9","IAB24","IAB25","IAB26","IAB3-7"],"device":{"connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"48460fcc0455dabe659d64a05deaf15a","dpidsha1":"6fc1a52077575bb1bbe9fe75feb259285bf2f299","ifa":"${device_id}","geo":{"city":"Hialeah","country":"USA","lat":-1000.0,"lon":-1000.0,"metro":"528","region":"FL","zip":"33002"},"ip":"${ip_address}","js":1,"language":"es","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0 (Linux; Android 4.4.2; SM-N900T Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id":"4b940aa3-a434-40ea-8681-43140718dcca","imp":[{"banner":{"api":[3,5],"battr":[3,6,8,9,10,14],"btype":[4],"ext":{"native":{"type":"install","ver":"1.1"},"nativead":{"type":"install","ver":"1.1"}},"h":0,"pos":1,"w":0},"bidfloor":1.750,"displaymanager":"mopub","displaymanagerver":"3.3","id":"1","instl":0,"tagid":"e533c9c9415e4cf6b4cf896c73ffe30b"}],"user":{"gender":"male","keywords":"m_pstnOnboardStatus:1,m_dlpaywal:1,m_dlver:e,m_usertype:0,m_androidpremium:1,m_mcc_mnc:310260,m_dev:sm-n900t_hltetmo,m_locale:es"}}	
+	#Start Tailing Request Logs For HHID			consumer_id=${device_id}
+	RTB Request              API=${API}          data=${data}      response_code=204   submit_client_impression_event=NO
+	#Terminate Read Logs For END
+	Start Read Requests Logs For Consumer Id 	consumer_id=${device_id}
+	Log		Request Log: ${output}
+	${boosted_flag}=		extract_matching_regex			${output}			70=(.+?)
+	Log		Boosted Flag: ${boosted_flag}
+	Run Keyword If			'${boosted_flag}'=='0' and '${hh_id}'!='NA'						Should Match Regexp		    	${output}	 67=${hh_id}
+	Run Keyword If			'${boosted_flag}'=='0' and '${hh_id}'=='NA'						Should Not Match Regexp	${output}	 67=\\d
+	Run Keyword If			'${boosted_flag}'=='1' and '${boosted_hh_id}'!='NA'				Should Match Regexp		    	${output}	 67=${boosted_hh_id}
+	
+	Run Keyword If 		'${hh_id}'=='NA' and '${boosted_hh_id}'=='NA'		Should Not Match Regexp		    ${output}	 67=\\d
+	Run Keyword If 		'${hh_id}'!='NA' and '${boosted_hh_id}'!='NA'		Should Match Regexp		    ${output}	 68=3			#assigned hh source 1= ip2hh
+	#Run Keyword Unless 	'${hh_id}'=='NA'		Should Match Regexp		   		 ${output}	 67=${hh_id}		
+ 	#Run Keyword If 		'${hh_id}'=='NA'		Should Not Match Regexp		    ${output}	 67=\\d
+	Close All Connections	
+    
+    

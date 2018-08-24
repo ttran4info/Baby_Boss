@@ -1,0 +1,132 @@
+*** Keywords ***
+Create Default MOBILE Adgroup With Single Child And Ad
+	   [Arguments]						${start_date}=DEFAULT				${end_date}=DEFAULT										${banner_type}=GENERIC						${banner_file_name}=320x50_Group01.jpg 			${test_campaign_name_prefix}=12_TEST_CAMPAIGN					
+	   ...								${hh_freq_cap_daily_flag}=0			${hh_freq_cap_daily_no_times}=${EMPTY}					${hh_freq_cap_daily_no_days}=1				${hh_freq_cap_overall_flag}=1					${hh_freq_cap_overall_no_times}=50	
+	   ...								${device_freq_cap_flag}=0			${device_freq_cap_daily_no_times}=${EMPTY}				${device_freq_cap_daily_no_days}=1			${device_freq_cap_overall_flag}=0				${device_freq_cap_overall_no_times}=${EMPTY}	
+	   ...								${ag_target_placement_name}=${DEFAULT_MOPUB_APP_PLACEMENT} 
+	   Run Keyword If          '${start_date}'=='DEFAULT'           Generate Default Dates For UI Setup
+       Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name}
+       Add Campaign To Advertiser 6.0    advertiser_name=${DEFAULT_ADVERTISER}    campaign_name=${test_campaign_name_prefix}    campaign_start_date=${ui_start_date}    campaign_end_date=${ui_end_date}    campaign_time_zone=Eastern		campaign_total_budget=100000   timestamp_flag=1  
+       Retrieve Campaign_ID By Campaign Name       ${campaign_name}
+       Log     CAMPAIGN_ID: ${campaign_id} 
+       SMB Validate DB Campaign				campaign_id=${campaign_id} 			campaign_partner_id=183      	campaign_name=${campaign_name}     		campaign_start_time=${start_date_gmt}       	campaign_restart_time=None			campaign_end_time=${end_date_gmt}     			campaign_start_time_ui=${db_start_date} 00:00:00          campaign_end_time_ui=${db_end_date} 03:59:59     		campaign_zoneinfo_time_zone=America/New_York			campaign_impressions_sold=None      		campaign_impressions_delivered=None      	campaign_budget=100000   		campaign_status=1    		campaign_insertion_order=io      	campaign_created_dt=None      	campaign_modified_dt=${today}      		campaign_keywords=rfTestCampaign      		campaign_measurement_id=None      	campaign_order_id=None    		campaign_txn_ref_id=None      campaign_txn_date=None       campaign_txn_status=None      	campaign_txn_return_code=None      	campaign_duration=None      	campaign_internal_duration=None      campaign_target_list_URL=None    	campaign_target_list_ID=None    		campaign_creative_id=None     campaign_billing_id=None      	campaign_available_qty=None      campaign_selected_qty=None      campaign_matched_qty=None     
+	Log		device frequency overall is:${hh_freq_cap_overall_flag} 
+       Add Parent Adgroup To Campaign Without Targeting 6.0         advertiser_name=${DEFAULT_ADVERTISER}     
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=12_PARENT
+       ...                       ag_start_date=${ui_start_date}
+       ...                       ag_end_date=${ui_end_date}
+       ...                       timestamp_flag=1
+       ...						ag_frequency_cap_daily_flag=${hh_freq_cap_daily_flag}
+       ...						ag_frequency_cap_daily_no_times=${hh_freq_cap_daily_no_times}
+       ...						ag_frequency_cap_no_days=${hh_freq_cap_daily_no_days}
+       ...						ag_frequency_cap_overall_flag=${hh_freq_cap_overall_flag}
+       ...						ag_frequency_cap_overall_no_times=${hh_freq_cap_overall_no_times}
+       ...						ag_device_frequency_cap_daily_flag=${device_freq_cap_flag}
+       ...						ag_device_frequency_cap_daily_no_times=${device_freq_cap_daily_no_times}
+       ...						ag_device_frequency_cap_no_days=${device_freq_cap_daily_no_days}
+       ...						ag_device_frequency_cap_overall_flag=${device_freq_cap_overall_flag}                                                 
+       ...						ag_device_frequency_cap_overall_no_times=${device_freq_cap_overall_no_times}                                                
+      Log    Parent Adgroup ID Created: ${ag_adgroup_id}
+      Set Suite Variable 	   ${parent_adgroup_id}	${ag_adgroup_id}
+      Capture Page Screenshot With Timestamp
+      Validate Parent Adgroup Added Correctly In Database For Defaults    	ad_group_freq_cap_daily_units=${hh_freq_cap_daily_no_times}
+	  ...							ad_group_freq_cap_overall_units=${hh_freq_cap_overall_no_times}
+	  ...							ad_group_household_freq_cap_daily_units=${device_freq_cap_daily_no_days}
+	  ...							ad_group_household_freq_cap_overall_units=${device_freq_cap_overall_no_times} 	
+      Validate Parent Adgroup Added To Campaign Without Targeting 6.0        advertiser_name=${DEFAULT_ADVERTISER}
+      ...                       campaign_name=${campaign_name}     
+      ...                       ag_adgroup_name=${ag_adgroup_name} 
+      ...                       ag_start_date=${ui_start_date}
+      ...                       ag_end_date=${ui_end_date}
+      ...						ag_frequency_cap_daily_flag=${hh_freq_cap_daily_flag}
+      ...						ag_frequency_cap_daily_no_times=${hh_freq_cap_daily_no_times}
+      ...						ag_frequency_cap_no_days=${hh_freq_cap_daily_no_days}
+      ...						ag_frequency_cap_overall_flag=${hh_freq_cap_overall_flag}
+      ...						ag_frequency_cap_overall_no_times=${hh_freq_cap_overall_no_times}
+      ...						ag_device_frequency_cap_daily_flag=${device_freq_cap_flag}
+      ...						ag_device_frequency_cap_daily_no_times=${device_freq_cap_daily_no_times}
+      ...						ag_device_frequency_cap_no_days=${device_freq_cap_daily_no_days}
+      ...						ag_device_frequency_cap_overall_flag=${device_freq_cap_overall_flag}                                                 
+      ...						ag_device_frequency_cap_overall_no_times=${device_freq_cap_overall_no_times}    
+	  Add Child Adgroup To Campaign Without Targeting 6.0						 	 advertiser_name=${DEFAULT_ADVERTISER}
+      ...                       campaign_name=${campaign_name}     
+      ...                       parent_adgroup_name=${ag_adgroup_name} 
+      ...                       ag_adgroup_name=12_CHILD
+      ...                       ag_start_date=${ui_start_date}
+      ...                       ag_end_date=${ui_end_date}
+      ...						ag_impression_goal_io=10,000
+      ...						ag_target_placement_boolean=1
+      ...						ag_target_placement_name=${ag_target_placement_name}  
+      ...                       timestamp_flag=1
+      #Set Suite Variable 	   ${child_adgroup_id}		${ag_adgroup_id}
+      Validate Child Adgroup Targeting Via DB For Defaults			adgroup_id=${child_adgroup_id}		rtb_default_placements=${ag_target_placement_name} 
+      Capture Page Screenshot With Timestamp
+
+	Add Creative 6.0			advertiser_name=${DEFAULT_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${ag_adgroup_name}
+      ...                        child_adgroup_name=${child_adgroup_name}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image      
+      ...						 ag_creative_default_destination_type=Click to Web
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=Ad_01
+      ...						ag_creative_specific_destination_url=${DEFAULT_BROWSER_HOME}
+      ...						ag_creative_truste_icon_location=Bottom Right
+      ...						ag_creative_banner_type=${banner_type}
+      ...						ag_creative_banner_name=${banner_file_name}
+
+
+
+Create Default ONLINE Adgroup With Single Child And Ad
+	   [Arguments]				${start_date}=DEFAULT				${end_date}=DEFAULT				${banner_type}=GENERIC						${banner_file_name}=320x50_Group01.jpg 					${test_campaign_name_prefix}=03_TEST_CAMPAIGN
+	   Run Keyword If          '${start_date}'=='DEFAULT'           Generate Default Dates For UI Setup
+       Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name}
+       Add Campaign To Advertiser 6.0    advertiser_name=${DEFAULT_ADVERTISER}    campaign_name=${test_campaign_name_prefix}    campaign_start_date=${ui_start_date}    campaign_end_date=${ui_end_date} 	campaign_time_zone=Eastern   campaign_total_budget=100000  	timestamp_flag=1   
+       Retrieve Campaign_ID By Campaign Name       ${campaign_name}
+       Log     CAMPAIGN_ID: ${campaign_id} 
+       SMB Validate DB Campaign				campaign_id=${campaign_id} 			campaign_partner_id=183      	campaign_name=${campaign_name}     		campaign_start_time=${start_date_gmt}       	campaign_restart_time=None			campaign_end_time=${end_date_gmt}     			campaign_start_time_ui=${db_start_date} 00:00:00          campaign_end_time_ui=${db_end_date} 03:59:59     		campaign_zoneinfo_time_zone=America/New_York			campaign_impressions_sold=None      		campaign_impressions_delivered=None      	campaign_budget=100000   		campaign_status=1    		campaign_insertion_order=io      	campaign_created_dt=None      	campaign_modified_dt=${today}      		campaign_keywords=rfTestCampaign      		campaign_measurement_id=None      	campaign_order_id=None    		campaign_txn_ref_id=None      campaign_txn_date=None       campaign_txn_status=None      	campaign_txn_return_code=None      	campaign_duration=None      	campaign_internal_duration=None      campaign_target_list_URL=None    	campaign_target_list_ID=None    		campaign_creative_id=None     campaign_billing_id=None      	campaign_available_qty=None      campaign_selected_qty=None      campaign_matched_qty=None     
+       Add Parent Adgroup To Campaign Without Targeting 6.0         advertiser_name=${DEFAULT_ADVERTISER}     
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=12_PARENT
+       ...                       ag_start_date=${ui_start_date}
+       ...                       ag_end_date=${ui_end_date}
+       ...                       timestamp_flag=1
+       ...						 ag_parent_ag_type=ONLINE
+      Log    Adgroup ID Created: ${ag_adgroup_id}
+      Capture Page Screenshot With Timestamp
+      Validate Parent Adgroup Added Correctly In Database For Defaults				
+      Validate Parent Adgroup Added To Campaign Without Targeting 6.0        advertiser_name=${DEFAULT_ADVERTISER}
+      ...                       campaign_name=${campaign_name}     
+      ...                       ag_adgroup_name=${ag_adgroup_name} 
+      ...                       ag_start_date=${ui_start_date}
+      ...                       ag_end_date=${ui_end_date}
+      ...						ag_parent_ag_type=ONLINE
+	  Add Child Adgroup To Campaign Without Targeting 6.0						 	 advertiser_name=${DEFAULT_ADVERTISER}
+      ...                       campaign_name=${campaign_name}     
+      ...                       parent_adgroup_name=${ag_adgroup_name} 
+      ...                       ag_adgroup_name=12_CHILD
+      ...                       ag_start_date=${ui_start_date}
+      ...                       ag_end_date=${ui_end_date}
+      ...						ag_impression_goal_io=10,000  
+      ...						ag_target_placement_boolean=1
+      ...						ag_target_placement_name=${DEFAULT_MOPUB_APP_PLACEMENT_ONLINE}  
+      ...                       timestamp_flag=1
+      ...						app_flag=0
+      Validate Child Adgroup Targeting Via DB For Defaults			adgroup_id=${child_adgroup_id}		rtb_default_placements=${DEFAULT_MOPUB_APP_PLACEMENT_ONLINE}
+      Capture Page Screenshot With Timestamp
+	Add Creative 6.0			advertiser_name=${DEFAULT_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${ag_adgroup_name}
+      ...                        child_adgroup_name=${child_adgroup_name}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image      
+      ...						 ag_creative_default_destination_type=Click to Web
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=Ad_01
+      ...						ag_creative_specific_destination_url=${DEFAULT_BROWSER_HOME}
+      ...						ag_creative_truste_icon_location=Bottom Right
+      ...						ag_creative_banner_type=${banner_type}
+      ...						ag_creative_banner_name=${banner_file_name}
+

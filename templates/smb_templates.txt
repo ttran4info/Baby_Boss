@@ -1,0 +1,439 @@
+
+*** Keywords ***
+TEMPLATE Create Advertiser And Validate 
+    [Arguments]    				${auth}=${SMB_AUTH}
+     ...						${advertiser_external_id}=
+     ...                		${advertiser_name}=
+     ... 						${contact_name}=
+     ...						${contact_address_line1}=
+     ...						${contact_address_line2}=
+     ...						${contact_city}=
+     ...						${contact_state}=
+     ...						${contact_zip}=
+     ...						${contact_country}=
+     ...						${contact_phone}=
+     ...						${contact_email}=
+     ...						${expected_response_code}=200
+     ...                		${timestamp_flag}=
+#     Set Suite Variable         ${advertiser_id}				1658
+	Set Test Variable	${advertiser_external_id} 	${advertiser_external_id}
+	Set Test Variable	${advertiser_name}			${advertiser_name}
+	Set Test Variable	${contact_name}				${contact_name}
+	Set Test Variable	${contact_address_line1}	${contact_address_line1}
+	Set Test Variable	${contact_address_line2}	${contact_address_line2}
+	Set Test Variable	${contact_city}				${contact_city}
+	Set Test Variable	${contact_state}			${contact_state}
+	Set Test Variable	${contact_zip}				${contact_zip}
+	Set Test Variable	${contact_country}			${contact_country}
+	Set Test Variable	${contact_phone}			${contact_phone}
+	Set Test Variable	${contact_email}			${contact_email}
+	Set Test Variable	${expected_response_code}	${expected_response_code}
+	Set Test Variable	${timestamp_flag}			${timestamp_flag}
+	 SMB Header Setup       ${auth}
+	 Create SMB Advertiser       		${advertiser_external_id}			${advertiser_name}		${contact_name}		${contact_address_line1}			${contact_address_line2}			${contact_city}			${contact_state}		${contact_zip}		${contact_country}		${contact_phone}			${contact_email}		${expected_response_code}			${timestamp_flag}
+	 Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Advertiser Added Via DB
+	 Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Advertiser Added Via UI
+     Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Advertiser Added Via API Call                  	
+     Run Keyword If         '${expected_response_code}' == '200'               Remove Advertiser By ID     ${advertiser_id}
+
+     
+TEMPLATE Update Advertiser And Validate 
+    [Arguments]    					${auth}=${SMB_AUTH}
+     ...							${advertiser_id}=
+     ...							${advertiser_external_id}=
+     ...                     		${advertiser_name}=
+     ... 							${contact_name}=
+     ...							${contact_address_line1}=
+     ...							${contact_address_line2}=
+     ...							${contact_city}=
+     ...							${contact_state}=
+     ...							${contact_zip}=
+     ...					        ${contact_country}=
+     ...							${contact_phone}=
+     ...							${contact_email}=
+     ...							${expected_response_code}=200
+     ...                        ${timestamp_flag}=
+	 SMB Header Setup       ${auth}
+	Set Test Variable	${advertiser_external_id} 	${advertiser_external_id}
+	Set Test Variable	${advertiser_name}			${advertiser_name}
+	Set Test Variable	${contact_name}				${contact_name}
+	Set Test Variable	${contact_address_line1}	${contact_address_line1}
+	Set Test Variable	${contact_address_line2}	${contact_address_line2}
+	Set Test Variable	${contact_city}				${contact_city}
+	Set Test Variable	${contact_state}			${contact_state}
+	Set Test Variable	${contact_zip}				${contact_zip}
+	Set Test Variable	${contact_country}			${contact_country}
+	Set Test Variable	${contact_phone}			${contact_phone}
+	Set Test Variable	${contact_email}			${contact_email}
+	Set Test Variable	${expected_response_code}	${expected_response_code}
+	Set Test Variable	${timestamp_flag}			${timestamp_flag}	 
+	 Update SMB Advertiser       		${advertiser_id}					${advertiser_external_id}			${advertiser_name}		${contact_name}		${contact_address_line1}			${contact_address_line2}			${contact_city}			${contact_state}		${contact_zip}		${contact_country}		${contact_phone}			${contact_email}		${expected_response_code}			
+	 Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Advertiser Added Via DB
+	 Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Advertiser Added Via UI
+     Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Advertiser Added Via API Call                  	
+   
+   
+TEMPLATE Create Campaign And Validate 
+    [Arguments]    					${auth}=${SMB_AUTH}
+     ...                     		${advertiser_id}=
+     ... 							${campaign_name}=
+     ...							${order_id}=
+     ...							${txn_ref_id}=
+     ...							${txn_date}=
+     ...							${txn_status}=
+     ...							${txn_return_code}=
+     ...							${available_qty}=
+     ...							${selected_qty}=
+     ...							${duration}=
+     ...							${start_date}=
+     ...							${target_list_URL}=
+     ...							${target_list_ID}=
+     ...							${time_zone}=
+     ...							${vertical}=
+     ...							${segment}=
+     ...							${creative_id}=
+     ...							${billing_name}=                                                  
+     ...							${billing_address_line1}=
+     ...							${billing_address_line2}=     
+     ...							${billing_city}=     
+     ...							${billing_state}=     
+     ...							${billing_zip}=        
+     ...							${billing_country}=     
+     ...							${billing_phone}=     
+     ...	   						${billing_email}=     
+     ...							${expected_response_code}=
+     ...                        ${timestamp_flag}=1
+	SMB Header Setup       ${auth}
+	Log       Advertiser ID: ${advertiser_id}
+	Sleep    1s
+	Create SMB Campaign       		advertiser_id=${advertiser_id}
+     ... 							campaign_name=${campaign_name}
+     ...							order_id=${order_id}
+     ...							txn_ref_id=${txn_ref_id}
+     ...							txn_date=${txn_date}
+     ...							txn_status=${txn_status}
+     ...							txn_return_code=${txn_return_code}
+     ...							available_qty=${available_qty}
+     ...							selected_qty=${selected_qty}
+     ...							duration=${duration}
+     ...							start_date=${start_date}
+     ...							target_list_URL=${target_list_URL}
+     ...							target_list_ID=${target_list_ID}
+     ...							time_zone=${time_zone}
+     ...							vertical=${vertical}
+     ...							segment=${segment}
+     ...							creative_id=${creative_id}
+     ...							billing_name=${billing_name}                                                
+     ...							billing_address_line1=${billing_address_line1}
+     ...							billing_address_line2=${billing_address_line2}   
+     ...							billing_city=${billing_city}   
+     ...							billing_state=${billing_state}   
+     ...							billing_zip=${billing_zip}     
+     ...							billing_country=${billing_country}  
+     ...							billing_phone=${billing_phone}    
+     ...	   						billing_email=${billing_email}   
+     ...							expected_response_code=${expected_response_code}
+     ...                        	timestamp_flag=${timestamp_flag}
+     Log	Creative_id: ${creative_id}
+     Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Campaign Via DB				campaign_id=${campaign_id}
+#	 Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Campaign Added Via UI
+     Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Campaign Via API Call
+
+
+TEMPLATE Update Campaign And Validate Using Full Object
+    [Arguments]    					${auth}=${SMB_AUTH}
+     ...							${campaign_id}=
+     ...                			${advertiser_id}=
+     ... 							${campaign_name}=
+     ...							${order_id}=
+     ...							${txn_ref_id}=
+     ...							${txn_date}=
+     ...							${txn_status}=
+     ...							${txn_return_code}=
+     ...							${available_qty}=
+     ...							${selected_qty}=
+     ...							${duration}=
+     ...							${start_date}=
+     ...							${target_list_URL}=
+     ...							${target_list_ID}=
+     ...							${time_zone}=
+     ...							${vertical}=
+     ...							${segment}=
+     ...							${creative_id}=
+     ...							${billing_name}=                                                  
+     ...							${billing_address_line1}=
+     ...							${billing_address_line2}=     
+     ...							${billing_city}=     
+     ...							${billing_state}=     
+     ...							${billing_zip}=        
+     ...							${billing_country}=     
+     ...							${billing_phone}=     
+     ...	   						${billing_email}=     
+     ...							${expected_response_code}=
+	SMB Header Setup       ${auth}
+	Log       Advertiser ID: ${advertiser_id}
+	Log       Campaign ID: ${campaign_id}
+	Update SMB Campaign       		campaign_id=${campaign_id}
+	 ...							advertiser_id=${advertiser_id}
+     ... 							campaign_name=${campaign_name}
+     ...							order_id=${order_id}
+     ...							txn_ref_id=${txn_ref_id}
+     ...							txn_date=${txn_date}
+     ...							txn_status=${txn_status}
+     ...							txn_return_code=${txn_return_code}
+     ...							available_qty=${available_qty}
+     ...							selected_qty=${selected_qty}
+     ...							duration=${duration}
+     ...							start_date=${start_date}
+     ...							target_list_URL=${target_list_URL}
+     ...							target_list_ID=${target_list_ID}
+     ...							time_zone=${time_zone}
+     ...							vertical=${vertical}
+     ...							segment=${segment}
+     ...							creative_id=${creative_id}
+     ...							billing_name=${billing_name}                                                
+     ...							billing_address_line1=${billing_address_line1}
+     ...							billing_address_line2=${billing_address_line2}   
+     ...							billing_city=${billing_city}   
+     ...							billing_state=${billing_state}   
+     ...							billing_zip=${billing_zip}     
+     ...							billing_country=${billing_country}  
+     ...							billing_phone=${billing_phone}    
+     ...	   						billing_email=${billing_email}   
+     ...							expected_response_code=${expected_response_code}
+     Validate SMB Campaign           campaign_id=${campaign_id}
+	 ...							advertiser_id=${advertiser_id}
+     ... 							campaign_name=${campaign_name} 
+     ...							order_id=cp_oid			txn_ref_id=cp_rid			txn_date=cp_date			txn_status=cstatus		txn_return_code=cp_rc
+     ...							available_qty=15000			selected_qty=8000
+     ...							duration=14		start_date=${start_date}
+     ...							target_list_URL=${target_list_URL}		target_list_ID=${target_list_ID}
+     ...							time_zone=${time_zone}
+     ...							vertical=IAB2		segment=IAB2-2
+     ...							creative_id=${creative_id}
+     ...							billing_name=Chieu        billing_address_line1=155 Bovet Road			billing_address_line2=Suite 200     		billing_city=San Mateo    	billing_state=CA  		billing_zip=94402        billing_country=USA    	billing_phone=408-123-4567     	billing_email=cpham@4info.com  
+     ...							response_content=${response_content}    
+    ${yyyy}		${mm}		${dd}=			Get Time 			year,month,day			UTC
+	${validation_date}=     		Set Test Variable  		${yyyy}-${mm}-${dd}
+	Log 		Today Date To Validate: ${validation_date}
+	Retrieve SMB Campaign Hiearchy Information				campaign_id=${campaign_id} 
+	Log       Parent: ${smb_parent_adgroup_id}
+	Log       Child: ${smb_child_adgroup_id} 
+	Log       Ad: ${smb_ad_id}
+	${yyyy_gmt}		${mm_gmt}		${dd_gmt}=			Get Time 			year,month,day      ${start_date}
+	${end_date}=			smb_end_date_from_duration      ${start_date}     ${duration}
+	${start_date_gmt_no_time}=    	Set Test Variable             ${yyyy_gmt}-${mm_gmt}-${dd_gmt}
+	${start_date_gmt}=            	Set Test Variable             ${yyyy_gmt}-${mm_gmt}-${dd_gmt} 00:00:00
+	${end_date_gmt}=            	Set Test Variable             ${end_date} 23:59:59
+	${end_date_gmt_no_time}=        Set Test Variable             ${end_date}
+	${yyyy_now}		${mm_now}		${dd_now}=			Get Time 			year,month,day         UTC
+	${today}=     					Set Test Variable     ${yyyy_now}-${mm_now}-${dd_now}
+	${start_date}=         			Set Test Variable 				${start_date} 00:00:00
+	${end_date}=         			Set Test Variable 				${end_date} 23:59:59
+	Log     Start Date GMT Calculated:${start_date_gmt}
+	Log     End Date GMT Calculated:${end_date_gmt}
+	SMB Validate DB Campaign	campaign_id=${campaign_id}
+	...							campaign_partner_id=${advertiser_id}      																		
+	...							campaign_name=${campaign_name}																				
+	...							campaign_start_time=${start_date}      																	
+	...							campaign_restart_time=${start_date_gmt} 															
+	...							campaign_end_time=${end_date} 																	
+	...							campaign_start_time_ui=${start_date_gmt}      																
+	...							campaign_end_time_ui=${end_date_gmt}      																
+	...							campaign_zoneinfo_time_zone=${time_zone}    													
+	...							campaign_impressions_sold=8000    														
+	...							campaign_impressions_delivered=0      												
+	...							campaign_budget=297      																		
+	...							campaign_status=-1   					
+	...							campaign_insertion_order=${campaign_name}     										
+	...							campaign_created_dt=None  																	
+	...							campaign_modified_dt=${today}      															
+	...							campaign_keywords=${EMPTY}      																
+	...							campaign_measurement_id=None 													
+	...							campaign_order_id=cp_oid    																	
+	...							campaign_txn_ref_id=cp_rid 																	
+	...							campaign_txn_date=cp_date	     																	
+	...							campaign_txn_status=cstatus     																	
+	...							campaign_txn_return_code=cp_rc    														
+	...							campaign_duration=14      																	
+	...							campaign_internal_duration=14    			
+	...							campaign_target_list_URL=${target_list_URL} 											
+	...							campaign_target_list_ID=${target_list_ID} 																
+	...							campaign_creative_id=${creative_id}      																
+	...							campaign_billing_id=${EMPTY}																
+	...							campaign_available_qty=15000    																
+	...							campaign_selected_qty=8000    															
+	...							campaign_matched_qty=None 
+	Log      Validate Parent Adgroup
+	SMB Validate DB AdGroup     campaign_id=${campaign_id}
+	...							ad_group_name=${campaign_name}-AdGroup-Bundle
+	...							ad_group_start_date=${start_date}
+	...							ad_group_end_date=${end_date}
+	...							ad_group_start_date_ui=${start_date_gmt}
+	...							ad_group_end_date_ui=${end_date_gmt}
+	...							ad_group_zoneinfo_time_zone=${time_zone}
+	...							ad_group_units_sold=8000
+	...							ad_group_units_delivered=0
+	...							ad_group_cost_per_unit=0.035		
+	...							ad_group_spend=0
+	...							ad_group_delivered_impressions=0
+	...							ad_group_delivered_clicks=0
+	...							ad_group_delivered_acquisitions=0		
+	...							ad_group_budget=297
+	...							ad_group_pacing_id=6	
+	...							ad_group_exclusive=0	
+	...							ad_group_guaranteed=1
+	...							ad_group_remnant=0
+	...							ad_group_remnant_external=0
+	...							ad_group_house=0
+	...							ad_group_status=-1
+	...							ad_group_created_dt=${today}
+	...							ad_group_modified_dt=${today}
+	...							ad_group_campaign_id=${campaign_id}		
+	...							ad_group_screen_type=1
+	...							ad_group_frequency_cap_id=None
+	...							ad_group_ad_group_payment_type_id=1					
+	...							ad_group_bonus_parent_ad_group_id=None
+	...							ad_group_ecpm=0
+	...							ad_group_optimized_bundle=0
+	...							ad_group_bundle_parent_id=None			
+	...							ad_group_bundle=1
+	...							ad_group_weight=None
+	...							ad_group_allocation=1
+	...							ad_group_bid_value_cpu=None
+	...							ad_group_adhaven_margin=None
+	...							ad_group_custom_dates=0
+	...							ad_group_custom_frequency_cap=0
+	...							ad_group_custom_targeting=0
+	...							ad_group_time_zone=None
+	...							ad_group_time_zone_user=None
+	...							ad_group_ui_weight=1
+	...							ad_group_test_ads=0
+	...							ad_group_ip_to_geo_allowed_type=1	
+	...							ad_group_pacing_units_sold=None
+	...							ad_group_pacing_units_delivered=None
+	...							ad_group_pacing_start_date=${start_date}
+	...							ad_group_pacing_end_date=${end_date}
+	...							ad_group_pacing_recalculation=1
+	...							ad_group_ad_text=None
+	...							ad_group_track_client_impression=1
+	...							ad_group_use_spoc_targeting=0
+	...							ad_group_requires_raw_device_id=0
+	...							ad_group_app_id=
+	...							ad_group_use_placeiq=0	
+	...							ad_group_daily_cap_enabled=0
+	...							ad_group_daily_cap_units_sold=0
+	...							ad_group_daily_cap_units_delivered=None
+	...							ad_group_is_behavior_targeted=1
+	...							ad_group_domain=www.4info.com
+	...							ad_group_freq_cap_daily_units=None
+	...							ad_group_freq_cap_overall_units=None
+	...							ad_group_household_freq_cap_daily_units=None
+	...							ad_group_household_freq_cap_overall_units=None
+	...							ad_group_ioimpressiongoal=8000		
+	...							ad_group_freq_cap_days=1
+	...							ad_group_household_freq_days=1
+	Log     Validating Child Adgroup
+	SMB Validate DB AdGroup     				campaign_id=${campaign_id}
+	...							ad_group_name=${campaign_name}-AdGroup-Child
+	...							ad_group_start_date=${start_date}
+	...							ad_group_end_date=${end_date}
+	...							ad_group_start_date_ui=${start_date_gmt}
+	...							ad_group_end_date_ui=${end_date_gmt}
+	...							ad_group_zoneinfo_time_zone=${time_zone}
+	...							ad_group_units_sold=${smb_impression_goal}
+	...							ad_group_units_delivered=0
+	...							ad_group_cost_per_unit=0.035		
+	...							ad_group_spend=0
+	...							ad_group_delivered_impressions=0
+	...							ad_group_delivered_clicks=0
+	...							ad_group_delivered_acquisitions=0		
+	...							ad_group_budget=279
+	...							ad_group_pacing_id=6	
+	...							ad_group_exclusive=0	
+	...							ad_group_guaranteed=1
+	...							ad_group_remnant=0
+	...							ad_group_remnant_external=0
+	...							ad_group_house=0
+	...							ad_group_status=-1
+	...							ad_group_created_dt=${today}
+	...							ad_group_modified_dt=${today}
+	...							ad_group_campaign_id=${campaign_id}		
+	...							ad_group_screen_type=1
+	...							ad_group_frequency_cap_id=None
+	...							ad_group_ad_group_payment_type_id=1					
+	...							ad_group_bonus_parent_ad_group_id=None
+	...							ad_group_ecpm=None
+	...							ad_group_optimized_bundle=0
+	...							ad_group_bundle_parent_id=${smb_parent_adgroup_id} 
+	...							ad_group_bundle=0
+	...							ad_group_weight=100
+	...							ad_group_allocation=1
+	...							ad_group_bid_value_cpu=None
+	...							ad_group_adhaven_margin=None
+	...							ad_group_custom_dates=0
+	...							ad_group_custom_frequency_cap=0
+	...							ad_group_custom_targeting=0
+	...							ad_group_time_zone=None
+	...							ad_group_time_zone_user=None
+	...							ad_group_ui_weight=1
+	...							ad_group_test_ads=0
+	...							ad_group_ip_to_geo_allowed_type=1	
+	...							ad_group_pacing_units_sold=8000
+	...							ad_group_pacing_units_delivered=0
+	...							ad_group_pacing_start_date=${start_date}	
+	...							ad_group_pacing_end_date=${end_date}
+	...							ad_group_pacing_recalculation=1
+	...							ad_group_ad_text=None
+	...							ad_group_track_client_impression=1
+	...							ad_group_use_spoc_targeting=0
+	...							ad_group_requires_raw_device_id=0
+	...							ad_group_app_id=
+	...							ad_group_use_placeiq=0	
+	...							ad_group_daily_cap_enabled=0
+	...							ad_group_daily_cap_units_sold=0
+	...							ad_group_daily_cap_units_delivered=0
+	...							ad_group_is_behavior_targeted=1
+	...							ad_group_domain=www.4info.com
+	...							ad_group_freq_cap_daily_units=None
+	...							ad_group_freq_cap_overall_units=None
+	...							ad_group_household_freq_cap_daily_units=None
+	...							ad_group_household_freq_cap_overall_units=None
+	...							ad_group_ioimpressiongoal=${smb_impression_goal}		
+	...							ad_group_freq_cap_days=1
+	...							ad_group_household_freq_days=1
+	Log     Validate Ad
+	SMB Validate DB Ad Defaults			campaign_id=${campaign_id}
+	...							ad_url=None
+	...							ad_duration=0
+	...							ad_version=1
+	...							ad_create_dt=
+	...							ad_modified_dt=
+	...							ad_video_ad_id=None
+	...							ad_banner_ad_id=None
+	...							ad_html5_ad_id=None
+	...							ad_text_ad_id=None
+	...							ad_ad_group_id=
+	...							ad_status=-1
+#     Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Campaign Via DB				${campaign_id}
+#	 Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Campaign Added Via UI
+#     Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Campaign Via API Call
+
+
+TEMPLATE Create Creative And Validate 
+    [Arguments]    		${auth}=
+     ...                ${advertiser_id}=
+     ...				${creative_name}=
+     ...				${creative_url}=
+     ...				${creative_destination_url}=
+     ...				${creative_width}=
+     ...				${creative_height}=
+     ...				${expected_response_code}=
+     ...                ${timestamp_flag}=
+	SMB Header Setup       ${auth}
+	SMB Create Creative       		${advertiser_id} 			${creative_name}				${creative_url}   		${creative_destination_url}			${creative_width}			${creative_height}			${expected_response_code}			${timestamp_flag}		
+	Run Keyword If         '${expected_response_code}' == '200'               SMB Validate Creative Added Via DB       	
+    Run Keyword If         '${expected_response_code}' == '200'               Remove Creative By ID     ${creative_id}
+
+
+   

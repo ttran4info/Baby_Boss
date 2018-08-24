@@ -1,0 +1,38 @@
+*** Settings ***
+Resource 	  	00_RTB_Data.txt
+
+*** Variables ***
+
+*** Keywords ***
+Mopub Lat Lon Request SITE Template
+	[Arguments]        ${rtb_host_ip}=qa-rtb:8080       ${site_app_id}=       ${lat}=    ${lon}=   		${image_expected}=      ${adgoup_expected}=      	${response_code}=200	${device_id}=null
+	Log      Response Code: ${response_code}
+	Create Session    rtb      http://${rtb_host_ip}
+#    Set Test Variable    ${data}         {"site":{"bundle":"xxapps.bflo.kikmeup.android","cat":["IAB24","social_networking"],"id":"${site_app_id}","name":"Android KikMeUp","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYl8HPFgw","name":"Maleo, Limited"},"ver":"1.0"},"at":2,"bcat":["IAB25","IAB26"],"device":{"carrier":"310-004","connectiontype":2,"devicetype":1,"dnt":0,"dpidsha1":"4ed7d7bd2b1e227902c364ba46c9175cea5f48bf","geo":{"city":"Sandusky","country":"USA","lat":${lat},"lon":${lon},"region":"OH","zip":"44870"},"ip":"72.240.177.188","js":1,"language":"en","make":"LGE","model":"Vortex","os":"Android","osv":"2.2.2","ua":"Mozilla/5.0 (Linux; U; Android 2.2.2; en-us; Vortex Build/FRG83G) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"},"id":"88cd0ec3-9d68-4e79-8b00-a60cbd1c90e4","imp":[{"banner":{"api":[3],"battr":[10,14,6],"btype":[4],"ext":{"mraid":[{"functions":["storePicture","supports","playVideo"],"version":"2.0"}],"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.50,"displaymanager":"mopub","displaymanagerver":"1.17.0.0","id":"1","instl":0,"tagid":"dc4eeff9bcea4715902d47f869ec85df"}]}
+#New data with device raw id 
+    Set Test Variable    ${data}         {"site":{"bundle":"xxapps.bflo.kikmeup.android","cat":["IAB24","social_networking"],"id":"${site_app_id}","name":"Android KikMeUp","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYl8HPFgw","name":"Maleo, Limited"},"ver":"1.0"},"at":2,"bcat":["IAB25","IAB26"],"device":{"carrier":"310-004","connectiontype":2,"devicetype":1,"dnt":0,"dpidsha1":"4ed7d7bd2b1e227902c364ba46c9175cea5f48bf","ifa":"${device_id}","geo":{"city":"Sandusky","country":"USA","lat":${lat},"lon":${lon},"region":"OH","zip":"44870"},"ip":"72.240.177.188","js":1,"language":"en","make":"LGE","model":"Vortex","os":"Android","osv":"2.2.2","ua":"Mozilla/5.0 (Linux; U; Android 2.2.2; en-us; Vortex Build/FRG83G) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"},"id":"88cd0ec3-9d68-4e79-8b00-a60cbd1c90e4","imp":[{"banner":{"api":[3],"battr":[10,14,6],"btype":[4],"ext":{"mraid":[{"functions":["storePicture","supports","playVideo"],"version":"2.0"}],"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.50,"displaymanager":"mopub","displaymanagerver":"1.17.0.0","id":"1","instl":0,"tagid":"dc4eeff9bcea4715902d47f869ec85df"}]}
+    Log    Data: ${data}
+    Run Keyword If        '${response_code}' == '204'				Validate RTB Ad Does Not Serve		api_key=${RTB_MOPUB_API}			data=${data}			requests=5				response_code=${response_code}        ad_expected=${image_expected}			adgroup_expected=${adgoup_expected}		
+    Run Keyword If        '${response_code}' == '200'				Validate RTB AdServed X Times   	api_key=${RTB_MOPUB_API}			data=${data}			requests=3				response_code=${response_code}        ad_expected=${image_expected}			adgroup_expected=${adgoup_expected}
+
+    
+Mopub Lat Lon Request APP Template
+	[Arguments]        ${rtb_host_ip}=qa-rtb:8080       ${site_app_id}=       ${lat}=    ${lon}=   		${image_expected}=       ${adgoup_expected}=  		${response_code}=200	${device_id}=null
+	Log      Response Code: ${response_code}
+	Create Session    rtb      http://${rtb_host_ip}
+    Set Test Variable    ${data}         {"app":{"bundle":"xxapps.bflo.kikmeup.android","cat":["IAB24","social_networking"],"id":"${site_app_id}","name":"Android KikMeUp","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYl8HPFgw","name":"Maleo, Limited"},"ver":"1.0"},"at":2,"bcat":["IAB25","IAB26"],"device":{"carrier":"310-004","connectiontype":2,"devicetype":1,"dnt":0,"dpidsha1":"4ed7d7bd2b1e227902c364ba46c9175cea5f48bf","ifa":"${device_id}","geo":{"city":"Sandusky","country":"USA","lat":${lat},"lon":${lon},"region":"OH","zip":"44870"},"ip":"72.240.177.188","js":1,"language":"en","make":"LGE","model":"Vortex","os":"Android","osv":"2.2.2","ua":"Mozilla/5.0 (Linux; U; Android 2.2.2; en-us; Vortex Build/FRG83G) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"},"id":"88cd0ec3-9d68-4e79-8b00-a60cbd1c90e4","imp":[{"banner":{"api":[3],"battr":[10,14,6],"btype":[4],"ext":{"mraid":[{"functions":["storePicture","supports","playVideo"],"version":"2.0"}],"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.50,"displaymanager":"mopub","displaymanagerver":"1.17.0.0","id":"1","instl":0,"tagid":"dc4eeff9bcea4715902d47f869ec85df"}]}
+    Log    Data: ${data}
+    Run Keyword If        '${response_code}' == '204'				Validate RTB Ad Does Not Serve   		api_key=${RTB_MOPUB_API}			data=${data}			requests=5				response_code=${response_code}        ad_expected=${image_expected}			adgroup_expected=${adgoup_expected}
+    Run Keyword If        '${response_code}' == '200'				Validate RTB AdServed X Times   		api_key=${RTB_MOPUB_API}			data=${data}			requests=3				response_code=${response_code}        ad_expected=${image_expected}			adgroup_expected=${adgoup_expected}
+    
+Mopub Device to HH validation		
+	[Arguments]		${device_id}=NA		${hh_id}=NA		${data}=null	${API}=null
+	Log		Device ID input:${device_id}
+	Log		House Hold ID expected: ${hh_id}
+	Start Tailing Request Logs For HHID			consumer_id=${device_id}
+	RTB Request              API=${API}          data=${data}          ${response_code}=200         ${ad_expected}=NA        ${adgroup_expected}=NA				${submit_client_impression_event}=NO
+	Terminate Read Logs For END
+	Should Match Regexp		     ${hh_id}		${output}
+	Close All Connections    
+    
+    
