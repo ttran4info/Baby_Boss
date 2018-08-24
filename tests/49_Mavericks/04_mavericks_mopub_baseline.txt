@@ -1,0 +1,155 @@
+*** Settings ***
+Resource   mavericks_imports.txt
+Force Tags           MAVERICKS    BATCH3	MOPUB		
+
+*** variables ***
+ ${agid_expected}					57876			#45331
+ ${agid_expected_view}				65696			#45431		#zip 94042
+ ${agid_expected_measure}			65697			#45432		#zip 94043
+	
+# ${data}				{"site": {"bundle": "com.myyearbook.m","cat": ["IAB24"],"id": "11436","name": "MeetMe_Android","publisher": {"id": "87e493a6b4424a6eb0ab7bc187d4345d","name": "Beanstock Media Inc."},"ver": "9.5.2"},"at": 2,"bcat": ["IAB25","IAB26","IAB3-7"],"device": {"carrier": "310-260","connectiontype": 2,"devicetype": 1,"dnt": 0,"dpidmd5": "e32feae37f36a86edfc9297d92988225","dpidsha1": "e994f940c0a0f689506622aefc918ef6002f802b","ifa": "bf3d12ff-5f82-417c-9fcb-64eb41bb82e3","geo": {"city": "North Las Vegas","country": "BR","lat": 36.278179,"lon": -115.13991,"region": "NV","zip": "94042"},"ip": "68.224.110.221","js": 1,"make": "samsung","model": "SM-G386T1","os": "Android","osv": "4.4.2","ua": "Mozilla/5.0 (Linux; Android 4.4.2; SM-G386T1 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id": "353e5aa1-ec1e-4f3a-bf83-84abd6980360","imp": [{"banner": {"api": [3,5],"battr": [10,8,14,6],"btype": [4],"ext": {"nativebrowserclick": 1},"h": 50,"pos": 1,"w": 320},"bidfloor": 0.09,"displaymanager": "mopub","displaymanagerver": "3.3.0+kit","id": "1","instl": 0,"tagid": "f79f2fcc242b4e9d9ebf9ad9e60a7d11"}],"user": {"keywords": "RELATIONSHIP:single,AGE:16,GENDER:m,BUILD_TYPE:release"}}
+
+*** Test Cases ***
+Set Mavericks Baseline to 1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected}							name=ctr_baseline			value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected}							name=vc_baseline			value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected}							name=measure_baseline			value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected}							name=view_baseline				value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected}							name=eligibility_baseline		value=1
+	
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_view}					name=ctr_baseline			value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_view}					name=vc_baseline			value=1	 
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_view}					name=measure_baseline			value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_view}					name=view_baseline				value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_view}					name=eligibility_baseline		value=1
+	
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_measure}					name=ctr_baseline			value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_measure}					name=vc_baseline			value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_measure}					name=measure_baseline			value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_measure}					name=view_baseline				value=1
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_measure}					name=eligibility_baseline		value=1
+	sleep 		60s  
+Mavericks2 Logs - Optimization CTR (column4 value 1), Baseline 1, stop serving
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			3
+	   Set Test Variable	${data}				{"site": {"bundle": "com.myyearbook.m","cat": ["IAB24"],"id": "11436","name": "MeetMe_Android","publisher": {"id": "87e493a6b4424a6eb0ab7bc187d4345d","name": "Beanstock Media Inc."},"ver": "9.5.2"},"at": 2,"bcat": ["IAB25","IAB26","IAB3-7"],"device": {"carrier": "310-260","connectiontype": 2,"devicetype": 1,"dnt": 0,"dpidmd5": "e32feae37f36a86edfc9297d92988225","dpidsha1": "e994f940c0a0f689506622aefc918ef6002f802b","ifa": "${device_id}","geo": {"city": "North Las Vegas","country": "BR","lat": 36.278179,"lon": -115.13991,"region": "NV","zip": "94042"},"ip": "68.224.110.221","js": 1,"make": "samsung","model": "SM-G386T1","os": "Android","osv": "4.4.2","ua": "Mozilla/5.0 (Linux; Android 4.4.2; SM-G386T1 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id": "353e5aa1-ec1e-4f3a-bf83-84abd6980360","imp": [{"banner": {"api": [3,5],"battr": [10,8,14,6],"btype": [4],"ext": {"nativebrowserclick": 1},"h": 50,"pos": 1,"w": 320},"bidfloor": 0.09,"displaymanager": "mopub","displaymanagerver": "3.3.0+kit","id": "1","instl": 0,"tagid": "f79f2fcc242b4e9d9ebf9ad9e60a7d11"}],"user": {"keywords": "RELATIONSHIP:single,AGE:16,GENDER:m,BUILD_TYPE:release"}}
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204	submit_client_impression_event=NO		
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   #Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}		optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected_view}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		Should Match Regexp 			${output}  				8=1				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]				#ctr baseline is control by smart bidder
+Mavericks2 Logs - Optimization VCR (column4 value 2), Baseline 1, stop serving
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			3
+	   Set Test Variable	${data}				{"site": {"bundle": "com.myyearbook.m","cat": ["IAB24"],"id": "11436","name": "MeetMe_Android","publisher": {"id": "87e493a6b4424a6eb0ab7bc187d4345d","name": "Beanstock Media Inc."},"ver": "9.5.2"},"at": 2,"bcat": ["IAB25","IAB26","IAB3-7"],"device": {"carrier": "310-260","connectiontype": 2,"devicetype": 1,"dnt": 0,"dpidmd5": "e32feae37f36a86edfc9297d92988225","dpidsha1": "e994f940c0a0f689506622aefc918ef6002f802b","ifa": "${device_id}","geo": {"city": "North Las Vegas","country": "BR","lat": 36.278179,"lon": -115.13991,"region": "NV","zip": "94042"},"ip": "68.224.110.221","js": 1,"make": "samsung","model": "SM-G386T1","os": "Android","osv": "4.4.2","ua": "Mozilla/5.0 (Linux; Android 4.4.2; SM-G386T1 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id": "353e5aa1-ec1e-4f3a-bf83-84abd6980360","imp": [{"banner": {"api": [3,5],"battr": [10,8,14,6],"btype": [4],"ext": {"nativebrowserclick": 1},"h": 50,"pos": 1,"w": 320},"bidfloor": 0.09,"displaymanager": "mopub","displaymanagerver": "3.3.0+kit","id": "1","instl": 0,"tagid": "f79f2fcc242b4e9d9ebf9ad9e60a7d11"}],"user": {"keywords": "RELATIONSHIP:single,AGE:16,GENDER:m,BUILD_TYPE:release"}}
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204	submit_client_impression_event=NO		
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   #Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}		optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected_view}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		Should Match Regexp 			${output}  				8=1				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]				#vcr is control by smart bidder				
+Mavericks2 Logs - Optimization View (column4 value 3), Baseline 1, stop serving
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			3
+	   Set Test Variable	${data}				{"site": {"bundle": "com.myyearbook.m","cat": ["IAB24"],"id": "11436","name": "MeetMe_Android","publisher": {"id": "87e493a6b4424a6eb0ab7bc187d4345d","name": "Beanstock Media Inc."},"ver": "9.5.2"},"at": 2,"bcat": ["IAB25","IAB26","IAB3-7"],"device": {"carrier": "310-260","connectiontype": 2,"devicetype": 1,"dnt": 0,"dpidmd5": "e32feae37f36a86edfc9297d92988225","dpidsha1": "e994f940c0a0f689506622aefc918ef6002f802b","ifa": "${device_id}","geo": {"city": "North Las Vegas","country": "BR","lat": 36.278179,"lon": -115.13991,"region": "NV","zip": "94042"},"ip": "68.224.110.221","js": 1,"make": "samsung","model": "SM-G386T1","os": "Android","osv": "4.4.2","ua": "Mozilla/5.0 (Linux; Android 4.4.2; SM-G386T1 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id": "353e5aa1-ec1e-4f3a-bf83-84abd6980360","imp": [{"banner": {"api": [3,5],"battr": [10,8,14,6],"btype": [4],"ext": {"nativebrowserclick": 1},"h": 50,"pos": 1,"w": 320},"bidfloor": 0.09,"displaymanager": "mopub","displaymanagerver": "3.3.0+kit","id": "1","instl": 0,"tagid": "f79f2fcc242b4e9d9ebf9ad9e60a7d11"}],"user": {"keywords": "RELATIONSHIP:single,AGE:16,GENDER:m,BUILD_TYPE:release"}}
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204	submit_client_impression_event=NO		
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   #Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}		optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected_view}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		Should Match Regexp 			${output}  				8=1				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]		
+Mavericks2 Logs - Optimization Meas (column4 value 4), Baseline 1, stop serving
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			4
+	   Set Test Variable	${data}				{"site": {"bundle": "com.myyearbook.m","cat": ["IAB24"],"id": "11436","name": "MeetMe_Android","publisher": {"id": "87e493a6b4424a6eb0ab7bc187d4345d","name": "Beanstock Media Inc."},"ver": "9.5.2"},"at": 2,"bcat": ["IAB25","IAB26","IAB3-7"],"device": {"carrier": "310-260","connectiontype": 2,"devicetype": 1,"dnt": 0,"dpidmd5": "e32feae37f36a86edfc9297d92988225","dpidsha1": "e994f940c0a0f689506622aefc918ef6002f802b","ifa": "${device_id}","geo": {"city": "North Las Vegas","country": "BR","lat": 36.278179,"lon": -115.13991,"region": "NV","zip": "94043"},"ip": "68.224.110.221","js": 1,"make": "samsung","model": "SM-G386T1","os": "Android","osv": "4.4.2","ua": "Mozilla/5.0 (Linux; Android 4.4.2; SM-G386T1 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id": "353e5aa1-ec1e-4f3a-bf83-84abd6980360","imp": [{"banner": {"api": [3,5],"battr": [10,8,14,6],"btype": [4],"ext": {"nativebrowserclick": 1},"h": 50,"pos": 1,"w": 320},"bidfloor": 0.09,"displaymanager": "mopub","displaymanagerver": "3.3.0+kit","id": "1","instl": 0,"tagid": "f79f2fcc242b4e9d9ebf9ad9e60a7d11"}],"user": {"keywords": "RELATIONSHIP:single,AGE:16,GENDER:m,BUILD_TYPE:release"}}
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204	submit_client_impression_event=NO		
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   #Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}		optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected_measure}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		Should Match Regexp 			${output}  				8=1				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]				
+Mavericks2 Logs - Optimization Eligibility (column4 value 5), Baseline 1, stop serving
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			5
+	   Set Test Variable	${data}				{"site": {"bundle": "com.myyearbook.m","cat": ["IAB24"],"id": "11436","name": "MeetMe_Android","publisher": {"id": "87e493a6b4424a6eb0ab7bc187d4345d","name": "Beanstock Media Inc."},"ver": "9.5.2"},"at": 2,"bcat": ["IAB25","IAB26","IAB3-7"],"device": {"carrier": "310-260","connectiontype": 2,"devicetype": 1,"dnt": 0,"dpidmd5": "e32feae37f36a86edfc9297d92988225","dpidsha1": "e994f940c0a0f689506622aefc918ef6002f802b","ifa": "${device_id}","geo": {"city": "North Las Vegas","country": "BR","lat": 36.278179,"lon": -115.13991,"region": "NV","zip": "94040"},"ip": "68.224.110.221","js": 1,"make": "samsung","model": "SM-G386T1","os": "Android","osv": "4.4.2","ua": "Mozilla/5.0 (Linux; Android 4.4.2; SM-G386T1 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id": "353e5aa1-ec1e-4f3a-bf83-84abd6980360","imp": [{"banner": {"api": [3,5],"battr": [10,8,14,6],"btype": [4],"ext": {"nativebrowserclick": 1},"h": 50,"pos": 1,"w": 320},"bidfloor": 0.09,"displaymanager": "mopub","displaymanagerver": "3.3.0+kit","id": "1","instl": 0,"tagid": "f79f2fcc242b4e9d9ebf9ad9e60a7d11"}],"user": {"keywords": "RELATIONSHIP:single,AGE:16,GENDER:m,BUILD_TYPE:release"}}
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204	submit_client_impression_event=NO		
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   #Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}		optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		Should Match Regexp 			${output}  				8=1				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]		  	
+
+Set Mavericks Baseline to 0
+		Update rhino.pricing_parameter			adgroup_id=${agid_expected}						name=ctr_baseline			value=0
+		Update rhino.pricing_parameter			adgroup_id=${agid_expected}						name=vc_baseline			value=0
+		Update rhino.pricing_parameter			adgroup_id=${agid_expected}						name=measure_baseline			value=0
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected}							name=view_baseline				value=0
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected}							name=eligibility_baseline		value=0
+		 
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_view}					name=ctr_baseline			value=0
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_view}					name=vc_baseline			value=0
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_view}					name=measure_baseline			value=0
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_view}					name=view_baseline				value=0
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_view}					name=eligibility_baseline		value=0
+	
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_measure}					name=ctr_baseline			value=0
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_measure}					name=vc_baseline			value=0
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_measure}					name=measure_baseline			value=0
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_measure}					name=view_baseline				value=0
+	Update rhino.pricing_parameter			adgroup_id=${agid_expected_measure}					name=eligibility_baseline		value=0
+Baseline is 0, ad served normal (column 8)
+	[Tags]		exclude
+Baseline is 1, ad stop serving (column 8) - check server log for: 	
+	#AdGroupSelection, formula gives 0.0 bid price, Adgroup id:44607
+	[Tags]		exclude

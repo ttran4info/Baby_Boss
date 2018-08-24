@@ -1,0 +1,1383 @@
+#---------------------------------------------------------------------------------------
+# Script Change Log
+# 2017-09-15 : vkatkar : Created new script
+# 2017-12-05 : vkatkar : added code for Demo Custom Trade Area , Undertone Custom Trade Area
+# 2018-02-15 : vkatkar : Commented tests related to Catalina and Undertone as per CM-1909
+#                        Changes done as per CM-1910
+#---------------------------------------------------------------------------------------
+
+*** Settings ***
+Resource        ACE_api_imports.txt
+Force Tags      ACE_API    BATCH21    ACE3.6    OffshoreQA
+
+# Wiki : https://wiki.4info.com/display/Software/ACE+API+Documentation#ACEAPIDocumentation-3.6Retargeting(4INFORetargeting,CatalinaRetargeting)
+# API Name : Create Retargeting Segment.
+# Method : POST
+# URL : qa-ace-10:8080/ace/api/v2/report/create
+# DESC : 4INFO and Catalina Retargeting differ only in which group has access
+#        to this function and the created Retargeting Segment.
+#        4INFO Retargeting Segments are accessible to users belonging to the 4INFO group,
+#        and similarly Catalina Retargeting Segments are accessible to users belonging to
+#        the Catalina group. From the API standpoint, the two differ only in the
+#        data source ID passed in the data_source parameter.
+#        This causes their target_datasource_segment records to be created under the
+#        respective data sources. The created Retargeting Segments are accessible to the
+#        respective groups. Other than that, the functionality is exactly the same for
+#        both jobs.
+
+# rhino.ace_report
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#----------------------------------------------------------------------------------------------
+ACE.3.6_TC_4Info_01.1_Create Retargeting for 4INFO (Valid URL and data for 4INFO, Accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO with valid URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Remove New Retargeting via DB    dataSource=34    email=${QA_DEFAULT_USER}
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentEntryList=1117:0
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]   # CM-1910    #  Known_bug   CM-1363
+
+
+ACE.3.6_TC_4Info_01.2_Create Retargeting for 4INFO (invalid url, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO with invalid URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create123
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+    [Tags]   #   Known_bug   CM-1002
+
+
+#------------------------------------------------------------------------------------------
+ACE.3.6_TC_4Info_01.3_Create Retargeting for 4INFO (when dataSource = 34, segmentSources = "gfc", invalid)
+    [Documentation]     Input : Run API to Create Ring Geofence when dataSource = 34, segmentSources = "gfc",
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Sleep    60s
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentEntryList=32361:0
+    ...                 dataSource=34
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "report name"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-020"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid SourceSegment "
+    [Tags]       Exclude    # NonUI   Known_bug       CM-1603     #  CM-1364
+
+
+#-------------------------------------------------------------------------------------------
+
+ACE.3.6_TC_4Info_02.1_Create Retargeting for 4INFO (email : Missing, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for missing email,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 email=MISSING
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp    ${body}    {"reason_code":"700-006","reason_desc":"Request field email is missing","field":"email"}
+    [Tags]    #  Known_bug       CM-1124
+
+
+
+
+ACE.3.6_TC_4Info_02.2_Create Retargeting for 4INFO (email : Invalid, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for email contains special characters,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 email=Test12#$%34
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "email"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-005"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid email format"
+    [Tags]    #  Known_bug       CM-1125
+
+
+ACE.3.6_TC_4Info_02.3_Create Retargeting for 4INFO (email : blank, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for blank email,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 email=${Empty}
+    ...                 segmentEntryList=32078:0
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "email"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-006"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Request field email is missing"
+    [Tags]
+
+
+ACE.3.6_TC_4Info_02.4_Create Retargeting for 4INFO (email : null, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for null email,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 email=null
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "email"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-005"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid email format"
+    [Tags]    #  Known_bug       CM-1124
+
+
+#-------------------------------------------------------------------------------------------
+ACE.3.6_TC_4Info_03.1_Create Retargeting for 4INFO (segmentEntryList : Missing, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for missing segmentEntryList,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentEntryList=MISSING
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp    ${body}    {"reason_code":"700-018","reason_desc":"Required field Segment Entry List is missing","field":"segmentEntryList"}
+    [Tags]
+
+
+ACE.3.6_TC_4Info_03.2_Create Retargeting for 4INFO (segmentEntryList : Invalid, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for segmentEntryList invalid,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentEntryList=Test12@#$%34
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+    [Tags]
+
+
+
+ACE.3.6_TC_4Info_03.3_Create Retargeting for 4INFO (segmentEntryList : blank, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for blank segmentEntryList,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentEntryList=${Empty}
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-018"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field Segment Entry List is missing"
+    [Tags]
+
+
+
+
+ACE.3.6_TC_4Info_03.4_Create Retargeting for 4INFO (segmentEntryList : null, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for null segmentEntryList,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentEntryList=null
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+    [Tags]
+
+
+ACE.3.6_TC_4Info_03.5_Create Retargeting for 4INFO (segmentEntryList : When all POIs in the category are chosen, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for target_poi_name is -1 at segmentEntryList,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 segmentEntryList=50:-1
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+    [Tags]
+
+
+ACE.3.6_TC_4Info_03.6_Create Retargeting for 4INFO (segmentEntryList : Comma separated list of POIs (Points Of Interest) around which the Geofence is to be built., don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for Comma separated list of POIs (Points Of Interest) around which the Geofence is to be built.,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 segmentEntryList=50:182,50:1995
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+    [Tags]
+
+
+ACE.3.6_TC_4Info_03.7_Create Retargeting for 4INFO (segmentEntryList : invalid data for 4info, Accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO with valid URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentEntryList=50:182
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+    [Tags]    #  Known_bug   CM-1363
+
+
+#-------------------------------------------------------------------------------------------
+
+ACE.3.6_TC_4Info_04.1_Create Retargeting for 4INFO (dataSource : Missing, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for missing dataSource. As dataSource is a mandatory key,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=MISSING
+    ...                 segmentSources=rt
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "700-012"
+    Json Value Should Equal     ${body}     /reason_desc            "Required field DataSource is missing"
+    [Tags]
+
+
+ACE.3.6_TC_4Info_04.2_Create Retargeting for 4INFO (dataSource : Invalid, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for dataSource invalid,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentSources=rt
+    ...                 dataSource="Test12@#$%34"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "700-016"
+    Json Value Should Equal     ${body}     /reason_desc            "Invalid Data Source"
+    [Tags]
+
+
+
+ACE.3.6_TC_4Info_04.3_Create Retargeting for 4INFO (dataSource : blank, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for blank dataSource,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentSources=rt
+    ...                 dataSource=""
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "700-012"
+    Json Value Should Equal     ${body}     /reason_desc            "Required field DataSource is missing"
+    [Tags]    #  Known_bug       CM-1124
+
+
+
+ACE.3.6_TC_4Info_04.4_Create Retargeting for 4INFO (dataSource : null, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for null dataSource,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentSources=rt
+    ...                 dataSource=null
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "700-012"
+    Json Value Should Equal     ${body}     /reason_desc            "Required field DataSource is missing"
+    [Tags]    #  Known_bug       CM-1124
+
+
+
+ACE.3.6_TC_4Info_04.5_Create Retargeting for 4INFO (dataSource : 9999, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for dataSource not exists i.e. 9999,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentSources=rt
+    ...                 dataSource=9999
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "700-016"
+    Json Value Should Equal     ${body}     /reason_desc            "Invalid Data Source"
+    [Tags]
+
+
+
+ACE.3.6_TC_4Info_04.6_Create Retargeting for 4INFO (dataSource : -34, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for dataSource -34,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 segmentSources=rt
+    ...                 dataSource=-34
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "700-016"
+    Json Value Should Equal     ${body}     /reason_desc            "Invalid Data Source"
+    [Tags]
+
+#-------------------------------------------------------------------------------------------
+ACE.3.6_TC_4Info_05.1_Create Retargeting for 4INFO (groupId : Missing, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for missing groupId. As groupId is a mandatory key,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 groupId=MISSING
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code                "400-999"
+    Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/reason_code       "700-002"
+    Json Value Should Equal     ${body}     /errors/0/field             "Group Id"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc       "Required field groupID missing"
+    [Tags]
+
+
+
+ACE.3.6_TC_4Info_05.2_Create Retargeting for 4INFO (groupId : Invalid, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for groupId invalid,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 groupId=Test12@#$%34
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code                "400-999"
+    Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/reason_code       "600-001"
+    Json Value Should Equal     ${body}     /errors/0/field             "Group Id"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc       "Invalid Group id."
+    [Tags]    #   Known_bug       CM-1124
+
+
+
+ACE.3.6_TC_4Info_05.3_Create Retargeting for 4INFO (groupId : blank, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for blank groupId,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 groupId=${Empty}
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code                "400-999"
+    Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/reason_code       "700-002"
+    Json Value Should Equal     ${body}     /errors/0/field             "Group Id"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc       "Required field groupID missing"
+    [Tags]   #   Known_bug       CM-1124
+
+
+ACE.3.6_TC_4Info_05.4_Create Retargeting for 4INFO (groupId : null, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for null groupId,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 groupId=null
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code                "400-999"
+    Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/reason_code       "600-001"
+    Json Value Should Equal     ${body}     /errors/0/field             "Group Id"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc       "Invalid Group id."
+    [Tags]   #   Known_bug       CM-1124
+
+
+
+ACE.3.6_TC_4Info_05.5_Create Retargeting for 4INFO (groupId : 9999, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for groupId not exists i.e. 9999,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 groupId=9999
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+    Should Match Regexp         ${body}     "[{"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"},{"reason_code":"600-001","reason_desc":"Invalid Group id.","field":"Group Id"}]"
+    [Tags]     # Known_bug       CM-1365
+
+
+ACE.3.6_TC_4Info_05.6_Create Retargeting for 4INFO (groupId : -25, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for groupId -25,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=rt
+    ...                 groupId=-25
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code                "400-999"
+    Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+    Should Match Regexp         ${body}     "[{"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"},{"reason_code":"600-001","reason_desc":"Invalid Group id.","field":"Group Id"}]"
+    [Tags]    #  Known_bug       CM-1365     ACE.3.6_TC_4Info_05.6.1
+
+
+#-------------------------------------------------------------------------------------------
+ACE.3.6_TC_4Info_06.1_Create Retargeting for 4INFO (segmentSources : Missing, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for missing segmentSources. As segmentSources is a mandatory key,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=MISSING
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Should Match Regexp    ${body}    {"reason_code":"700-023","reason_desc":"Missing SourceSegment ","field":"Segment Source"}
+    [Tags]
+
+
+
+ACE.3.6_TC_4Info_06.2_Create Retargeting for 4INFO (segmentSources : Invalid, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for segmentSources invalid,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=Test12@#$%34
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Should Match Regexp    ${body}    {"reason_code":"700-020","reason_desc":"Invalid SourceSegment ","field":"Segment Source"}
+    [Tags]    #   Known_bug       CM-1124
+
+
+ACE.3.6_TC_4Info_06.3_Create Retargeting for 4INFO (segmentSources : blank, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for blank segmentSources,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=${Empty}
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Should Match Regexp    ${body}    {"reason_code":"700-023","reason_desc":"Missing SourceSegment ","field":"Segment Source"}
+    [Tags]   #   Known_bug       CM-1124
+
+
+ACE.3.6_TC_4Info_06.4_Create Retargeting for 4INFO (segmentSources : null, don't accept)
+    [Documentation]     Input : Run API to create Retargeting for 4INFO for null segmentSources,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Retargeting Segment     uri=/ace/api/v2/report/create
+    ...                 dataSource=34
+    ...                 segmentSources=null
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Should Match Regexp    ${body}    {"reason_code":"700-020","reason_desc":"Invalid SourceSegment ","field":"Segment Source"}
+    [Tags]
+
+
+#-------------------------------------------------------------------------------------------
+
+# ACE.3.6_TC_4Info_Catalina_01.1_Create Retargeting for Catalina (Valid URL and data for Catalina, Accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina with valid URL,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Remove New Retargeting via DB    dataSource=25    email=${QA_DEFAULT_USER}
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=32769:0
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=200
+#     ...                 success=true
+#     [Tags]     # Known_bug   CM-1363
+
+
+# ACE.3.6_TC_4Info_Catalina_01.2_Create Retargeting for Catalina (invalid url, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina with invalid URL,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create123
+#     ...                 segmentEntryList=32208:0
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     [Tags]    #  Known_bug   CM-1002
+# #------------------------------------------------------------------------------------------
+# ACE.3.6_TC_4Info_Catalina_01.3_Create Retargeting for Catalina (when dataSource = 25, segmentSources = "gfc", invalid)
+#     [Documentation]     Input : Run API to Create Ring Geofence when dataSource = 25, segmentSources = "gfc",
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=33040:0
+#     ...                 dataSource=25
+#     ...                 segmentSources=gfc
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "report name"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-020"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid SourceSegment "
+#     [Tags]        Exclude    # NonUI  Known_bug     CM-1603    # CM-1364
+
+# #-------------------------------------------------------------------------------------------
+
+# ACE.3.6_TC_4Info_Catalina_02.1_Create Retargeting for Catalina (email : Missing, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for missing email,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=MISSING
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-006","reason_desc":"Request field email is missing","field":"email"}
+#     [Tags]     # Known_bug       CM-1124
+
+
+# ACE.3.6_TC_4Info_Catalina_02.2_Create Retargeting for Catalina (email : Invalid, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for email contains special characters,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=Test12#$%34
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "email"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-005"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid email format"
+#     [Tags]    #  Known_bug       CM-1125
+
+
+# ACE.3.6_TC_4Info_Catalina_02.3_Create Retargeting for Catalina (email : blank, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for blank email,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=${Empty}
+#     ...                 segmentEntryList=29606:0
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "email"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-006"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Request field email is missing"
+#     [Tags]
+
+# ACE.3.6_TC_4Info_Catalina_02.4_Create Retargeting for Catalina (email : null, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for null email,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=null
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "email"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-005"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid email format"
+#     [Tags]     # Known_bug       CM-1124
+
+# #-------------------------------------------------------------------------------------------
+
+
+# ACE.3.6_TC_4Info_Catalina_03.1_Create Retargeting for Catalina (segmentEntryList : Missing, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for missing segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=MISSING
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-018","reason_desc":"Required field Segment Entry List is missing","field":"segmentEntryList"}
+#     [Tags]
+
+# ACE.3.6_TC_4Info_Catalina_03.2_Create Retargeting for Catalina (segmentEntryList : Invalid, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for segmentEntryList invalid,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=Test12@#$%34
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+#     [Tags]
+
+
+# ACE.3.6_TC_4Info_Catalina_03.3_Create Retargeting for Catalina (segmentEntryList : blank, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for blank segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=${Empty}
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-018"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field Segment Entry List is missing"
+#     [Tags]
+
+# ACE.3.6_TC_4Info_Catalina_03.4_Create Retargeting for Catalina (segmentEntryList : null, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for null segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=null
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+#     [Tags]
+
+
+# ACE.3.6_TC_4Info_Catalina_03.5_Create Retargeting for Catalina (segmentEntryList : When all POIs in the category are chosen, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for target_poi_name is -1 at segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 segmentEntryList=50:-1
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+#     [Tags]
+
+
+# ACE.3.6_TC_4Info_Catalina_03.6_Create Retargeting for Catalina (segmentEntryList : Comma separated list of POIs (Points Of Interest) around which the Geofence is to be built., don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for Comma separated list of POIs (Points Of Interest) around which the Geofence is to be built.,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 segmentEntryList=50:182,50:1995
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+#     [Tags]
+
+
+# ACE.3.6_TC_4Info_Catalina_03.7_Create Retargeting for Catalina (segmentEntryList : invalid data for catalina, Accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina with valid URL,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=50:182
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+#     [Tags]    #  Known_bug   CM-1363
+# #-------------------------------------------------------------------------------------------
+
+
+# ACE.3.6_TC_Catalina_04.1_Create Retargeting for Catalina (dataSource : Missing, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for missing dataSource. As dataSource is a mandatory key,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=MISSING
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "700-012"
+#     Json Value Should Equal     ${body}     /reason_desc            "Required field DataSource is missing"
+#     [Tags]
+
+
+# ACE.3.6_TC_Catalina_04.2_Create Retargeting for Catalina (dataSource : Invalid, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for dataSource invalid,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentSources=rt
+#     ...                 dataSource="Test12@#$%34"
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "700-016"
+#     Json Value Should Equal     ${body}     /reason_desc            "Invalid Data Source"
+#     [Tags]     #  Known_bug       CM-1124
+
+
+# ACE.3.6_TC_Catalina_04.3_Create Retargeting for Catalina (dataSource : blank, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for blank dataSource,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentSources=rt
+#     ...                 dataSource=""
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "700-012"
+#     Json Value Should Equal     ${body}     /reason_desc            "Required field DataSource is missing"
+#     [Tags]    #  Known_bug       CM-1124
+
+
+# ACE.3.6_TC_Catalina_04.4_Create Retargeting for Catalina (dataSource : null, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for null dataSource,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentSources=rt
+#     ...                 dataSource=null
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "700-012"
+#     Json Value Should Equal     ${body}     /reason_desc            "Required field DataSource is missing"
+#     [Tags]    #  Known_bug       CM-1124
+
+
+# ACE.3.6_TC_Catalina_04.5_Create Retargeting for Catalina (dataSource : 9999, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for dataSource not exists i.e. 9999,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentSources=rt
+#     ...                 dataSource=9999
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "700-016"
+#     Json Value Should Equal     ${body}     /reason_desc            "Invalid Data Source"
+#     [Tags]
+
+
+# ACE.3.6_TC_Catalina_04.6_Create Retargeting for Catalina (dataSource : -25, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for dataSource -25,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentSources=rt
+#     ...                 dataSource=-25
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "700-016"
+#     Json Value Should Equal     ${body}     /reason_desc            "Invalid Data Source"
+#     [Tags]
+
+# #-------------------------------------------------------------------------------------------
+
+
+# ACE.3.6_TC_Catalina_05.1_Create Retargeting for Catalina (groupId : Missing, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for missing groupId. As groupId is a mandatory key,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 groupId=MISSING
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code                "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code       "700-002"
+#     Json Value Should Equal     ${body}     /errors/0/field             "Group Id"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc       "Required field groupID missing"
+#     [Tags]
+
+# ACE.3.6_TC_Catalina_05.2_Create Retargeting for Catalina (groupId : Invalid, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for groupId invalid,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 groupId=Test12@#$%34
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code                "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code       "600-001"
+#     Json Value Should Equal     ${body}     /errors/0/field             "Group Id"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc       "Invalid Group id."
+#     [Tags]    #   Known_bug       CM-1124
+
+
+# ACE.3.6_TC_Catalina_05.3_Create Retargeting for Catalina (groupId : blank, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for blank groupId,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 groupId=${Empty}
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code                "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code       "700-002"
+#     Json Value Should Equal     ${body}     /errors/0/field             "Group Id"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc       "Required field groupID missing"
+#     [Tags]    #  Known_bug       CM-1124
+
+
+
+# ACE.3.6_TC_Catalina_05.4_Create Retargeting for Catalina (groupId : null, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for null groupId,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 groupId=null
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code                "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code       "600-001"
+#     Json Value Should Equal     ${body}     /errors/0/field             "Group Id"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc       "Invalid Group id."
+#     [Tags]    #  Known_bug       CM-1124
+
+
+# ACE.3.6_TC_Catalina_05.5_Create Retargeting for Catalina (groupId : 9999, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for groupId not exists i.e. 9999,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 groupId=9999
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+#     Should Match Regexp         ${body}     "[{"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"},{"reason_code":"600-001","reason_desc":"Invalid Group id.","field":"Group Id"}]"
+#     [Tags]    #  Known_bug       CM-1365
+
+
+# ACE.3.6_TC_Catalina_05.6_Create Retargeting for Catalina (groupId : -25, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for groupId -25,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=rt
+#     ...                 groupId=-25
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Should Match Regexp         ${body}     "[{"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"},{"reason_code":"600-001","reason_desc":"Invalid Group id.","field":"Group Id"}]"
+#     [Tags]    #  Known_bug       CM-1365
+
+
+
+# #-------------------------------------------------------------------------------------------
+
+# ACE.3.6_TC_Catalina_06.1_Create Retargeting for Catalina (segmentSources : Missing, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for missing segmentSources. As segmentSources is a mandatory key,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=MISSING
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Should Match Regexp    ${body}    {"reason_code":"700-023","reason_desc":"Missing SourceSegment ","field":"Segment Source"}
+#     [Tags]
+
+
+# ACE.3.6_TC_Catalina_06.2_Create Retargeting for Catalina (segmentSources : Invalid, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for segmentSources invalid,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=Test12@#$%34
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Should Match Regexp    ${body}    {"reason_code":"700-020","reason_desc":"Invalid SourceSegment ","field":"Segment Source"}
+#     [Tags]     #  Known_bug       CM-1124
+
+
+# ACE.3.6_TC_Catalina_06.3_Create Retargeting for Catalina (segmentSources : blank, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for blank segmentSources,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=${Empty}
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Should Match Regexp    ${body}    {"reason_code":"700-023","reason_desc":"Missing SourceSegment ","field":"Segment Source"}
+#     [Tags]    #  Known_bug       CM-1124
+
+
+# ACE.3.6_TC_Catalina_06.4_Create Retargeting for Catalina (segmentSources : null, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Catalina for null segmentSources,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=25
+#     ...                 segmentSources=null
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Should Match Regexp    ${body}    {"reason_code":"700-020","reason_desc":"Invalid SourceSegment ","field":"Segment Source"}
+#     [Tags]   #   Known_bug       CM-1124
+
+
+# #-------------------------------------------------------------------------------------------
+
+# ACE.3.6_TC_Undertone_01.1_Create Retargeting for Undertone (Valid URL and data for Undertone, Accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone with valid URL,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Remove New Retargeting via DB    dataSource=42    email=${QA_DEFAULT_USER}
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=32770:0
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=200
+#     ...                 success=true
+#     [Tags]     # Known_bug   CM-1363
+
+
+# ACE.3.6_TC_Undertone_01.2_Create Retargeting for Undertone (invalid url, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone with invalid URL,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create123
+#     ...                 segmentEntryList=32208:0
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     [Tags]    #  Known_bug   CM-1002
+# #------------------------------------------------------------------------------------------
+# ACE.3.6_TC_Undertone_01.3_Create Retargeting for Undertone (when dataSource = 42, segmentSources = "gfc", invalid)
+#     [Documentation]     Input : Run API to Create Ring Geofence when dataSource = 42, segmentSources = "gfc",
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=33040:0
+#     ...                 dataSource=42
+#     ...                 segmentSources=gfc
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "report name"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-020"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid SourceSegment "
+#     [Tags]        Exclude    # NonUI  Known_bug     CM-1603    # CM-1364
+
+# #-------------------------------------------------------------------------------------------
+
+# ACE.3.6_TC_Undertone_02.1_Create Retargeting for Undertone (email : Missing, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone for missing email,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=MISSING
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-006","reason_desc":"Request field email is missing","field":"email"}
+#     [Tags]     # Known_bug       CM-1124
+
+
+# ACE.3.6_TC_Undertone_02.2_Create Retargeting for Undertone (email : Invalid, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone for email contains special characters,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=Test12#$%34
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "email"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-005"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid email format"
+#     [Tags]    #  Known_bug       CM-1125
+
+
+# ACE.3.6_TC_Undertone_02.3_Create Retargeting for Undertone (email : blank, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone for blank email,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=${Empty}
+#     ...                 segmentEntryList=29606:0
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "email"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-006"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Request field email is missing"
+#     [Tags]
+
+# ACE.3.6_TC_Undertone_02.4_Create Retargeting for Undertone (email : null, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone for null email,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=null
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "email"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-005"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid email format"
+#     [Tags]     # Known_bug       CM-1124
+
+# #-------------------------------------------------------------------------------------------
+
+
+# ACE.3.6_TC_Undertone_03.1_Create Retargeting for Undertone (segmentEntryList : Missing, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone for missing segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=MISSING
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-018","reason_desc":"Required field Segment Entry List is missing","field":"segmentEntryList"}
+#     [Tags]
+
+# ACE.3.6_TC_Undertone_03.2_Create Retargeting for Undertone (segmentEntryList : Invalid, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone for segmentEntryList invalid,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=Test12@#$%34
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+#     [Tags]
+
+
+# ACE.3.6_TC_Undertone_03.3_Create Retargeting for Undertone (segmentEntryList : blank, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone for blank segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=${Empty}
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-018"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field Segment Entry List is missing"
+#     [Tags]
+
+# ACE.3.6_TC_Undertone_03.4_Create Retargeting for Undertone (segmentEntryList : null, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone for null segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=null
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+#     [Tags]
+
+
+# ACE.3.6_TC_Undertone_03.5_Create Retargeting for Undertone (segmentEntryList : When all POIs in the category are chosen, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone for target_poi_name is -1 at segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 segmentEntryList=50:-1
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+#     [Tags]
+
+
+# ACE.3.6_TC_Undertone_03.6_Create Retargeting for Undertone (segmentEntryList : Comma separated list of POIs (Points Of Interest) around which the Geofence is to be built., don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone for Comma separated list of POIs (Points Of Interest) around which the Geofence is to be built.,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 segmentEntryList=50:182,50:1995
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+#     [Tags]
+
+
+# ACE.3.6_TC_Undertone_03.7_Create Retargeting for Undertone (segmentEntryList : invalid data for Undertone, Accept)
+#     [Documentation]     Input : Run API to create Retargeting for Undertone with valid URL,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=50:182
+#     ...                 dataSource=42
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+#     [Tags]    #  Known_bug   CM-1363
+#-------------------------------------------------------------------------------------------
+# # Commenting these tests will not have the Demo* datasources in QA DB going forward, hence no longer required.
+# ACE.3.6_TC_Demo_01.1_Create Retargeting for Demo (Valid URL and data for Demo, Accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo with valid URL,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Remove New Retargeting via DB    dataSource=45    email=${QA_DEFAULT_USER}
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=32772:0
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=200
+#     ...                 success=true
+#     [Tags]     # Known_bug   CM-1363
+
+
+# ACE.3.6_TC_Demo_01.2_Create Retargeting for Demo (invalid url, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo with invalid URL,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create123
+#     ...                 segmentEntryList=32208:0
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     [Tags]    #  Known_bug   CM-1002
+# #------------------------------------------------------------------------------------------
+# ACE.3.6_TC_Demo_01.3_Create Retargeting for Demo (when dataSource = 45, segmentSources = "gfc", invalid)
+#     [Documentation]     Input : Run API to Create Ring Geofence when dataSource = 45, segmentSources = "gfc",
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=33040:0
+#     ...                 dataSource=45
+#     ...                 segmentSources=gfc
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "report name"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-020"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid SourceSegment "
+#     [Tags]       Exclude    # NonUI   Known_bug     CM-1603    # CM-1364
+
+# #-------------------------------------------------------------------------------------------
+
+# ACE.3.6_TC_Demo_02.1_Create Retargeting for Demo (email : Missing, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo for missing email,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=MISSING
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-006","reason_desc":"Request field email is missing","field":"email"}
+#     [Tags]     # Known_bug       CM-1124
+
+
+# ACE.3.6_TC_Demo_02.2_Create Retargeting for Demo (email : Invalid, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo for email contains special characters,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=Test12#$%34
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "email"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-005"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid email format"
+#     [Tags]    #  Known_bug       CM-1125
+
+
+# ACE.3.6_TC_Demo_02.3_Create Retargeting for Demo (email : blank, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo for blank email,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=${Empty}
+#     ...                 segmentEntryList=29606:0
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "email"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-006"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Request field email is missing"
+#     [Tags]
+
+# ACE.3.6_TC_Demo_02.4_Create Retargeting for Demo (email : null, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo for null email,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 email=null
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "email"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-005"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid email format"
+#     [Tags]     # Known_bug       CM-1124
+
+# #-------------------------------------------------------------------------------------------
+
+
+# ACE.3.6_TC_Demo_03.1_Create Retargeting for Demo (segmentEntryList : Missing, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo for missing segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=MISSING
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-018","reason_desc":"Required field Segment Entry List is missing","field":"segmentEntryList"}
+#     [Tags]
+
+# ACE.3.6_TC_Demo_03.2_Create Retargeting for Demo (segmentEntryList : Invalid, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo for segmentEntryList invalid,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=Test12@#$%34
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+#     [Tags]
+
+
+# ACE.3.6_TC_Demo_03.3_Create Retargeting for Demo (segmentEntryList : blank, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo for blank segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=${Empty}
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-018"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field Segment Entry List is missing"
+#     [Tags]
+
+# ACE.3.6_TC_Demo_03.4_Create Retargeting for Demo (segmentEntryList : null, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo for null segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=null
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+
+#     Json Value Should Equal     ${body}     /reason_code            "400-999"
+#     Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+#     Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+#     [Tags]
+
+
+# ACE.3.6_TC_Demo_03.5_Create Retargeting for Demo (segmentEntryList : When all POIs in the category are chosen, don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo for target_poi_name is -1 at segmentEntryList,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 segmentEntryList=50:-1
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+#     [Tags]
+
+
+# ACE.3.6_TC_Demo_03.6_Create Retargeting for Demo (segmentEntryList : Comma separated list of POIs (Points Of Interest) around which the Geofence is to be built., don't accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo for Comma separated list of POIs (Points Of Interest) around which the Geofence is to be built.,
+#     ...                 Expected : API should not get processed successfully with response code 400.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 segmentEntryList=50:182,50:1995
+#     ...                 response_code=400
+#     ...                 success=false
+#     Should Match Regexp    ${body}    {"reason_code":"700-019","reason_desc":"Invalid Segment Entry List","field":"segmentEntryList"}
+#     [Tags]
+
+
+# ACE.3.6_TC_Demo_03.7_Create Retargeting for Demo (segmentEntryList : invalid data for Demo, Accept)
+#     [Documentation]     Input : Run API to create Retargeting for Demo with valid URL,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Create Retargeting Segment     uri=/ace/api/v2/report/create
+#     ...                 segmentEntryList=50:182
+#     ...                 dataSource=45
+#     ...                 segmentSources=rt
+#     ...                 response_code=400
+#     ...                 success=false
+#     Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+#     Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+#     Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+#     [Tags]    #  Known_bug   CM-1363
+# #-------------------------------------------------------------------------------------------

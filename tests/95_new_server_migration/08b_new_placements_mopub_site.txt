@@ -1,0 +1,166 @@
+*** Settings ***
+Resource            new_placement_imports.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH95B2							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${partner_name}							MoPub
+${placement_type_app}					MoPub Exchange App
+${placement_type_site}					MoPub Exchange Mobile Web 
+${placement_name_2_1}					REGRESSION MOPUB SITE
+#And many more placement site
+		           	 		
+*** Test Cases ***
+	
+Create New Placement ${placement_name_1_37} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION TARGET_SEGMENT MOPUB_20_ACXIOM APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12521	
+Create New Placement ${placement_name_1_38} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION TARGET_SEGMENT MOPUB_21_WALMART APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12523
+			
+Create New Placement ${placement_name_1_39} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=Regression WURFL
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12609	
+		
+Create New Placement ${placement_name_1_40} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_DEFAULT_PLACEMENT_MOPUB33333
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_DEFAULT_PLACEMENT_MOPUB33333
+Create New Placement ${placement_name_1_41} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION TRACKING APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=REGRESSION TRACKING APP
+	[Tags]		
+Create New Placement ${placement_name_1_42} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION PRIVATE AUCTION APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=REGRESSION PRIVATE AUCTION APP
+	[Tags]		
+Create New Placement ${placement_name_2_1} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=${placement_name_2_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=13194	
+	[Tags]							
+Create New Placement ${placement_name_2_2} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_01_SITE_8183
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_CONNEXIONS_SITE_01_8183
+	[Tags]		
+Create New Placement ${placement_name_2_3} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_02_SITE_8184
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_CONNEXIONS_SITE_02_8184
+	[Tags]	
+Create New Placement ${placement_name_2_4} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_03_SITE_8185
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_CONNEXIONS_SITE_03_8185
+	[Tags]	
+Create New Placement ${placement_name_2_5} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_04_SITE_8186
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_CONNEXIONS_SITE_04_8186
+	[Tags]	
+Create New Placement ${placement_name_2_6} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_05_SITE_8187
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_CONNEXIONS_SITE_05_8187
+	[Tags]	
+Create New Placement ${placement_name_2_7} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_PRIZM_01_SITE_8178
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_SITE_01_8178	
+	[Tags]	
+Create New Placement ${placement_name_2_8} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_PRIZM_02_SITE_8179
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_SITE_02_8179		
+	[Tags]	
+Create New Placement ${placement_name_2_9} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_PRIZM_03_SITE_8180
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_SITE_03_8180	
+	[Tags]	
+Create New Placement ${placement_name_2_10} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_PRIZM_04_SITE_8181
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_SITE_04_8181	
+	[Tags]	
+Create New Placement ${placement_name_2_11} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_PRIZM_05_SITE_8182
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_SITE_05_8182		
+	[Tags]			

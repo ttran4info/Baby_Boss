@@ -1,0 +1,100 @@
+*** Settings ***
+Resource            new_ad_imports.txt
+Force Tags         	NEW_UI_ACXIOM     BATCH96	BATCH96F							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${campaign_name}						20_Acxiom
+${parent_name_1}						No Boost
+${parent_name_2}				     	Boost  
+
+${child_name_1_1} 						No Boost Banner
+${child_name_2_1} 						Boost Banner
+
+		
+*** Test Cases ***
+ Remove Test
+ 	#remember to remove child adgroup first before removing parent adgroup.
+ 	Remove AdGroup By BundleID	ag_bundle_id=xxxx
+ 	[Tags]	 Exclude 	
+ 	
+Make New Campaign	
+	Add Campaign To Advertiser 6.0      
+      ...						 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 campaign_time_zone=${REGRESSION_TIME_ZONE}
+      ...                        campaign_start_date=${REGRESSION_START_DATE}
+      ...                        campaign_end_date=${REGRESSION_END_DATE}
+	[Tags]	
+
+#Parent #1	
+Make New Parent Ad ${parent_name_1}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_1}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+      ...						 ag_household_segment=1
+      ...						 ag_household_datasource_name=Acxiom
+      ...						 ag_household_segment_name=Acxiom_4044_200040448_LikelyConversionTradjentaDecile1Custom_20150122095732
+     [Tags]		
+Make New Child Ad ${child_name_1_1}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION TARGET_SEGMENT MOPUB_20_ACXIOM APP
+
+Make New Creative ${child_name_1_1}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg
+         
+#Parent #2       
+Make New Parent Ad ${parent_name_2}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_2}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000  
+      ...						 ag_household_segment=1
+      ...						 ag_household_datasource_name=Acxiom
+      ...						 ag_household_segment_name=Acxiom_4052_200293020_TentativeTruckSegment_20141111214011;Acxiom_4052_200293020_TentativeTruckSegment_20141114114945
+      ...						 ag_household_datasource_boost_flag=1
+Make New Child Ad ${child_name_2_1}, ${parent_name_2}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_2}
+      ...						 ag_adgroup_name=${child_name_2_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION TARGET_SEGMENT MOPUB_20_ACXIOM APP
+Make New Creative ${child_name_2_1}, ${parent_name_2}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_2}
+      ...                        child_adgroup_name=${child_name_2_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_2}_${child_name_2_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg         
+
+ 

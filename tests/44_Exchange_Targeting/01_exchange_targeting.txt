@@ -1,0 +1,62 @@
+*** Settings ***
+Resource             exchange_specific_imports.txt
+Force Tags           BATCH3		EXCHANGE		MOPUB					
+
+*** variables ***
+
+${aol_exchange_usa}						40489
+${aol_exchange_puerto_rico}				40490
+${aol_exchangeOnline_Puerto Rico}		40493		
+${mopub_exchange_canada}				40491
+${mopub_exchange_guam}					40492
+${mopub_exchange_Mobile Web}			40492	
+
+*** Test Cases ***
+TC_01_AOL - Exchange targeted plus country USA
+	[Documentation]		QA_REGRESSION_TESTS>AOL_Exchange_Targeting_Country USA (after prod dump update ad group to 40489)
+	Set Test Variable	${country}		US
+	Set Test Variable	${language}		es
+	Set Test Variable 	${data}			{"bcat":["26000","50000","51000"],"cur":["USD"],"device":{"geo":{"type":2,"city":"Castro Valley","country":"${country}","lat":37.716348,"lon":-122.0263035,"metro":"807","region":"CA","zip":"94552"},"lmt":0,"ifa":"fdb7afd6-b465-42f1-85df-ea7ad243fd5c","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"5.0","os":"Android", "model":"SM-G900A","make":"AT&T","language":"es","ua":"Mozilla/5.0 (Linux; Android 5.0; SAMSUNG-SM-G900A Build/LRX21T; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/46.0.2490.76 Mobile Safari/537.36","ip":"205.197.242.146"},"at":2,"app":{"name":"Android App", "bundle":"com.myyearbook.m/","id":"8991"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,8,10],"btype":[1,2],"format":[{"w":120,"h":20}],"h":20,"w":120},"id":"1"}],"id":"erlangcluster@rtb-select060.us-ec.adtech.com-2-44441453394529197932"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${aol_exchange_usa}      submit_client_impression_event=NO
+	[Tags]		
+TC_02_AOL - Exchange targeted plus country Puerto Rico
+	[Documentation]		QA_REGRESSION_TESTS>AOL_Exchange_Targeting_Country Puerto Rico (after prod dump update ad group to 40490)
+	Set Test Variable	${country}		Puerto Rico
+	Set Test Variable 	${data}			{"bcat":["26000","50000","51000"],"cur":["USD"],"device":{"geo":{"type":2,"city":"Castro Valley","country":"${country}","lat":37.716348,"lon":-122.0263035,"metro":"807","region":"CA","zip":"94552"},"lmt":0,"ifa":"fdb7afd6-b465-42f1-85df-ea7ad243fd5c","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"5.0","os":"Android", "model":"SM-G900A","make":"AT&T","language":"es","ua":"Mozilla/5.0 (Linux; Android 5.0; SAMSUNG-SM-G900A Build/LRX21T; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/46.0.2490.76 Mobile Safari/537.36","ip":"205.197.242.146"},"at":2,"app":{"name":"Android App", "bundle":"com.myyearbook.m/","id":"8991"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,8,10],"btype":[1,2],"format":[{"w":120,"h":20}],"h":20,"w":120},"id":"1"}],"id":"erlangcluster@rtb-select060.us-ec.adtech.com-2-44441453394529197932"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${aol_exchange_puerto_rico}      submit_client_impression_event=NO
+	[Tags]		
+	
+TC_03_AOL - Exchange Online targeted plus country Puerto Rico
+	[Documentation]		QA_REGRESSION_TESTS>AOL_Exchange_Targeting_Country Puerto Rico (after prod dump update ad group to 40493)
+	Set Test Variable	${country}		Puerto Rico
+	Set Test Variable 	${data}			{"bcat":["11000","12000","21000","23000","26000","50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"puerto rico"},"devicetype":2,"js":1,"os":"Windows 7","make":"Microsoft","language":"es","ua":"Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko","ip":"206.35.36.2"},"at":2,"user":{"id":"5953E0AA6E651AAEE07F54D8F8CE2A4F"},"site":{"publisher":{"id":"9946"},"mobile":0,"id":"9946-330801"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,2,3],"btype":[1,2],"format":[{"w":120,"h":20}],"h":20,"w":120},"id":"1"}],"id":"007-1-3-1497423559529896"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${aol_exchangeOnline_Puerto Rico}      submit_client_impression_event=NO
+	[Tags]		
+TC_04_Mopub - Exchange APP targeted plus country Canada 
+	[Documentation]		QA_REGRESSION_TESTS>Mopub_Exchange_Targeting_Country Canada (after prod dump update ad group to 40493)
+	Set Test Variable	${country}		Canada
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.zynga.wwf2.free","cat":["IAB1","IAB9","IAB9-30","entertainment","games"],"id":"99201","ver":"3.210"},"at":2,"badv":["alphabetty","alphabettysaga.com","bigfish.com","bigfishgames.com","boombeach.com","candycrush","candycrushsaga.com","candycrushsodasaga","clashofclans.com","cm.best-thing.eu","doubledown","doubledown.com","doubledowncasino.com","doubledowninteractive.com","etermax.com","funstage.com","gsn","king.com","meethue.com","netflix.com","pg.com","playtika","playtika.com","pokerstars.com","powdermonkeygames.com","showtime.com","storm8.com","supercell.com","supercell.net","tapslots.com","triviacrack","unilever.co.uk","uptodatecontent.net","wsop.com"],"bcat":["IAB25","IAB25-2","IAB26","IAB7-39","IAB9-25","IAB9-7","IAB9-9","IAB3-7"],"device":{"carrier":"310-410","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"1fd74c4a692615cd0cc1fccfdc0403b8","dpidsha1":"1a432fa9628afe7209ab57cac283eab86dc66152","ifa":"e7ec559b-8a60-410d-93cf-47a758e6f0c8","geo":{"city":"Valparaiso","country":"${country}","lat":41.507603,"lon":-87.144257,"metro":"602","region":"IN","zip":"46385"},"ip":"50.129.251.12","js":1,"language":"es","make":"samsung","model":"SAMSUNG-SM-G920A","os":"Android","osv":"5.1.1","ua":"Mozilla/5.0 (Linux; Android 5.1.1; SAMSUNG-SM-G920A Build/LMY47X; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/46.0.2490.76 Mobile Safari/537.36"},"id":"31bf6583-9ca4-46e6-961d-26e7a7979edc","imp":[{"banner":{"api":[3,5],"battr":[1,2,3,8,9,10,13,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":20,"pos":1,"w":120},"bidfloor":0.0270,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"946f80d41b104b26882908123fd9879f"}],"user":{"keywords":"z_sdkversion:4.4.1:z_impression_id:5c78bd77-0899-47e0-a5cf-fe765ab1dd00,z_slot_name:MOB_WWF2_BAN,z_nexage:true,z_min_version:4.2.1"}}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${mopub_exchange_canada}      submit_client_impression_event=NO
+	[Tags]		
+
+TC_05_Mopub - Exchange APP targeted plus country Guam
+	[Documentation]		QA_REGRESSION_TESTS>Mopub_Exchange_Targeting_Country Guam (after prod dump update ad group to 40482)
+	Set Test Variable	${country}		Guam
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.zynga.wwf2.free","cat":["IAB1","IAB9","IAB9-30","entertainment","games"],"id":"99201","ver":"3.210"},"at":2,"badv":["alphabetty","alphabettysaga.com","bigfish.com","bigfishgames.com","boombeach.com","candycrush","candycrushsaga.com","candycrushsodasaga","clashofclans.com","cm.best-thing.eu","doubledown","doubledown.com","doubledowncasino.com","doubledowninteractive.com","etermax.com","funstage.com","gsn","king.com","meethue.com","netflix.com","pg.com","playtika","playtika.com","pokerstars.com","powdermonkeygames.com","showtime.com","storm8.com","supercell.com","supercell.net","tapslots.com","triviacrack","unilever.co.uk","uptodatecontent.net","wsop.com"],"bcat":["IAB25","IAB25-2","IAB26","IAB7-39","IAB9-25","IAB9-7","IAB9-9","IAB3-7"],"device":{"carrier":"310-410","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"1fd74c4a692615cd0cc1fccfdc0403b8","dpidsha1":"1a432fa9628afe7209ab57cac283eab86dc66152","ifa":"e7ec559b-8a60-410d-93cf-47a758e6f0c8","geo":{"city":"Valparaiso","country":"${country}","lat":41.507603,"lon":-87.144257,"metro":"602","region":"IN","zip":"46385"},"ip":"50.129.251.12","js":1,"language":"es","make":"samsung","model":"SAMSUNG-SM-G920A","os":"Android","osv":"5.1.1","ua":"Mozilla/5.0 (Linux; Android 5.1.1; SAMSUNG-SM-G920A Build/LMY47X; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/46.0.2490.76 Mobile Safari/537.36"},"id":"31bf6583-9ca4-46e6-961d-26e7a7979edc","imp":[{"banner":{"api":[3,5],"battr":[1,2,3,8,9,10,13,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":20,"pos":1,"w":120},"bidfloor":0.0270,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"946f80d41b104b26882908123fd9879f"}],"user":{"keywords":"z_sdkversion:4.4.1:z_impression_id:5c78bd77-0899-47e0-a5cf-fe765ab1dd00,z_slot_name:MOB_WWF2_BAN,z_nexage:true,z_min_version:4.2.1"}}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${mopub_exchange_guam}      submit_client_impression_event=NO
+	[Tags]		
+	
+TC_06_Mopub - Exchange Mobile Web targeted plus country Guam
+	[Documentation]		QA_REGRESSION_TESTS>Mopub_Exchange_Targeting_Country Guam (after prod dump update ad group to 40482)
+	Set Test Variable	${country}		Guam
+	Set Test Variable 	${data}			{"at":2,"bcat":["IAB14-1","IAB14-2","IAB14-3","IAB25","IAB26","IAB6-7","IAB7-28","IAB7-3","IAB7-30","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-410","connectiontype":3,"dnt":0,"geo":{"country":"GUAM","lat":38.841239,"lon":-97.608901,"region":"IL"},"h":2560,"ifa":"867ba6f2-4456-4a1b-b002-d0ce9d413281","ip":"107.77.85.19","js":1,"language":"es","make":"samsung","model":"SAMSUNG-SM-G920A","os":"Android","osv":"7.0","pxratio":4.0,"ua":"Mozilla/5.0 (Linux; Android 7.0; SAMSUNG-SM-G920A Build/NRD90M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/58.0.3029.83 Mobile Safari/537.36","w":1440},"id":"90ed8ffc-4751-48fb-b845-56c8abd2364d","imp":[{"banner":{"battr":[3,8,9,10,14,6],"btype":[4],"h":20,"pos":1,"w":120},"bidfloor":0.50,"displaymanager":"mopub","displaymanagerver":"4.7.1","ext":{"brsrclk":1,"dlp":1},"id":"1","instl":0,"secure":0,"tagid":"agltb3B1Yi1pbmNyDQsSBFNpdGUYwvXUEgw"}],"site":{"cat":["IAB12","IAB20","navigation","news"],"domain":"https://market.android.com/details?id=com.shoutem.n72123&feature=search_result#?t=W251bGwsMSwyLDEsImNvbS5zaG91dGVtLm43MjEyMyJd","id":"agltb3B1Yi1pbmNyDAsSA0FwcBjEztQSDA","name":"Salina Post","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYksXSEgw","name":"MDM Group LLC"}}}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${mopub_exchange_Mobile Web}      submit_client_impression_event=NO
+	[Tags]		
+	
+TC_07_Nexage - Exchange Negative Test
+	[Documentation]		QA_REGRESSION_TESTS> Ad request with Nexage should give 204, since ad group with Nexage Exchange targeting is set.
+	Set Test Variable	${country}		Guam
+	Set Test Variable 	${data}		{"id":"1a2e9f92-60f8-4583-b04e-41603f506175","at":2,"imp":[{"id":"1a2e9f92-60f8-4583-b04e-41603f506175-1","instl":0,"banner":{"h":28,"w":168,"pos":5},"displaymanager":"web","bidfloor":0.71,"ext":{"nex_screen":0}}],"app":{"id":"46333","name":"BaderatIndustry-Android","publisher":{"id":"12182","name":"BaderatIndustryLLP","ext":{"nex_else":2}},"domain":"baderat.com","cat":["IAB9"],"bundle":"com.sonakai.jigsaw.good.old.puzzles","storeurl":"https://play.google.com/store/apps/details?id=com.sonakai.jigsaw.good.old.puzzles"},"device":{"dpidmd5":"026b4236738a17b2","ip":"107.210.211.117","carrier":"WIFI","ua":"Mozilla/5.0(Linux;U;Android4.0.4;en-gb;GOTABBuild/IMM76D)AppleWebKit/534.30(KHTML,likeGecko)Version/4.0MobileSafari/534.30","make":"MyGo","model":"GoTab","osv":"4.0.4","js":1,"os":"Android","connectiontype":2,"devicetype":5,"geo":{"lat":33.829,"lon":-118.3143,"country":"USA","city":"TORRANCE","zip":"90501","metro":"803","region":"CA","type":2}},"user":{"id":"026b4236738a17b2","geo":{"zip":"90501","type":3}},"regs":{"coppa":0}}
+    RTB Request 				API=${RTB_Nexage_API}          data=${data}		response_code=204  	      submit_client_impression_event=NO
+	[Tags]	
+      

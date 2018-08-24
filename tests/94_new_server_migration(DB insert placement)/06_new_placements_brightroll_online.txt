@@ -1,0 +1,31 @@
+*** Settings ***
+Resource            new_placement_imports_94.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH94							     
+
+		
+*** Variables ***
+${partner_name}						    BrightRoll Online Exchange
+
+${placement_type_online}				BrightRoll Desktop 
+${placement_name_3_1}					REGRESSION BRX_BRX0003 ONLINE  
+${placement_name_3_2}					REGRESSION BRX_JSON ONLINE
+    	 		
+*** Test Cases ***
+Insert Placement Into DB ${placement_name_3_1} (online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=BRX0003		
+		
+Insert Placement Into DB ${placement_name_3_2} (online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=REGRESSION BRX_JSON ONLINE			
+

@@ -1,0 +1,56 @@
+*** Settings ***
+Resource            deployment_api_imports.txt
+Force Tags         	Deployment 
+
+
+# https://wiki.4info.com/pages/viewpage.action?pageId=29917295#PACAPIdocumentation-1.1.1GetalladvertisersbygroupId
+# API Name: deployment controller
+# Method: GET - getAllDeployments /api/v1/deployment (Done)
+# Method: Post - createDeployment /api/v1/deployment 
+# Method: GET - getAllActiveDeployments /api/v1/deployment/active (Done)
+
+# Method: PUT - setDeliveryPartnerDeploymentStatus /api/v1/deployment/delivery-partner-status/{deploymentId}
+# Method: PUT - setDeploymentStatus /api/v1/deployment/deployment-status/{deploymentId}
+# Method: GET - getSummaryDeploymentsForDatasets /api/v1/deployment/ds-summary
+# Method: PUT - setDtDeploymentStatus /api/v1/deployment/dtSetup-status/{deploymentId}
+# Method: GET - getRunNowDeployments /api/v1/deployment/now
+# Method: PUT - setRunNowDeployment /api/v1/deployment/run-now/{deploymentId}
+# Method: POST - createDeploymentStat /api/v1/deployment/stat/{id}
+
+# Method: GET - getSummaryDeployments /api/v1/deployment/summary
+# Method: DELETE - deleteDeployment /api/v1/deployment/{id}
+# Method: GET - getDeploymentId /api/v1/deployment/{id}
+# Method: PUT - updateDeployment /api/v1/deployment/{id}
+
+# userName = rhino.users
+# groupId = rhino.groups
+
+
+*** Variables ***
+${groupId}	1
+*** Keywords ***
+
+
+*** Test Cases ***
+
+DEPLOYMENT_TC_01_Get_All_Deployments (db vs api count)
+	[Documentation]		Test deployment controller api
+	Set Test Variable 	${uri_link}		/api/v1/deployment
+	DEPLOYMENT API	uri=${uri_link}
+	...			expected_status_code=200
+	...			success=true
+	${api_count}=    Get Count    ${body}    "name"
+	Get All Deployment DB Count		#DB_count is generated
+	Should Be Equal 	${api_count}		${DB_count}
+	[Tags]		
+
+DEPLOYMENT_TC_01_Get_All_Active_Deployments (db vs api count)		
+	[Documentation]		Test deployment controller api
+	Set Test Variable 	${uri_link}		/api/v1/deployment/active
+	DEPLOYMENT API	uri=${uri_link}
+	...			expected_status_code=200
+	...			success=true
+	${api_count}=    Get Count    ${body}    "name"
+	Get All Active Deployment DB Count		#DB_count is generated
+	Should Be Equal 	${api_count}		${DB_count}
+	[Tags]				

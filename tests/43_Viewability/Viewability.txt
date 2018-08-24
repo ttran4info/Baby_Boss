@@ -1,0 +1,55 @@
+*** Settings ***
+Resource             viewable_imports.txt
+Force Tags           VIEW			BATCH17
+
+*** variables ***
+${app_id}				7825
+${site_id}				98765
+${static_ag}			43862|40794  
+${static_ag1}			44122|40795
+${static_ag2}			44140|40796
+
+## After prod dump updates ad groups to 40794, 40795 and 40796. Update DVP_CRID to B78430 (MW) and B78431 (Online)
+
+*** Test Cases ***
+Mopub - Viewability response for App request
+	[Documentation]		Verify response for App ad with viewablity in QA_REGRESSION_TESTS>10_RTB_Mopub>
+	Set Test Variable 	${data}			{"app":{"bundle":"786974922","cat":["IAB24","social_networking"],"id":"${app_id}","name":"some_name","publisher":{"id":"656debc2dcfd4e47833e15958ad5b9d1","name":"ITIInc"},"storeurl":"https://itunes.apple.com/jp/app/wan-quan-wu-liao-usa-senchatto/id786974922?mt=8","ver":"2.9"},"at":2,"bcat":["IAB7-39"],"device":{"carrier":"440-50","connectiontype":2,"devicetype":4,"dnt":0,"geo":{"city":"Avenel","country":"USA","metro":"819","region":"NJ","zip":"07001"},"h":1136,"hwv":"iPhone6","ifa":"5254CC2E-12F8-4356-963C-EC142E7FF32E","ip":"169.22.29.7","js":1,"language":"ja","make":"Apple","model":"iPhone","os":"iOS","osv":"9.3.1","ua":"Mozilla/5.0(iPhone;CPUiPhoneOS9_3_1likeMacOSX)AppleWebKit/601.1.46(KHTML,likeGecko)Mobile/13E238","w":640},"id":"07C57B20-032B-4D93-0707-231A3092A988","imp":[{"banner":{"api":[3,5],"battr":[9,10,14,6],"btype":[4],"h":50,"pos":1,"w":320},"bidfloor":0.110,"displaymanager":"mopub","displaymanagerver":"4.4.0kit","ext":{"brsrclk":1,"dlp":1},"id":"1","instl":0,"secure":0,"tagid":"07a8fe6eeaa04877a56eeeb5fa339192"}]}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag}  
+   	${result}= 	Get Json Value 	 ${response_content} 	/seatbid/0/bid/0/adm	
+   	log	${result}
+   	Should Match Regexp			${result}		<script src=\\\\"mraid.js\\\\"></script>	
+   	Should Match Regexp			${result}		https://cdn.doubleverify.com
+	Should Match Regexp			${result}		plc=inapp
+	Should Match Regexp			${result}		DVP_SID=7825
+	Should Match Regexp			${result}		DVP_APPID=786974922
+   	[Tags]	
+
+Mopub - Viewability response for MW request
+
+	[Documentation]		Verify response for MW ad with viewablity in QA_REGRESSION_TESTS>10_RTB_Mopub>
+	Set Test Variable 	${data}			{"explain":"true","at":2,"bcat":["IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":2,"dnt":0,"geo":{"city":"QAQAQA","country":"USA","metro":"819","region":"NJ","zip":"07001"},"h":1920,"ifa":"e240c549-b515-47fc-9954-8e0fe2064b39","ip":"70.239.202.17","js":1,"language":"en","make":"motorola","model":"XT1565","os":"Android","osv":"6.0.1","pxratio":3.0,"ua":"Mozilla/5.0(Linux;Android6.0.1;XT1565Build/MCD24.294-4-6;wv)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/58.0.3029.83MobileSafari/537.36","w":1080},"id":"4ea12eb8-b435-4212-8846-d5b5b8cab61a","imp":[{"banner":{"battr":[3,8,9,10,14,6],"btype":[4],"h":50,"pos":1,"w":320},"bidfloor":0.50,"displaymanager":"mopub","displaymanagerver":"4.7.1","ext":{"brsrclk":1,"dlp":1},"id":"1","instl":0,"secure":0,"tagid":"agltb3B1Yi1pbmNyDQsSBFNpdGUYwvXUEgw"}],"site":{"cat":["IAB12","IAB20","navigation","news"],"domain":"https://market.android.com/details?id=com.shoutem.n72123&feature=search_result#?t=W251bGwsMSwyLDEsImNvbS5zaG91dGVtLm43MjEyMyJd","id":${site_id},"name":"SalinaPost","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYksXSEgw","name":"MDMGroupLLC"}}}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag1}  
+   	${result}= 	Get Json Value 	 ${response_content} 	/seatbid/0/bid/0/adm	
+   	log	${result}
+   	Should Match Regexp			${result}		span id=
+   	Should Match Regexp			${result}		https://cdn.doubleverify.com
+	Should Match Regexp			${result}		plc=mweb
+	Should Match Regexp			${result}		DVP_SID=3582
+	Should Match Regexp			${result}		DVP_CRID=B78464
+	Should Match Regexp			${result}    	DVP_CDIDTYPE=Android
+ 	[Tags]	
+ 	
+AOL - Viewability response for Online request123
+
+	[Documentation]		Verify response for Online ad with viewablity in QA_REGRESSION_TESTS>10_RTB_Mopub>
+	Set Test Variable 	${data}			{"explain":"true","bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"Canada"},"devicetype":2,"js":1,"os":"Windows 7","make":"Microsoft","language":"en","ua":"Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko","ip":"192.152.200.150"},"at":2,"user":{"id":"56D0A0C66E651A23CD8BFAC6F99B2F14"},"site":{"publisher":{"id":"10266"},"mobile":0,"page":"http://OnlineDomain.com","id":"10266-323300"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"047-1-2-1492672960742169"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag2}  
+   	${result}= 	Get Json Value 	 ${response_content} 	/seatbid/0/bid/0/adm	
+   	log	${result}
+   	Should Match Regexp			${result}		span id=	
+   	Should Match Regexp			${result}		https://cdn.doubleverify.com
+	Should Match Regexp			${result}		DVP_SID=22334
+	Should Match Regexp			${result}		DVP_CRID=B78465
+	Should Match Regexp			${result}    	DVP_CDIDTYPE=Other
+	[Tags]			

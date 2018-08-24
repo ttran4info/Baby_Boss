@@ -1,0 +1,665 @@
+*** Settings ***
+Resource            new_ad_imports.txt
+Force Tags         	NEW_UI_EXCHANGE_SPECIFIC     BATCH96	BATCH96G							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${campaign_name}						23_Exchange_Specific
+
+${parent_name_1}						Adaptv
+${parent_name_2}						AOL
+${parent_name_3}						Apnexus
+${parent_name_4}						LiveRail
+${parent_name_5}						Mopub
+${parent_name_6}						Pubmatic
+${parent_name_7}						Rubicon
+${parent_name_8}						Smaato
+${parent_name_9}						Spotxchange
+${parent_name_10}						Xad
+
+${child_name_1_1}						App
+${child_name_1_2}						Web
+${child_name_1_3}						Online					
+
+		
+*** Test Cases ***
+ Remove Test
+ 	#remember to remove child adgroup first before removing parent adgroup.
+ 	Remove AdGroup By BundleID	ag_bundle_id=34416
+ 	[Tags]	 	exclude	 	
+ 	
+Make New Campaign	
+	Add Campaign To Advertiser 6.0      
+      ...						 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 campaign_time_zone=${REGRESSION_TIME_ZONE}
+      ...                        campaign_start_date=${REGRESSION_START_DATE}
+      ...                        campaign_end_date=${REGRESSION_END_DATE}
+	[Tags]	
+
+#Parent #1	
+Make New Parent Ad ${parent_name_1}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_1}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+
+     [Tags]
+# App     		
+Make New Child Ad ${child_name_1_1}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION ADAPTV APP
+	[Tags]	 
+Make New Creative ${child_name_1_1}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_1}             
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_1}_CREATIVE
+      ...                        ag_creative_type=Interstitial Video
+      ...						 ag_creative_type_2=Upload Video              
+      ...						ag_creative_video_type=MIGRATION
+      ...						ag_creative_video_name=Hot_Pockets_30s_video.mp4
+      ...						ag_creative_video_duration=30
+      [Tags]	 
+ # Web     		
+Make New Child Ad ${child_name_1_2}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_2}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION ADAPTV WEB
+	[Tags]	 
+Make New Creative ${child_name_1_2}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_2}            
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_2}_CREATIVE
+      ...                        ag_creative_type=Interstitial Video
+      ...						 ag_creative_type_2=Upload Video
+      ...                        ag_creative_banner_size=320x50               
+      ...						ag_creative_video_type=MIGRATION
+      ...						ag_creative_video_name=Hot_Pockets_30s_video.mp4
+      ...						ag_creative_video_duration=30     
+      [Tags]	 
+Make New Creative ${child_name_1_2}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_1}     
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_1}_CREATIVE
+      ...                        ag_creative_type=Interstitial Video
+      ...						 ag_creative_type_2=Upload Video              
+      ...						ag_creative_video_type=MIGRATION
+      ...						ag_creative_video_name=Hot_Pockets_30s_video.mp4
+      ...						ag_creative_video_duration=30   
+      [Tags]	        
+# Online     		
+Make New Child Ad ${child_name_1_3}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_3}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION ADAPTV ONLINE
+      ...						 app_flag=0
+      [Tags]	 
+Make New Creative ${child_name_1_3}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_3}              
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_3}_CREATIVE
+      ...                        ag_creative_type=Interstitial Video
+      ...						 ag_creative_type_2=Upload Video              
+      ...						ag_creative_video_type=MIGRATION
+      ...						ag_creative_video_name=Hot_Pockets_30s_video.mp4
+      ...						ag_creative_video_duration=30
+      [Tags]	 
+#AOL
+#Parent #2	
+Make New Parent Ad ${parent_name_2}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_2}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+
+     [Tags]
+# App     		
+Make New Child Ad ${child_name_1_1}, ${parent_name_2}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_2}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION AOL APP
+
+Make New Creative ${child_name_1_1}, ${parent_name_2}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_2}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_2}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg  
+#Appnexus Millenial
+#Parent #3	
+Make New Parent Ad ${parent_name_3}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_3}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+
+     [Tags]
+# App_mm   		
+Make New Child Ad ${child_name_1_1}_mm, ${parent_name_3}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_3}
+      ...						 ag_adgroup_name=${child_name_1_1}_mm
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION APPNEXUS_MM APP
+
+Make New Creative ${child_name_1_1}_mm, ${parent_name_3}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_3}
+      ...                        child_adgroup_name=${child_name_1_1}_mm
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_3}_${child_name_1_1}_mm_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg   
+# App_ms   		
+Make New Child Ad ${child_name_1_1}_ms, ${parent_name_3}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_3}
+      ...						 ag_adgroup_name=${child_name_1_1}_ms
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION APPNEXUS_MS APP
+
+Make New Creative ${child_name_1_1_ms}, ${parent_name_3}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_3}
+      ...                        child_adgroup_name=${child_name_1_1}_ms
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_3}_${child_name_1_1}_ms_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg 
+#liverail
+#Parent #4	
+Make New Parent Ad ${parent_name_4}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_4}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+
+     [Tags]		EXCLUDE
+# App     		
+Make New Child Ad ${child_name_1_1}, ${parent_name_4}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_4}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION LIVERAIL APP
+	[Tags]		EXCLUDE
+Make New Creative ${child_name_1_1}, ${parent_name_4}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_4}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_4}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg
+      [Tags]		EXCLUDE
+ # Web     		
+Make New Child Ad ${child_name_1_2}, ${parent_name_4}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_4}
+      ...						 ag_adgroup_name=${child_name_1_2}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION LIVERAIL WEB
+	[Tags]		EXCLUDE
+Make New Creative ${child_name_1_2}, ${parent_name_4}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_4}
+      ...                        child_adgroup_name=${child_name_1_2}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_4}_${child_name_1_2}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg
+      [Tags]		EXCLUDE
+#Parent #5 Mopub	
+Make New Parent Ad ${parent_name_5}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_5}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+
+     [Tags]		EXCLUDE
+# App     		
+Make New Child Ad ${child_name_1_1}, ${parent_name_5}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_5}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB APP
+	[Tags]		EXCLUDE
+Make New Creative ${child_name_1_1}, ${parent_name_5}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_5}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_5}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg 
+      [Tags]	EXCLUDE
+# Web     		
+Make New Child Ad ${child_name_1_2}, ${parent_name_5}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_5}
+      ...						 ag_adgroup_name=${child_name_1_2}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB SITE
+	[Tags]	
+Make New Creative ${child_name_1_2}, ${parent_name_5}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_5}
+      ...                        child_adgroup_name=${child_name_1_2}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_5}_${child_name_1_2}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg 
+      [Tags]	
+#Parent #6 Pubmatic	
+Make New Parent Ad ${parent_name_6}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_6}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+
+     [Tags]		EXCLUDE
+# App     		
+Make New Child Ad ${child_name_1_1}, ${parent_name_6}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_6}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION PUBMATIC APP
+	[Tags]		EXCLUDE
+Make New Creative ${child_name_1_1}, ${parent_name_6}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_6}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_6}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg 
+      [Tags]		EXCLUDE
+# Web     		
+Make New Child Ad ${child_name_1_2}, ${parent_name_6}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_6}
+      ...						 ag_adgroup_name=${child_name_1_2}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION PUBMATIC SITE
+      [Tags]		EXCLUDE
+
+Make New Creative ${child_name_1_2}, ${parent_name_6}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_6}
+      ...                        child_adgroup_name=${child_name_1_2}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_6}_${child_name_1_2}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg      
+      [Tags]		EXCLUDE  
+# Online     		
+Make New Child Ad ${child_name_1_3}, ${parent_name_6}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_6}
+      ...						 ag_adgroup_name=${child_name_1_3}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION PUBMATIC ONLINE
+      ...						 app_flag=0
+      [Tags]		EXCLUDE
+Make New Creative ${child_name_1_3}, ${parent_name_6}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_6}
+      ...                        child_adgroup_name=${child_name_1_3}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_6}_${child_name_1_3}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg   
+      [Tags]		EXCLUDE
+#Parent #7 Rubicon	
+Make New Parent Ad ${parent_name_1}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_7}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+
+     [Tags]
+# App     		
+Make New Child Ad ${child_name_1_1}, ${parent_name_7}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_7}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION RUBICON APP
+
+Make New Creative ${child_name_1_1}, ${parent_name_7}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_7}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_7}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg
+ # Web     		
+Make New Child Ad ${child_name_1_2}, ${parent_name_7}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_7}
+      ...						 ag_adgroup_name=${child_name_1_2}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION RUBICON SITE
+
+Make New Creative ${child_name_1_2}, ${parent_name_7}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_7}
+      ...                        child_adgroup_name=${child_name_1_2}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_7}_${child_name_1_2}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg      
+
+# Online     		
+Make New Child Ad ${child_name_1_1}, ${parent_name_7}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_7}
+      ...						 ag_adgroup_name=${child_name_1_3}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION RUBICON ONLINE
+      ...						 app_flag=0
+Make New Creative ${child_name_1_3}, ${parent_name_7}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_7}
+      ...                        child_adgroup_name=${child_name_1_3}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_7}_${child_name_1_3}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg  
+#Parent #8 Smaato	
+Make New Parent Ad ${parent_name_8}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_8}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+
+     [Tags]
+# App     		
+Make New Child Ad ${child_name_1_1}, ${parent_name_8}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_8}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION SMAATO APP
+
+Make New Creative ${child_name_1_1}, ${parent_name_8}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_8}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_8}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg
+ # Web     		
+Make New Child Ad ${child_name_1_2}, ${parent_name_8}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_8}
+      ...						 ag_adgroup_name=${child_name_1_2}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION SMAATO WEB
+
+Make New Creative ${child_name_1_2}, ${parent_name_8}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_8}
+      ...                        child_adgroup_name=${child_name_1_2}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_8}_${child_name_1_2}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg  
+#Parent #9 Spotxchange	
+Make New Parent Ad ${parent_name_9}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_9}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+
+     [Tags]
+# App     		
+Make New Child Ad ${child_name_1_1}, ${parent_name_9}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_9}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION SPOTXCHANGE APP
+
+Make New Creative ${child_name_1_1}, ${parent_name_9}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_9}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_9}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg
+ # Web     		
+Make New Child Ad ${child_name_1_2}, ${parent_name_9}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_9}
+      ...						 ag_adgroup_name=${child_name_1_2}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION SPOTXCHANGE WEB
+	[Tags]	
+Make New Creative ${child_name_1_2}, ${parent_name_9}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_9}
+      ...                        child_adgroup_name=${child_name_1_2}
+      ...                        ag_creative_name=${parent_name_9}_${child_name_1_2}_CREATIVE
+      ...                        ag_creative_type=Interstitial Video
+      ...						 ag_creative_type_2=Upload Video              
+      ...						ag_creative_video_type=MIGRATION
+      ...						ag_creative_video_name=Hot_Pockets_30s_video.mp4
+      ...						ag_creative_video_duration=30     
+      [Tags]      
+#Parent #10 XAD	
+Make New Parent Ad ${parent_name_10}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_10}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=10000   
+
+     [Tags]
+# App     		
+Make New Child Ad ${child_name_1_1}, ${parent_name_10}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_10}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION XAD APP
+
+Make New Creative ${child_name_1_1}, ${parent_name_10}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_10}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_10}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg
+ # Web     		
+Make New Child Ad ${child_name_1_2}, ${parent_name_10}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_10}
+      ...						 ag_adgroup_name=${child_name_1_2}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION XAD WEB
+
+Make New Creative ${child_name_1_2}, ${parent_name_10}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_10}
+      ...                        child_adgroup_name=${child_name_1_2}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_10}_${child_name_1_2}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg                                                     

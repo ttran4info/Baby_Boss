@@ -1,0 +1,74 @@
+*** Settings ***
+Resource            new_placement_imports_94.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH94							     
+		
+*** Variables ***
+${partner_name}						Adap.tv Mobile Exchange
+${placement_type_app}					Adap.tv App 
+${placement_name_1_1}					REGRESSION ADAPTV APP2
+${placement_name_1_2}					REGRESSION DEVICE_FC_01 ADAPTV APP
+${placement_type_site}					Adap.tv Mobile Web 
+${placement_name_2_1}					REGRESSION ADAPTV WEB
+${placement_name_2_2}					REGRESSION DEVICE_FC_03_VIDEO ADAPTV SITE
+${placement_name_2_3}				 	REGRESSION IP_FC_03_VIDEO ADAPTV SITE
+${placement_type_online}				Adap.tv Desktop  
+${placement_name_3_1}					REGRESSION ADAPTV ONLINE
+		           	 		
+*** Test Cases ***
+
+Insert Placement Into DB ${placement_name_1_1} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13189	
+Insert Placement Into DB ${placement_name_1_2} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)	
+	...						pl_bid_attribute_Value=FREQUENCY_CAP_01	
+Insert Placement Into DB ${placement_name_1_3} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION ADAPTV_VIDEO_STREAMING_POSITION APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App Bundle ID (exchange agnostic)
+	...						pl_bid_attribute_Value=REGRESSION BUNDLE ADAPTV APP
+Insert Placement Into DB ${placement_name_2_1} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=${placement_name_2_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=13192	
+Insert Placement Into DB ${placement_name_2_2} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=${placement_name_2_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=12481
+Insert Placement Into DB ${placement_name_2_3} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=${placement_name_2_3}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=12483	
+Insert Placement Into DB ${placement_name_3_1} (online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=13472	

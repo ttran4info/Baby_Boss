@@ -1,0 +1,1181 @@
+#---------------------------------------------------------------------------------------
+# Script Change Log
+# 2017-08-23 : vkatkar : Created new script
+# 2017-08-29 : vkatkar : Added Force Tags for Jenkins job run
+#
+#---------------------------------------------------------------------------------------
+
+*** Settings ***
+Resource        ACE_api_imports.txt
+Force Tags      ACE_API    BATCH21    ACE3.3    OffshoreQA
+Suite Setup     Remove New Geofence via DB      name=ACE_Regression_Custom_Geofence
+Suite Teardown  Remove New Geofence via DB      name=ACE_Regression_Custom_Geofence
+
+# Wiki : https://wiki.4info.com/display/Software/ACE+API+Documentation#ACEAPIDocumentation-3.3CustomGeofence
+# API Name : 3.3 Custom Geofence
+# Method : POST
+# URL : qa-ace-10:8080/ace/api/v2/report/create
+# DESC : Get details of the ACE Report by report Id
+# rhino.ace_report
+
+
+*** Variables ***
+
+
+*** Keywords ***
+ACE3.1 upload file
+     [Arguments]                   ${API}          ${data_file}        ${response_code}=200
+     #banner_type = Folder Name , file name is upload file
+     ${banner_type}=               GENERIC
+     ${banner_file_name}=          320x50_Group02.jpg
+
+     Retrieve Direct Path For Banner     banner_type=${banner_type}     file_name=${banner_file_name}
+     #${banner_file} is generated.
+     log        file location:{banner_file}
+     ${resp}=    RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}     files={banner_file}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+
+
+*** Test Cases ***
+
+#----------------------------------------------------------------------------------------------
+ACE.3.3_TC_01.1_Create Custom Geofence (Valid URL and data, Accept)
+    [Documentation]     Input : Run API to create custom geofence with valid URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Set Test Variable       ${email}                ${QA_DEFAULT_USER}
+    Set Test Variable       ${segmentEntryList}     -1:-1
+    Set Test Variable       ${dataSource}     10
+    Set Test Variable       ${groupId}     1
+    Set Test Variable       ${segmentSources}     gfc
+    Set Test Variable       ${minRadius}     1.0
+    Set Test Variable       ${radius}     10.0
+    Set Test Variable       ${reportName}     ${name}
+    Set Test Variable       ${poiDataSource}     2
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName="${reportName}"
+    ...                 email=${email}
+    ...                 segmentEntryList=${segmentEntryList}
+    ...                 dataSource=${dataSource}
+    ...                 groupId=${groupId}
+    ...                 segmentSources=${segmentSources}
+    ...                 minRadius=${minRadius}
+    ...                 radius=${radius}
+    ...                 reportName=${reportName}
+    ...                 poiDataSource=${poiDataSource}
+    ...                 response_code=200
+    ...                 success=true
+    Compare response data with API Get Ace Report detail for Custom Geofence
+    ...                 ${email}
+    ...                 ${segmentEntryList}
+    ...                 ${dataSource}
+    ...                 ${groupId}
+    ...                 ${segmentSources}
+    ...                 ${minRadius}
+    ...                 ${radius}
+    ...                 ${reportName}
+    ...                 ${poiDataSource}
+    [Tags]
+
+
+ACE.3.3_TC_01.2_Create Custom Geofence (invalid url, don't accept)
+    [Documentation]     Input : Run API to create custom geofence with invalid URL,
+    ...                 Expected : API should get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report123/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+    [Tags]    #  Known_bug   CM-1002
+
+
+ACE.3.3_TC_01.3_Create Custom Geofence (when min radius is more than max radius, not Accept)
+    [Documentation]     Input : Run API to create custom geofence when min radius is more than max radius,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=15
+    ...                 radius=10
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "min radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-017"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Please enter min radius less than max radius"
+    [Tags]    #  Known_bug       CM-1126
+
+
+ACE.3.3_TC_01.4_Create Custom Geofence (Ring Geofence : when minRadius = something, Radius = null, invalid)
+    [Documentation]     Input : Run API to Create Ring Geofence when min radius has any valid value and radius is null,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=5
+    ...                 radius=null
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code             "400-999"
+    Json Value Should Equal     ${body}     /reason_desc             "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field          "radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code    "700-023"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc    "Please enter max ${Space}radius between .03 and 15 miles."
+    [Tags]
+
+
+ACE.3.3_TC_01.5_Create Custom Geofence (Ring Geofence : when minRadius = null, Radius = null, invalid)
+    [Documentation]     Input : Run API to Create Ring Geofence when min radius and radius are null,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=null
+    ...                 radius=null
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-010"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field Radius is missing"
+    [Tags]
+
+
+ACE.3.3_TC_01.6_Create Custom Geofence (when dataSource = 9, segmentSources = "gfc", invalid)
+    [Documentation]     Input : Run API to Create Ring Geofence when dataSource = 9, segmentSources = "gfc",
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gf
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-020"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid SourceSegment "
+    [Tags]      Known_bug       CM-1603    Exclude    # NonUI
+
+#-------------------------------------------------------------------------------------------
+ACE.3.3_TC_02.1_Create Custom Geofence (Existing Report Name, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for Existing Report Name,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 minRadius=0.3
+    ...                 radius=0.8
+    ...                 segmentSources=gfc
+    ...                 response_code=200
+    ...                 success=true
+
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "report name"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-007"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Report name already exits"
+    [Tags]     # Known_bug       CM-1123
+
+
+ACE.3.3_TC_02.2_Create Custom Geofence (Report Name : Missing, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for missing report name,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=MISSING
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "report name"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-011"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field reportname ${Space}is missing"
+    [Tags]
+
+
+ACE.3.3_TC_02.3_Create Custom Geofence (Report Name : special characters, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for report name contains special characters,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=Test12@#$%34
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "report name"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-013"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed."
+    [Tags]     # Known_bug       CM-1124
+
+
+ACE.3.3_TC_02.4_Create Custom Geofence (Report Name : single space, accept)
+    [Documentation]     Input : Run API to create custom geofence for report name contains single space,
+    ...                 Expected : API should get processed successfully with response code 200.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_ ${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=0.3
+    ...                 radius=0.8
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]   #   Known_bug       CM-1123
+
+
+ACE.3.3_TC_02.5_Create Custom Geofence (Report Name : underscore, accept)
+    [Documentation]     Input : Run API to create custom geofence for report name contains underscore,
+    ...                 Expected : API should get processed successfully with response code 200.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=0.3
+    ...                 radius=0.8
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]      #  Known_bug       CM-1123
+
+
+ACE.3.3_TC_02.6_Create Custom Geofence (Report Name : numbers, accept)
+    [Documentation]     Input : Run API to create custom geofence for report name contains numbers,
+    ...                 Expected : API should get processed successfully with response code 200.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_1234_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=0.3
+    ...                 radius=0.8
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]      #  Known_bug       CM-1123
+
+
+
+ACE.3.3_TC_02.7_Create Custom Geofence (Report Name : double spaces, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for report name contains double spaces,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Set Test Variable       ${name}       ACE_Regression_Custom_Geofence_Test${space} 123
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "report name"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-013"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Format for Report Name"
+    [Tags]      Known_bug       CM-1145     EXCLUDE   # exclude reason this takes long time to execute Jenkins job.
+
+
+ACE.3.3_TC_02.8_Create Custom Geofence (Report Name : blank, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for blank report name,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${EMPTY}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "report name"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-011"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field reportname ${Space}is missing"
+    [Tags]
+
+
+ACE.3.3_TC_02.9_Create Custom Geofence (Report Name : null, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for null report name,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=null
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "report name"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-011"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field reportname ${Space}is missing"
+    [Tags]
+#-------------------------------------------------------------------------------------------
+
+ACE.3.3_TC_03.1_Create Custom Geofence (email : Missing, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for missing email,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 email=MISSING
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "email"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-006"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Request field email is missing"
+    [Tags]    #  Known_bug       CM-1124
+
+
+ACE.3.3_TC_03.2_Create Custom Geofence (email : Invalid, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for email contains special characters,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 email=Test12#$%34
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "email"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-005"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid email format"
+    [Tags]    #  Known_bug       CM-1125
+
+
+ACE.3.3_TC_03.3_Create Custom Geofence (email : blank, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for blank email,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 email=${EMPTY}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "email"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-006"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Request field email is missing"
+    [Tags]
+
+
+ACE.3.3_TC_03.4_Create Custom Geofence (email : null, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for null email,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 email=null
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "email"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-005"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid email format"
+    [Tags]   #   Known_bug       CM-1124
+
+#-------------------------------------------------------------------------------------------
+ACE.3.3_TC_04.1_Create Custom Geofence (segmentEntryList : Missing, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for missing segmentEntryList,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 segmentEntryList=MISSING
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-018"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field Segment Entry List is missing"
+    [Tags]
+
+
+ACE.3.3_TC_04.2_Create Custom Geofence (segmentEntryList : Invalid, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for segmentEntryList invalid,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 segmentEntryList=Test12@#$%34
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+    [Tags]
+
+
+ACE.3.3_TC_04.3_Create Custom Geofence (segmentEntryList : blank, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for blank segmentEntryList,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 segmentEntryList=${EMPTY}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-018"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field Segment Entry List is missing"
+    [Tags]
+
+
+ACE.3.3_TC_04.4_Create Custom Geofence (segmentEntryList : null, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for null segmentEntryList,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 segmentEntryList=null
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+    [Tags]
+
+
+ACE.3.3_TC_04.5_Create Custom Geofence (segmentEntryList : When all POIs in the category are chosen, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for target_poi_name is -1 at segmentEntryList,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 segmentEntryList=50:-1
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+    [Tags]
+
+
+ACE.3.3_TC_04.6_Create Custom Geofence (segmentEntryList : Comma separated list of POIs (Points Of Interest) around which the Geofence is to be built., don't accept)
+    [Documentation]     Input : Run API to create custom geofence for Comma separated list of POIs (Points Of Interest) around which the Geofence is to be built.,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 segmentEntryList=50:182,50:1995
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "segmentEntryList"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-019"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Segment Entry List"
+    [Tags]
+
+#-------------------------------------------------------------------------------------------
+ACE.3.3_TC_05.1_Create Custom Geofence (minRadius : Missing, accept)
+    [Documentation]     Input : Run API to create custom geofence for missing minRadius,
+    ...                 Expected : This scenario will be treated as simple geofence,
+    ...                 we do not pass min radius for simple geofence.
+    ...                 API should get processed successfully with response code 200.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=MISSING
+    ...                 radius=0.8
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]     #  Known_bug       CM-1607
+
+
+ACE.3.3_TC_05.2_Create Custom Geofence (minRadius : Invalid, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for min radius invalid,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius="Test12@#$%34"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /errors/0/reason_code      "700-015"
+    Json Value Should Equal     ${body}     /errors/0/field            "min radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc      "Please enter min radius between .03 and 15 miles."
+    [Tags]     #  Known_bug       CM-1124
+
+
+ACE.3.3_TC_05.3_Create Custom Geofence (minRadius : blank, accept)
+    [Documentation]     Input : Run API to create custom geofence for blank min radiusis considered as simple geofence,
+    ...                 Expected : API should get processed successfully with response code 200.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius="${EMPTY}"
+    ...                 radius=0.8
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]    #  Known_bug       CM-1124
+
+
+ACE.3.3_TC_05.4_Create Custom Geofence (minRadius : null, accept)
+    [Documentation]     Input : Run API to create custom geofence for null min radius is considered as simple geofence,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=null
+    ...                 radius=0.8
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]    #  Known_bug       CM-1124
+
+
+ACE.3.3_TC_05.5_Create Custom Geofence (minRadius : less than 0.03, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for min radius less than 0.03,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=0.01
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "min radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-015"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Please enter min radius between .03 and 15 miles."
+    [Tags]
+
+
+
+ACE.3.3_TC_05.6_Create Custom Geofence (minRadius : greater than 15, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for min radius greater than 15,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=25
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "min radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-015"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Please enter min radius between .03 and 15 miles."
+    [Tags]
+
+
+ACE.3.3_TC_05.7_Create Custom Geofence (minRadius : any negative value, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for min radius contains any negative value,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 minRadius=-2
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "min radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-015"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Please enter min radius between .03 and 15 miles."
+    [Tags]
+
+#-------------------------------------------------------------------------------------------
+
+ACE.3.3_TC_06.1_Create Custom Geofence (radius : Missing, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for missing radius. As radius is a mandatory key,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 radius=MISSING
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-023"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Please enter max ${Space}radius between .03 and 15 miles."
+    [Tags]   #   Known_bug       CM-1607
+
+
+ACE.3.3_TC_06.2_Create Custom Geofence (radius : Invalid, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for radius invalid,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 radius="Test12@#$%34"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /errors/0/reason_code    "700-023"
+    Json Value Should Equal     ${body}     /errors/0/field          "radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc    "Please enter max ${Space}radius between .03 and 15 miles."
+    [Tags]    #   Known_bug       CM-1124
+
+
+ACE.3.3_TC_06.3_Create Custom Geofence (radius : blank, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for blank radius,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 radius="${EMPTY}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-023"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Please enter max ${Space}radius between .03 and 15 miles."
+    [Tags]   #   Known_bug       CM-1124
+
+
+ACE.3.3_TC_06.4_Create Custom Geofence (radius : null, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for null radius,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 radius=null
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-023"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Please enter max ${Space}radius between .03 and 15 miles."
+    [Tags]   #   Known_bug       CM-1124
+
+
+ACE.3.3_TC_06.5_Create Custom Geofence (radius : less than 0.03, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for radius less than 0.03,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 radius=0.01
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-023"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Please enter max ${Space}radius between .03 and 15 miles."
+    [Tags]   #   Known_bug       CM-1607
+
+
+
+ACE.3.3_TC_06.6_Create Custom Geofence (radius : greater than 15, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for radius greater than 15,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 radius=25
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-023"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Please enter max ${Space}radius between .03 and 15 miles."
+    [Tags]    #  Known_bug       CM-1607
+
+
+ACE.3.3_TC_06.7_Create Custom Geofence (radius : any negative value, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for radius contains any negative value,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 radius=-2
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "radius"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-023"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Please enter max ${Space}radius between .03 and 15 miles."
+    [Tags]    #   Known_bug       CM-1607
+
+#-------------------------------------------------------------------------------------------
+
+ACE.3.3_TC_07.1_Create Custom Geofence (dataSource : Missing, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for missing dataSource. As dataSource is a mandatory key,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=MISSING
+    ...                 segmentSources=gfc
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "700-012"
+    Json Value Should Equal     ${body}     /reason_desc            "Required field DataSource is missing"
+    [Tags]      # Known_bug       CM-1608
+
+
+ACE.3.3_TC_07.2_Create Custom Geofence (dataSource : Invalid, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for dataSource invalid,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 segmentSources=gfc
+    ...                 dataSource="Test12@#$%34"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "700-016"
+    Json Value Should Equal     ${body}     /reason_desc            "Invalid Data Source"
+    [Tags]    #   Known_bug       CM-1124     #   CM-1608
+
+
+ACE.3.3_TC_07.3_Create Custom Geofence (dataSource : blank, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for blank dataSource,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 segmentSources=gfc
+    ...                 dataSource="${EMPTY}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "700-012"
+    Json Value Should Equal     ${body}     /reason_desc            "Required field DataSource is missing"
+    [Tags]    #  Known_bug       CM-1124    # CM-1608
+
+
+ACE.3.3_TC_07.4_Create Custom Geofence (dataSource : null, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for null dataSource,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 segmentSources=gfc
+    ...                 dataSource=null
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "700-012"
+    Json Value Should Equal     ${body}     /reason_desc            "Required field DataSource is missing"
+    [Tags]    #  Known_bug       CM-1124   #  CM-1608
+
+
+ACE.3.3_TC_07.5_Create Custom Geofence (dataSource : 9999, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for dataSource not exists i.e. 9999,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 segmentSources=gfc
+    ...                 dataSource=9999
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "700-016"
+    Json Value Should Equal     ${body}     /reason_desc            "Invalid Data Source"
+    [Tags]    #  Known_bug    CM-1608
+
+
+
+ACE.3.3_TC_07.6_Create Custom Geofence (dataSource : -25, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for dataSource -25,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 segmentSources=gfc
+    ...                 dataSource=-25
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "700-016"
+    Json Value Should Equal     ${body}     /reason_desc            "Invalid Data Source"
+    [Tags]   #    Known_bug       CM-1608
+
+#-------------------------------------------------------------------------------------------
+ACE.3.3_TC_08.1_Create Custom Geofence (groupId : Missing, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for missing groupId. As groupId is a mandatory key,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 groupId="MISSING"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code                "400-999"
+    Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/reason_code       "700-002"
+    Json Value Should Equal     ${body}     /errors/0/field             "Group Id"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc       "Required field groupID missing"
+    [Tags]
+
+
+ACE.3.3_TC_08.2_Create Custom Geofence (groupId : Invalid, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for groupId invalid,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 groupId="Test12@#$%34"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "Group Id"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "600-001"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Group id."
+    [Tags]    #   Known_bug       CM-1124
+
+
+ACE.3.3_TC_08.3_Create Custom Geofence (groupId : blank, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for blank groupId,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 groupId="${EMPTY}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "Group Id"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-002"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Required field groupID missing"
+    [Tags]    #  Known_bug       CM-1124
+
+
+ACE.3.3_TC_08.4_Create Custom Geofence (groupId : null, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for null groupId,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 groupId=null
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code                "400-999"
+    Json Value Should Equal     ${body}     /reason_desc                "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/reason_code       "700-002"
+    Json Value Should Equal     ${body}     /errors/0/field             "Group Id"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc       "Required field groupID missing"
+    [Tags]    #  Known_bug       CM-1124
+
+
+ACE.3.3_TC_08.5_Create Custom Geofence (groupId : 9999, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for groupId not exists i.e. 9999,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 groupId="9999"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "Group Id"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "600-001"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Group id."
+    [Tags]
+
+
+ACE.3.3_TC_08.6_Create Custom Geofence (groupId : -25, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for groupId -25,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=gfc
+    ...                 groupId="-25"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "Group Id"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "600-001"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid Group id."
+    [Tags]
+
+#-------------------------------------------------------------------------------------------
+ACE.3.3_TC_09.1_Create Custom Geofence (segmentSources : Missing, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for missing segmentSources. As segmentSources is a mandatory key,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=MISSING
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "Segment Source"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-023"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Missing SourceSegment "
+    [Tags]
+
+
+ACE.3.3_TC_09.2_Create Custom Geofence (segmentSources : Invalid, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for segmentSources invalid,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=Test12@#$%34
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "Segment Source"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-020"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid SourceSegment "
+    [Tags]    #   Known_bug       CM-1124
+
+
+ACE.3.3_TC_09.3_Create Custom Geofence (segmentSources : blank, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for blank segmentSources,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=${EMPTY}
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "Segment Source"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-023"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Missing SourceSegment "
+    [Tags]    #  Known_bug       CM-1124
+
+
+ACE.3.3_TC_09.4_Create Custom Geofence (segmentSources : null, don't accept)
+    [Documentation]     Input : Run API to create custom geofence for null segmentSources,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Custom_Geofence_${ret}
+    Log     ${name}
+    Create Custom Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 dataSource=10
+    ...                 segmentSources=null
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "Segment Source"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-020"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Invalid SourceSegment "
+    [Tags]    #  Known_bug       CM-1124
+
+#-------------------------------------------------------------------------------------------
+

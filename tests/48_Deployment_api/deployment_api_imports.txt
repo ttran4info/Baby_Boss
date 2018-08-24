@@ -1,0 +1,7 @@
+*** Settings ***
+Resource	um_api.txt
+Resource	deployment_api.txt
+Resource	database.txt
+Resource 	creative_api.txt
+Library		Selenium2Library
+Library		Collections

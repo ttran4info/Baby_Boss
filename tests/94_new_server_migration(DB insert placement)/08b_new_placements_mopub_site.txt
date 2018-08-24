@@ -1,0 +1,114 @@
+*** Settings ***
+Resource            new_placement_imports_94.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH94							     
+
+		
+*** Variables ***
+${partner_name}							MoPub
+${placement_type_app}					MoPub App
+${placement_type_site}					MoPub Mobile Web 
+${placement_name_2_1}					REGRESSION MOPUB SITE
+#And many more placement site
+		           	 		
+*** Test Cases ***
+	
+	
+Insert Placement Into DB ${placement_name_2_1} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=${placement_name_2_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=13194	
+	[Tags]							
+Insert Placement Into DB ${placement_name_2_2} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_01_SITE_8183
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_CONNEXIONS_SITE_01_8183
+	[Tags]		
+Insert Placement Into DB ${placement_name_2_3} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_02_SITE_8184
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_CONNEXIONS_SITE_02_8184
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_4} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_03_SITE_8185
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_CONNEXIONS_SITE_03_8185
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_5} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_04_SITE_8186
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_CONNEXIONS_SITE_04_8186
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_6} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_05_SITE_8187
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_CONNEXIONS_SITE_05_8187
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_7} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_PRIZM_01_SITE_8178
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_SITE_01_8178	
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_8} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_PRIZM_02_SITE_8179
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_SITE_02_8179		
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_9} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_PRIZM_03_SITE_8180
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_SITE_03_8180	
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_10} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_PRIZM_04_SITE_8181
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_SITE_04_8181	
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_11} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION MOPUB_PRIZM_05_SITE_8182
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_SITE_05_8182		
+	[Tags]			

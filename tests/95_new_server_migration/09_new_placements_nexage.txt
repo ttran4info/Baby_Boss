@@ -1,0 +1,130 @@
+*** Settings ***
+Resource            new_placement_imports.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH95C							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${partner_name}						Nexage Exchange
+${placement_type_app}					Nexage Exchange APP
+
+
+		           	 		
+*** Test Cases ***
+Create New Placement ${placement_name_1_1} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_01 NEXAGE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_NEXAGE_APP_MACRO_SUBSTITUTION_3RD_PARTY_01	
+Create New Placement ${placement_name_1_2} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_02 NEXAGE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_NEXAGE_APP_MACRO_SUBSTITUTION_3RD_PARTY_02	
+	[Tags]	
+Create New Placement ${placement_name_1_3} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_03 NEXAGE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_NEXAGE_APP_MACRO_SUBSTITUTION_3RD_PARTY_03
+Create New Placement ${placement_name_1_4} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_04 NEXAGE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_NEXAGE_APP_MACRO_SUBSTITUTION_3RD_PARTY_04
+Create New Placement ${placement_name_1_5} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MACRO_SUBSTITUTION_RM_01 NEXAGE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_NEXAGE_APP_MACRO_SUBSTITUTION_RM_01
+Create New Placement ${placement_name_1_6} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MACRO_SUBSTITUTION_RM_02 NEXAGE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_NEXAGE_APP_MACRO_SUBSTITUTION_RM_02
+	[Tags]	
+Create New Placement ${placement_name_1_7} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MACRO_SUBSTITUTION_RM_03 NEXAGE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_NEXAGE_APP_MACRO_SUBSTITUTION_RM_03
+Create New Placement ${placement_name_1_7x} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MACRO_SUBSTITUTION_RM_04 NEXAGE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_NEXAGE_APP_MACRO_SUBSTITUTION_RM_04	
+Create New Placement ${placement_name_1_8} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION DEVICE_FC_01 NEXAGE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12452
+	[Tags]	
+Create New Placement ${placement_name_1_9} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION IP_FC_03 NEXAGE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12454
+Create New Placement ${placement_name_1_10} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION NEXAGE_123456789 APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=NEXAGE123456789
+Create New Placement ${placement_name_1_11} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION NEXAGE_987654321 APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=NEXAGE987654321	
+Create New Placement ${placement_name_1_12} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION NEXAGE_SAMPLE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=AUTOMATION1234		
+Create New Placement ${placement_name_1_13} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=Regression WURFL Nexage
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12610	
+	
+	

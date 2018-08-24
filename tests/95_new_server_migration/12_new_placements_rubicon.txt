@@ -1,0 +1,62 @@
+*** Settings ***
+Resource            new_placement_imports.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH95C							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${partner_name}						Rubicon Project Exchange
+${placement_type_app}				Rubicon App 
+${placement_type_site}				Rubicon Site  
+${placement_type_online}			Rubicon Online 
+		           	 		
+*** Test Cases ***
+Create New Placement ${placement_name_1_1} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION DEVICE_FC_01 RUBICON APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12461
+Create New Placement ${placement_name_1_2} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION IP_FC_03 RUBICON APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12463
+Create New Placement ${placement_name_1_3} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION RUBICON APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=15588
+Create New Placement ${placement_name_1_4} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION RUBICON_VIDEO_STREAMING_POSITION APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=REGRESSION RUBICON_VIDEO_STREAMING_POSITION APP
+Create New Placement ${placement_name_2_1} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION RUBICON SITE
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=15589
+
+Create New Placement ${placement_name_3_1} (online) ${placement_type_online}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=REGRESSION RUBICON ONLINE
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=REGRESSION RUBICON ONLINE	

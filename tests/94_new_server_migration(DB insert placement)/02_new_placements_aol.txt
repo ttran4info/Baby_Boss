@@ -1,0 +1,40 @@
+*** Settings ***
+Resource            new_placement_imports_94.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH94							     
+
+		
+*** Variables ***
+${partner_name}						 AOL Marketplace Exchange 
+${placement_type_app}					AOL Marketplace App
+${placement_name_1_1}					REGRESSION AOL APP
+${placement_name_1_2}					REGRESSION DEVICE_FC_01 AOL APP
+${placement_name_1_3}					REGRESSION IP_FC_03 AOL APP
+		           	 		
+*** Test Cases ***
+
+Insert Placement Into DB ${placement_name_1_1} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13489	
+Insert Placement Into DB ${placement_name_1_2} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12443
+	[Tags]		
+Insert Placement Into DB ${placement_name_1_3} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_3}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12445
+	

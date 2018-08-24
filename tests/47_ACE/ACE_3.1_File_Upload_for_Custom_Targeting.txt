@@ -1,0 +1,409 @@
+#---------------------------------------------------------------------------------------
+# Script Change Log
+# 2017-11-08 : vkatkar : Created new script
+#
+#
+#---------------------------------------------------------------------------------------
+
+*** Settings ***
+Resource        ACE_api_imports.txt
+# Library         ExcelLibrary
+# Library         OperatingSystem
+Library         RequestsLibrary
+Force Tags      ACE_API    BATCH21    ACE3.1    OffshoreQA
+
+# https://wiki.4info.com/display/Software/ACE+API+Documentation#ACEAPIDocumentation-3.1FileUploadforCustomTargeting
+# API Name : 3.1 File Upload for Custom Targeting
+# Method : POST
+# URL : qa-ace-10:8080/ace/api/v2/report/create-upload
+# DESC : Uploads file required for custom target set creation
+# rhino.ace_report
+
+*** Variables ***
+
+
+
+*** Keywords ***
+
+File Upload for ACE
+    [Arguments]         ${url}=
+    ...                 ${filename}=
+    ...                 ${filePath}=
+    ...                 ${response_code}=400
+    ...                 ${success}=false
+    ${stdout}=  Run    curl -i -X POST -F "fileName=@${filePath}/${filename}" "http://${QA_ACE}:${QA_ACE_PORT}${url}"
+    # Log     ${stdout}
+    Set Suite Variable    ${body}    ${stdout}
+    Log    ${body}
+    # Run Keyword If    '${response_code}'=='200'    Should Match Regexp     ${stdout}       "success":true
+    # Run Keyword Unless    '${response_code}'=='200'    Should Match Regexp     ${stdout}       "success":false
+
+
+
+*** Test Cases ***
+#-------------------------------------------------------------------------------------------
+ACE.3.1_TC_01.1_File Upload for ACE (Valid request, Accept)
+    [Documentation]     Input : Run API for File Upload for Loccation Append with valid URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     SampleGeocodingFileNEW.xlsx
+    Set Test Variable     ${FileName2}     SampleGeocodingFileNEW_${todaysDate}_01.xlsx
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=35
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=200
+    ...                                 success=true
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]
+
+#-------------------------------------------------------------------------------------------
+ACE.3.1_TC_01.2_File Upload for ACE (Invalid file extension, Don't Accept)
+    [Documentation]     Input : Run API file extension for Loccation Append as csv rather than xlsx,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     SampleGeocodingFileNEW.xlsx
+    Set Test Variable     ${FileName2}     SampleGeocodingFileNEW_${todaysDate}_02.csv
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=35
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    {"reason_code":"700-024","reason_desc":".xlsx file supported","field":"FileName"}
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]   Demo_24Apr2018     Known_bug    CM-2069    EXCLUDE    # NonUI
+
+
+ACE.3.1_TC_01.3_File Upload for ACE (Existing file name, Don't Accept)
+    [Documentation]     Input : Run API for Loccation Append with existing file name xlsx,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Set Test Variable     ${FileName1}     SampleGeocodingFileNEW.xlsx
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=35
+    ...                                 filename=${FileName1}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=200
+    ...                                 success=true
+
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=35
+    ...                                 filename=${FileName1}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-007"
+    Should Match Regexp    ${body}    "reason_desc":"File Name / Report name already exits"
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Tags]    Demo_24Apr2018     Known_bug    CM-2069    EXCLUDE    # NonUI
+
+
+ACE.3.1_TC_01.4_File Upload for ACE (File name contains spaces, Don't Accept)
+    [Documentation]     Input : Run API for Loccation Append with File name contains spaces,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Set Test Variable     ${FileName1}     SampleGeocodingFileNEW.xlsx
+    Set Test Variable     ${FileName2}     SampleGeocodingFileNEW ${todaysDate} 04.xlsx
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=35
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-013"
+    # Should Match Regexp    ${body}    "reason_desc":"Only letters, numbers, underscores (_), hyphens (-), period(.) and no spaces are allowed."
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]   Demo_24Apr2018    Known_bug    CM-2069   EXCLUDE    # NonUI
+
+
+ACE.3.1_TC_01.5_File Upload for ACE (Missing file extension, Don't Accept)
+    [Documentation]     Input : Run API file extension for Loccation Append missing,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     SampleGeocodingFileNEW.xlsx
+    Set Test Variable     ${FileName2}     SampleGeocodingFileNEW_${todaysDate}_05
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=35
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-009"
+    Should Match Regexp    ${body}    "reason_desc":"File extension missing"
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]    EXCLUDE    # NonUI
+#-------------------------------------------------------------------------------------------
+
+ACE.3.1_TC_02.1_File Upload for Custom Geofence (Valid request, Accept)
+    [Documentation]     Input : Run API for Custom Targeting with valid URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO_${todaysDate}_021.csv
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=10
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=200
+    ...                                 success=true
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]
+
+#-------------------------------------------------------------------------------------------
+ACE.3.1_TC_02.2_File Upload for Custom Geofence (Invalid file extension, Don't Accept)
+    [Documentation]     Input : Run API for Custom Geofence file extension as xlsx rather than csv,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO_${todaysDate}_022.xlsx
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=10
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-025"
+    Should Match Regexp    ${body}    "reason_desc":".csv file supported"
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]    EXCLUDE    # NonUI
+
+
+ACE.3.1_TC_02.3_File Upload for Custom Geofence (File name contains spaces, Don't Accept)
+    [Documentation]     Input : Run API for Custom Geofence with File name contains spaces,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO ${todaysDate} 024.csv
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=10
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-013"
+    # Should Match Regexp    ${body}    "reason_desc":"Only letters, numbers, underscores (_), hyphens (-), period(.) and no spaces are allowed."
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]      Demo_24Apr2018    Known_bug   CM-2069       EXCLUDE    # NonUI #   CM-1791
+
+
+ACE.3.1_TC_02.4_File Upload for Custom Geofence (Missing file extension, Don't Accept)
+    [Documentation]     Input : Run API for Custom Geofence file extension missing,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO_${todaysDate}_024
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=10
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-009"
+    Should Match Regexp    ${body}    "reason_desc":"File extension missing"
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]    EXCLUDE    # NonUI
+#-------------------------------------------------------------------------------------------
+
+ACE.3.1_TC_03.1_File Upload for Catalina Custom Trade Area (Valid request, Accept)
+    [Documentation]     Input : Run API for Custom Targeting with valid URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO_${todaysDate}_031.csv
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=36
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=200
+    ...                                 success=true
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]         # Reason : Catalina is not supported now.
+
+#-------------------------------------------------------------------------------------------
+ACE.3.1_TC_03.2_File Upload for Catalina Custom Trade Area (Invalid file extension, Don't Accept)
+    [Documentation]     Input : Run API for Catalina Custom Trade Area file extension as xlsx rather than csv,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO_${todaysDate}_032.xlsx
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=31
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-025"
+    Should Match Regexp    ${body}    "reason_desc":".csv file supported"
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]   Demo_24Apr2018   Known_bug    CM-2069    EXCLUDE    # NonUI
+
+
+ACE.3.1_TC_03.3_File Upload for Catalina Custom Trade Area (File name contains spaces, Don't Accept)
+    [Documentation]     Input : Run API for Catalina Custom Trade Area with File name contains spaces,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO ${todaysDate} 033.csv
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=31
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-013"
+    # Should Match Regexp    ${body}    "reason_desc":"Only letters, numbers, underscores (_), hyphens (-), period(.) and no spaces are allowed."
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]     Demo_24Apr2018    Known_bug    CM-2069       EXCLUDE    # NonUI # Known_bug    CM-1791
+
+
+
+ACE.3.1_TC_03.4_File Upload for Catalina Custom Trade Area (Missing file extension, Don't Accept)
+    [Documentation]     Input : Run API for Catalina Custom Trade Area file extension missing,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO_${todaysDate}_034
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=31
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-009"
+    Should Match Regexp    ${body}    "reason_desc":"File extension missing"
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]    Demo_24Apr2018    Known_bug    CM-2069    EXCLUDE    # NonUI
+
+#-------------------------------------------------------------------------------------------
+
+ACE.3.1_TC_04.1_File Upload for 4INFO Custom Trade Area (Valid request, Accept)
+    [Documentation]     Input : Run API for Custom Targeting with valid URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO_${todaysDate}_041.csv
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=35
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=200
+    ...                                 success=true
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]
+
+#-------------------------------------------------------------------------------------------
+ACE.3.1_TC_04.2_File Upload for 4INFO Custom Trade Area (Invalid file extension, Don't Accept)
+    [Documentation]     Input : Run API for 4INFO Custom Trade Area file extension as xlsx rather than csv,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO_${todaysDate}_042.xlsx
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=35
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-025"
+    Should Match Regexp    ${body}    "reason_desc":".csv file supported"
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]    EXCLUDE    # NonUI
+
+
+ACE.3.1_TC_04.3_File Upload for 4INFO Custom Trade Area (File name contains spaces, Don't Accept)
+    [Documentation]     Input : Run API for 4INFO Custom Trade Area with File name contains spaces,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO ${todaysDate} 043.csv
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=35
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-013"
+    # Should Match Regexp    ${body}    "reason_desc":"Only letters, numbers, underscores (_), hyphens (-), period(.) and no spaces are allowed."
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]    Demo_24Apr2018    Known_bug    CM-2069    Exclude    # nonUI  #   CM-1791
+
+
+ACE.3.1_TC_04.4_File Upload for 4INFO Custom Trade Area (Missing file extension, Don't Accept)
+    [Documentation]     Input : Run API for 4INFO Custom Trade Area file extension missing,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC
+    Set Suite Variable    ${todaysDate}   ${mm}${dd}${yyyy}_${hours}${minutes}
+    Set Test Variable     ${FileName1}     CustomFileTAorGEO.csv
+    Set Test Variable     ${FileName2}     CustomFileTAorGEO_${todaysDate}_044
+    Set Test Variable    ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+    File Upload for ACE     url=/ace/api/v2/report/create-upload/?dataSource=35
+    ...                                 filename=${FileName2}
+    ...                                 filePath=${filePath}
+    ...                                 response_code=400
+    ...                                 success=false
+    Should Match Regexp    ${body}    "reason_code":"400-999"
+    Should Match Regexp    ${body}    "reason_desc":"Validation Failure"
+    Should Match Regexp    ${body}    "reason_code":"700-009"
+    Should Match Regexp    ${body}    "reason_desc":"File extension missing"
+    Should Match Regexp    ${body}    "field":"FileName"
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]    EXCLUDE    # NonUI
+#-------------------------------------------------------------------------------------------

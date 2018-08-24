@@ -1,0 +1,206 @@
+*** Settings ***
+Resource            new_ad_imports.txt
+Force Tags         	NEW_UI_CONNEXION     BATCH96	BATCH96A								     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${campaign_name}						02_CONNEXIONS_REGRESSION_TESTS
+${parent_name_1}						CONNEXIONS_82
+${parent_name_2}				     	CONNEXIONS_83  
+${parent_name_3}				     	CONNEXIONS_84 
+${parent_name_4}				     	CONNEXIONS_85 
+${parent_name_5}				     	CONNEXIONS_86   
+${child_name_1_1} 						AG01	
+${child_name_2_1} 						AG01
+${child_name_3_1} 						AG01
+${child_name_4_1} 						AG01
+${child_name_5_1} 						AG01 
+		
+*** Test Cases ***
+ Remove Test
+ 	Remove AdGroup By BundleID	ag_bundle_id=xxx
+ 	[Tags]	 Exclude
+ 	
+Make New Campaign	
+	Add Campaign To Advertiser 6.0      
+      ...						 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 campaign_time_zone=${REGRESSION_TIME_ZONE}
+      ...                        campaign_start_date=${REGRESSION_START_DATE}
+      ...                        campaign_end_date=${REGRESSION_END_DATE}
+	[Tags]	
+
+#Parent #1	
+Make New Parent Ad ${parent_name_1}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_1}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      ...						 ag_household_segment=1
+      ...						 ag_household_datasource_name=ConneXions
+#      ...						 ag_household_segment_name=Connected Country;Plugged-In Families;Tech Nests;Technovators;You & I Tunes
+     [Tags]		
+Make New Child Ad ${child_name_1_1}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB_CONNEXIONS_01
+
+Make New Creative ${child_name_1_1}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=CONNEXIONS
+      ...						ag_creative_banner_name=320x50_Connexion01.jpg
+         
+	
+
+
+#Parent #2       
+Make New Parent Ad ${parent_name_2}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_2}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      ...						 ag_household_segment=1
+      ...						 ag_household_datasource_name=ConneXions
+#      ...						 ag_household_segment_name=Bundled Burbs;Calling Circles;Cinemaniacs;Cyber Sophisticates;Dish Country;Gadgets Galore;Generation WiFi;High-Tech Society;Kids & Keyboards;New Technorati;Satellites & Silos;Smart Gamers;The Pragmatics;Time Shifters;WiFi Warriors	
+Make New Child Ad ${child_name_2_1}, ${parent_name_2}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_2}
+      ...						 ag_adgroup_name=${child_name_2_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB_CONNEXIONS_02
+Make New Creative ${child_name_2_1}, ${parent_name_2}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_2}
+      ...                        child_adgroup_name=${child_name_2_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_2}_${child_name_2_1}_CREATIVE
+      ...						ag_creative_banner_type=CONNEXIONS
+      ...						ag_creative_banner_name=320x50_Connexion02.jpg          
+
+      
+#Parent #3	
+Make New Parent Ad ${parent_name_3}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_3}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_household_segment=1
+      ...						 ag_household_datasource_name=ConneXions
+#      ...						 ag_household_segment_name=Analoggers;Antenna Land;Big City, Small Tech;Broadband Boulevards;Bucolic Basics;Cyber Strivers;Dial-Up Duos;Digital Dreamers;Discounts & Deals;Early-Bird TV;Family Dishes;Gearing Up;IM Nation;Internet Hinterlands;Landline Living;Leisurely Adopters;Low-Speed Boomers;Low-Tech Country;Multimedia Families;New Kids on the Grid;Old-Time Media;Opting Out;Plug & Play;Rural Transmissions;Satellite Seniors;Tech Skeptics;Techs and the City;Techtown Lites;Video Homebodies;Video Vistas
+
+Make New Child Ad ${child_name_3_1}, ${parent_name_3}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_3}
+      ...						 ag_adgroup_name=${child_name_3_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB_CONNEXIONS_03
+
+Make New Creative ${child_name_3_1}, ${parent_name_3}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_3}
+      ...                        child_adgroup_name=${child_name_3_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_3}_${child_name_3_1}_CREATIVE
+      ...						ag_creative_banner_type=CONNEXIONS
+      ...						ag_creative_banner_name=320x50_Connexion03.jpg 
+
+
+#Parent #4      
+Make New Parent Ad ${parent_name_4}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_4}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      ...						 ag_household_segment=1
+      ...						 ag_household_datasource_name=ConneXions
+      ...						 ag_household_segment_name=Tech-Free Frontier
+Make New Child Ad ${child_name_4_1}, ${parent_name_4}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_4}
+      ...						 ag_adgroup_name=${child_name_4_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB_CONNEXIONS_04
+
+Make New Creative ${child_name_4_1}, ${parent_name_4}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_4}
+      ...                        child_adgroup_name=${child_name_4_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_4}_${child_name_4_1}_CREATIVE
+      ...						ag_creative_banner_type=CONNEXIONS
+      ...						ag_creative_banner_name=320x50_Connexion04.jpg 
+
+#Parent #5
+Make New Parent Ad ${parent_name_5}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_5}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      ...						 ag_household_segment=1
+      ...						 ag_household_datasource_name=ConneXions
+      ...						 ag_household_segment_name=Last to Adopt
+Make New Child Ad ${child_name_5_1}, ${parent_name_5}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_5}
+      ...						 ag_adgroup_name=${child_name_3_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB_CONNEXIONS_05
+Make New Creative ${child_name_5_1}, ${parent_name_5}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_5}
+      ...                        child_adgroup_name=${child_name_5_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_5}_${child_name_5_1}_CREATIVE
+      ...						ag_creative_banner_type=CONNEXIONS
+      ...						ag_creative_banner_name=320x50_Connexion05.jpg   

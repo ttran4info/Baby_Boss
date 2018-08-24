@@ -1,0 +1,61 @@
+*** Settings ***
+Resource            new_placement_imports_94.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH94							     
+
+		
+*** Variables ***
+${partner_name}						Rubicon Project Exchange
+${placement_type_app}				Rubicon App 
+${placement_type_site}				Rubicon Mobile Web  
+${placement_type_online}			Rubicon Desktop 
+		           	 		
+*** Test Cases ***
+Insert Placement Into DB ${placement_name_1_1} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION DEVICE_FC_01 RUBICON APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12461
+Insert Placement Into DB ${placement_name_1_2} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION IP_FC_03 RUBICON APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12463
+Insert Placement Into DB ${placement_name_1_3} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION RUBICON APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=15588
+Insert Placement Into DB ${placement_name_1_4} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION RUBICON_VIDEO_STREAMING_POSITION APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App Bundle ID (exchange agnostic)
+	...						pl_bid_attribute_Value=REGRESSION RUBICON_VIDEO_STREAMING_POSITION APP
+Insert Placement Into DB ${placement_name_2_1} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION RUBICON SITE
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=15589
+
+Insert Placement Into DB ${placement_name_3_1} (online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=REGRESSION RUBICON ONLINE
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=REGRESSION RUBICON ONLINE	

@@ -1,0 +1,46 @@
+*** Settings ***
+Resource   VPAID_specific_imports.txt
+Force Tags           VPAID    BATCH3	INNERACTIVE		
+
+*** variables ***
+ ${app_id_01}					12481
+ ${site_id_02}					12451
+*** Test Cases ***
+
+TC_01_Log VPAID when bid contains APP as 1,2
+	  [Documentation]  Verify that VPAID value from API parameter as 1,2 is logged in request log   
+	   ${random_device_id}=		Generate Clear Device ID   	
+	   #Set Test Variable    ${data}		{"id":"8318133468316979278","imp":[{"id":"1","secure":0,"video":{"mimes":["video/mp4","video/x-flv","video/3gpp","video/webm"],"minduration":5,"maxduration":30,"protocols":[2,5],"w":320,"h":480,"startdelay":0,"linearity":1,"battr":[3,8],"api":[1,2],"maxbitrate":1024,"pos":7,"ext":{}},"instl":1,"bidfloor":4.62962962962963,"bidfloorcur":"USD","ext":{}}],"app":{"id":"${app_id_01}","name":"CleanMaster-FreeAntivirus","cat":["IAB3"],"bundle":"com.cleanmaster.mguard","publisher":{"id":"207906","name":"MindAdMedia","ext":{}},"keywords":[],"storeurl":"","ext":{}},"device":{"dnt":0,"ua":"Mozilla\/5.0(Linux;Android7.0;SM-G930R4Build\/NRD90M;wv)AppleWebKit\/537.36(KHTML,likeGecko)Version\/4.0Chrome\/57.0.2987.132MobileSafari\/537.36","ip":"65.175.133.113","geo":{"lat":43.5645,"lon":-71.482,"country":"USA","region":"NH","metro":"506","city":"Laconia","zip":"03246","type":2,"ext":{}},"dpidsha1":"82BBCABC5AA46641A11F3E8F9B8B6777540D6552","dpidmd5":"22F2FAB40817147B1A066487B97F1D88","carrier":"MetroCast","language":"en","make":"Generic","model":"Android2.0","os":"Android","osv":"2.0","w":320,"h":480,"js":1,"connectiontype":0,"devicetype":4,"ifa":"${random_device_id}","ext":{}},"user":{"gender":""},"regs":{"coppa":0},"at":2,"tmax":250,"bcat":["IAB25","IAB26"],"badv":[],"ext":{}}
+	   #RTB Request 				API=${RTB_INNERACTIVE_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Set Test Variable    ${data}   		  {"id":"7569adb1-b9d6-44a3-ba2f-785639599c9f","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"api":[1,2],"protocols":[2 ],"startdelay":0,"playback":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"id":"${app_id_01}","name":"perk tv","cat":["IAB1"]},"device":{"ip":"108.220.55.85","ifa":"${random_device_id}","dpidsha1":"c9cbef800a4faf511bd03925ea31f15218967e44","dpidmd5":"10bc0393e328e1cbec9d43ae002dfd08","ua":"Mozilla/5.0 (Linux; Android; Device) LiveRailSDK/2.4.0 (AB/com.juteralabs.perktv;AV/2.3.2;BV/57)","language":"en","os":"android","devicetype":5,"geo":{"lat":"37.789799","lon":"-122.245697","type":2}},"user":{"id":"14691068417348451344"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Response  	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+	  	Should Match Regexp 			${output}  				87=1,2
+	  [Tags]				
+TC_02_Log VPAID when bid contains APP as 1
+	  [Documentation]    Verify that VPAID value from API parameter as 1 is logged in request log	  
+	 	   ${random_device_id}=		Generate Clear Device ID   	
+	   #Set Test Variable    ${data}	{"id":"8318133468316979278","imp":[{"id":"1","secure":0,"video":{"mimes":["video/mp4","video/x-flv","video/3gpp","video/webm"],"minduration":5,"maxduration":30,"protocols":[2,5],"w":320,"h":480,"startdelay":0,"linearity":1,"battr":[3,8],"api":[1],"maxbitrate":1024,"pos":7,"ext":{}},"instl":1,"bidfloor":4.62962962962963,"bidfloorcur":"USD","ext":{}}],"app":{"id":"${app_id_01}","name":"CleanMaster-FreeAntivirus","cat":["IAB3"],"bundle":"com.cleanmaster.mguard","publisher":{"id":"207906","name":"MindAdMedia","ext":{}},"keywords":[],"storeurl":"","ext":{}},"device":{"dnt":0,"ua":"Mozilla\/5.0(Linux;Android7.0;SM-G930R4Build\/NRD90M;wv)AppleWebKit\/537.36(KHTML,likeGecko)Version\/4.0Chrome\/57.0.2987.132MobileSafari\/537.36","ip":"65.175.133.113","geo":{"lat":43.5645,"lon":-71.482,"country":"USA","region":"NH","metro":"506","city":"Laconia","zip":"03246","type":2,"ext":{}},"dpidsha1":"82BBCABC5AA46641A11F3E8F9B8B6777540D6552","dpidmd5":"22F2FAB40817147B1A066487B97F1D88","carrier":"MetroCast","language":"en","make":"Generic","model":"Android2.0","os":"Android","osv":"2.0","w":320,"h":480,"js":1,"connectiontype":0,"devicetype":4,"ifa":"${random_device_id}","ext":{}},"user":{"gender":""},"regs":{"coppa":0},"at":2,"tmax":250,"bcat":["IAB25","IAB26"],"badv":[],"ext":{}}
+	   #RTB Request 				API=${RTB_INNERACTIVE_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Set Test Variable    ${data}   		  {"id":"7569adb1-b9d6-44a3-ba2f-785639599c9f","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"api":[1],"protocols":[2 ],"startdelay":0,"playback":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"id":"${app_id_01}","name":"perk tv","cat":["IAB1"]},"device":{"ip":"108.220.55.85","ifa":"${random_device_id}","dpidsha1":"c9cbef800a4faf511bd03925ea31f15218967e44","dpidmd5":"10bc0393e328e1cbec9d43ae002dfd08","ua":"Mozilla/5.0 (Linux; Android; Device) LiveRailSDK/2.4.0 (AB/com.juteralabs.perktv;AV/2.3.2;BV/57)","language":"en","os":"android","devicetype":5,"geo":{"lat":"37.789799","lon":"-122.245697","type":2}},"user":{"id":"14691068417348451344"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Response  	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+	 	Should Match Regexp 			${output}  				87=1
+					
+TC_03_VPAID is not logged when API does not contain value
+	   [Documentation]    	 Verify that VPAID value from API parameter as blank is not logged in request log 
+	   ${random_device_id}=		Generate Clear Device ID   	
+	   #Set Test Variable    ${data}	{"id":"8318133468316979278","imp":[{"id":"1","secure":0,"video":{"mimes":["video/mp4","video/x-flv","video/3gpp","video/webm"],"minduration":5,"maxduration":30,"protocols":[2,5],"w":320,"h":480,"startdelay":0,"linearity":1,"battr":[3,8],"api":[],"maxbitrate":1024,"pos":7,"ext":{}},"instl":1,"bidfloor":4.62962962962963,"bidfloorcur":"USD","ext":{}}],"app":{"id":"${app_id_01}","name":"CleanMaster-FreeAntivirus","cat":["IAB3"],"bundle":"com.cleanmaster.mguard","publisher":{"id":"207906","name":"MindAdMedia","ext":{}},"keywords":[],"storeurl":"","ext":{}},"device":{"dnt":0,"ua":"Mozilla\/5.0(Linux;Android7.0;SM-G930R4Build\/NRD90M;wv)AppleWebKit\/537.36(KHTML,likeGecko)Version\/4.0Chrome\/57.0.2987.132MobileSafari\/537.36","ip":"65.175.133.113","geo":{"lat":43.5645,"lon":-71.482,"country":"USA","region":"NH","metro":"506","city":"Laconia","zip":"03246","type":2,"ext":{}},"dpidsha1":"82BBCABC5AA46641A11F3E8F9B8B6777540D6552","dpidmd5":"22F2FAB40817147B1A066487B97F1D88","carrier":"MetroCast","language":"en","make":"Generic","model":"Android2.0","os":"Android","osv":"2.0","w":320,"h":480,"js":1,"connectiontype":0,"devicetype":4,"ifa":"${random_device_id}","ext":{}},"user":{"gender":""},"regs":{"coppa":0},"at":2,"tmax":250,"bcat":["IAB25","IAB26"],"badv":[],"ext":{}}
+	   #RTB Request 				API=${RTB_INNERACTIVE_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Set Test Variable    ${data}   		  {"id":"7569adb1-b9d6-44a3-ba2f-785639599c9f","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"protocols":[2 ],"startdelay":0,"playback":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"id":"${app_id_01}","name":"perk tv","cat":["IAB1"]},"device":{"ip":"108.220.55.85","ifa":"${random_device_id}","dpidsha1":"c9cbef800a4faf511bd03925ea31f15218967e44","dpidmd5":"10bc0393e328e1cbec9d43ae002dfd08","ua":"Mozilla/5.0 (Linux; Android; Device) LiveRailSDK/2.4.0 (AB/com.juteralabs.perktv;AV/2.3.2;BV/57)","language":"en","os":"android","devicetype":5,"geo":{"lat":"37.789799","lon":"-122.245697","type":2}},"user":{"id":"14691068417348451344"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Response  	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+	  	Should Match Regexp 			${output}  				87=
+	
+	

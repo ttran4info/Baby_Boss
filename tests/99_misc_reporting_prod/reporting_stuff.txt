@@ -1,0 +1,59 @@
+
+
+*** Settings ***
+Resource    adhaven_general.txt
+Force Tags          PRODUCTION    REPORTING_2013     EXCLUDE
+*** Variables ***
+
+*** Test Cases ***
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    http://manage.adhaven.com/adhaven-ui/advertisersList.html    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD}
+       Login with "reporting" and "Reporting1"
+
+[2013 Start]Get Screenshot For Campaign 641 - Temptations Treats Jan 2013 Study
+       Go To    http://manage.adhaven.com/adhaven-ui/campaignsView.html?partnerId=349&campaignId=641
+       Capture Page Screenshot With Timestamp
+
+[2013 Start]Get Screenshot For Campaign 643 - Stelara FY13 Jan 2013
+       Go To    http://manage.adhaven.com/adhaven-ui/campaignsView.html?partnerId=249&campaignId=643
+       Capture Page Screenshot With Timestamp
+       
+[2013 Start]Get Screenshot For Campaign 648 - Temptations Treats Jan 2013
+       Go To    http://manage.adhaven.com/adhaven-ui/campaignsView.html?partnerId=349&campaignId=648
+       Capture Page Screenshot With Timestamp
+
+[2013 Start]Get Screenshot For Campaign 645 - Toyota Jan 2013 Q1
+       Go To    http://manage.adhaven.com/adhaven-ui/campaignsView.html?partnerId=325&campaignId=645
+       Capture Page Screenshot With Timestamp
+
+
+[2013 Start]Get Screenshot For Campaign 651 - Temptations Treats Jan 2013 4info served
+       Go To    http://manage.adhaven.com/adhaven-ui/campaignsView.html?partnerId=349&campaignId=651
+       Capture Page Screenshot With Timestamp
+
+
+
+
+Get Screenshot For Campaign 644 - Black Enterprise Jan 2013
+       Go To    http://manage.adhaven.com/adhaven-ui/campaignsView.html?partnerId=259&campaignId=644
+       Capture Page Screenshot With Timestamp
+              
+Get Screenshot For Campaign 629 - Carnival Cruise Lines Dec 2012
+       Go To    http://manage.adhaven.com/adhaven-ui/campaignsView.html?partnerId=324&campaignId=629
+       Capture Page Screenshot With Timestamp
+
+Get Screenshot For Campaign 635 - Magnolia Health Plan Dec 2012
+       Go To    http://manage.adhaven.com/adhaven-ui/campaignsView.html?partnerId=348&campaignId=635
+       Capture Page Screenshot With Timestamp
+
+       
+
+Log Out of AdHaven UI and Verify
+       Logout of AdHaven UI      
+       
+Close The Browsers Opened
+       Close Browser
+       
+       
+       

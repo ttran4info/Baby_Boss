@@ -1,0 +1,219 @@
+*** Settings ***
+Resource            new_placement_imports_94.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH94								     
+
+		
+*** Variables ***
+${partner_name}						 AOL Marketplace Exchange 
+${placement_type_app}					AOL Marketplace App
+${placement_type_mw}					AOL Marketplace Mobile Web
+${placement_type_online}				AOL Marketplace Desktop
+
+${placement_name_1_1}					Regression AOL App Bundle ID	
+${placement_name_1_2}					Regression AOL App Store URL
+${placement_name_1_3}					Regression AOL App Domain
+${placement_name_1_4}					Regression AOL App ID
+${placement_name_1_5}					Regression AOL App Publisher ID
+${placement_name_1_6}					Regression AOL App IAB Category 
+${placement_name_1_7}					Regression AOL Publisher Not MW	
+${placement_name_1_8}					Regression AOL Publisher Not Online
+
+${placement_name_2_1}					Regression AOL Site Domain
+${placement_name_2_2}					Regression AOL Site ID
+${placement_name_2_3}					Regression AOL Site Publisher ID
+${placement_name_2_4}					Regression AOL Site IAB Category 
+${placement_name_2_5}					Regression AOL Publisher Not App
+${placement_name_2_6}					Regression AOL Publisher Not Online 
+
+${placement_name_3_1}					Regression AOL Online Domain
+${placement_name_3_2}					Regression AOL Online ID
+${placement_name_3_3}					Regression AOL Online Publisher ID
+${placement_name_3_4}					Regression AOL Online IAB Category 
+${placement_name_3_5}					Regression AOL Publisher Not App
+${placement_name_3_6}					Regression AOL Publisher Not MW 
+		           	 		
+*** Test Cases ***
+
+Insert Placement Into DB ${placement_name_1_1} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App Bundle ID (exchange agnostic)
+	...						pl_bid_attribute_Value=App Bundle ID
+	[Tags]		
+Insert Placement Into DB ${placement_name_1_2} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App Store URL (exchange agnostic)
+	...						pl_bid_attribute_Value=App Store URL
+	[Tags]		
+Insert Placement Into DB ${placement_name_1_3} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_3}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App Domain (exchange agnostic)
+	...						pl_bid_attribute_Value=AppDomain.com
+	[Tags]	
+Insert Placement Into DB ${placement_name_1_4} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_4}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=App ID	
+	[Tags]	
+Insert Placement Into DB ${placement_name_1_5} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_5}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=Publisher ID (exchange specific)
+	...						pl_bid_attribute_Value=App Publisher ID
+	[Tags]	
+Insert Placement Into DB ${placement_name_1_6} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_6}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=IAB\/iTunes Content Category (exchange agnostic)
+	...						pl_bid_attribute_Value=App IAB Category
+	[Tags]	
+Insert Placement Into DB ${placement_name_1_7} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_7}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=Publisher ID (exchange specific)
+	...						pl_bid_attribute_Value=Publisher Not MW
+	[Tags]	
+Insert Placement Into DB ${placement_name_1_8} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_8}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=Publisher ID (exchange specific)
+	...						pl_bid_attribute_Value=Publisher Not Online	
+	[Tags]	
+	
+		
+Insert Placement Into DB ${placement_name_2_1} (MW) ${placement_type_mw}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_mw}
+	...						pl_name=${placement_name_2_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site Domain (exchange agnostic)
+	...						pl_bid_attribute_Value=SiteDomain.com
+	[Tags]		
+Insert Placement Into DB ${placement_name_2_2} (MW) ${placement_type_mw}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_mw}
+	...						pl_name=${placement_name_2_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=Site ID
+	[Tags]		
+Insert Placement Into DB ${placement_name_2_3} (MW) ${placement_type_mw}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_mw}
+	...						pl_name=${placement_name_2_3}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Publisher ID (exchange specific)
+	...						pl_bid_attribute_Value=Site Publisher ID
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_4} (MW) ${placement_type_mw}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_mw}
+	...						pl_name=${placement_name_2_4}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=IAB/iTunes Content Category (exchange agnostic)
+	...						pl_bid_attribute_Value=Site IAB Category
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_5} (MW) ${placement_type_mw}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_mw}
+	...						pl_name=${placement_name_2_5}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Publisher ID (exchange specific)
+	...						pl_bid_attribute_Value=Publisher Not App
+	[Tags]	
+Insert Placement Into DB ${placement_name_2_6} (MW) ${placement_type_mw}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_mw}
+	...						pl_name=${placement_name_2_6}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Publisher ID (exchange specific)
+	...						pl_bid_attribute_Value=Publisher Not Online 	
+	[Tags]	
+
+Insert Placement Into DB ${placement_name_3_1} (Online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Site Domain (exchange agnostic)
+	...						pl_bid_attribute_Value=OnlineDomain.com
+	[Tags]		
+Insert Placement Into DB ${placement_name_3_2} (Online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=Online ID
+	[Tags]		
+Insert Placement Into DB ${placement_name_3_3} (Online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_3}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Publisher ID (exchange specific)
+	...						pl_bid_attribute_Value=Online Publisher ID
+	[Tags]		
+Insert Placement Into DB ${placement_name_3_4} (Online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_4}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=IAB/iTunes Content Category (exchange agnostic)
+	...						pl_bid_attribute_Value=Online IAB Category
+	[Tags]		
+Insert Placement Into DB ${placement_name_3_5} (Online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_5}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Publisher ID (exchange specific)
+	...						pl_bid_attribute_Value=Publisher Not App
+	[Tags]		
+Insert Placement Into DB ${placement_name_3_6} (Online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_6}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Publisher ID (exchange specific)
+	...						pl_bid_attribute_Value=Publisher Not MW 	
+	[Tags]		

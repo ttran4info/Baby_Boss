@@ -1,0 +1,23 @@
+*** Settings ***
+Resource            new_placement_imports.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH95A							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${partner_name}						    BrightRoll Online Exchange
+
+${placement_type_online}				BrightRoll Online 
+${placement_name_3_1}					REGRESSION BRX_BRX0003 ONLINE  
+
+    	 		
+*** Test Cases ***
+Create New Placement ${placement_name_3_1} (online) ${placement_type_online}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=BRX0003		
+		

@@ -1,0 +1,88 @@
+*** Settings ***
+Resource            new_placement_imports_94.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH94						     
+
+*** Variables ***
+${partner_name}						 AppNexus Exchange
+${placement_type_app}					AppNexus App 
+${placement_name_1_1}					REGRESSION APPNEXUSMM_9238 APP
+${placement_name_1_2}					REGRESSION APPNEXUS_MM APP
+${placement_name_1_3}					REGRESSION DEVICE_FC_01 APPNEXUSMM APP
+${placement_name_1_4}					REGRESSION IP_FC_03 APPNEXUSMM APP
+${placement_name_1_5}					Regression WURFL Apnexusmm
+
+${placement_type_web}				AppNexus Mobile Web
+ ${placement_name_2_1}				REGRESSION APPNEXUSMM_SANITY WEB  
+
+${placement_type_online}				AppNexus Desktop 
+${placement_name_3_1}					REGRESSION APPNEXUSMM_SANITY ONLINE         	 		
+*** Test Cases ***
+Insert Placement Into DB ${placement_name_1_1} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=Millenial Mobile Web
+	...						pl_name=REGRESSION APPNEXUSMM_9237 SITE
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=9237	
+
+Insert Placement Into DB ${placement_name_1_1} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=9238	
+Insert Placement Into DB ${placement_name_1_2} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13491
+Insert Placement Into DB ${placement_name_1_3} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_3}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12471
+
+Insert Placement Into DB ${placement_name_1_4} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_4}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12473
+
+Insert Placement Into DB ${placement_name_1_5} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_5}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12612	
+
+Insert Placement Into DB ${placement_name_2_1} (Web) ${placement_type_web}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_web}
+	...						pl_name=${placement_name_2_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=9237
+		[Tags]		
+Insert Placement Into DB ${placement_name_3_1} (online) ${placement_type_online}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=13951	

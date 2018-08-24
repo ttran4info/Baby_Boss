@@ -1,0 +1,39 @@
+*** Settings ***
+Resource            new_placement_imports_94.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH94		EXCLUDE				     
+
+		
+*** Variables ***
+${partner_name}						xAd
+${placement_type_app}				xAd App  
+${placement_type_site}				xAd MW  
+
+		           	 		
+*** Test Cases ***
+Insert Placement Into DB ${placement_name_1_1} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION XAD APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13741
+Insert Placement Into DB ${placement_name_1_2} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION XAD APP NEW
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13746
+
+
+Insert Placement Into DB ${placement_name_2_1} (site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=REGRESSION XAD WEB
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=13744
+	

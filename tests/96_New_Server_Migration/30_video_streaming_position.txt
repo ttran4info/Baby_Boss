@@ -1,0 +1,147 @@
+*** Settings ***
+Resource            new_ad_imports.txt
+Force Tags         	NEW_UI_VIDEO_POSITION     BATCH96		BATCH96I						     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${campaign_name}						30_Video_Streaming_Position
+${parent_name_1}						30_Video_Parent
+${child_name_1_1} 						30_Interstitial
+${child_name_1_2} 						30_Pre-roll
+${child_name_1_3} 						30_Mid-roll	
+${child_name_1_4} 						30_Post-roll 
+${child_name_1_5} 						30_No_target 		
+*** Test Cases ***
+ Remove Test
+ 	#remember to remove child adgroup first before removing parent adgroup.
+ 	Remove AdGroup By BundleID	ag_bundle_id=xxx
+ 	[Tags]	  	exclude
+ 	
+Make New Campaign	
+	Add Campaign To Advertiser 6.0      
+      ...						 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 campaign_time_zone=${REGRESSION_TIME_ZONE}
+      ...                        campaign_start_date=${REGRESSION_START_DATE}
+      ...                        campaign_end_date=${REGRESSION_END_DATE}
+	[Tags]	
+
+#Parent #1	
+Make New Parent Ad ${parent_name_1}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_1}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      	
+Make New Child Ad ${child_name_1_1}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION RUBICON_VIDEO_STREAMING_POSITION APP
+      ...						 ag_target_video_streaming_position=Interstitial
+	[Tags]		
+Make New Creative ${child_name_1_1}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_1}     
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_1}_CREATIVE
+      ...                        ag_creative_type=Interstitial Video
+      ...						 ag_creative_type_2=Upload Video            
+      ...						ag_creative_video_type=MIGRATION
+      ...						ag_creative_video_name=Hot_Pockets_30s_video.mp4
+      ...						ag_creative_video_duration=30		
+Make New Child Ad ${child_name_1_2}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_2}
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION ADAPTV_VIDEO_STREAMING_POSITION APP
+      ...						 ag_target_video_streaming_position=Pre-roll
+	[Tags]		
+Make New Creative ${child_name_1_2}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_2}           
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_2}_CREATIVE
+      ...                        ag_creative_type=Interstitial Video
+      ...						 ag_creative_type_2=Upload Video            
+      ...						ag_creative_video_type=MIGRATION
+      ...						ag_creative_video_name=Hot_Pockets_30s_video.mp4
+      ...						ag_creative_video_duration=30
+	[Tags]	   
+Make New Child Ad ${child_name_1_3}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_3}
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION ADAPTV_VIDEO_STREAMING_POSITION APP
+      ...						 ag_target_video_streaming_position=Mid-roll
+	[Tags]		
+Make New Creative ${child_name_1_3}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_3}        
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_3}_CREATIVE
+      ...                        ag_creative_type=Interstitial Video
+      ...						 ag_creative_type_2=Upload Video            
+      ...						ag_creative_video_type=MIGRATION
+      ...						ag_creative_video_name=Hot_Pockets_30s_video.mp4
+      ...						ag_creative_video_duration=30
+	[Tags]		
+Make New Child Ad ${child_name_1_4}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_4}
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION ADAPTV_VIDEO_STREAMING_POSITION APP
+      ...						 ag_target_video_streaming_position=Post-roll
+	[Tags]		
+Make New Creative ${child_name_1_4}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_4}          
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_4}_CREATIVE
+      ...                        ag_creative_type=Interstitial Video
+      ...						 ag_creative_type_2=Upload Video
+      ...						ag_creative_video_type=MIGRATION
+      ...						ag_creative_video_name=Hot_Pockets_30s_video.mp4
+      ...						ag_creative_video_duration=30
+	[Tags]
+Make New Child Ad ${child_name_1_5}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_5}
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION BRX_VIDEO_STREAMING_POSITION APP
+	[Tags]		
+Make New Creative ${child_name_1_5}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_5}          
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_5}_CREATIVE
+      ...                        ag_creative_type=Interstitial Video
+      ...						 ag_creative_type_2=Upload Video             
+      ...						ag_creative_video_type=MIGRATION
+      ...						ag_creative_video_name=Hot_Pockets_30s_video.mp4
+      ...						ag_creative_video_duration=30
+	[Tags]			                      

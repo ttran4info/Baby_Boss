@@ -1,0 +1,59 @@
+*** Settings ***
+Resource            new_ad_imports.txt
+Force Tags         	NEW_UI_CONVERSION_TRACKING     BATCH96		BATCH96H							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${campaign_name}						26_Conversion_Tracking
+${parent_name_1}						Conversion_Parent
+${child_name_1_1} 						Tracking_Child 
+		
+*** Test Cases ***
+ Remove Test
+ 	#remember to remove child adgroup first before removing parent adgroup.
+ 	Remove AdGroup By BundleID	ag_bundle_id=xxxx
+ 	[Tags]	 Exclude 	
+ 	
+Make New Campaign	
+	Add Campaign To Advertiser 6.0      
+      ...						 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 campaign_time_zone=${REGRESSION_TIME_ZONE}
+      ...                        campaign_start_date=${REGRESSION_START_DATE}
+      ...                        campaign_end_date=${REGRESSION_END_DATE}
+	[Tags]	
+
+#Parent #1	
+Make New Parent Ad ${parent_name_1}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_1}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      ...						 ag_enable_conversion_tracking=1
+         [Tags]		
+Make New Child Ad ${child_name_1_1}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB Conversion Tracking 
+
+Make New Creative ${child_name_1_1}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg 
+      ...						ag_creative_specific_destination_url=https://shibbytest.adhaven.com/regression_qa.html    

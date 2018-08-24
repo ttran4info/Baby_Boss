@@ -1,0 +1,7 @@
+*** Settings ***
+Resource	ACE_api.txt
+Resource	um_api.txt
+Resource	database.txt
+Resource	file_operations.txt
+Library		Selenium2Library
+Library		Collections

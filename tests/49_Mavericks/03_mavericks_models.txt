@@ -1,0 +1,32 @@
+*** Settings ***
+Resource   mavericks_imports.txt
+Force Tags           MAVERICKS    BATCH3	MOPUB
+Suite Setup             Open Browser        ${DEFAULT_BROWSER_HOME}		${BROWSER}
+Suite Teardown         Run Keywords                     Close All Browsers
+
+*** variables ***
+
+*** Keywords ***
+Extract Data Maverick Models
+		[Arguments]      ${page_url}=http://admin:lebowski@${BID_ENGINE_ONE}:8080/bid-engine/cache/model			${model}=pack	${validation}=model
+		#model could be pack = script, view, measure, ctr, vcr, elig			
+		Go To    ${page_url}/${model}
+		Page Should Contain		${validation}			
+		Log		$validation		
+*** Test Cases ***
+Loaded Model CTR
+	Extract Data Maverick Models	model=ctr	validation=Mavericks CTR Model	
+Loaded Model VCR
+	Extract Data Maverick Models	model=vcr	validation=Mavericks VCR Model	
+Loaded Model View
+	Extract Data Maverick Models	model=view	validation=Mavericks VIEW Model	
+Loaded Model Measure
+	Extract Data Maverick Models	model=measure	validation=Mavericks MEASURE Model	
+Loaded Model Eligibity
+	Extract Data Maverick Models	model=elig	validation=Mavericks ELIGIBILITY Model	
+Loaded Model pack
+	Extract Data Maverick Models	model=pack	validation=Model date						
+Loaded Model script
+	Extract Data Maverick Models	model=script	validation=script		
+Loaded Model elig_script
+	Extract Data Maverick Models	model=elig_script	validation=elig_script			   	

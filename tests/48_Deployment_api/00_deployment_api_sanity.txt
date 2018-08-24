@@ -1,0 +1,30 @@
+*** Settings ***
+Resource            deployment_api_imports.txt
+Force Tags         	Deployment    
+
+
+#https://qa-api-proxy-gcp-deployment-api.4info.com/deployment-api/swagger-ui.html
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+
+DEPLOYMENT_TC_01_Get_All_Delivery_Partners via https
+	[Documentation]		Test delivery partner via https
+	Set Test Variable	${groupId}		1
+	Set Test Variable 	${uri_link}		/deployment-api/api/v1/delivery-partners
+	DEPLOYMENT API	connection_type=https
+	...			server=${QA_API_EXTERNAL_GCP}
+	...			port=${QA_API_EXTERNAL_GCP_PORT}
+	...			uri=${uri_link}
+	...			expected_status_code=200
+	...			success=true
+	Should Match Regexp			${body}		"id":1,"name":"Adobe"
+	Should Match Regexp			${body}		"id":2,"name":"Oracle"
+	Should Match Regexp			${body}		"id":3,"name":"Lotame"
+	Should Match Regexp			${body}		"id":4,"name":"Neustar"
+	[Tags]	

@@ -1,0 +1,318 @@
+#---------------------------------------------------------------------------------------
+# Script Change Log
+# 2017-08-23 : vkatkar : Created new script
+# 2017-08-29 : vkatkar : Added Force Tags for Jenkins job run
+# 2018-02-15 : vkatkar : Modified as per task ids CM-1910, CM-1998, CM-2009
+#---------------------------------------------------------------------------------------
+
+*** Settings ***
+Resource        ACE_api_imports.txt
+Force Tags      ACE_API    BATCH21    ACE2.1    OffshoreQA
+
+# Wiki : https://wiki.4info.com/display/Software/ACE+API+Documentation#ACEAPIDocumentation-2.1GetAceReportdetail
+# API Name : 2.1 Get Ace Report detail
+# Method : GET
+# URL : qa-ace-10:8080/ace/api/v2/report/detail?reportId={reportId}
+# DESC : Get details of the ACE Report by report Id
+# rhino.ace_report
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+
+*** Test Cases ***
+#It would be better if these data are generated and remove when they are done with testing.
+#We need all type of data source
+#1. 4info Retargeting
+#2. 4info custom trade area
+#3. 4info trade area
+#4. location append
+#5. catalina retargeting
+#6. catalina trade area
+#7. geofence
+#8. geofence: custom dataset
+#9. catalina custom trade area.
+# The list is from cm1, and may not all be part of CM2. Check to see which should be in for CM2.
+#----------------------------------------------------------------------------------------------
+ACE2.1_TC_01.1_Get Ace Report detail (Geofence, Accept)
+    [Documentation]     Input : Run API with valid report id and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${name}             ACE_Regression_Geofence_${ret}
+    Log     ${name}
+    Create Geofence     uri=/ace/api/v2/report/create
+    ...                 reportName=${name}
+    ...                 response_code=200
+    ...                 success=true
+    ${reportId}=    Get JSON Value      ${body}     /id
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+ 	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+
+    [Tags]         # Known_bug     CM-1787   CM-1123    #CM-1002        #CM-1000
+
+
+ACE2.1_TC_01.2_Get Ace Report detail (Location Append, Status : Finished, Accept)
+    [Documentation]     Input : Run API with valid report id and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    ###select * from ace_report where datasource_id = 36 and status = 3
+    Set Test Variable   ${reportId}     4630
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+ 	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+
+    Validate ACE 2.1 Keys response code 200 for Location Append
+    Json Value Should Equal  ${body}   /report/id           ${reportId}
+    Json Value Should Equal  ${body}   /report/dataSource   "Location Append"
+    Json Value Should Equal  ${body}   /report/name         "Location_append2018.xlsx"
+    Json Value Should Equal  ${body}   /report/createdBy    "hparihar@4info.com"
+    Json Value Should Equal  ${body}   /report/status       "Finished "
+    Json Value Should Equal  ${body}   /report/date         "01/02/2018 08:21:24 PM"
+    Json Value Should Equal  ${body}   /report/fileName     "Location_append2018.xlsx"
+    [Tags]
+
+
+ACE2.1_TC_01.3.1_Get Ace Report detail (Geofence, Status : Finished, Accept)
+    [Documentation]     Input : Run API with valid report id and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${reportId}     3782
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+ 	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+
+    Validate ACE 2.1 Keys response code 200 for Geofence
+    Json Value Should Equal  ${body}   /report/id           ${reportId}
+    Json Value Should Equal  ${body}   /report/dataSource   "Geo Fence"
+    Json Value Should Equal  ${body}   /report/name         "QA_GEOFENCE"
+    Json Value Should Equal  ${body}   /report/createdBy    "hparihar@4info.com"
+    Json Value Should Equal  ${body}   /report/status       "Finished "
+    Json Value Should Equal  ${body}   /report/date         "04/19/2016 08:54:17 PM"
+    Json Value Should Equal  ${body}   /report/radius    0.04
+    Json Value Should Equal  ${body}   /report/segmentMap/0/id            10
+    Json Value Should Equal  ${body}   /report/segmentMap/0/name          "ADMINISTRATION OF VETERANS' AFFAIRS"
+    Json Value Should Equal  ${body}   /report/segmentMap/0/poiNames      null
+    [Tags]
+
+
+ACE2.1_TC_01.3.2_Get Ace Report detail (Geofence, Status : New, Accept)
+    [Documentation]     Input : Run API with valid report id and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${reportId}     1480
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+ 	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+
+    Validate ACE 2.1 Keys response code 200 for Geofence
+    Json Value Should Equal  ${body}   /report/id           ${reportId}
+    Json Value Should Equal  ${body}   /report/dataSource   "Geo Fence"
+    Json Value Should Equal  ${body}   /report/name         "QA_7_11_All_DMA"
+    Json Value Should Equal  ${body}   /report/createdBy    "hparihar@4info.com"
+    Json Value Should Equal  ${body}   /report/status       "New"
+    Json Value Should Equal  ${body}   /report/date         "01/20/2015 07:19:22 PM"
+    Json Value Should Equal  ${body}   /report/radius                           1.5
+    Json Value Should Equal  ${body}   /report/segmentMap/0/id                  393
+    Json Value Should Equal  ${body}   /report/segmentMap/0/name                "GROCERY STORES"
+    Json Value Should Equal  ${body}   /report/segmentMap/0/poiNames/0/id       57
+    Json Value Should Equal  ${body}   /report/segmentMap/0/poiNames/0/name     "7 ELEVEN"
+    [Tags]
+
+
+ACE2.1_TC_01.3.3_Get Ace Report detail (Geofence, Status : Failed, Accept)
+    [Documentation]     Input : Run API with valid report id and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${reportId}     383
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+ 	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+    Validate ACE 2.1 Keys response code 200 for Geofence
+    Json Value Should Equal  ${body}   /report/id           ${reportId}
+    Json Value Should Equal  ${body}   /report/dataSource   "Geo Fence"
+    Json Value Should Equal  ${body}   /report/name         "QA TEST"
+    Json Value Should Equal  ${body}   /report/createdBy    "hparihar@4info.com"
+    Json Value Should Equal  ${body}   /report/status       "Failed"
+    Json Value Should Equal  ${body}   /report/date         "07/22/2013 10:42:55 PM"
+    Json Value Should Equal  ${body}   /report/radius    0.03
+    ${segmentMap}=    Get JSON Value    ${body}    /report/segmentMap
+    Log    ${segmentMap}
+    Should Match Regexp    ${segmentMap}    {"id": 1546, "name": "OFFICE DEPOT"}, {"id": 1547, "name": "OFFICE MAX"}, {"id": 1999, "name": "STAPLES THE OFFICE SUPERSTORE"}], "id": 870, "name": "STATIONERY STORES"
+    Should Match Regexp    ${segmentMap}    {"id": 293, "name": "BEST BUY"}], "id": 756, "name": "CONSUMER ELECTRONICS"
+    Should Match Regexp    ${segmentMap}    {"id": 622, "name": "COSTCO WAREHOUSE"}, {"id": 1247, "name": "KMART"}, {"id": 2064, "name": "TARGET"}], "id": 232, "name": "DEPARTMENT STORES"
+    [Tags]
+
+
+ACE2.1_TC_01.3.4_Get Ace Report detail (Geofence, Status : Finished - Zero Results, Accept)
+    [Documentation]     Input : Run API with valid report id and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${reportId}     539
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+ 	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+    Validate ACE 2.1 Keys response code 200 for Geofence
+    Json Value Should Equal  ${body}   /report/id           ${reportId}
+    Json Value Should Equal  ${body}   /report/dataSource   "Geo Fence"
+    Json Value Should Equal  ${body}   /report/name         "Geo_fedex.6 ui46test"
+    Json Value Should Equal  ${body}   /report/createdBy    "hparihar@4info.com"
+    Json Value Should Equal  ${body}   /report/status       "Finished - Zero Results"
+    Json Value Should Equal  ${body}   /report/date         "12/06/2013 07:50:09 PM"
+    Json Value Should Equal  ${body}   /report/radius    0.4
+    # ${segmentMap}=    Get JSON Value    ${body}    /report/segmentMap
+    # Log    ${segmentMap}
+    # Should Match Regexp    ${segmentMap}        [{"poiNames": [{"id": 836, "name": "FEDEX"}], "id": 15, "name": "AIR COURIER SERVICES"}]
+    Json Value Should Equal  ${body}   /report/segmentMap/0/id            15
+    Json Value Should Equal  ${body}   /report/segmentMap/0/name          "AIR COURIER SERVICES"
+    Json Value Should Equal  ${body}   /report/segmentMap/0/poiNames/0/id      836
+    Json Value Should Equal  ${body}   /report/segmentMap/0/poiNames/0/name      "FEDEX"
+    [Tags]    ACE2.1_TC_01.3.4
+
+
+ACE2.1_TC_01.4_Get Ace Report detail (Retargeting, Status : Finished, Accept)
+    [Documentation]     Input : Run API with valid report id and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${reportId}      4416
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+ 	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+    Validate ACE 2.1 Keys response code 200 for Retargeting
+    Json Value Should Equal  ${body}   /report/id           ${reportId}
+    Json Value Should Equal  ${body}   /report/dataSource   "Retargeting"    #"Retargeting"
+    Json Value Should Equal  ${body}   /report/name         "39351-retargeting-2017-06-14_10:57"
+    Json Value Should Equal  ${body}   /report/createdBy    "smoreno@4info.com"
+    Json Value Should Equal  ${body}   /report/status       "Finished "
+    Json Value Should Equal  ${body}   /report/date         "06/14/2017 05:58:04 PM"
+    Json Value Should Equal  ${body}   /report/segmentMap/0/id      39351
+    Json Value Should Equal  ${body}   /report/segmentMap/0/name    "Brand Buyers_Zyrtec"
+    Json Value Should Equal  ${body}   /report/segmentMap/0/campaign/id       2215
+    Json Value Should Equal  ${body}   /report/segmentMap/0/campaign/name     "Zyrtec Omni April 2017"
+    Json Value Should Equal  ${body}   /report/fileName    null
+    Json Value Should Equal  ${body}   /report/poiDataSource    1
+    [Tags]    #CM-1910    #  Known_bug    CM-1792
+
+#----------------------------------------------------------------------------------------------
+ACE2.1_TC_02.1_Get Ace Report detail (report id : 99999, Don't accept)
+    [Documentation]     Input : Run API with invalid report id as 99999,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     99999
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+ 	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "700-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid ACE Report id."
+    [Tags]
+
+
+
+ACE2.1_TC_02.2_Get Ace Report detail (report id : abcd, Don't accept)
+    [Documentation]     Input : Run API with invalid report id as abcde,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     abcd
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "700-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid ACE Report id."
+    [Tags]      # Known_bug       CM-1001
+
+
+
+ACE2.1_TC_02.3_Get Ace Report detail (report id : negative value, Don't accept)
+    [Documentation]     Input : Run API with invalid report id as -4176,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     -4176
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "700-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid ACE Report id."
+    [Tags]
+
+
+ACE2.1_TC_02.4_Get Ace Report detail (report id : special characters value, Don't accept)
+    [Documentation]     Input : Run API with invalid report id as @#$,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     @#$
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "700-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid ACE Report id."
+    [Tags]     #  Known_bug       CM-1001
+
+
+ACE2.1_TC_02.5_Get Ace Report detail (report id : Missing, Don't accept)
+    [Documentation]     Input : Run API with invalid report id as missing,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "400-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid Request."
+    [Tags]   #   Known_bug       CM-1003
+
+#----------------------------------------------------------------------------------------------
+ACE2.1_TC_03.1_Get Ace Report detail (Invalid URL, Don't accept)
+    [Documentation]     Input : Run API with invalid URL,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     4176
+    Set Test Variable   ${uri}      /ace/api/v2/_*?report/detail?reportId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    [Tags]   #   Known_bug       CM-1002
+
+#----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------

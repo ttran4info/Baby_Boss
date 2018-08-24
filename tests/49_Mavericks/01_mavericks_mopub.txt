@@ -1,0 +1,361 @@
+*** Settings ***
+Resource   mavericks_imports.txt
+Force Tags           MAVERICKS    BATCH3	MOPUB
+
+*** variables ***
+ ${agid_expected}					57876|45331
+ ${agid_expected_video}				57877|45332 	
+ ${parent_agid_expected}			57874|45329	
+ ${data}				{"site": {"bundle": "com.myyearbook.m","cat": ["IAB24"],"id": "11436","name": "MeetMe_Android","publisher": {"id": "87e493a6b4424a6eb0ab7bc187d4345d","name": "Beanstock Media Inc."},"ver": "9.5.2"},"at": 2,"bcat": ["IAB25","IAB26","IAB3-7"],"device": {"carrier": "310-260","connectiontype": 2,"devicetype": 1,"dnt": 0,"dpidmd5": "e32feae37f36a86edfc9297d92988225","dpidsha1": "e994f940c0a0f689506622aefc918ef6002f802b","ifa": "bf3d12ff-5f82-417c-9fcb-64eb41bb82e3","geo": {"city": "North Las Vegas","country": "BR","lat": 36.278179,"lon": -115.13991,"region": "NV","zip": "94040"},"ip": "68.224.110.221","js": 1,"make": "samsung","model": "SM-G386T1","os": "Android","osv": "4.4.2","ua": "Mozilla/5.0 (Linux; Android 4.4.2; SM-G386T1 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id": "353e5aa1-ec1e-4f3a-bf83-84abd6980360","imp": [{"banner": {"api": [3,5],"battr": [10,8,14,6],"btype": [4],"ext": {"nativebrowserclick": 1},"h": 50,"pos": 1,"w": 320},"bidfloor": 0.09,"displaymanager": "mopub","displaymanagerver": "3.3.0+kit","id": "1","instl": 0,"tagid": "f79f2fcc242b4e9d9ebf9ad9e60a7d11"}],"user": {"keywords": "RELATIONSHIP:single,AGE:16,GENDER:m,BUILD_TYPE:release"}}
+*** Test Cases ***
+	   
+Mavericks Logs - Winning adgroup (short log)
+	   ${device_id}=		Generate Clear Device ID
+	   ##Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks Logs		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		#Should Match Regexp 			${output}  				4=x				#pre-perturbation bid price
+		#Should Match Regexp 			${output}  				5=x				#gaussian sample * standard deviation
+		#Should Match Regexp 			${output}  				6=x				#perturbed bid price = pre-perturbation bid price + (gaussian sample * standard deviation * pre-perturbation bid price )
+		${pre_perturbation_bp}=		extract_matching_regex		${output}		4=(.*)
+		${pre_perturbation_bp}=		Convert To Number 		${pre_perturbation_bp}
+		${gaussian_std_dev}=		extract_matching_regex		${output}		5=(.*)
+		${gaussian_std_dev}=		Convert To Number 		${gaussian_std_dev}
+		${perturbed_bp}=			Evaluate 		${pre_perturbation_bp} + (${gaussian_std_dev} * ${pre_perturbation_bp})
+		${perturbed_bp}=			Convert To String		${perturbed_bp}
+		${perturbed_bp}=			Get Substring 	${perturbed_bp}		0	-2
+		Should Match Regexp 			${output}  				6=${perturbed_bp}				#perturbed bid price = pre-perturbation bid price + (gaussian sample * standard deviation * pre-perturbation bid price )
+	   [Tags]		Exclude		#no longer work with mavericks.log main focus is mavericks2.log
+	   	
+Mavericks2 Logs - Winning adgroup (short log)
+	   ${device_id}=		Generate Clear Device ID
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		#Should Match Regexp 			${output}  				4=x				#pre-perturbation bid price
+		#Should Match Regexp 			${output}  				5=x				#gaussian sample * standard deviation
+		#Should Match Regexp 			${output}  				6=x				#perturbed bid price = pre-perturbation bid price + (gaussian sample * standard deviation * pre-perturbation bid price )
+		${pre_perturbation_bp}=		extract_matching_regex		${output}		4=(.*)
+		${pre_perturbation_bp}=		Convert To Number 		${pre_perturbation_bp}
+		${gaussian_std_dev}=		extract_matching_regex		${output}		5=(.*)
+		${gaussian_std_dev}=		Convert To Number 		${gaussian_std_dev}
+		${perturbed_bp}=			Evaluate 		${pre_perturbation_bp} + (${gaussian_std_dev} * ${pre_perturbation_bp})
+		${perturbed_bp}=			Convert To String		${perturbed_bp}
+		${perturbed_bp}=			Get Substring 	${perturbed_bp}		0	-2
+		Should Match Regexp 			${output}  				6=${perturbed_bp}				#perturbed bid price = pre-perturbation bid price + (gaussian sample * standard deviation * pre-perturbation bid price )
+	   [Tags]	 	  
+
+Mavericks2 Logs - Optimization CRT (column4 value 1)
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			1
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}		optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]			
+
+Mavericks2 Logs - Optimization VCR (column4 value 2) - 
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			2
+	   Set Test Variable    ${data}   		  {"explain":"true","app": {"bundle": "995999703","cat": ["IAB1", "IAB9", "IAB9-30", "entertainment", "games"],"id": "11436","name": "Agar.io iOS","publisher": {"id": "agltb3B1Yi1pbmNyIgsSB0FjY291bnQiFTExMzgyNjUxOTkxNzc5MjcwNTc5NAw","name": "Miniclip SA"},"storeurl": "https://itunes.apple.com/app/agar.io/id995999703","ver": "1.3.0"},"at": 2,"badv": ["yazino.com"],"bcat": ["IAB3-7"],"device": {"connectiontype": 2,"devicetype": 5,"dnt": 0,"geo": {"city": "Millville","country": "br","metro": "504","region": "NJ","zip": "94040"},"h": 1536,"hwv": "iPad Air (WiFi)","ifa": "${device_id}","ip": "73.33.1.102","js": 1,"language": "en","make": "Apple","model": "iPad","os": "iOS","osv": "9.3","ua": "Mozilla/5.0 (iPad; CPU OS 9_3 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Mobile/13E237","w": 2048},"id": "fdabc9f7-7914-4f5f-a709-475b99410977","imp": [{"banner": {"api": [3, 5],"battr": [3, 8, 9, 10, 14],"btype": [4],"h": 768,"pos": 1,"w": 1024},"bidfloorx": 0.00000690,"displaymanager": "mopub","displaymanagerver": "4.3.0","ext": {"brsrclk": 1,"dlp": 1},"id": "1","instl": 1,"secure": 0,"tagid": "d285240c43454ef18d137f73e649d9ea","video": {"api": [3, 5],"battr": [3, 8, 9, 10, 14],"companiontype": [1, 2, 3],"h": 768,"linearity": 1,"maxduration": 120,"mimes": ["video/3gpp", "video/3gpp2", "video/mp4", "video/quicktime", "video/x-m4v"],"minduration": 10,"protocols": [2, 5, 3, 6],"w": 1024}}]}
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected_video}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}			optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected_video}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]	
+Mavericks2 Logs - Optimization View (column 4, value 3)
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			3
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}			optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]		
+
+Mavericks2 Logs - Optimization Measure(column 4, value 4)
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			4
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}			optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]
+
+Mavericks2 Logs - Optimization Eligibility(column 4, value 5)
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			5
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}			optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]
+
+Mavericks2 Logs - Optimization Measure, Predicted rate (column 5)
+	#sum of all the scripts
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	${device_id}=		Generate Clear Device ID
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		${script_all}=		extract_matching_regex		${output}		11=(.*)
+		Log		${script_all}
+		@{script_list}=	String.Split String		${script_all}		;
+		Log	${script_list}
+		Set Test Variable	${script_total}		0		
+		:FOR	${each_script}		IN		@{script_list}
+		\	Log	${each_script}
+		\	${script_value_string}=		extract_matching_regex		${each_script}		:(.*)	
+		\	Log 	${script_value_string}
+		\	${script_value}=		Convert To Number		${script_value_string}
+		\	${script_total}=	Evaluate	${script_total} + ${script_value}
+		Log 	${script_total}
+		${e_value}		Set Variable	2.718281828
+		${Predicted_value}=		Evaluate 	1/(1+${e_value}**(-1*${script_total}))
+		${Predicted_value}=		Convert To String		${Predicted_value}
+		${Predicted_value}=		Get Substring 		${Predicted_value}		0		5
+		Should Match Regexp 			${output}  				5=${Predicted_value}				#Predicted rate (=logistic(z))
+		[Tags]		
+Mavericks2 Logs - Optimization Measure, Factor (column 6)
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	${device_id}=		Generate Clear Device ID
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		${Predicted_value}=		extract_matching_regex		${output}		5=(.*)
+		${Predicted_value}=		Convert To Number		${Predicted_value}
+		${Alpha}=				extract_matching_regex		${output}		9=(.*)
+		${Alpha}=		Convert To Number		${Alpha}
+		${Factor}=	Evaluate 	${Alpha}*((${Predicted_value}/0.5)-1)+1
+		Should Match Regexp 			${output}  				6=${Factor}				#Factor
+		[Tags]		
+Mavericks2 Logs - Optimization Measure, Mavericks amplifier (column 7)
+	${device_id}=		Generate Clear Device ID
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		Should Match Regexp 			${output}  				7=				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]	
+Mavericks2 Logs - Optimization Measure, Baseline (column 8)
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	Set Test Variable		${db_column_name}		measure_baseline
+	${device_id}=		Generate Clear Device ID
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		Get Pricing_Parameter        adgroup_id=${agid_expected}	column_name=${db_column_name}
+		Should Match Regexp 			${output}  				8=${pricing_parameter_result}			#Baseline
+		[Tags]		
+
+Mavericks2 Logs - Optimization Measure, Alpha (column 9)
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	Set Test Variable		${db_column_name}		measure_alpha
+	${device_id}=		Generate Clear Device ID
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		Get Pricing_Parameter        adgroup_id=${agid_expected}	column_name=${db_column_name}
+		Should Match Regexp 			${output}  				9=${pricing_parameter_result}			#Baseline
+		[Tags]		
+Mavericks2 Logs - Optimization Measure, bidValueCpu (column 10)
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	Set Test Variable		${db_column_name}		bid_value_cpu
+	${device_id}=		Generate Clear Device ID
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		Get Pricing_Parameter        adgroup_id=${agid_expected}	column_name=${db_column_name}
+		Should Match Regexp 			${output}  				10=${pricing_parameter_result}			#Baseline
+		[Tags]		
+Mavericks2 Logs - Optimization Measure, scripts (column 11)
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	Set Test Variable		${db_column_name}		bid_value_cpu
+	${device_id}=		Generate Clear Device ID
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		#Get Pricing_Parameter        adgroup_id=${agid_expected}	column_name=${db_column_name}
+		#Should Match Regexp 			${output}  				10=${pricing_parameter_result}			#Baseline
+		Should Match Regexp 			${output}  				11=.*_constant
+		[Tags]
+	
+Feature : Eligibility parent_adgroup_id in server log
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable 	${optimization}			5
+	   #Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=NO		
+	   Extract REQID From Response  
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}		optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		Start Read Server Logs			host=${SSH_RTB_HOST}	validation=Feature coefficients for ELIGIBILITY.*parent_adgroup_id=${parent_agid_expected}
+	 	Should Match Regexp 			${output}  				Feature coefficients for ELIGIBILITY
+	 	Should Match Regexp 			${output}				parent_adgroup_id=${parent_agid_expected}						
+		[Tags]			
+	
+
+Request Logs (86=predicted (=logistic(z))) - Sum of all cooeficient model
+	[Tags]		exclude
+Request Logs (87=baseline)
+	[Tags]		exclude
+Request Logs (88=alpha)
+	[Tags]		exclude
+Request Logs (89=bidValueCpu)
+	 [Tags]		exclude  
+Maverick Price vs Auction Price
+	[Tags]		exclude
+Maverick Scripts
+	[Tags]		exclude
+
+Baseline is 0, ad served normal (column 8)
+	[Tags]		exclude
+Baseline is 1, ad stop serving (column 8) - check server log for: 	
+	#AdGroupSelection, formula gives 0.0 bid price, Adgroup id:44607
+	[Tags]		exclude

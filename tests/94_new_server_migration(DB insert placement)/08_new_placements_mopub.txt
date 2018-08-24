@@ -1,0 +1,398 @@
+*** Settings ***
+Resource            new_placement_imports_94.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH94							     
+
+		
+*** Variables ***
+${partner_name}							MoPub
+
+${placement_type_app}					MoPub App
+${placement_name_1_1}					REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_01 MOPUB APP
+${placement_name_1_2}					REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_02 MOPUB APP
+${placement_name_1_3}					REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_03 MOPUB APP
+${placement_name_1_4}					REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_04 MOPUB APP
+${placement_name_1_5}					REGRESSION MACRO_SUBSTITUTION_RM_01 MOPUB APP
+${placement_name_1_6}					REGRESSION MACRO_SUBSTITUTION_RM_02 MOPUB APP
+${placement_name_1_7}					REGRESSION MACRO_SUBSTITUTION_RM_03 MOPUB APP
+${placement_name_1_8}					REGRESSION MACRO_SUBSTITUTION_RM_04 MOPUB APP
+${placement_name_1_9}					REGRESSION DEVICE_FC_ MOPUB_19_NCS_SCORE APP
+${placement_name_1_10}					REGRESSION DEVICE_FC_01 MOPUB APP
+${placement_name_1_11}					REGRESSION HOUSE_HOLD_FC MOPUB_19_NCS_SCORE APP
+${placement_name_1_12}					REGRESSION HOUSE_HOLD_FC_02 MOPUB APP
+${placement_name_1_13}					REGRESSION IP_FC_03 MOPUB APP
+${placement_name_1_14}					REGRESSION MOPUB 3RD PARTY TRACKING URL
+${placement_name_1_15}					REGRESSION MOPUB APP
+${placement_name_1_16}					REGRESSION MOPUB Conversion Tracking
+#And many more placement app
+${placement_type_site}					MoPub Mobile Web 
+${placement_name_2_1}					REGRESSION MOPUB SITE
+#And many more placement site
+		           	 		
+*** Test Cases ***
+Insert Placement Into DB ${placement_name_1_1} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_01
+
+Insert Placement Into DB ${placement_name_1_2} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_02
+
+Insert Placement Into DB ${placement_name_1_3} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_3}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_03	
+	
+Insert Placement Into DB ${placement_name_1_4} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_4}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_04	
+Insert Placement Into DB ${placement_name_1_5} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_5}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_MOPUB_APP_MACRO_SUBSTITUTION_RM_01
+				
+Insert Placement Into DB ${placement_name_1_6} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_6}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_MOPUB_APP_MACRO_SUBSTITUTION_RM_02	
+Insert Placement Into DB ${placement_name_1_7} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_7}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_MOPUB_APP_MACRO_SUBSTITUTION_RM_03		
+Insert Placement Into DB ${placement_name_1_8} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_8}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_MOPUB_APP_MACRO_SUBSTITUTION_RM_04	
+Insert Placement Into DB ${placement_name_1_9} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_9}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13503
+Insert Placement Into DB ${placement_name_1_10} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_10}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=10074
+	
+Insert Placement Into DB ${placement_name_1_11} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_11}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13504	
+Insert Placement Into DB ${placement_name_1_12} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_12}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=10075	
+Insert Placement Into DB ${placement_name_1_13} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_13}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12442	
+Insert Placement Into DB ${placement_name_1_14} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_14}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13952	
+Insert Placement Into DB ${placement_name_1_15} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_15}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13488	
+Insert Placement Into DB ${placement_name_1_16} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_16}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13505
+	[Tags]			
+Insert Placement Into DB ${placement_name_1_17} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB COUNTRY APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13747	
+Insert Placement Into DB ${placement_name_1_18} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB GEOFENCE
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13475
+			
+Insert Placement Into DB ${placement_name_1_19} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB LIVE SAMPLE
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13739	
+
+Insert Placement Into DB ${placement_name_1_20x} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB RING_GEO
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13482	
+Insert Placement Into DB ${placement_name_1_20} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB RING_GEO NEGATIVE
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13486	
+	
+Insert Placement Into DB ${placement_name_1_21} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB SECURE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13736	
+Insert Placement Into DB ${placement_name_1_22} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_23456 APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=23456
+Insert Placement Into DB ${placement_name_1_23} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_65432 APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=65432		
+Insert Placement Into DB ${placement_name_1_24} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_CARRIER APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12608
+Insert Placement Into DB ${placement_name_1_25} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_01_APP_8223
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_CONNEXIONS_APP_01_8223	
+			
+Insert Placement Into DB ${placement_name_1_26} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_02_APP_8228
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_CONNEXIONS_APP_02_8228
+	
+Insert Placement Into DB ${placement_name_1_27} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_03_APP_8230
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_CONNEXIONS_APP_03_8230
+
+Insert Placement Into DB ${placement_name_1_28} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_04_APP_8231
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_CONNEXIONS_APP_04_8231
+		
+Insert Placement Into DB ${placement_name_1_29} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_CONNEXIONS_05_APP_8232
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=A_CONNEXIONS_APP_05_8232
+	
+Insert Placement Into DB ${placement_name_1_30} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_PRIZM_01_APP_8188
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_APP_01_8188
+	
+Insert Placement Into DB ${placement_name_1_31} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_PRIZM_02_APP_8189
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_APP_02_8189
+	
+Insert Placement Into DB ${placement_name_1_32} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_PRIZM_03_APP_8190
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_APP_03_8190	
+	
+Insert Placement Into DB ${placement_name_1_33} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_PRIZM_04_APP_8191
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_APP_04_8191
+Insert Placement Into DB ${placement_name_1_34} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_PRIZM_05_APP_8192
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_PRIZM_APP_05_8192	
+		
+Insert Placement Into DB ${placement_name_1_35} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION TARGET_DEVICE_ID MOPUB_22 APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12803
+		
+Insert Placement Into DB ${placement_name_1_36} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION TARGET_SEGMENT MOPUB_19_NCS_SCORE APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12520	
+Insert Placement Into DB ${placement_name_1_37} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION TARGET_SEGMENT MOPUB_20_ACXIOM APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12521	
+Insert Placement Into DB ${placement_name_1_38} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION TARGET_SEGMENT MOPUB_21_WALMART APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12523
+			
+Insert Placement Into DB ${placement_name_1_39} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=Regression WURFL
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12609	
+		
+Insert Placement Into DB ${placement_name_1_40} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION MOPUB_DEFAULT_PLACEMENT_MOPUB33333
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=MOPUB_DEFAULT_PLACEMENT_MOPUB33333
+Insert Placement Into DB ${placement_name_1_41} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION TRACKING APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=REGRESSION TRACKING APP
+	[Tags]		
+Insert Placement Into DB ${placement_name_1_42} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=REGRESSION PRIVATE AUCTION APP
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=REGRESSION PRIVATE AUCTION APP
+	[Tags]			

@@ -1,0 +1,92 @@
+*** Settings ***
+Resource            new_placement_imports.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH95A							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${partner_name}						  AppNexus: Microsoft Advertising Exchange
+${placement_type_app}					Microsoft App 
+${placement_name_1_1}					REGRESSION APPNEXUSMS_9465 APP
+${placement_name_1_2}					REGRESSION APPNEXUS_MS APP
+${placement_name_1_3}					REGRESSION DEVICE_FC_01 APPNEXUSMS APP
+${placement_name_1_4}					REGRESSION IP_FC_03 APPNEXUSMS APP
+${placement_name_1_5}					Regression WURFL Apnexus ms	   
+
+${placement_type_site}					Microsoft Mobile 
+${placement_name_2_1}					REGRESSION APPNEXUSMS_9466 SITE   
+
+${placement_type_online}				Microsoft Online
+${placement_name_3_1}					REGRESSION APPNEXUSMS_9467 ONLINE 
+${placement_name_3_2}					REGRESSION APPNEXUS_MS ONLINE     	 		
+*** Test Cases ***
+Create New Placement ${placement_name_1_1} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=9465	
+Create New Placement ${placement_name_1_2} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13490
+Create New Placement ${placement_name_1_3} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_3}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12515
+
+Create New Placement ${placement_name_1_4} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_4}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12519
+
+Create New Placement ${placement_name_1_5} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_5}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=12611
+
+	
+Create New Placement ${placement_name_2_1} (Site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=${placement_name_2_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=9466		
+	
+	
+Create New Placement ${placement_name_3_1} (Online) ${placement_type_online}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=9467	
+Create New Placement ${placement_name_3_2} (Online) ${placement_type_online}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_online}
+	...						pl_name=${placement_name_3_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=ONLINE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=13468			

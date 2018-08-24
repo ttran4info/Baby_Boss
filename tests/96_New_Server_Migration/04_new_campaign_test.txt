@@ -1,0 +1,81 @@
+*** Settings ***
+Resource            new_ad_imports.txt
+Force Tags         	NEW_UI_RTB23     BATCH96		BATCH96I							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${Test_Advertiser}						04_TEST_ADVERTISER
+${campaign_name}						CP_Campaign
+${parent_name_1}						GENERIC_MOBILE_ADGROUP
+${child_name_1_1} 						CHILD_MOBILE_GENERIC_111
+${child_name_1_2} 						CHILD_ONLINE_GENERIC_111
+		
+*** Test Cases ***
+ Remove Test
+ 	#remember to remove child adgroup first before removing parent adgroup.
+ 	Remove AdGroup By BundleID	ag_bundle_id=xxxx
+ 	[Tags]	  exclude	
+ 	
+Make New Campaign	
+	Add Campaign To Advertiser 6.0      
+      ...						 advertiser_name=${Test_Advertiser}	
+      ...                        campaign_name=${campaign_name}
+      ...						 campaign_time_zone=${REGRESSION_TIME_ZONE}
+      ...                        campaign_start_date=${REGRESSION_START_DATE}
+      ...                        campaign_end_date=${REGRESSION_END_DATE}
+	[Tags]	
+
+#Parent #1	
+Make New Parent Ad ${parent_name_1}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${Test_Advertiser}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_1}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      	
+Make New Child Ad ${child_name_1_1}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${Test_Advertiser}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...						 ag_pause_flag=1
+      
+	[Tags]		
+Make New Creative ${child_name_1_1}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${Test_Advertiser}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg      		
+Make New Child Ad ${child_name_1_2}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${Test_Advertiser}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_2}
+	  ... 						 ag_pause_flag=1
+      ...						 ag_enable_behavior_targeting_flag=1
+      ...						 app_flag=0
+	[Tags]		
+Make New Creative ${child_name_1_2}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${Test_Advertiser}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_2}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_2}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg 
+	[Tags]	   
+              

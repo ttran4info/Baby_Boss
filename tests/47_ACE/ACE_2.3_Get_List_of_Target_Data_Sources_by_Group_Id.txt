@@ -1,0 +1,170 @@
+#---------------------------------------------------------------------------------------
+# Script Change Log
+# 2017-09-14 : vkatkar : Created new script
+#
+#---------------------------------------------------------------------------------------
+
+*** Settings ***
+Resource        ACE_api_imports.txt
+Force Tags      ACE_API    BATCH21    ACE2.3   OffshoreQA
+
+# Wiki : https://wiki.4info.com/display/Software/ACE+API+Documentation#ACEAPIDocumentation-2.2GetListofAceReportsbyGroupId
+# API Name : 2.3 Get List of Target Data Sources by Group Id
+# Method : GET
+# URL : http://qa-ace-10:8080/ace/api/v2/report/target-datasource?groupId={groupId}
+# DESC : Returns the list of Target Data Sources grouped by Group Ids
+# rhino.ace_report
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+
+#Perform count validation from API vs DB for group =1 -- need to add this in response 200 validations in ace-api.txt
+#Perform count validation from API vs DB for group =15 -- need to add this in response 200 validations in ace-api.txt
+
+#----------------------------------------------------------------------------------------------
+ACE2.3_TC_01.1_Get List of Target Data Sources by Group Id (groupId = 1 : Valid, Accept)
+    [Documentation]     Input : Run API with valid groupId and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${groupId}     1
+    Set Test Variable   ${uri}      ace/api/v2/report/target-datasource?groupId=${groupId}
+    Get List of Target Data Sources by Group Id
+    ...     groupId=${groupId}
+    ...     uri=${uri}
+    ...     expected_status_code=200
+    ...     success=true
+    ${Response_groupId}    Get Json Value      ${body}     /groupId
+    Should Be Equal      ${Response_groupId}       ${groupId}
+    ${dslist}       Get Json Value      ${body}     /dslist
+    Should Match Regexp     ${dslist}    [{"id":9,"name":"Geo Fence"},{"id":10,"name":"Geo Fence: Custom Dataset"},{"id":24,"name":"Catalina Trade Area"},{"id":25,"name":"Catalina Retargeting"},{"id":31,"name":"Catalina Custom Trade Area"},{"id":33,"name":"4INFO Trade Area"},{"id":34,"name":"4INFO Retargeting"},{"id":35,"name":"4INFO Custom Trade Area"},{"id":36,"name":"Location Append"}]
+    [Tags]
+
+
+ACE2.3_TC_01.2_Get List of Target Data Sources by Group Id (groupId=15 : Valid, Accept)
+    [Documentation]     Input : Run API with valid groupId and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${groupId}     15
+    Set Test Variable   ${uri}      ace/api/v2/report/target-datasource?groupId=${groupId}
+    Get List of Target Data Sources by Group Id
+    ...     groupId=${groupId}
+    ...     uri=${uri}
+    ...     expected_status_code=200
+    ...     success=true
+    ${Response_groupId}    Get Json Value      ${body}     /groupId
+    Should Be Equal      ${Response_groupId}       ${groupId}
+    ${dslist}       Get Json Value      ${body}     /dslist
+    Should Match Regexp     ${dslist}    {"id": 9, "name": "Geo Fence"}
+    Should Match Regexp     ${dslist}    {"id": 10, "name": "Geo Fence: Custom Dataset"}
+    Should Not Match Regexp     ${dslist}    {"id": 24, "name": "Catalina Trade Area"}
+    Should Not Match Regexp     ${dslist}    {"id": 25, "name": "Catalina Retargeting"}
+    Should Not Match Regexp     ${dslist}    {"id": 31, "name": "Catalina Custom Trade Area"}
+    Should Match Regexp     ${dslist}    {"id": 33, "name": "Trade Area"}
+    Should Match Regexp     ${dslist}    {"id": 34, "name": "Retargeting"}
+    Should Not Match Regexp     ${body}   "id": 35
+    Should Not Match Regexp     ${body}   "id": 36
+    [Tags]    # CM-1910
+
+#----------------------------------------------------------------------------------------------
+ACE2.3_TC_02.1_Get List of Target Data Sources by Group Id (groupId : 99999, Don't accept)
+    [Documentation]     Input : Run API with invalid groupId as 99999,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     99999
+    Set Test Variable   ${uri}      ace/api/v2/report/target-datasource?groupId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code             "400-999"
+    Json Value Should Equal     ${body}    /reason_desc             "Validation Failure"
+    Json Value Should Equal     ${body}    /errors/0/reason_code    "600-001"
+    Json Value Should Equal     ${body}    /errors/0/field          "Group Id"
+    Json Value Should Equal     ${body}    /errors/0/reason_desc    "Invalid Group id."
+    [Tags]    #  Known_bug       CM-1327
+
+
+
+ACE2.3_TC_02.2_Get List of Target Data Sources by Group Id (groupId : abcd, Don't accept)
+    [Documentation]     Input : Run API with invalid groupId as abcde,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     abcd
+    Set Test Variable   ${uri}      ace/api/v2/report/target-datasource?groupId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "600-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid Group id."
+    [Tags]
+
+
+
+ACE2.3_TC_02.3_Get List of Target Data Sources by Group Id (groupId : negative value, Don't accept)
+    [Documentation]     Input : Run API with invalid groupId as -1,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     -4176
+    Set Test Variable   ${uri}      ace/api/v2/report/target-datasource?groupId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code             "400-999"
+    Json Value Should Equal     ${body}    /reason_desc             "Validation Failure"
+    Json Value Should Equal     ${body}    /errors/0/reason_code    "600-001"
+    Json Value Should Equal     ${body}    /errors/0/field          "Group Id"
+    Json Value Should Equal     ${body}    /errors/0/reason_desc    "Invalid Group id."
+    [Tags]     # Known_bug       CM-1327
+
+
+ACE2.3_TC_02.3_Get List of Target Data Sources by Group Id (groupId : special characters value, Don't accept)
+    [Documentation]     Input : Run API with invalid groupId as @#$,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     @#$
+    Set Test Variable   ${uri}      ace/api/v2/report/target-datasource?groupId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "600-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid Group id."
+    [Tags]
+
+
+ACE2.3_TC_02.4_Get List of Target Data Sources by Group Id (groupId : Missing, Don't accept)
+    [Documentation]     Input : Run API with invalid groupId as Missing,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${uri}      ace/api/v2/report/target-datasource?
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "400-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid Request."
+    [Tags]   #   Known_bug   CM-1328
+
+#----------------------------------------------------------------------------------------------
+ACE2.3_TC_03.1_Get List of Target Data Sources by Group Id (Invalid URL, Don't accept)
+    [Documentation]     Input : Run API with invalid URL,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     1
+    Set Test Variable   ${uri}      ace/api/v2/reportABCD/target-datasource?groupId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    #Need error validation if response is 400
+    Json Value Should Equal     ${body}    /reason_code    "400-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid Request."
+    [Tags]    #  Known_bug   CM-1002
+
+#----------------------------------------------------------------------------------------------

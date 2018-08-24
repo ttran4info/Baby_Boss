@@ -1,0 +1,193 @@
+*** Settings ***
+Resource            new_ad_imports.txt
+Resource			ace.txt
+Force Tags         	NEW_UI_GEOFENCE     BATCH96		BATCH97H							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${campaign_name}						25_geofence
+${parent_name_1}						geofence_bookstores
+${parent_name_2}				     	negative_geofence_bookstores  
+${parent_name_3}				     	geo_ring_3_10_bookstores 
+${parent_name_4}				     	negative_geo_3_10_bookstores
+ 
+${child_name_1_1} 						borders	
+${child_name_2_1} 						borders_neg
+${child_name_3_1} 						ring_borders
+${child_name_4_1} 						ring_borders_neg
+ 
+		
+*** Test Cases ***
+Remove Test
+ 	#remember to remove child adgroup first before removing parent adgroup.
+ 	Remove AdGroup By BundleID	ag_bundle_id=xxx
+ 	[Tags]	  	exclude
+
+	
+Make New Campaign	
+	Add Campaign To Advertiser 6.0      
+      ...						 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 campaign_time_zone=${REGRESSION_TIME_ZONE}
+      ...                        campaign_start_date=${REGRESSION_START_DATE}
+      ...                        campaign_end_date=${REGRESSION_END_DATE}
+	[Tags]	
+
+#Parent #1	
+Make New Parent Ad ${parent_name_1}
+	Create Geofence By Name
+	...					geo_type=Simple
+	...					geo_poi_radius_min=2.00	
+	...					geo_poi_radius_max=NA
+	...					geo_email=ttran@4info.com
+	...					geo_name=REGRESSION BORDERS (DMA 520)
+	...					geo_poi_name=BOOK STORES:BORDERS
+	...					geo_dma_name=Augusta-Aiken, GA-SC
+	
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_1}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      ...						 ag_geofence=1
+      ...						 ag_geofence_name=REGRESSION BORDERS (DMA 520)
+     [Tags]		
+Make New Child Ad ${child_name_1_1}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB GEOFENCE
+
+Make New Creative ${child_name_1_1}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg 
+         
+	
+
+
+#Parent #2       
+Make New Parent Ad ${parent_name_2}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_2}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      ...						 ag_geofence=1
+      ...						 ag_geofence_name=REGRESSION BORDERS
+      ...						 ag_negative_geofence=1	
+Make New Child Ad ${child_name_2_1}, ${parent_name_2}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_2}
+      ...						 ag_adgroup_name=${child_name_2_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB GEOFENCE
+Make New Creative ${child_name_2_1}, ${parent_name_2}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_2}
+      ...                        child_adgroup_name=${child_name_2_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_2}_${child_name_2_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg          
+
+      
+#Parent #3	
+Make New Parent Ad ${parent_name_3}
+	Create Geofence By Name
+	...					geo_type=Ring
+	...					geo_poi_radius_min=3.00	
+	...					geo_poi_radius_max=10.00
+	...					geo_email=ttran@4info.com
+	...					geo_name=REGRESSION DONUT BORDERS3_10
+	...					geo_poi_name=BOOK STORES:BORDERS
+	...					geo_dma_name=Augusta-Aiken, GA-SC
+	Sleep	60s
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_3}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_geofence=1
+      ...						 ag_geofence_name=REGRESSION DONUT BORDERS3_10
+     
+Make New Child Ad ${child_name_3_1}, ${parent_name_3}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_3}
+      ...						 ag_adgroup_name=${child_name_3_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB RING_GEO
+
+Make New Creative ${child_name_3_1}, ${parent_name_3}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_3}
+      ...                        child_adgroup_name=${child_name_3_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_3}_${child_name_3_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg  
+
+#Parent #4      
+Make New Parent Ad ${parent_name_4}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_4}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      ...						 ag_geofence=1
+      ...						 ag_geofence_name=REGRESSION DONUT BORDERS3_10
+      ...						 ag_negative_geofence=1      
+Make New Child Ad ${child_name_4_1}, ${parent_name_4}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_4}
+      ...						 ag_adgroup_name=${child_name_4_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MOPUB NEGATIVE RING_GEO
+
+Make New Creative ${child_name_4_1}, ${parent_name_4}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_4}
+      ...                        child_adgroup_name=${child_name_4_1}
+      ...                        ag_creative_type=Banner
+      ...						 ag_creative_type_2=Static Image
+      ...                        ag_creative_banner_size=320x50               
+      ...                        ag_creative_name=${parent_name_4}_${child_name_4_1}_CREATIVE
+      ...						ag_creative_banner_type=GENERIC
+      ...						ag_creative_banner_name=320x50_Group01.jpg 
+
+

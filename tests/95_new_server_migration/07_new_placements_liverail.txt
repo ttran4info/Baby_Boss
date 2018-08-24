@@ -1,0 +1,41 @@
+*** Settings ***
+Resource            new_placement_imports.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH95A							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${partner_name}						  LiveRail Exchange
+ 
+${placement_type_app}					Mobile App
+${placement_name_1_1}					REGRESSION LIVERAIL APP
+${placement_name_1_2}					REGRESSION LIVERAIL_VIDEO_STREAMING_POSITION APP
+
+${placement_type_site}					Mobile Web  
+${placement_name_2_1}					REGRESSION LIVERAIL WEB          	 		
+*** Test Cases ***
+Create New Placement ${placement_name_1_1} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=13740	
+Create New Placement ${placement_name_1_2} (App) ${placement_type_app}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_2}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App Bundle ID (exchange agnostic)
+	...						pl_bid_attribute_Value=REGRESSION BUNDLE LIVERAIL APP
+		
+Create New Placement ${placement_name_2_1} (site) ${placement_type_site}
+	Create New Placement	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=${placement_name_2_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=13743	

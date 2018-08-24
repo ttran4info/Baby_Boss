@@ -1,0 +1,13 @@
+*** Settings ***
+Resource            new_ad_imports.txt
+Force Tags         	NEW_UI       ADVERTISER		CAMPAIGN	AD_GROUP	BATCH96							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+			           	 		
+*** Test Cases ***
+
+Making New Advertiser
+	Go To Advertisers Tab
+	Create New Advertiser	advertiser_name=${REGRESSION_ADVERTISER}			timestamp_flag=0
+	Validate Advertiser 	advertiser_name=${REGRESSION_ADVERTISER}
+	[Tags]	

@@ -1,0 +1,351 @@
+*** Settings ***
+Resource   mavericks_imports.txt
+Force Tags           MAVERICKS    BATCH3	APPNEXUS		EXCLUDE			
+
+*** variables ***
+ ${agid_expected}					57876|45331
+ ${agid_expected_video}				57877|45332 	
+ ${parent_agid_expected}			57874|45329		
+ ${data}   	   						{"id": "8765482113786061111","imp": [{"id": "449387476987463500","banner": {"w": 320,"h": 50,"id": "1","battr": [1, 2, 15],"pos": 0,"format": [{"w": 320,"h": 50}]},"instl": 0,"tagid": "12347654","secure": 1,"ext": {"appnexus": {"estimated_clear_price": 0.57,"predicted_view_rate": 0.073255,"member_ad_profile_id": 1111055,"predicted_video_completion_rate": 0.592172,"predicted_view_rate_over_total": 0.067229,"allowed_payment_types": [{"payment_type": 1,"imp_count_method": 2}]}}}],"app": {"id": "3232399","domain": "example.com","cat": ["IAB12-2", "IAB12", "IAB11-5"],"page": "https://example.com/somepage.html","publisher": {"id": "1111999"}},"device": {"ua": "Mozilla/5.0 (Linux; Android 6.0.1; HUAWEI Build/MMB28B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.137 Mobile Safari/537.36","geo": {"lat": 36.6203,"lon": -4.4998,"country": "US","region": "MA","metro": "1","city": "UnaCuidad","zip": "94040","utcoffset": 60,"ext": {"appnexus": {"timezone": "Africa/Ceuta"}}},"dnt": 0,"ip": "11.222.111.0","devicetype": 3,"ifa": "8d8ebc7c-77de-49d0-9519-51563b3909d2","make": "Unknown","model": "Generic Android Mobile","os": "Android","language": "es","connectiontype": 0},"user": {"id": "7939999668795769876","buyeruid": "CABBBBrbuQ9AA5DMJJJJlOL9ZOo","gender": "O","data": [{"id": "0","segment": [{"id": "1","value": "0"}]}, {"id": "1234","segment": [{"id": "4444555","value": "0"}]}]},"test": 0,"at": 1,"tmax": 150,"wseat": ["1234"],"cur": ["USD"],"bcat": ["IAB23-7", "IAB23-5", "IAB23-10", "IAB23-9", "IAB23-1", "IAB7-44", "IAB9-9", "IAB8-18", "IAB8-5"],"badv": ["url1.com", "url2.com"],"ext": {"appnexus": {"seller_member_id": 123,"spend_protection": true,"publisher_integration": {"is_header": 0,"bid_shading_high": 1,"bid_shading_medium": 0.35,"bid_shading_low": 0.95}}},"source": {"fd": 1,"tid": "2dd111ff-7777-4abc-8558-86a123ab46d6"}}	
+ ${zip_banner} 						94040
+ ${country}  						BR
+*** Test Cases ***
+   	
+Mavericks2 Logs - Winning adgroup (short log)
+	   ${device_id}=		Generate Clear Device ID
+	   #Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id": "8765482113786061111","imp": [{"id": "449387476987463500","banner": {"w": 320,"h": 50,"id": "1","battr": [1, 2, 15],"pos": 0,"format": [{"w": 320,"h": 50}]},"instl": 0,"tagid": "12347654","secure": 1,"ext": {"appnexus": {"estimated_clear_price": 0.57,"predicted_view_rate": 0.073255,"member_ad_profile_id": 1111055,"predicted_video_completion_rate": 0.592172,"predicted_view_rate_over_total": 0.067229,"allowed_payment_types": [{"payment_type": 1,"imp_count_method": 2}]}}}],"app": {"id": "3232399","domain": "example.com","cat": ["IAB12-2", "IAB12", "IAB11-5"],"page": "https://example.com/somepage.html","publisher": {"id": "1111999"}},"device": {"ua": "Mozilla/5.0 (Linux; Android 6.0.1; HUAWEI Build/MMB28B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.137 Mobile Safari/537.36","geo": {"lat": 36.6203,"lon": -4.4998,"country": "${country}","region": "MA","metro": "1","city": "UnaCuidad","zip": "${zip_code}","utcoffset": 60,"ext": {"appnexus": {"timezone": "Africa/Ceuta"}}},"dnt": 0,"ip": "11.222.111.0","devicetype": 3,"ifa": "8d8ebc7c-77de-49d0-9519-51563b3909d2","make": "Unknown","model": "Generic Android Mobile","os": "Android","language": "es","connectiontype": 0},"user": {"id": "7939999668795769876","buyeruid": "CABBBBrbuQ9AA5DMJJJJlOL9ZOo","gender": "O","data": [{"id": "0","segment": [{"id": "1","value": "0"}]}, {"id": "1234","segment": [{"id": "4444555","value": "0"}]}]},"test": 0,"at": 1,"tmax": 150,"wseat": ["1234"],"cur": ["USD"],"bcat": ["IAB23-7", "IAB23-5", "IAB23-10", "IAB23-9", "IAB23-1", "IAB7-44", "IAB9-9", "IAB8-18", "IAB8-5"],"badv": ["url1.com", "url2.com"],"ext": {"appnexus": {"seller_member_id": 123,"spend_protection": true,"publisher_integration": {"is_header": 0,"bid_shading_high": 1,"bid_shading_medium": 0.35,"bid_shading_low": 0.95}}},"source": {"fd": 1,"tid": "2dd111ff-7777-4abc-8558-86a123ab46d6"}}	
+    
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		#Should Match Regexp 			${output}  				4=x				#pre-perturbation bid price
+		#Should Match Regexp 			${output}  				5=x				#gaussian sample * standard deviation
+		#Should Match Regexp 			${output}  				6=x				#perturbed bid price = pre-perturbation bid price + (gaussian sample * standard deviation * pre-perturbation bid price )
+		${pre_perturbation_bp}=		extract_matching_regex		${output}		4=(.*)
+		${pre_perturbation_bp}=		Convert To Number 		${pre_perturbation_bp}
+		${gaussian_std_dev}=		extract_matching_regex		${output}		5=(.*)
+		${gaussian_std_dev}=		Convert To Number 		${gaussian_std_dev}
+		${perturbed_bp}=			Evaluate 		${pre_perturbation_bp} + (${gaussian_std_dev} * ${pre_perturbation_bp})
+		${perturbed_bp}=			Convert To String		${perturbed_bp}
+		${perturbed_bp}=			Get Substring 	${perturbed_bp}		0	-2
+		Should Match Regexp 			${output}  				6=${perturbed_bp}				#perturbed bid price = pre-perturbation bid price + (gaussian sample * standard deviation * pre-perturbation bid price )
+	   [Tags]	Tientemp	 	  
+
+Mavericks2 Logs - Optimization CRT (column4 value 1)
+		Set Test Variable 	${optimization}			1
+	   ${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"123","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}		optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]			
+
+Mavericks2 Logs - Optimization VCR (column4 value 2) - Need a different adgroup that serve video
+	   Set Test Variable 	${optimization}			2
+	   ${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}			optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected_video}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]		EXCLUDE		#no video for appnexus
+Mavericks2 Logs - Optimization View (column 4, value 3)
+	Set Test Variable 	${optimization}			3
+	   ${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   #it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}			optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]		
+
+Mavericks2 Logs - Optimization Measure(column 4, value 4)
+	Set Test Variable 	${optimization}			4
+	   ${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   #it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}			optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]
+
+Mavericks2 Logs - Optimization Eligibility(column 4, value 5)
+	Set Test Variable 	${optimization}			5
+	   ${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   #it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}			optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]
+
+Mavericks2 Logs - Optimization Measure, Predicted rate (column 5)
+	#sum of all the scripts
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   #it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		${script_all}=		extract_matching_regex		${output}		11=(.*)
+		Log		${script_all}
+		@{script_list}=	String.Split String		${script_all}		;
+		Log	${script_list}
+		Set Test Variable	${script_total}		0		
+		:FOR	${each_script}		IN		@{script_list}
+		\	Log	${each_script}
+		\	${script_value_string}=		extract_matching_regex		${each_script}		:(.*)	
+		\	Log 	${script_value_string}
+		\	${script_value}=		Convert To Number		${script_value_string}
+		\	${script_total}=	Evaluate	${script_total} + ${script_value}
+		Log 	${script_total}
+		${e_value}		Set Variable	2.718281828
+		${Predicted_value}=		Evaluate 	1/(1+${e_value}**(-1*${script_total}))
+		${Predicted_value}=		Convert To String		${Predicted_value}
+		${Predicted_value}=		Get Substring 		${Predicted_value}		0		5
+		Should Match Regexp 			${output}  				5=${Predicted_value}				#Predicted rate (=logistic(z))
+		[Tags]		
+Mavericks2 Logs - Optimization Measure, Factor (column 6)
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		${Predicted_value}=		extract_matching_regex		${output}		5=(.*)
+		${Predicted_value}=		Convert To Number		${Predicted_value}
+		${Alpha}=				extract_matching_regex		${output}		9=(.*)
+		${Alpha}=		Convert To Number		${Alpha}
+		${Factor}=	Evaluate 	${Alpha}*((${Predicted_value}/0.5)-1)+1
+		Should Match Regexp 			${output}  				6=${Factor}				#Factor
+		[Tags]		
+Mavericks2 Logs - Optimization Measure, Mavericks amplifier (column 7)
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	  ${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	    	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		Should Match Regexp 			${output}  				7=				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		[Tags]	
+Mavericks2 Logs - Optimization Measure, Baseline (column 8)
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	Set Test Variable		${db_column_name}		measure_baseline
+	${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		Get Pricing_Parameter        adgroup_id=${agid_expected}	column_name=${db_column_name}
+		Should Match Regexp 			${output}  				8=${pricing_parameter_result}			#Baseline
+		[Tags]		
+
+Mavericks2 Logs - Optimization Measure, Alpha (column 9)
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	Set Test Variable		${db_column_name}		measure_alpha
+	${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   #it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		Get Pricing_Parameter        adgroup_id=${agid_expected}	column_name=${db_column_name}
+		Should Match Regexp 			${output}  				9=${pricing_parameter_result}			#Baseline
+		[Tags]		
+Mavericks2 Logs - Optimization Measure, bidValueCpu (column 10)
+	Set Test Variable		${optimization}			4			#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+	Set Test Variable		${db_column_name}		bid_value_cpu
+	${device_id}=		Generate Clear Device ID
+	   Run Keyword Unless		'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"bid_request": {"timestamp": "2018-06-19 22:09:01","bidder_timeout_ms": 150,"members": [{"id": 2049}],"member_ad_profile_id": 163870,"excluded_technical_attributes": [33],"tags": [{"auction_id_64": 2557618258973114435,"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","ad_profile_id": 1186898,"visibility_profile_id": 8181,"allowed_media_types": [1],"media_subtypes": ["banner"],"predicted_view_rate": 0.88,"size": "320x50","sizes": ["320x50"],"estimated_clear_price": 2.78000,"estimated_average_price": 1.0500,"id": 13461570,"site_id": 3610045,"venue_id": 1962049,"inventory_audits": [{"auditor_member_id": 1908,"intended_audience": "general","content_categories": [32424, 32430, 36102]}],"deals_only": false}],"bid_info": {"no_cookies": false,"payment_rule_id": 1539454,"no_flash": false,"browser": 8,"operating_system": 6,"operating_system_extended": 156,"operating_system_family": 2,"carrier": 14,"device_make": 450,"device_type_id": 2,"language": 1,"session_freq": 174,"pub_session_freq": 1,"country": "BR","within_iframe": false,"selling_member_id": 1908,"publisher_id": 1220704,"user_id_64": 9215764761745148426,"ip_address": "174.236.143.169","user_agent": "Mozilla/5.0 (Linux; Android 7.0; VS987 Build/NRD90U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.68 Mobile Safari/537.36","accepted_languages": "en-US","region": "AR","city": "Little Rock","postal_code": "94040","postal_code_id": 53092,"dma": 693,"time_zone": "America/North_Dakota/New_Salem","url": "http://www.myjoyonline.com/news/2018/June-2nd/ken-agyapong-has-not-linked-anas-to-jbs-death-afenyo-markin-defends.php","domain": "myjoyonline.com","device_model": 100796,"device_ids": {"idfa": "${device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"inventory_url_id": 140312,"inventory_audits": [{"auditor_member_id": null,"intended_audience": "general","inventory_attributes": [8, 16],"content_categories": [19, 20]}],"userdata_json": "{}","segments": [{"id": 1,"member_id": 0,"code": "cookie_birthday","provider": "Appnexus","last_seen_min": 25410259}]}}}
+	   Run Keyword If			'${APPNEXUS_FLAG}'=='RTB'			Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":2066,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}   
+       Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   ${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	   ${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	   Log		Start:[${reqid}]
+	   	#it's being stored as ${reqid} for test variable
+		Start Read Mavericks2 Logs		host=${SSH_RTB_HOST}		reqid=${reqid}				optimization=${optimization}
+		Should Match Regexp 			${output}  				2=${reqid}						#req_id
+		Should Match Regexp 			${output}  				3=${agid_expected}				#adgroup id winning bid
+		Should Match Regexp 			${output}  				4=${optimization}				#Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability)
+		#Should Match Regexp 			${output}  				5=x				#Predicted rate (=logistic(z))
+		#Should Match Regexp 			${output}  				6=x				#Factor
+		#Should Match Regexp 			${output}  				7=x				#Mavericks amplifier
+		#Should Match Regexp 			${output}  				8=x				#Baseline
+		#Should Match Regexp 			${output}  				9=x				#Alpha
+		#Should Match Regexp 			${output}  				10=x			#bidValueCpu
+		#Should Match Regexp 			${output}  				11=x			#scripts
+		Get Pricing_Parameter        adgroup_id=${agid_expected}	column_name=${db_column_name}
+		Should Match Regexp 			${output}  				10=${pricing_parameter_result}			#Baseline
+		[Tags]		
+Mavericks2 Logs - Optimization Measure, scripts (column 11)
+	[Tags]		exclude
+Request Logs (86=predicted (=logistic(z))) - Sum of all cooeficient model
+	[Tags]		exclude
+Request Logs (87=baseline)
+	[Tags]		exclude
+Request Logs (88=alpha)
+	[Tags]		exclude
+Request Logs (89=bidValueCpu)
+	 [Tags]		exclude  
+Maverick Price vs Auction Price
+	[Tags]		exclude
+Maverick Scripts
+	[Tags]		exclude
+
+Baseline is 0, ad served normal (column 8)
+	[Tags]		exclude
+Baseline is 1, ad stop serving (column 8) - check server log for: 	
+	#AdGroupSelection, formula gives 0.0 bid price, Adgroup id:44607
+	[Tags]		exclude

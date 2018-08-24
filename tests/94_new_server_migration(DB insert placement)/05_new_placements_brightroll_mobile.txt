@@ -1,0 +1,35 @@
+*** Settings ***
+Resource            new_placement_imports_94.txt
+Force Tags         	MIGRATION 		PARTNER		PLACEMENT		BATCH94							     
+
+		
+*** Variables ***
+${partner_name}						   BrightRoll Mobile Exchange 
+
+${placement_type_app}					Brightroll App 
+${placement_name_1_1}					REGRESSION BRX_BRX0002 APP
+
+${placement_type_site}					BrightRoll Mobile Web  
+${placement_name_2_1}					REGRESSION BRX_BRX0001 SITE   
+
+    	 		
+*** Test Cases ***
+Insert Placement Into DB ${placement_name_1_1} (App) ${placement_type_app}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_app}
+	...						pl_name=${placement_name_1_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=APP
+	...						pl_bid_attribute=App ID (exchange specific)
+	...						pl_bid_attribute_Value=BRX0002	
+
+	
+Insert Placement Into DB ${placement_name_2_1} (Site) ${placement_type_site}
+	Insert Placement Into DB	p_name=${partner_name}
+	...						pl_type_name=${placement_type_site}
+	...						pl_name=${placement_name_2_1}
+	...						pl_status=LIVE	
+	...						pl_traffic_type=SITE
+	...						pl_bid_attribute=Site ID (exchange specific)
+	...						pl_bid_attribute_Value=BRX0001		
+		

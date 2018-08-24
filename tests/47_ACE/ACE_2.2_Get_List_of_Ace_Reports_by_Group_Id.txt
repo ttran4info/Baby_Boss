@@ -1,0 +1,156 @@
+#---------------------------------------------------------------------------------------
+# Script Change Log
+# 2017-08-23 : vkatkar : Created new script
+# 2017-08-29 : vkatkar : Added Force Tags for Jenkins job run
+#
+#---------------------------------------------------------------------------------------
+
+*** Settings ***
+Resource        ACE_api_imports.txt
+Force Tags      ACE_API    BATCH21    ACE2.2   OffshoreQA
+
+# Wiki : https://wiki.4info.com/display/Software/ACE+API+Documentation#ACEAPIDocumentation-2.2GetListofAceReportsbyGroupId
+# API Name : 2.2 Get List of Ace Reports by Group Id
+# Method : GET
+# URL : http://qa-dswarm-01:18082/ace/api/v2/report/reports?groupId=1
+# DESC : Get list of the ACE Reports which are accessible to the group Id
+# rhino.ace_report
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+
+#Perform count validation from API vs DB for group =1
+#Perform count validation from API vs DB for group =15
+
+#----------------------------------------------------------------------------------------------
+ACE2.2_TC_01.1_Get List of Ace Reports by Group Id (groupId = 1 : Valid, Accept)
+    [Documentation]     Input : Run API with valid groupId and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${groupId}     1
+    Set Test Variable   ${uri}      /ace/api/v2/report/reports?groupId=${groupId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+    Should Match Regexp     ${body}    "id":3790
+    #Some validation to indicate ace report belong to this group.
+    [Tags]   #   Known_bug   CM-1000
+
+ACE2.2_TC_01.1_Get List of Ace Reports by Group Id (groupId=15 : Valid, Accept)
+    [Documentation]     Input : Run API with valid groupId and URL,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${groupId}     15
+    Set Test Variable   ${uri}      /ace/api/v2/report/reports?groupId=${groupId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+    Should Not Match Regexp     ${body}    "id":3790
+    #Ad a few validation that belong to group 15
+    #Ad a few validation that does not belong to group 15
+    [Tags]   #   Known_bug   CM-1000
+#----------------------------------------------------------------------------------------------
+ACE2.2_TC_02.1_Get List of Ace Reports by Group Id (groupId : 99999, Don't accept)
+    [Documentation]     Input : Run API with invalid groupId as 99999,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     99999
+    Set Test Variable   ${uri}      /ace/api/v2/report/reports?groupId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code             "400-999"
+    Json Value Should Equal     ${body}    /reason_desc             "Validation Failure"
+    Json Value Should Equal     ${body}    /errors/0/reason_code    "600-001"
+    Json Value Should Equal     ${body}    /errors/0/field          "Group Id"
+    Json Value Should Equal     ${body}    /errors/0/reason_desc    "Invalid Group id."
+    [Tags]    #  Known_bug   CM-1593
+
+
+
+ACE2.2_TC_02.2_Get List of Ace Reports by Group Id (groupId : abcd, Don't accept)
+    [Documentation]     Input : Run API with invalid groupId as abcde,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     abcd
+    Set Test Variable   ${uri}      /ace/api/v2/report/reports?groupId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "600-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid Group id."
+    [Tags]    #  Known_bug   CM-1001
+
+
+
+ACE2.2_TC_02.3_Get List of Ace Reports by Group Id (groupId : negative value, Don't accept)
+    [Documentation]     Input : Run API with invalid groupId as -1,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     -4176
+    Set Test Variable   ${uri}      /ace/api/v2/report/reports?groupId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "400-999"
+    Json Value Should Equal     ${body}    /reason_desc    "Validation Failure"
+    Json Value Should Equal     ${body}    /errors/0/reason_code    "600-001"
+    Json Value Should Equal     ${body}    /errors/0/field          "Group Id"
+    Json Value Should Equal     ${body}    /errors/0/reason_desc    "Invalid Group id."
+    [Tags]
+
+
+ACE2.2_TC_02.4_Get List of Ace Reports by Group Id (groupId : special characters value, Don't accept)
+    [Documentation]     Input : Run API with invalid groupId as @#$,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     @#$
+    Set Test Variable   ${uri}      /ace/api/v2/report/reports?groupId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "600-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid Group id."
+    [Tags]    #  Known_bug   CM-1001
+
+
+ACE2.2_TC_02.5_Get List of Ace Reports by Group Id (groupId : Missing, Don't accept)
+    [Documentation]     Input : Run API with invalid groupId as Missing,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${uri}      /ace/api/v2/report/reports?
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    Json Value Should Equal     ${body}    /reason_code    "400-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid Request."
+    [Tags]    #  Known_bug   CM-1003
+
+#----------------------------------------------------------------------------------------------
+ACE2.2_TC_03.1_Get List of Ace Reports by Group Id (Invalid URL, Don't accept)
+    [Documentation]     Input : Run API with invalid URL,
+    ...                 Expected : API should not get processed successfully
+    ...                             with response code 400.
+    Set Test Variable   ${reportId}     1
+    Set Test Variable   ${uri}      /ace/api/v2/reportABFRD/reports?groupId=${reportId}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=400					#normally 200 for working condition, 400 for failure
+    ...            success=false
+    #Need error validation if response is 400
+    Json Value Should Equal     ${body}    /reason_code    "400-001"
+    Json Value Should Equal     ${body}    /reason_desc    "Invalid Request."
+    [Tags]    #  Known_bug   CM-1002
+
+#----------------------------------------------------------------------------------------------

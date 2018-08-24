@@ -1,0 +1,235 @@
+*** Settings ***
+Resource            new_ad_imports.txt
+Force Tags         	NEW_UI_MACRO     BATCH96	BATCH96D							     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${campaign_name}						10_MACRO_SUBSTITUTION
+${parent_name_1}						01_3rd_Party_Mobile
+${parent_name_2}				     	02_Rich_Media_Mobile 
+${child_name_1_1} 						01_Child_3rd_Party	
+${child_name_1_2} 						02_Child_3rd_Party
+${child_name_1_3} 						03_Child_3rd_Party
+${child_name_1_4} 						04_Child_3rd_Party
+${child_name_2_1} 						01_RM_Child 
+${child_name_2_2} 						02_RM_Child 
+${child_name_2_3} 						03_RM_Child 
+${child_name_2_4} 						04_RM_Child 
+		
+*** Test Cases ***
+ Remove Test
+ 	#remember to remove child adgroup first before removing parent adgroup.
+ 	Remove AdGroup By BundleID	ag_bundle_id=xxx
+ 	[Tags]	 Exclude 	
+ 	
+Make New Campaign	
+	Add Campaign To Advertiser 6.0      
+      ...						 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 campaign_time_zone=${REGRESSION_TIME_ZONE}
+      ...                        campaign_start_date=${REGRESSION_START_DATE}
+      ...                        campaign_end_date=${REGRESSION_END_DATE}
+	[Tags]	
+
+#Parent #1	
+Make New Parent Ad ${parent_name_1}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_1}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      	
+Make New Child Ad ${child_name_1_1}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_01
+	[Tags]		
+#3rd party tag1
+Make New Creative ${child_name_1_1}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_1}
+      ...                        ag_creative_type=Banner     
+      ...						 ag_creative_type_2=3rd Party Tag
+      ...                        ag_creative_banner_size=320x50             
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_1}_CREATIVE
+      ...						ag_creative_banner_type=MIGRATION
+      ...						ag_creative_banner_name=macro_3rd_party_01.txt
+	[Tags]		
+Make New Child Ad ${child_name_1_2}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_2}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_02
+#3rd party tag
+Make New Creative ${child_name_1_2}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_2}
+      ...                        ag_creative_type=Banner     
+      ...						 ag_creative_type_2=3rd Party Tag
+      ...                        ag_creative_banner_size=320x50             
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_2}_CREATIVE
+      ...						ag_creative_banner_type=MIGRATION
+      ...						ag_creative_banner_name=macro_3rd_party_02.txt
+
+Make New Child Ad ${child_name_1_3}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_3}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_03
+#3rd party tag
+Make New Creative ${child_name_1_3}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_3}
+      ...                        ag_creative_type=Banner     
+      ...						 ag_creative_type_2=3rd Party Tag
+      ...                        ag_creative_banner_size=320x50             
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_3}_CREATIVE
+      ...						ag_creative_banner_type=MIGRATION
+      ...						ag_creative_banner_name=macro_3rd_party_03.txt 
+ 
+Make New Child Ad ${child_name_1_4}, ${parent_name_1}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_1}
+      ...						 ag_adgroup_name=${child_name_1_4}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MACRO_SUBSTITUTION_3RD_PARTY_04
+#3rd party tag
+Make New Creative ${child_name_1_4}, ${parent_name_1}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_1}
+      ...                        child_adgroup_name=${child_name_1_4}
+      ...                        ag_creative_type=Banner     
+      ...						 ag_creative_type_2=3rd Party Tag
+      ...                        ag_creative_banner_size=320x50             
+      ...                        ag_creative_name=${parent_name_1}_${child_name_1_4}_CREATIVE
+      ...						ag_creative_banner_type=MIGRATION
+      ...						ag_creative_banner_name=macro_3rd_party_04.txt   
+      
+#Parent #2	
+Make New Parent Ad ${parent_name_2}
+	Add Parent Adgroup To Campaign Without Targeting 6.0
+      ...      			 		 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        ag_adgroup_name=${parent_name_2}
+      ...                        ag_start_date=${REGRESSION_START_DATE}
+      ...                        ag_end_date=${REGRESSION_END_DATE}
+      ...						 ag_impression_goal_io=100000
+      	
+Make New Child Ad ${child_name_2_1}, ${parent_name_2}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_2}
+      ...						 ag_adgroup_name=${child_name_2_1}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MACRO_SUBSTITUTION_RM_01
+      [Tags]	
+#rich media tag
+Make New Creative ${child_name_2_1}, ${parent_name_2}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_2}
+      ...                        child_adgroup_name=${child_name_2_1}
+      ...                        ag_creative_type=Banner     
+      ...						 ag_creative_type_2=Rich Media
+      ...                        ag_creative_banner_size=320x50             
+      ...                        ag_creative_name=${parent_name_2}_${child_name_2_1}_CREATIVE
+      ...						ag_creative_banner_type=MIGRATION
+      ...						ag_creative_banner_name=macro_rich_media_01.txt
+      [Tags]	  
+Make New Child Ad ${child_name_2_2}, ${parent_name_2}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_2}
+      ...						 ag_adgroup_name=${child_name_2_2}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MACRO_SUBSTITUTION_RM_02
+      [Tags]	
+#rich media tag
+Make New Creative ${child_name_2_2}, ${parent_name_2}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_2}
+      ...                        child_adgroup_name=${child_name_2_2}
+      ...                        ag_creative_type=Banner     
+      ...						 ag_creative_type_2=Rich Media
+      ...                        ag_creative_banner_size=320x50             
+      ...                        ag_creative_name=${parent_name_2}_${child_name_2_2}_CREATIVE
+      ...						ag_creative_banner_type=MIGRATION
+      ...						ag_creative_banner_name=macro_rich_media_02.txt
+      [Tags]	 
+Make New Child Ad ${child_name_2_3}, ${parent_name_2}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_2}
+      ...						 ag_adgroup_name=${child_name_2_3}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MACRO_SUBSTITUTION_RM_03
+      [Tags]	
+#rich media tag
+Make New Creative ${child_name_2_3}, ${parent_name_2}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_2}
+      ...                        child_adgroup_name=${child_name_2_3}
+      ...                        ag_creative_type=Banner     
+      ...						 ag_creative_type_2=Rich Media
+      ...                        ag_creative_banner_size=320x50             
+      ...                        ag_creative_name=${parent_name_2}_${child_name_2_3}_CREATIVE
+      ...						ag_creative_banner_type=MIGRATION
+      ...						ag_creative_banner_name=macro_rich_media_03.txt 
+      [Tags]	
+Make New Child Ad ${child_name_2_4}, ${parent_name_2}      
+	Add Child Adgroup To Campaign Without Targeting 6.0
+      ... 			 			 advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...                        parent_adgroup_name=${parent_name_2}
+      ...						 ag_adgroup_name=${child_name_2_4}
+      ...                        ag_enable_behavior_targeting_flag=1
+      ...						 ag_target_placement_boolean=1
+      ...						 ag_target_placement_name=REGRESSION MACRO_SUBSTITUTION_RM_04
+      [Tags]	
+#rich media tag
+Make New Creative ${child_name_2_4}, ${parent_name_2}
+	Add Creative 6.0			advertiser_name=${REGRESSION_ADVERTISER}
+      ...                        campaign_name=${campaign_name}
+      ...						 parent_adgroup_name=${parent_name_2}
+      ...                        child_adgroup_name=${child_name_2_4}
+      ...                        ag_creative_type=Banner     
+      ...						 ag_creative_type_2=Rich Media
+      ...                        ag_creative_banner_size=320x50             
+      ...                        ag_creative_name=${parent_name_2}_${child_name_2_4}_CREATIVE
+      ...						ag_creative_banner_type=MIGRATION
+      ...						ag_creative_banner_name=macro_rich_media_04.txt    
+      [Tags]	                        

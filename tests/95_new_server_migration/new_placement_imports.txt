@@ -1,0 +1,6 @@
+*** Settings ***
+Resource    advertisers.txt 
+Resource    smb.txt 
+Resource    ui_default_ads_template.txt 
+Resource    rtb.txt 
+ 

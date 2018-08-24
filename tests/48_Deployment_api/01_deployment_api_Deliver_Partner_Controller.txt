@@ -1,0 +1,132 @@
+*** Settings ***
+Resource            deployment_api_imports.txt
+Force Tags         	Deployment-Delever-Partner
+
+
+# https://wiki.4info.com/pages/viewpage.action?pageId=29917295#PACAPIdocumentation-1.1.1GetalladvertisersbygroupId
+# API Name: delivery-partners
+# Method: GET
+# URL: 	/api/v1/delivery-partners	-> Get all
+# URL2: /api/v1/delivery-partners/{id} -> get by id
+# userName = rhino.users
+# groupId = rhino.groups
+# Get all associated advertisers by group id. This request will be called by Phoenix advertiser list page.
+
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+
+DEPLOYMENT_TC_01_1Get_All_Delivery_Partners
+ 	[Documentation]		Test delivery partner controller api
+ 	Set Test Variable	${groupId}		1
+ 	Set Test Variable 	${uri_link}		/deployment-api/api/v1/delivery-partners
+ 	DEPLOYMENT API	                    uri=${uri_link}
+ 	...		                         	expected_status_code=200
+ 	...	                          		success=true
+ 	Should Match Regexp			${body}		"id":1,"name":"Adobe"
+ 	Should Match Regexp			${body}		"id":2,"name":"Oracle"
+ 	Should Match Regexp			${body}		"id":3,"name":"Lotame"
+ 	Should Match Regexp			${body}		"id":4,"name":"Neustar"
+ 	[Tags]
+
+DEPLOYMENT_TC_02_1Get_Delivery_Partners_admin_group (1)
+ 	[Documentation]		Test delivery partner controller api
+ 	Set Test Variable	${groupId}		1
+ 	Set Test Variable 	${uri_link}		/deployment-api/api/v1/delivery-partners?groupId=${groupId}
+ 	DEPLOYMENT API	                    uri=${uri_link}
+ 	...		                         	expected_status_code=200
+ 	...	                          		success=true
+ 	Should Match Regexp			${body}		"id":1,"name":"Adobe"
+ 	Should Match Regexp			${body}		"id":2,"name":"Oracle"
+ 	Should Match Regexp			${body}		"id":3,"name":"Lotame"
+ 	Should Match Regexp			${body}		"id":4,"name":"Neustar"
+ 	[Tags]
+DEPLOYMENT_TC_02_2Get_Delivery_Partners_demo_group (19)
+ 	[Documentation]		Test delivery partner controller api
+ 	Set Test Variable	${groupId}		19
+ 	Set Test Variable 	${uri_link}		/deployment-api/api/v1/delivery-partners?groupId=${groupId}
+ 	DEPLOYMENT API	                    uri=${uri_link}
+ 	...		                         	expected_status_code=200
+ 	...	                          		success=true
+ 	Should Match Regexp			${body}		"id":1,"name":"Adobe"
+ 	Should Match Regexp			${body}		"id":2,"name":"Oracle"
+ 	Should Match Regexp			${body}		"id":3,"name":"Lotame"
+ 	Should Match Regexp			${body}		"id":4,"name":"Neustar"
+ 	[Tags]
+DEPLOYMENT_TC_02_Get_Delivery_Partners_demo_group (19) - This should change
+ 	[Documentation]		Test delivery partner controller api
+ 	Set Test Variable	${groupId}		19
+ 	Set Test Variable 	${uri_link}		/deployment-api/api/v1/delivery-partners?groupId=${groupId}
+ 	DEPLOYMENT API	                    uri=${uri_link}
+ 	...		                         	expected_status_code=200
+ 	...	                          		success=true
+ 	Should Match Regexp			${body}		"id":1,"name":"Adobe"
+ 	Should Match Regexp			${body}		"id":2,"name":"Oracle"
+ 	Should Match Regexp			${body}		"id":3,"name":"Lotame"
+ 	Should Match Regexp			${body}		"id":4,"name":"Neustar"
+ 	[Tags]
+DEPLOYMENT_TC_03_1_Get_Delivery_Partners_by_id (1 - adobe)
+ 	[Documentation]		Test delivery partner controller api
+ 	Set Test Variable	${partnerId}		1
+ 	Set Test Variable 	${uri_link}		/deployment-api/api/v1/delivery-partner/${partnerId}
+ 	DEPLOYMENT API	                    uri=${uri_link}
+ 	...		                         	expected_status_code=200
+ 	...	                          		success=true
+ 	Should Match Regexp			${body}		"id":1,"name":"Adobe"
+ 	Should Not Match Regexp			${body}		Oracle
+ 	Should Not Match Regexp			${body}		Lotame
+ 	Should Not Match Regexp			${body}		Neustar
+ 	[Tags]
+DEPLOYMENT_TC_03_2_Get_Delivery_Partners_by_id (2 - Oracle)
+ 	[Documentation]		Test delivery partner controller api
+ 	Set Test Variable	${partnerId}		2
+ 	Set Test Variable 	${uri_link}		/deployment-api/api/v1/delivery-partner/${partnerId}
+ 	DEPLOYMENT API	                    uri=${uri_link}
+ 	...		                         	expected_status_code=200
+ 	...	                          		success=true
+ 	Should Not Match Regexp			${body}		Adobe
+ 	Should Match Regexp				${body}		"id":2,"name":"Oracle"
+ 	Should Not Match Regexp			${body}		Lotame
+ 	Should Not Match Regexp			${body}		Neustar
+ 	[Tags]
+DEPLOYMENT_TC_03_3_Get_Delivery_Partners_by_id (3 - Lotame)
+ 	[Documentation]		Test delivery partner controller api
+ 	Set Test Variable	${partnerId}		3
+ 	Set Test Variable 	${uri_link}		/deployment-api/api/v1/delivery-partner/${partnerId}
+ 	DEPLOYMENT API	                    uri=${uri_link}
+ 	...		                         	expected_status_code=200
+ 	...	                          		success=true
+ 	Should Not Match Regexp			${body}		Adobe
+ 	Should Not Match Regexp			${body}		Oracle
+ 	Should Match Regexp				${body}		"id":3,"name":"Lotame"
+ 	Should Not Match Regexp			${body}		Neustar
+ 	[Tags]
+DEPLOYMENT_TC_03_4_Get_Delivery_Partners_by_id (4 - Neustar)
+ 	[Documentation]		Test delivery partner controller api
+ 	Set Test Variable	${partnerId}		4
+ 	Set Test Variable 	${uri_link}		/deployment-api/api/v1/delivery-partner/${partnerId}
+ 	DEPLOYMENT API	                    uri=${uri_link}
+ 	...		                         	expected_status_code=200
+ 	...	                          		success=true
+ 	Should Not Match Regexp			${body}		Adobe
+ 	Should Not Match Regexp			${body}		Oracle
+ 	Should Not Match Regexp			${body}		Lotame
+ 	Should Match Regexp				${body}		"id":4,"name":"Neustar"
+ 	[Tags]
+
+DEPLOYMENT_TC_03_5_Get_Delivery_Partners_by_id (5 - Invalid)
+    [Documentation]     Test delivery partner controller api
+    Set Test Variable   ${partnerId}        5
+    Set Test Variable   ${uri_link}     /deployment-api/api/v1/delivery-partner/${partnerId}
+    DEPLOYMENT API                    uri=${uri_link}
+    ...                                expected_status_code=400
+    ...                                     success=true
+    Should Not Match Regexp         ${body}     Adobe
+    Should Not Match Regexp         ${body}     Oracle
+    Should Not Match Regexp         ${body}     Lotame
+    Should Match Regexp             ${body}     700-001
+    Should Match Regexp             ${body}     Invalid Delivery Partner id.
+    [Tags]
