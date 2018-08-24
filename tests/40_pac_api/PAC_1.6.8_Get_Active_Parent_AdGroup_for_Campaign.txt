@@ -1,0 +1,206 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.6.8		BATCH19		OffshoreQA    PAC_BATCH5
+
+Suite Setup         Clean Up Pre-Requisite Data for PAC1.6.8
+Suite Teardown      Clean Up Pre-Requisite Data for PAC1.6.8
+#Suite Setup         pac_api.Delete New Campaign via DB
+#Suite Teardown      pac_api.Delete New Campaign via DB
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.6.8GetActiveParentAdGroupforCampaign.
+# API Name: 1.6.8 Get Active Parent AdGroup for Campaign.
+# Method: GET
+# URL: qa-dswarm-01:18082/pac-api/parent-adgroup/active-parent-adgroup/{campaignId}
+# DESC: Get List of Parent AdGroups which has End Date in Future for a Given Campaign .
+# rhino.ad_group
+
+
+*** Variables ***
+
+
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.6.8
+    Delete New Campaign via DB    campaign_name=PAC_regression_campaign_168
+    Cleanup Advertiser From DB          advertiser_name=QATEST_Advertiser_PAC1.6.8
+    Set Suite Variable    ${Advname}    QATEST_Advertiser_PAC1.6.8
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+Create Sample Advertiser for Create Campaign PAC1.6.8
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    Log     ${Advname}
+    Create Advertiser      uri=${uri_link}
+    ...         data={"name": "${Advname}"}
+    ...         expected_status_code=200
+    ...         success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+
+*** Test Cases ***
+PAC1.6.8_TC_00_create pre-requisite data
+    Create Sample Advertiser for Create Campaign PAC1.6.8
+    [Tags]
+
+PAC1.6.8_TC_01_Get Active Parent AdGroup for Campaign (with end date as future date, Accept)
+    [Documentation]     Input : Create a new campaign and parent ad group which has end date
+    ...                         in future and then fetch its active parent adgroups list for the campaign.
+    ...                 Expected : All the active parent adgroups which are present in the
+    ...                             campaign should be displayed in the test result.
+    Get Start Date
+    Set Test Variable               ${campaign_name}                    PAC_regression_campaign_168_011
+    Set Test Variable               ${campaign_status}                  1
+    Set Test Variable               ${campaign_start_date_time}         ${todaysDate}
+    Set Test Variable               ${campaign_end_date_time}           ${REGRESSION_END_DATE} 23:59
+    Set Test Variable               ${campaign_timezone}                G
+    Set Test Variable               ${campaign_external_id}             "BVIexternalid"
+    Set Test Variable               ${campaign_io}                      6624
+    Set Test Variable               ${campaign_vertical}                32
+    Set Test Variable               ${campaign_segment}                 4303
+    Set Test Variable               ${campaign_congrol_group_size}      0
+    Set Test Variable               ${campaign_advertiser_id}           ${Advertiser_ID}
+    Set Test Variable               ${campaign_access_control}          15
+    Set Test Variable               ${campaign_store_visit}             ${EMPTY}
+    Set Test Variable               ${campaign_demo_data_source}        7
+    Set Test Variable               ${campaign_demohide_chart_id}       4, 6
+    Set Test Variable               ${response_code}                    200
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_timezone=${campaign_timezone}
+    ...                                 campaign_external_id=${campaign_external_id}
+    ...                                 campaign_io=${campaign_io}
+    ...                                 campaign_vertical=${campaign_vertical}
+    ...                                 campaign_segment=${campaign_segment}
+    ...                                 campaign_congrol_group_size=${campaign_congrol_group_size}
+    ...                                 campaign_advertiser_id=${campaign_advertiser_id}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_store_visit=${campaign_store_visit}
+    ...                                 campaign_demo_data_source=${campaign_demo_data_source}
+    ...                                 campaign_demohide_chart_id=${campaign_demohide_chart_id}
+    ...                                 response_code=${response_code}
+    ${campaignId}=      Get JSON Value      ${body}     /campaign/id
+    #Get Campaign ID from DB for PAC1.6.8 by Campaign Name
+    Set Test Variable   ${parent_name}  PAC_regression_parent_168_01
+    Set Test Variable   ${parent_end_date_time}    ${REGRESSION_END_DATE} 23:59
+    Create Parent Adgroup via API   parent_name=${parent_name}
+    ...                             parent_campaign_id=${campaignId}
+    ...                             parent_start_date_time=${todaysDate}
+    ...                             parent_end_date_time=${parent_end_date_time}
+    ...                             response_code=${response_code}
+    Set Test Variable   ${uri_link}     pac-api/parent-adgroup/active-parent-adgroup/${campaignId}
+    Set Test Variable   ${expected_status_code}     ${response_code}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=${expected_status_code}
+    ...                                     success=true
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Run Keyword If  '${expected_status_code}'=='400'   Should Match Regexp  ${body}  "success":false
+    Run Keyword If  '${expected_status_code}'=='200'   Should Match Regexp  ${body}  "success":true
+    Run Keyword If  '${expected_status_code}'=='200'   Get Parent Adgroup ID from DB for PAC1.6.8 by Parent Adgroup Name
+    Run Keyword If  '${expected_status_code}'=='200'   Validate Active Parent Adgroup Result For Campaign
+    [Tags]
+
+
+PAC1.6.8_TC_02_Get Active Parent AdGroup for Campaign (with end date as today's date, Accept)
+    [Documentation]     Input : Create a new campaign and parent ad group which has end date
+    ...                         is current date and then fetch its active parent adgroups list for the campaign.
+    ...                 Expected : All the active parent adgroups which are present in the
+    ...                             campaign should be displayed in the test result.
+    Set Test Variable               ${campaign_name}                    PAC_regression_campaign_168_02
+    Set Test Variable               ${campaign_status}                  1
+    Set Test Variable               ${campaign_start_date_time}         ${todaysDate}
+    Set Test Variable               ${campaign_end_date_time}           ${REGRESSION_END_DATE} 23:59
+    Set Test Variable               ${campaign_timezone}                G
+    Set Test Variable               ${campaign_external_id}             "BVIexternalid"
+    Set Test Variable               ${campaign_io}                      6624
+    Set Test Variable               ${campaign_vertical}                32
+    Set Test Variable               ${campaign_segment}                 4303
+    Set Test Variable               ${campaign_congrol_group_size}      0
+    Set Test Variable               ${campaign_advertiser_id}           ${Advertiser_ID}
+    Set Test Variable               ${campaign_access_control}          15
+    Set Test Variable               ${campaign_store_visit}             ${EMPTY}
+    Set Test Variable               ${campaign_demo_data_source}        7
+    Set Test Variable               ${campaign_demohide_chart_id}       4, 6
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_timezone=${campaign_timezone}
+    ...                                 campaign_external_id=${campaign_external_id}
+    ...                                 campaign_io=${campaign_io}
+    ...                                 campaign_vertical=${campaign_vertical}
+    ...                                 campaign_segment=${campaign_segment}
+    ...                                 campaign_congrol_group_size=${campaign_congrol_group_size}
+    ...                                 campaign_advertiser_id=${campaign_advertiser_id}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_store_visit=${campaign_store_visit}
+    ...                                 campaign_demo_data_source=${campaign_demo_data_source}
+    ...                                 campaign_demohide_chart_id=${campaign_demohide_chart_id}
+    ...                                 response_code=200
+    ${campaignId}=      Get JSON Value      ${body}     /campaign/id
+
+    ${yyyy}    ${mm}    ${dd}=                      Get Time            year,month,day    UTC
+    Set Test Variable   ${parent_end_date_time}     ${mm}/${dd}/${yyyy} 23:59
+
+    Set Test Variable   ${parent_name}  PAC_regression_parent_168_02
+    Create Parent Adgroup via API   parent_name=${parent_name}
+    ...                             parent_campaign_id=${campaignId}
+    ...                             parent_start_date_time=${todaysDate}
+    ...                             parent_end_date_time=${parent_end_date_time}
+    ...                             response_code=200
+    Get Parent Adgroup ID from DB for PAC1.6.8 by Parent Adgroup Name
+    Set Test Variable   ${uri_link}    pac-api/parent-adgroup/active-parent-adgroup/${campaignId}
+    Set Test Variable   ${expected_status_code}     200
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=${expected_status_code}
+    ...                                     success=true
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Run Keyword If  '${expected_status_code}'=='400'    Should Match Regexp  ${body}  "success":false
+    Run Keyword If  '${expected_status_code}'=='200'   Get Parent Adgroup ID from DB for PAC1.6.8 by Parent Adgroup Name
+    Run Keyword If  '${expected_status_code}'=='200'   Validate Active Parent Adgroup Result For Campaign
+    [Tags]            # Known_bug       CM-882
+
+
+PAC1.6.8_TC_03_Get Active Parent AdGroup for Campaign (with end date as previous date, Accept)
+    [Documentation]     Input : Create a new campaign and parent ad group which has end date
+    ...                         in past for campaign as well as parent adgroup
+    ...                         and then fetch its active parent adgroups list for the campaign.
+    ...                 Expected : All the active parent adgroups which are present in the
+    ...                             campaign should be displayed in the test result.
+    Set Test Variable   ${campaignId}   1849
+    Set Test Variable   ${uri_link}     pac-api/parent-adgroup/active-parent-adgroup/${campaignId}
+    Set Test Variable   ${expected_status_code}     200
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=${expected_status_code}
+    ...                                     success=true
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Run Keyword If  '${expected_status_code}'=='400'  Should Match Regexp   ${body}   "success":false
+    ${activeParentAdGroupList}=    Get Json Value         ${body}         /activeParentAdGroupList
+    Log  ${activeParentAdGroupList}
+    Should Be Equal As Strings        ${activeParentAdGroupList}       []
+    [Tags]
+
+
+PAC1.6.8_TC_04_Get Active Parent AdGroup for Campaign (with invalid URL, Don't Accept)
+    [Documentation]     Input : Create a new campaign and parent ad group which has end date
+    ...                         in past for campaign as well as parent adgroup
+    ...                         and then fetch its active parent adgroups list for the campaign.
+    ...                 Expected : All the active parent adgroups which are present in the
+    ...                             campaign should be displayed in the test result.
+    Set Test Variable   ${campaignId}   1849
+    Set Test Variable   ${uri_link}     pac-api/parent-adgroup/activeparentadgroup/${campaignId}
+    PAC API                                 uri=${uri_link}               request_type=GET         expected_status_code=400    success=false
+    Json Value Should Equal  ${body}  /success      false
+    Json Value Should Equal  ${body}  /reason_code      "400-001"
+    Json Value Should Equal  ${body}  /reason_desc      "Invalid Request."
+    [Tags]   #   Known_bug       CM-1428

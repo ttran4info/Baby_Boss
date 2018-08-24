@@ -1,0 +1,184 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.5.1		BATCH19    PAC_BATCH3
+Suite Setup    		Cleanup Advertiser From DB    advertiser_name=QATEST_Advertiser_PAC_151
+Suite Teardown    	Cleanup Advertiser From DB    advertiser_name=QATEST_Advertiser_PAC_151
+
+#https://wiki.4info.com/pages/viewpage.action?pageId=29917295
+#API Name: 1.1. Get all advertisers by group Id
+#Method: GET
+#URL: /pac-api/partner/advertisers?groupId={groupId}
+#userName = rhino.users
+#groupId = rhino.groups
+#Get all associated advertisers by group id. This request will be called by Phoenix advertiser list page.
+
+
+*** Variables ***
+#${QA_TEST_ADVERTISER}           QATEST_Advertiser_PAC_151
+
+*** Keywords ***
+
+
+*** Test Cases ***
+
+PAC1.5.1_TC_01.1_Create new Advertiser (Letters)
+    [Documentation]    Send POST request to make new Advertiser
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    ${ret} =    Generate Random String    3    QATESTABCDEFGHIJKLMNOP
+    Set Test Variable    ${name}    QATEST_Advertiser_PAC_151${ret}
+    Log		${name}
+    Create Advertiser      uri=${uri_link}
+    ...                    data={"name": "${name}"}
+    ...                    expected_status_code=200
+    ...                    success=true
+    Json Value Should Equal    ${body}    /advertiser/name    "${name}"
+    Remove Advertiser By Name    advertiser_name=${name}
+    [Tags]
+
+
+PAC1.5.1_TC_01.2_Create new Advertiser (Numbers)
+    [Documentation]    Send POST request to make new Advertiser
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    ${ret} =    Generate Random String    3    1234567890
+    Set Test Variable    ${name}    QATEST_Advertiser_PAC_151${ret}
+    Log    ${name}
+    Create Advertiser      uri=${uri_link}
+    ...                    data={"name": "${name}"}
+    ...                    expected_status_code=200
+    ...                    success=true
+    Json Value Should Equal    ${body}    /advertiser/name    "${name}"
+    Remove Advertiser By Name    advertiser_name=${name}
+    [Tags]
+
+
+PAC1.5.1_TC_01.3_Create new Advertiser (Underscore)
+	[Documentation]		Send POST request to make new Advertiser
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser
+	${ret} =	 	Generate Random String	3		1234567890
+	Set Test Variable		${name}				QATEST_Advertiser_PAC_151${ret}
+	Log		${name}
+	Create Advertiser	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/advertiser/name				"${name}"
+	Remove Advertiser By Name    advertiser_name=${name}
+	[Tags]
+
+
+PAC1.5.1_TC_01.4_Create new Advertiser (dash)
+	[Documentation]		Send POST request to make new Advertiser
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser
+	${ret} =	 	Generate Random String	3		1234567890
+	Set Test Variable		${name}				QATEST_Advertiser_PAC_151-${ret}
+	Log		${name}
+	Create Advertiser	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/advertiser/name				"${name}"
+	Remove Advertiser By Name    advertiser_name=${name}
+	[Tags]
+
+
+PAC1.5.1_TC_01.5_Create new Advertiser (single space)
+	[Documentation]		Send POST request to make new Advertiser
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser
+	${ret} =	 	Generate Random String	3		1234567890
+	Set Test Variable		${name}				QATEST_Advertiser_PAC_151 ${ret}
+	Log		${name}
+	Create Advertiser	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/advertiser/name				"${name}"
+	Remove Advertiser By Name    advertiser_name=${name}
+	[Tags]
+
+
+PAC1.5.1_TC_02.1_Advertiser with existing Advertiser name
+	[Documentation]		Send POST request to make new Advertiser with existing advertiser name
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser
+	${ret} =	 	Generate Random String	3		QATESTABCDEFGHIJKLMNOP
+	Set Test Variable		${name}				QATEST_Advertiser_PAC_151-${ret}
+	Log		${name}
+	Create Advertiser	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Sleep 		5s
+
+	Create Advertiser	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=400
+	Json Value Should Equal		${body}		/success			false
+	Json Value Should Equal		${body}		/reason_code		"700-102"
+	Json Value Should Equal		${body}		/reason_desc		"Advertiser name exists."
+	Remove Advertiser By Name    advertiser_name=${name}
+	[Tags]
+
+
+PAC1.5.1_TC_03.1_Create new Advertiser without name (Blank)
+	[Documentation]		Send POST request to create new Advertiser wihtout name, expect error "Name cannot be null."
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser
+	Create Advertiser	uri=${uri_link}		data={"name": ""}	expected_status_code=400
+	Json Value Should Equal		${body}		/success				false
+	Json Value Should Equal		${body}		/reason_code		"400-999"
+	Json Value Should Equal		${body}		/reason_desc		"Validation Failure"
+	# Json Value Should Equal		${body}		/errors/0/reason_desc	"Only letters, numbers, underscores (_), hyphens (-), and single spaces are allowed."
+	Json Value Should Equal		${body}		/errors/0/field			"name"
+	# Json Value Should Equal		${body}		/errors/1/field		"name"
+	# Json Value Should Equal		${body}		/errors/1/reason_desc		"Name cannot be null."
+	[Tags]
+
+
+PAC1.5.1_TC_04.1_Create new Advertiser with name special character 2 spaces in between
+	[Documentation]		Send POST request to create new Advertiser wihtout name, expect error "Only letters, numbers, underscores (_), hyphens (-), and single spaces are allowed."
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser
+	Create Advertiser	uri=${uri_link}		data={"name": "QATEST_Advertiser_PAC_151${SPACE}${SPACE}123"}	expected_status_code=400
+	Json Value Should Equal		${body}		/success				false
+	Json Value Should Equal		${body}		/reason_code			"400-999"
+	Json Value Should Equal		${body}		/reason_desc			"Validation Failure"
+	Json Value Should Equal		${body}		/errors/0/field			"name"
+	Json Value Should Equal		${body}		/errors/0/reason_desc		"Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed."
+	[Tags]	 		# Known_bug	CM-938
+
+
+PAC1.5.1_TC_04.2_Create new Advertiser with bunch of spaces only
+	[Documentation]		Send POST request to create new Advertiser wihtout name, expect error "Only letters, numbers, underscores (_), hyphens (-), and single spaces are allowed."
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser
+	Create Advertiser	uri=${uri_link}		data={"name": "${SPACE}${SPACE}${SPACE}"}	expected_status_code=400
+	Json Value Should Equal		${body}		/success				false
+	Json Value Should Equal		${body}		/reason_code			"400-999"
+	Json Value Should Equal		${body}		/reason_desc			"Validation Failure"
+	# Json Value Should Equal		${body}		/errors/0/reason_desc	"Name cannot be null."
+	Json Value Should Equal		${body}		/errors/0/field			"name"
+	# Json Value Should Equal		${body}		/errors/1/reason_desc	"Only letters, numbers, underscores (_), hyphens (-), and single spaces are allowed."
+	# Json Value Should Equal		${body}		/errors/1/field			"name"
+	[Tags]	# Known_bug	CM-938
+
+
+PAC1.5.1_TC_04.3_Create new Advertiser with special character @
+	[Documentation]		Send POST request to create new Advertiser wihtout name, expect error "Only letters, numbers, underscores (_), hyphens (-), and single spaces are allowed."
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser
+	Create Advertiser	uri=${uri_link}		data={"name": "QATEST_Advertiser_PAC_151@4info.com"}	expected_status_code=400
+	Json Value Should Equal		${body}		/success				false
+	Json Value Should Equal		${body}		/reason_code			"400-999"
+	Json Value Should Equal		${body}		/reason_desc			"Validation Failure"
+	Json Value Should Equal		${body}		/errors/0/reason_desc	"Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed."
+	Json Value Should Equal		${body}		/errors/0/field			"name"
+	[Tags]			# Known_bug	CM-938
+
+
+PAC1.5.1_TC_04.4_Create new Advertiser with special character (.) dot accept
+	[Documentation]		Send POST request to create new Advertiser wihtout name, expect error "Only letters, numbers, underscores (_), hyphens (-), and single spaces are allowed."
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser
+	Create Advertiser	uri=${uri_link}		data={"name": "QATEST_Advertiser_PAC_151123.com"}	 expected_status_code=200
+	# Json Value Should Equal		${body}		/success				false
+	# Json Value Should Equal		${body}		/reason_code			"400-999"
+	# Json Value Should Equal		${body}		/reason_desc			"Validation Failure"
+	# Json Value Should Equal		${body}		/errors/0/reason_desc	"Only letters, numbers, underscores (_), hyphens (-), and single spaces are allowed."
+	# Json Value Should Equal		${body}		/errors/0/field			"name"
+	Remove Advertiser By Name    advertiser_name=QATEST_Advertiser_PAC_151123.com
+	[Tags]		# 	Known_bug	CM-938
+
+
+PAC1.5.1_TC_04.5_Create new Advertiser with special character ,
+	[Documentation]		Send POST request to create new Advertiser wihtout name, expect error "Only letters, numbers, underscores (_), hyphens (-), and single spaces are allowed."
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser
+	Create Advertiser	uri=${uri_link}		data={"name": "QATEST_Advertiser_PAC_151,com"}	expected_status_code=400
+	Json Value Should Equal		${body}		/success				false
+	Json Value Should Equal		${body}		/reason_code			"400-999"
+	Json Value Should Equal		${body}		/reason_desc			"Validation Failure"
+	# Json Value Should Equal		${body}		/errors/0/reason_desc	"Name cannot be null."
+	# Json Value Should Equal		${body}		/errors/0/field			"name"
+	Json Value Should Equal		${body}		/errors/0/reason_desc	"Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed."
+	Json Value Should Equal		${body}		/errors/0/field			"name"
+	[Tags]	# 	Known_bug	CM-938
+

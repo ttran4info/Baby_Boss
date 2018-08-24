@@ -1,0 +1,43 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.4.3		BATCH19		 PAC_BATCH2
+
+#https://wiki.4info.com/pages/viewpage.action?pageId=29917295
+#API Name: 1.4.3 Get master option list for audience insights
+#Method: GET
+#URL: /pac-api/campaign/audience-insights
+#DESC: Get master list
+#audience_insight_datasource_attr, target_datasource_provider
+#
+#
+
+*** Variables ***
+	
+*** Keywords ***
+
+*** Test Cases ***
+
+PAC1.4.3_TC_01_Get_Master_Option_list_for_audience_insight(Check Acxiom)
+	Set Test Variable 	${uri_link}		/pac-api/campaign/audience-insights
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp		${body}				"id":6,"name":"Acxiom","audienceInsight":true
+
+
+PAC1.4.3_TC_02_Get_Master_Option_list_for_audience_insight(Check Speedeon)
+	Set Test Variable 	${uri_link}		/pac-api/campaign/audience-insights
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp		${body}				"id":7,"name":"Speedeon","audienceInsight":true
+
+
+PAC1.4.3_TC_03_Get_Master_Option_list_for_audience_insight(Check Experian)
+	Set Test Variable 	${uri_link}		/pac-api/campaign/audience-insights
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp		${body}				"id":12,"name":"Experian","audienceInsight":true
+
+
+PAC1.4.3_TC_04_Get_Master_Option_list_for_audience_insight(compare to DB)
+	Get Master Option List For Audience Insights via DB
+	Set Test Variable 	${uri_link}		/pac-api/campaign/audience-insights
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	${api_audience_insight_count}=			Get Count		${body}			audienceInsight
+	Should Be Equal As Integers				${api_audience_insight_count}				${db_audience_insight_count}

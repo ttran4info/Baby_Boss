@@ -1,0 +1,178 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC    PAC1.1.1    BATCH19    PAC_BATCH1
+
+# https://wiki.4info.com/pages/viewpage.action?pageId=29917295#PACAPIdocumentation-1.1.1GetalladvertisersbygroupId
+# API Name: 1.1. Get all advertisers by group Id
+# Method: GET
+# URL: /pac-api/partner/advertisers?groupId={groupId}
+# userName = rhino.users
+# groupId = rhino.groups
+# Get all associated advertisers by group id. This request will be called by Phoenix advertiser list page.
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+*** Test Cases ***
+
+PAC1.1.1_TC_01_Get_All_Advertiser_by_group_id (1-admin)
+    [Documentation]    Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${group_id}    1
+    Get All Advertisers By Group Id    group_id=${group_id}
+    Should Match Regexp    ${body}    "id":670
+    Should Match Regexp    ${body}    "name":"QA_REGRESSION"
+    Should Match Regexp    ${body}    "id":694,"name":"QA_Performance","status":"Inactive","liveCampaigns":0,"pendingCampaigns":0,"totalCampaigns":2,"struggCount":0
+    [Tags]
+
+
+PAC1.1.1_TC_02_Get_All_Advertiser_by_group_id (15-Catalina)
+    [Documentation]    Make a request for admin user group 15 and check the result advertiser ID,name
+    Set Test Variable    ${groupId}    15
+    Get All Advertisers By Group Id    group_id=${group_id}
+    Should Match Regexp    ${body}    "id":670
+    Should Match Regexp    ${body}    "name":"QA_REGRESSION"
+    [Tags]
+
+
+PAC1.1.1_TC_03_Get_All_Advertiser_by_group_id (16-QA)
+    [Documentation]    Make a request for admin user group 16 and check the result advertiser ID,name
+    Set Test Variable    ${groupId}    16
+    Get All Advertisers By Group Id    group_id=${group_id}
+    ${advertisers}=    Get Json Value    ${body}    /advertisers
+    Should Match Regexp    ${body}    "id":670
+    Should Match Regexp    ${body}    "name":"QA_REGRESSION"
+    Should Match Regexp    ${body}    "id":240
+    Should Match Regexp    ${body}    "name":"z TEST Tien"
+    Should Match Regexp    ${body}    "id":253
+    Should Match Regexp    ${body}    "name":"z-Test Dmitry"
+    [Tags]
+
+
+PAC1.1.1_TC_04_Get_All_Advertiser_by_group_id (99-Unknown, expected error)
+    [Documentation]    Make a request for admin user group 99 and check the result advertiser ID,name
+    Set Test Variable    ${groupId}    99
+    Get All Advertisers By Group Id    group_id=${group_id}    expected_status_code=400    success=false
+    Should Match Regexp    ${body}     "reason_code":"800-002"
+    Should Match Regexp    ${body}     "reason_desc":"Group id is not found."
+    [Tags]
+
+
+PAC1.1.1_TC_05_Get_All_Advertiser_by_group_id (abc-Unknown, expected error)
+    [Documentation]    Make a request for admin user group unknown and check the result advertiser ID,name
+    Set Test Variable    ${groupId}    unknown
+    Get All Advertisers By Group Id    group_id=${group_id}    expected_status_code=400    success=false
+    Should Match Regexp    ${body}    "reason_code":"600-001"
+    Should Match Regexp    ${body}    "reason_desc":"Invalid Group id."
+    [Tags]
+
+
+PAC1.1.1_TC_06_Get_All_Advertiser_by_group_id (missing group id - expected error)
+    [Documentation]    Make a request for admin user group blank and check the result advertiser ID,name
+    Set Test Variable    ${groupId}    unknown
+    Set Test Variable     ${uri_link}    /pac-api/partner/advertisers?groupId=
+    PAC API              request_type=GET    uri=${uri_link}    expected_status_code=400    success=false
+    Should Match Regexp    ${body}    "reason_code":"600-001"
+    Should Match Regexp    ${body}    "reason_desc":"Invalid Group id."
+    [Tags]
+
+
+PAC1.1.1_TC_07_Get_All_Advertiser_by_group_id (1-admin, compare advertiser count with DB)
+    [Documentation]    Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${groupId}    1
+    Get All Advertisers By Group Id    group_id=${group_id}
+    ${advertisers}=    Get Json Value    ${body}    /advertisers
+    Log    ${advertisers}
+    @{advertisers_list}=    String.Split String    ${advertisers}    }, {
+    ${advertisers_count_api}=    Get Length    ${advertisers_list}
+    Log    Api List Lenght is -> ${advertisers_count_api}
+    Get All Advertiser By GroupId via DB    groupid=${groupId}
+    Should Be Equal As Integers    ${advertisers_count_api}    ${advertiser_count_db}
+    [Tags]    # Known_bug    CM-1934
+
+
+PAC1.1.1_TC_08_Get_All_Advertiser_by_group_id (15-Catalina, compare advertiser count with DB)
+    [Documentation]    Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${groupId}    15
+    Get All Advertisers By Group Id    group_id=${group_id}
+    ${advertisers}=    Get Json Value    ${body}    /advertisers
+    @{advertisers_list}=        String.Split String         ${advertisers}        }, {
+    ${advertisers_count_api}=    Get Length             ${advertisers_list}
+    Log    Api List Lenght is -> ${advertisers_count_api}
+    Get All Advertiser By GroupId via DB    groupid=${groupId}
+    Should Be Equal As Integers    ${advertisers_count_api}    ${advertiser_count_db}
+    [Tags]
+
+
+PAC1.1.1_TC_09_Get_All_Advertiser_by_group_id (16-QA, compare advertiser count with DB)
+    [Documentation]    Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${groupId}    16
+    Get All Advertisers By Group Id    group_id=${group_id}
+    ${advertisers}=    Get Json Value    ${body}    /advertisers
+    @{advertisers_list}=        String.Split String         ${advertisers}        }, {
+    ${advertisers_count_api}=    Get Length             ${advertisers_list}
+    Log    Api List Lenght is -> ${advertisers_count_api}
+    Get All Advertiser By GroupId via DB    groupid=${groupId}
+    Should Be Equal As Integers    ${advertisers_count_api}    ${advertiser_count_db}
+    [Tags]
+
+PAC1.1.1_TC_10_Get_All_Advertiser_by_group_id(Admin Status - Active)
+    [Documentation]       Check a campaign that has status=active (compare api to DB)
+    Compare API data vs DB for Advertiser    group_id=1    advertiser_name=QA_REGRESSION
+    [Tags]
+
+
+PAC1.1.1_TC_11_Get_All_Advertiser_by_group_id(Admin Status - Inactive)
+    [Documentation]    Check a campaign that has status=inactive (compare api to DB)
+    Compare API data vs DB for Advertiser    group_id=1    advertiser_name=1800 Flowers
+    [Tags]      # Known_bug    CM-877
+
+
+PAC1.1.1_TC_12_Get_All_Advertiser_by_group_id(Admin Live Campaigns count)
+    [Documentation]    Check a campaign that has live campaigns (compare api to DB)
+    Compare API data vs DB for Advertiser    group_id=1    advertiser_name=QA_REGRESSION
+    [Tags]
+
+
+PAC1.1.1_TC_13_Get_All_Advertiser_by_group_id(Admin Pending Campaigns count)
+    [Documentation]    Check a campaign that has pending campaigns (compare api to DB)
+    Compare API data vs DB for Advertiser    group_id=1    advertiser_name=QA_REGRESSION
+    [Tags]    Exclude    #same as tc_12
+
+
+PAC1.1.1_TC_14_Get_All_Advertiser_by_group_id(Admin Total Campaigns count)
+    [Documentation]    Check a campaign that has total campaigns (compare api to DB)
+    Compare API data vs DB for Advertiser    group_id=1    advertiser_name=QA_REGRESSION
+    [Tags]    Exclude     #same as tc_12
+
+
+PAC1.1.1_TC_15_Get_All_Advertiser_by_group_id(Catalina Status - Active)
+    [Documentation]    Check a campaign that has status=active (compare api to DB)
+    Compare API data vs DB for Advertiser    group_id=15    advertiser_name=QA_REGRESSION
+    [Tags]       #    Known_bug    CM-877
+
+
+PAC1.1.1_TC_16_Get_All_Advertiser_by_group_id(Catalina Status - Inactive)
+    [Documentation]    Check a campaign that has status=inactive (compare api to DB)
+    Compare API data vs DB for Advertiser    group_id=15    advertiser_name=1800 Flowers
+    [Tags]      #    Known_bug    CM-877
+
+
+PAC1.1.1_TC_17_Get_All_Advertiser_by_group_id(Catalina Live Campaigns count)
+    [Documentation]    Check a campaign that has live campaigns (compare api to DB)
+    Compare API data vs DB for Advertiser    group_id=15    advertiser_name=QA_REGRESSION
+    [Tags]        # CM-877
+
+
+PAC1.1.1_TC_18_Get_All_Advertiser_by_group_id(Catalina Pending Campaigns count)
+    [Documentation]    Check a campaign that has pending campaigns (compare api to DB)
+    Compare API data vs DB for Advertiser    group_id=15    advertiser_name=QA_REGRESSION
+    [Tags]      EXCLUDE       #    Known_bug    CM-877    #same as tc_17
+
+
+PAC1.1.1_TC_19_Get_All_Advertiser_by_group_id(Catalina Total Campaigns count)
+    [Documentation]    Check a campaign that has total campaigns (compare api to DB)
+    Compare API data vs DB for Advertiser    group_id=15    advertiser_name=QA_REGRESSION
+    [Tags]      EXCLUDE   #    Known_bug    CM-877    Excldue    #same as tc_17

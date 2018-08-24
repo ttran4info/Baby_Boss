@@ -1,0 +1,428 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags             PAC        PAC1.6.2        BATCH19        OffshoreQA    PAC_BATCH4
+
+#https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.6.2Gethouseholdsegmentmasterlist(Responsestructuresamewith1.6.3)
+#API Name: 1.6.2 Get household segment master list
+#Method: GET
+#URL: pac-api/adgroup/household-segments?${groupId}
+#DESC: Get Household segments by Group id.
+#rhino.campaign
+#rhino.taxonomy
+#rhino.taxonomy_level1
+#campaign_taxonomy_levels
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+
+PAC1.6.2_TC_01_Get_Household_segment_Details by Group id
+    [Documentation]        Make a Get call for Household segments for group id 1
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    pac_api.Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    [Tags]  #  Known_bug    CM-2168
+
+
+PAC1.6.2_TC_02_Get_Household_segment_Details by Invalid Group id
+    [Documentation]        Make a Get call for Household segments for group id 66
+    Set Test Variable    ${groupId}        80
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=400    success=false
+    Json Value Should Equal        ${body}        /success                    false
+    Json Value Should Equal        ${body}        /reason_code                "800-002"        #"600-001"
+    Json Value Should Equal        ${body}        /reason_desc                "Group id is not found."    #"Invalid Group id."
+    [Tags]
+
+
+PAC1.6.2_TC_03_Get_Household_segment_Details by Group id 1 for datasourceName 4INFO sCustom Trade Area
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 35
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":35,"datasourceName":"Custom Trade Area"
+    Should Match Regexp        ${body}        {"id":3824,"name":"Alcon_Walmart_5_mi_trade-2017_07_10_17_34","hhCount":20667370,"segmentCpm":1.0}
+    Should Match Regexp        ${body}        {"id":3892,"name":"FluVaccine-Fluzone_404483057_5007_1_TEST_5007_1005_404483057_1001676876_20170809145139","hhCount":4858771,"segmentCpm":1.0}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_04_Get_Household_segment_Details by Group id 1 for datasourceName 4INFO Retargeting
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 34
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":34,"datasourceName":"Retargeting"
+    Should Match Regexp        ${body}        {"id":3393,"name":"37509-2017_03_03_17_28","hhCount":1271297,"segmentCpm":1.0}
+    Should Match Regexp        ${body}        {"id":3610,"name":"37511-2017_04_25_22_41","hhCount":0,"segmentCpm":1.0}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_05_Get_Household_segment_Details by Group id 1 for datasourceName "4INFO Trade Area"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 33
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":33,"datasourceName":"Trade Area"
+    Should Match Regexp        ${body}        {"id":3866,"name":"adi_trade_area_test_3-2017_08_07_17_20","hhCount":3453,"segmentCpm":1.0}
+    Should Match Regexp        ${body}        {"id":3826,"name":"QA_HP_IG_Farms_Pecan_RIng-2017_07_11_20_10","hhCount":53,"segmentCpm":1.0}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_06_Get_Household_segment_Details by Group id 1 for datasourceName "ATT"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 32
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":32,"datasourceName":"ATT"
+    Should Match Regexp        ${body}        {"id":3815,"name":"att_adtvcmp_ACURAMDX_20170706.dat","hhCount":610745,"segmentCpm":1.0}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_07_Get_Household_segment_Details by Group id 1 for datasourceName "Acxiom"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 11 Just 1st n last segments
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":11,"datasourceName":"Acxiom"
+    # ${datasourceSegment}=    Get JSON Value    ${body}     /datasourceSegment
+    Should Match Regexp    ${body}    {"id":3340,"name":"100203CompassBusinessTypeW2DigitSICCodeInsuranceAgentsBrokersServices641_5007_1005_500756335_113126_20170216233855","hhCount":393215,"segmentCpm":1.0}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_08_Get_Household_segment_Details by Group id 1 for datasourceName "Catalina Custom Trade Area"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 31
+     Set Test Variable    ${groupId}        1
+     Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+     Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+     Should Match Regexp        ${body}    "datasourceId":31,"datasourceName":"Custom Trade Area"
+    [Tags]    EXCLUDE  # Reason : CM-2009, CM-2010
+
+
+PAC1.6.2_TC_09_Get_Household_segment_Details by Group id 1 for datasourceName "Catalina Retargeting"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 25
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":25,"datasourceName":"Catalina Retargeting"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_10_Get_Household_segment_Details by Group id 1 for datasourceName "Catalina Trade Area"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 24
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":24,"datasourceName":"Trade Area"
+    Should Match Regexp        ${body}    {"id":2890,"name":"Barber_Foods_Trade_Area_5_mi-2016_09_13_20_07","hhCount":84386658,"segmentCpm":1.0}
+    [Tags]    EXCLUDE  # Reason : CM-2009, CM-2010
+
+
+PAC1.6.2_TC_11_Get_Household_segment_Details by Group id 1 for datasourceName "ConneXions"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 3
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":3,"datasourceName":"ConneXions"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_12_Get_Household_segment_Details by Group id 1 for datasourceName "ConneXions 2016"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 27
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":27,"datasourceName":"ConneXions 2016"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_13_Get_Household_segment_Details by Group id 1 for datasourceName "Crossix"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 30
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":30,"datasourceName":"Crossix"
+    # Should Match Regexp        ${body}        {"id":2968,"name":"4INFO_CRSX_20160929"}
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_14_Get_Household_segment_Details by Group id 1 for datasourceName "DLX House Hold"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 7
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":7,"datasourceName":"DLX House Hold"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_15_Get_Household_segment_Details by Group id 1 for datasourceName "Datamyx"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 19
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":19,"datasourceName":"Datamyx"
+    # Should Match Regexp        ${segments_found}        {"hhCount": 460455, "id": 1545, "name": "C15FCM3C-RA06M"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 22641, "id": 3799, "name": "MC17BMO4AS7"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 46767, "id": 3808, "name": "mc17pcb1as3"}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_16_Get_Household_segment_Details by Group id 1 for datasourceName "Experian"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 21
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":21,"datasourceName":"Experian"
+    # Should Match Regexp        ${segments_found}        {"hhCount": 882047, "id": 3481, "name": "20170328082335_FOURINFO_FOURINFO_NATIONALGRIDMAHES138528_23065"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 53935, "id": 3484, "name": "20170329085236_FOURINFO_FOURINFO_NATIONALGRIDTRADEALLYRHODEISLAND138623_23091"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 166754, "id": 3502, "name": "20170404085824_FOURINFO_FOURINFO_NATIONALGRIDRIHES138957_23151"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 503500, "id": 3846, "name": "20170726090041_FOURINFO_FOURINFO_DIRECTVWD-ETHNICITY-VIETNAMESE_34171"}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_17_Get_Household_segment_Details by Group id 1 for datasourceName "Kantar"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 29
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":29,"datasourceName":"Kantar"
+    # Should Match Regexp        ${segments_found}        {"hhCount": 32107, "id": 2892, "name": "4info_barber_lapsedandloyal"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 512907, "id": 3112, "name": "4Info_Clicker_segment"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 92044698, "id": 3113, "name": "Households All Kantar"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 10642899, "id": 3823, "name": "kantar_20170710"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 1889976, "id": 3827, "name": "kantar_halo_top_20170711"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 17233982, "id": 2908, "name": "model_000706"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 18798670, "id": 2909, "name": "model_000934"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 4821933, "id": 3503, "name": "Shopcom_BeefJerky_95thpercentile"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 1531289, "id": 3504, "name": "Shopcom_JackLinks_90thpercentile"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 14788522, "id": 3548, "name": "Smithfield_Meat_and_Pork_2017_Brand"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 5327268, "id": 3549, "name": "Smithfield_Meat_and_Pork_2017_Category"}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_18_Get_Household_segment_Details by Group id 1 for datasourceName "NBI"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 23
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":23,"datasourceName":"NBI"
+    # Should Match Regexp        ${segments_found}        {"hhCount": 126145126, "id": 1785, "name": "Households All NBI"}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_19_Get_Household_segment_Details by Group id 1 for datasourceName "NCS"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 8
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":8,"datasourceName":"NCS"
+    # Should Match Regexp        ${segments_found}        {"hhCount": 0, "id": 486, "name": "Households All NCS"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 98641726, "id": 595, "name": "Households All Q3 2014 NCS"}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_20_Get_Household_segment_Details by Group id 1 for datasourceName "NCS Score"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 16 check 1st and last segment
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":16,"datasourceName":"NCS Score"
+    # Should Match Regexp        ${segments_found}        {"hhCount": 50504130, "id": 3694, "name": "4info_highfrequencyhh_may2017"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 36384691, "id": 3752, "name": "aleve_base_lapsed_buyers-advil_refresh"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 36221932, "id": 3611, "name": "always_discreet_ai_pad_liners"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 36377518, "id": 3507, "name": "body_fortress_brand_buyers"}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_21_Get_Household_segment_Details by Group id 1 for datasourceName "P$YCLE"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 4
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":4,"datasourceName":"P$YCLE"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_22_Get_Household_segment_Details by Group id 1 for datasourceName "Kantar"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 29
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":29,"datasourceName":"Kantar"
+    # Should Match Regexp        ${segments_found}        {"hhCount": 512907, "id": 3112, "name": "4Info_Clicker_segment"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 92044698, "id": 3113, "name": "Households All Kantar"}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_23_Get_Household_segment_Details by Group id 1 for datasourceName "P$YCLE 2016"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 28 check 1st and last segment
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":28,"datasourceName":"P$YCLE 2016"
+    # Should Match Regexp        ${segments_found}        {"hhCount": 2813825, "id": 2308, "name": "01 - The Wealth Market"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 4421143, "id": 2367, "name": "58 - Bottom-Line Blues"}
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_24_Get_Household_segment_Details by Group id 1 for datasourceName "PRIZM"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 2
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":2,"datasourceName":"PRIZM"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_25_Get_Household_segment_Details by Group id 1 for datasourceName "P$YCLE 2016"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 28
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":28,"datasourceName":"P$YCLE 2016"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_26_Get_Household_segment_Details by Group id 1 for datasourceName "Speedeon"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 14
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":14,"datasourceName":"Speedeon"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_27_Get_Household_segment_Details by Group id 1 for datasourceName "Speedeon-Spire"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 13
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":13,"datasourceName":"Speedeon-Spire"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_28_Get_Household_segment_Details by Group id 1 for datasourceName "TruSignal"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 22
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":22,"datasourceName":"TruSignal"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201  #  Known_bug    CM-1729
+
+
+PAC1.6.2_TC_29_Get_Household_segment_Details by Group id 1 for datasourceName "Walmart"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 15
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":15,"datasourceName":"Walmart"
+    # Should Match Regexp        ${segments_found}        {"hhCount": 0, "id": 714, "name": "Households All WMX"}
+    [Tags]   EXCLUDE  # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_30_Get_Household_segment_Details by Group id 15 (Catalina self service) for datasourceName Catalina Custom Trade Area
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 31
+    Set Test Variable    ${groupId}        15
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":35,"datasourceName":"Custom Trade Area"
+    [Tags]    #EXCLUDE  # Reason : CM-2009(closed), CM-2010(closed)
+
+
+PAC1.6.2_TC_31_Get_Household_segment_Details by Group id 15 (Catalina self service) for datasourceName Catalina Retargeting
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 25 check 1st and last segment
+    Set Test Variable    ${groupId}        15
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":25,"datasourceName":"Catalina Retargeting"
+    [Tags]        EXCLUDE   # Reason https://jira.adhaven.com/browse/CM-201(closed)  #  Known_bug    CM-1729(closed)
+
+
+PAC1.6.2_TC_32_Get_Household_segment_Details by Group id 15 (Catalina self service) for datasourceName Catalina Trade Area
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 24 check 1st and last segment
+    Set Test Variable    ${groupId}        15
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":33,"datasourceName":"Trade Area"
+    # Should Match Regexp        ${segments_found}        {"hhCount": 84386658, "id": 2890, "name": "Barber_Foods_Trade_Area_5_mi-2016_09_13_20_07"}
+    # Should Match Regexp        ${segments_found}        {"hhCount": 328652, "id": 3878, "name": "QA_CAT_TA202-2017_08_08_18_41"}
+    [Tags]    #EXCLUDE  # Reason : CM-2009(closed), CM-2010 (closed)
+
+PAC1.6.2_TC_33_Get_Household_segment_Details by Group id 15 (Catalina self service) for datasourceName NCS
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 8
+    Set Test Variable    ${groupId}        15
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+     Should Match Regexp        ${body}    "datasourceId":8,"datasourceName":"NCS"
+    ## Should Match Regexp        ${segments_found}        {"hhCount": 0, "id": 486, "name": "Households All NCS"}
+    ## Should Match Regexp        ${segments_found}        {"hhCount": 98641726, "id": 595, "name": "Households All Q3 2014 NCS"}
+    #Should Match Regexp    ${body}    "datasourceId":35,"datasourceName":"Custom Trade Area"
+    #Should Match Regexp    ${body}    {"id":4339,"name":"TA_CAT15_upload-2018_03_01_20_54","hhCount":4033,"segmentCpm":1.0}
+    #Should Match Regexp    ${body}    "datasourceId":33,"datasourceName":"Trade Area"
+    #Should Match Regexp    ${body}    {"id":4338,"name":"TA_CatGroup15-2018_03_01_20_48","hhCount":9027,"segmentCpm":1.0}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_34_Get_Household_segment_Details by Group id 15 (Catalina self service) for datasourceName NCS Score
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 16 check 1st and last segment
+    Set Test Variable    ${groupId}        15
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":16,"datasourceName":"NCS Score"
+    ## Should Match Regexp        ${segments_found}        {"hhCount": 50504130, "id": 3694, "name": "4info_highfrequencyhh_may2017"}
+    ## Should Match Regexp        ${segments_found}        {"hhCount": 85374083, "id": 3585, "name": "bath_tissue_cateogry_syndicated"}
+    ## Should Match Regexp        ${segments_found}        {"hhCount": 36177020, "id": 3656, "name": "yasso_outside_category"}
+    #Should Match Regexp    ${body}    "datasourceId":35,"datasourceName":"Custom Trade Area"
+    #Should Match Regexp    ${body}    {"id":4339,"name":"TA_CAT15_upload-2018_03_01_20_54","hhCount":4033,"segmentCpm":1.0}
+    #Should Match Regexp    ${body}    "datasourceId":33,"datasourceName":"Trade Area"
+    #Should Match Regexp    ${body}    {"id":4338,"name":"TA_CatGroup15-2018_03_01_20_48","hhCount":9027,"segmentCpm":1.0}
+    [Tags]   # Known_bug    CM-2168
+
+
+PAC1.6.2_TC_35_Get_Household_segment_Details by Invalid Group id
+    [Documentation]        Make a Get call for Household segments for group id 16 CM-355
+    Set Test Variable    ${groupId}        16
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200
+    Json Value Should Equal        ${body}        /success                    true
+    [Tags]
+
+
+PAC1.6.2_TC_036_Get_Household_segment_Details by Group id 1 for datasourceName "NBCU"
+    [Documentation]        Make a Get call for Household segments for group id 1 for Datasource 32
+    Set Test Variable    ${groupId}        1
+    Set Test Variable     ${uri_link}        /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+    Get UI element accesses from page URL     uri=${uri_link}            expected_status_code=200    success=true
+    Should Match Regexp        ${body}    "datasourceId":39,"datasourceName":"NBCU"
+    Should Match Regexp        ${body}        {"id":3727,"name":"NBCU_EHA-Experian_Match_with_4Info_ID","hhCount":3020,"segmentCpm":1.0}
+    [Tags]
+
+
+PAC1.6.2_TC_037_Get Household segment Details by Group id 1 do not display datasourceNames PRIZM, ConneXions, P$YCLE, DLX House Hold, Speedeon-Spire, Speedeon and TruSignal
+    [Documentation]    PRIZM, ConneXions, P$YCLE, DLX House Hold, Speedeon-Spire, Speedeon and TruSignal
+    ...                   ${Space} has value enabled != 1 in database, hence those should not populate in response body.
+    Validate Datasources has not value enabled as 1    datasourceName=PRIZM
+    Validate Datasources has not value enabled as 1    datasourceName=ConneXions
+    Validate Datasources has not value enabled as 1    datasourceName=P$YCLE
+    Validate Datasources has not value enabled as 1    datasourceName=DLX House Hold
+    Validate Datasources has not value enabled as 1    datasourceName=Speedeon-Spire
+    Validate Datasources has not value enabled as 1    datasourceName=Speedeon
+    Validate Datasources has not value enabled as 1    datasourceName=TruSignal
+
+    Set Test Variable    ${groupId}    1
+    Set Test Variable    ${uri_link}    /pac-api/parent-adgroup/household-segments?groupId=${groupId}
+
+    Get UI element accesses from page URL    uri=${uri_link}
+    ...                                      expected_status_code=200
+    ...                                         success=true
+    Should Not Match Regexp    ${body}    "datasourceName":"PRIZM"
+    Should Not Match Regexp    ${body}    "datasourceName":"ConneXions"
+    Should Not Match Regexp    ${body}    "datasourceName":"P$YCLE"
+    Should Not Match Regexp    ${body}    "datasourceName":"DLX House Hold"
+    Should Not Match Regexp    ${body}    "datasourceName":"Speedeon-Spire"
+    Should Not Match Regexp    ${body}    "datasourceName":"Speedeon"
+    Should Not Match Regexp    ${body}    "datasourceName":"TruSignal"
+    [Tags]    #   Known_bug    CM-2051
+
+

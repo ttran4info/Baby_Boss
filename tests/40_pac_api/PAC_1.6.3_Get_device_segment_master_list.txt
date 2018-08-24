@@ -1,0 +1,69 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.6.3		BATCH19		OffshoreQA    PAC_BATCH4
+
+#https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.6.3Getdevicesegmentmasterlist(Responsestructuresamewith1.6.2)
+#API Name: 1.6.3 Get device segment master list (Response structure same with 1.6.2)
+#Method: GET
+#URL: pac-api/adgroup/device-segments?${groupId}
+#DESC: Get a list of Device segments given a group id.
+#rhino.ad_group
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+
+PAC1.6.3_TC_01_Get_device_segment_Details by Group id
+	[Documentation]		Make a Get call for Household segments for group id 1
+	Set Test Variable	${groupId}		1
+	Set Test Variable 	${uri_link}		/pac-api/parent-adgroup/device-segments?groupId=${groupId}
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	JSON Value Should Equal    ${body}    /datasourceSegment/0/datasourceId      20
+	JSON Value Should Equal    ${body}    /datasourceSegment/0/datasourceName    "4INFO Device Segments"
+	JSON Value Should Equal    ${body}    /datasourceSegment/0/useScore          false
+	# Should Match Regexp    ${body}    {"id":4,"name":"4Info_Age_18-30","dsCount":4798109,"segmentCpm":1.0}
+	[Tags]    #    CM-2061      #  Known_bug    CM-2168
+
+
+PAC1.6.3_TC_02_Get_device_segment_Details by Invalid Group id
+	[Documentation]		Make a Get call for Household segments for group id 66
+	Set Test Variable	${groupId}		55
+	Set Test Variable 	${uri_link}		/pac-api/parent-adgroup/device-segments?groupId=${groupId}
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=400
+	Json Value Should Equal		${body}		/success					false
+	Json Value Should Equal		${body}		/reason_code				"800-002"  #"600-001"
+	Json Value Should Equal		${body}		/reason_desc				"Group id is not found."
+	[Tags]
+
+PAC1.6.3_TC_03_Get_device_segment_Details by Group id this does not have access to device segment
+	[Documentation]		Make a Get call for Household segments for group id 15
+	Set Test Variable	${groupId}		15
+	Set Test Variable 	${uri_link}		/pac-api/parent-adgroup/device-segments?groupId=${groupId}
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200
+	Json Value Should Equal		${body}		/success					true
+	[Tags]
+
+PAC1.6.3_TC_04_Get_device_segment_Details by Group id 1 for datasourceName 4INFO
+	[Documentation]		Make a Get call for Household segments for group id 1 for Datasource 20
+	Set Test Variable	${groupId}		1
+	Set Test Variable 	${uri_link}		/pac-api/parent-adgroup/device-segments?groupId=${groupId}
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Extract datasourceSegments    datasourceSegment_result=${body}
+	...							  datasource_id=20
+	...                           datasource_name="4INFO Device Segments"
+	# Should Match Regexp		${segments_found}		{"segmentCpm": 1.0, "dsCount": 32705544, "id": 9, "name": "4Info_Age_13_17_Feb2017"}
+	# Should Match Regexp		${segments_found}		{"segmentCpm": 1.0, "dsCount": 4798109, "id": 4, "name": "4Info_Age_18-30"}
+	# Should Match Regexp		${segments_found}		{"segmentCpm": 1.0, "dsCount": 147576259, "id": 5, "name": "4Info_Age_18_plus"}
+	# Should Match Regexp		${segments_found}		{"segmentCpm": 1.0, "dsCount": 40046560, "id": 10, "name": "4Info_Age_18_24_Feb2017"}
+	# Should Match Regexp		${segments_found}		{"segmentCpm": 1.0, "dsCount": 26252359, "id": 3, "name": "4Info_Age_35_and_over"}
+	# Should Match Regexp		${segments_found}		{"segmentCpm": 1.0, "dsCount": 151502, "id": 7, "name": "F1_Concurrent_Test_retarget_36534"}
+	# Should Match Regexp		${segments_found}		{"segmentCpm": 1.0, "dsCount": 110788901, "id": 18, "name": "4Info_In_HH_Graph_Feb2017"}
+	[Tags]   # Known_bug    CM-2168
+
+
+
+
+

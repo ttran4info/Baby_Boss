@@ -1,0 +1,191 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.8.1		BATCH19		OffshoreQA    PAC_BATCH7
+Suite Setup         Clean Up Pre-Requisite Data for PAC1.8.1
+Suite Teardown      Clean Up Pre-Requisite Data for PAC1.8.1
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.8.1Getchildadgroupdetail
+# API Name: 1.8.1 Get child adgroup detail
+# Method: GET
+# URL: 	qa-dswarm-01:18082/pac-api/child-adgroup/child-adgroup/{adgroupId}
+# DESC: get child adgroup detail
+# rhino.ad_group
+
+
+#Need to implement code for validation of values for response code 200 for below keys.
+#campaignId, fourInfoMargin, maxBidPrice, targetGeoDMA, targetGeoDMAExcluded, targetGeoZipStr, targetHHState, targetHHStateExcluded, targetHHDMA, targetHHDMAExcluded, targetHHZipStr, targetExchangeExcluded
+
+
+*** Variables ***
+
+
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.8.1
+    Delete New Campaign via DB          campaign_name=PAC_regression_campaign_181
+    Cleanup Advertiser From DB          advertiser_name=QATEST_Advertiser_PAC1.8.1
+    Set Suite Variable                  ${Advname}    QATEST_Advertiser_PAC1.8.1
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+Create Sample Advertiser for Create Campaign PAC1.8.1
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    Log     ${Advname}
+    Create Advertiser      uri=${uri_link}
+    ...         data={"name": "${Advname}"}
+    ...         expected_status_code=200
+    ...         success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+
+*** Test Cases ***
+PAC1.8.1_TC_00_Create pre-requisite
+    Create Sample Advertiser for Create Campaign PAC1.8.1
+    [Tags]
+
+
+PAC1.8.1_TC_01_Get child adgroup detail (with valid data, Accept)
+    [Documentation]     Input : Create a new child adgroup and get it's details using given url.
+    ...                 Expected : All details should match with wiki page response for 200.
+    Create a new campaign for PAC1.8.1      campaign_name=PAC_regression_campaign_181_011
+    ...                                     parentName=PAC_regression_parent_181_011
+    ...                                     campaign_advertiser_id=${Advertiser_ID}
+
+    ${parent_id}=  Get JSON Value    ${body}   /parent/id
+    Log     ${parent_id}
+    Set Test Variable             ${child_name}                 PAC_regression_child_181_011
+    Set Test Variable             ${child_status}               1
+    Set Test Variable             ${child_start_date_time}      ${todays_date}
+    Set Test Variable             ${child_end_date_time}        ${REGRESSION_END_DATE} 23:59:59
+    Set Test Variable             ${child_timezone}             G
+    Set Test Variable             ${child_parent_campaign_id}     ${parent_id}
+    Set Test Variable             ${child_impression_goal}     10000
+    Set Test Variable             ${child_externalID}     ExternalID
+    Set Test Variable             ${child_cmp}     1.0
+    Set Test Variable             ${child_domain}     yahoo.com
+    Set Test Variable             ${child_is_behavioral_targeted}     false
+    Set Test Variable             ${child_screen_type}     1
+    Set Test Variable             ${child_target_day_of_week}     [2]
+    Set Test Variable             ${child_target_geo_state}     [2]
+    Set Test Variable             ${child_target_geo_state_exclude}     [3]
+    Set Test Variable             ${child_target_geo_country}     [4]
+    Set Test Variable             ${child_target_streaming_position}     [2]
+    Set Test Variable             ${child_target_location}     [3]
+    Set Test Variable             ${child_target_carrier}     [4]
+    Set Test Variable             ${child_target_traffic_type}     [3]
+    Set Test Variable             ${child_target_category}     [4]
+    Set Test Variable             ${child_target_category_excluded}     [2]
+    Set Test Variable             ${child_target_language}     null
+    Set Test Variable             ${child_target_xchange}     null
+    Set Test Variable             ${child_target_device_manufacturer}     [2]
+    Set Test Variable             ${child_target_device_model}     [3]
+    Set Test Variable             ${child_target_device_type}     [2]
+    Set Test Variable             ${child_target_device_OS}     [2]
+    Set Test Variable             ${child_target_device_OS_version}     [2]
+    Set Test Variable             ${child_deal_ids}     7411
+    Set Test Variable             ${child_auction_override}     2
+    Set Test Variable             ${child_bid_floor}     null
+    Set Test Variable             ${child_exchange}     389
+    Set Test Variable             ${response_code}     200
+
+    Create Child Adgroup via API        child_name=${child_name}
+    ...                                 child_status=${child_status}
+    ...                                 child_parent_campaign_id=${parent_ID}
+    ...                                 child_start_date_time=${todays_date}
+    ...                                 response_code=${response_code}
+    ${adgroupId}=   Get JSON Value      ${body}         /childId
+    Set Test Variable       ${uri_link}     /pac-api/child-adgroup/child-adgroup/${adgroupId}
+    Set Test Variable       ${expected_status_code}    200
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=${expected_status_code}
+    ...                                     success=true
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Run Keyword If  '${expected_status_code}'=='200'    Should Match Regexp  ${body}  "success":true
+    Run Keyword If  '${expected_status_code}'=='200'    Validate List Of Keywords For PAC 1.8.1 for success code 200
+    # Run Keyword If  '${expected_status_code}'=='200'    Validate Response For PAC 1.8.1 for success code 200
+    # ...         ${adgroupId}
+    # ...         ${child_status}
+    [Tags]       # Known_bug    CM-1809    #  CM-1696
+
+
+
+PAC1.8.1_TC_02_Get child adgroup detail (with Invalid URL, Don't accept Accept)
+    [Documentation]     Input : Get a new child adgroup and get it's details using invalid url.
+    ...                 Expected : All details should not run successfully with response code 400.
+    Create a new campaign for PAC1.8.1      campaign_name=PAC_regression_campaign_181_002
+    ...                                     parentName=PAC_regression_parent_181_002
+    ...                                     campaign_advertiser_id=${Advertiser_ID}
+
+    Set Test Variable             ${child_name}     PAC_regression_child_181_002
+    Set Test Variable             ${response_code}     200
+    Create Child Adgroup via API        child_name=${child_name}
+    ...                                 child_parent_campaign_id=${parent_ID}
+    ...                                 child_start_date_time=${todays_date}
+    ...                                 response_code=${response_code}
+    ${adgroupId}=   Get JSON Value      ${body}         /childId
+    Set Test Variable       ${uri_link}     /pac-api/child_adgroup/child_adgroup/${adgroupId}
+    Set Test Variable       ${expected_status_code}    400
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=${expected_status_code}
+    ...                                     success=false
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Run Keyword If  '${expected_status_code}'=='400'    Should Match Regexp  ${body}  "success":false
+    Run Keyword If  '${response_code}'=='400'   Json Value Should Equal     ${body}    /reason_code     "400-001"
+    Run Keyword If  '${response_code}'=='400'   Json Value Should Equal     ${body}    /reason_desc     "Invalid Request."
+    [Tags]   #   Known_bug       CM-1428
+
+
+PAC1.8.1_TC_03_Get child adgroup detail (with Invalid adgroup id, Don't accept Accept)
+    [Documentation]     Input : Get a new child adgroup with invalid adgroup id.
+    ...                 Expected : All details should not run successfully with response code 400.
+    Set Test Variable       ${adgroupId}    79787465854684548545
+    Set Test Variable       ${uri_link}     /pac-api/child_adgroup/child_adgroup/${adgroupId}
+    Set Test Variable       ${expected_status_code}    400
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=${expected_status_code}
+    ...                                     success=false
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Run Keyword If  '${expected_status_code}'=='400'    Should Match Regexp  ${body}  "success":false
+    Run Keyword If  '${expected_status_code}'=='400'   Json Value Should Equal     ${body}    /reason_code     "400-001"
+    Run Keyword If  '${expected_status_code}'=='400'   Json Value Should Equal     ${body}    /reason_desc     "Invalid Request."
+    [Tags]   #    Known_bug       CM-1428
+
+
+PAC1.8.1_TC_04_Get child adgroup detail (with archived adgroup id, Don't Accept)
+    [Documentation]     Input : Create a new child adgroup and get it's details using given url.
+    ...                 Expected : All details should match with wiki page response for 200.
+    Create a new campaign for PAC1.8.1      campaign_name=PAC_regression_campaign_181_04
+    ...                                     parentName=PAC_regression_parent_181_04
+    ...                                     campaign_advertiser_id=${Advertiser_ID}
+
+    Create Child Adgroup via API        child_name=PAC_regression_child
+    ...                                 child_parent_campaign_id=${parent_ID}
+    ...                                 child_start_date_time=${todays_date}
+    ...                                 response_code=200
+    ${child_groupid}=     Get Json Value   ${body}   /childId
+    Archive_a_child_adgroup             ${child_groupid}
+    ...                                 url=pac-api/child-adgroup/child-adgroup
+    ...                                 response_code=200
+    Set Test Variable       ${adgroupId}    ${child_groupid}
+    Set Test Variable       ${uri_link}     /pac-api/child-adgroup/child-adgroup/${adgroupId}
+    Set Test Variable       ${expected_status_code}    400
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=${expected_status_code}
+    ...                                     success=false
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Run Keyword If  '${expected_status_code}'=='400'    Should Match Regexp  ${body}  "success":false
+    Run Keyword If  '${expected_status_code}'=='400'   Json Value Should Equal     ${body}    /reason_code     "700-905"
+    Run Keyword If  '${expected_status_code}'=='400'   Json Value Should Equal     ${body}    /reason_desc     "Archived Child Adgroup."
+    [Tags]      #CM-721

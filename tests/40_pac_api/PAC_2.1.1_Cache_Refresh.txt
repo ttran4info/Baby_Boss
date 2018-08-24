@@ -1,0 +1,20 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC2.1.1      BATCH19    PAC_BATCH7
+
+
+#https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-2.1.1Cacherefresh
+#API Name: 2.1.1 Cache refresh
+#Method: GET
+#URL: /pac-api/cache/reload
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+TC_01_Cache_refresh(Normal)
+    [Documentation]     Make a request for Get days of week master data
+    Set Test Variable   ${uri_link}     /pac-api/cache/reload
+    Cache Refresh Using API   uri=${uri_link}         expected_status_code=200    success=NA
+    #${advertisers}=        Get Json Value          ${body}     /advertisers
+    [Tags]  TC_01_Cache_refresh

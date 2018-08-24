@@ -1,0 +1,48 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.4.4		BATCH19		PAC_BATCH2
+
+#https://wiki.4info.com/pages/viewpage.action?pageId=29917295
+#API Name: 1.4.4 Get master option list for ad taxonomy (Vertical and segments)
+#Method: GET
+#URL: /pac-api/campaign/taxonomy
+#DESC: Get master list
+#ad_industry_taxonomy, ad_industry_taxonomy_level1
+#
+#
+
+*** Variables ***
+	
+*** Keywords ***
+
+*** Test Cases ***
+
+PAC1.4.4_TC_01_Get_Master_Option_list_for_ad_taxonomy(Check Vertical)
+	Set Test Variable 	${uri_link}		/pac-api/campaign/taxonomy
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp		${body}				"name":"Arts & Entertainment "
+	Should Match Regexp		${body}				"name":"Automotive "
+	Should Match Regexp		${body}				"name":"Business "
+	Should Match Regexp		${body}				"name":"Careers "
+	
+
+PAC1.4.4_TC_02_Get_Master_Option_list_for_ad_taxonomy(Check Segment)
+	Set Test Variable 	${uri_link}		/pac-api/campaign/taxonomy
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp		${body}				{"id":4303,"name":"Books & Literature ","code":"IAB1-1"}	
+	Should Match Regexp		${body}				{"id":4304,"name":"Celebrity Fan/Gossip ","code":"IAB1-2"}
+	Should Match Regexp		${body}				{"id":4305,"name":"Fine Art ","code":"IAB1-3"}			
+	Should Match Regexp		${body}				{"id":4306,"name":"Humor ","code":"IAB1-4"}
+	Should Match Regexp		${body}				{"id":4307,"name":"Movies ","code":"IAB1-5"}
+	Should Match Regexp		${body}				{"id":4308,"name":"Music ","code":"IAB1-6"}
+	Should Match Regexp		${body}				{"id":4309,"name":"Television ","code":"IAB1-7"}
+
+
+PAC1.4.4_TC_03_Get_Master_Option_list_for_ad_taxonomy(Check Total Count vs DB)
+	Get Master Option List For Ad Taxonomy
+	Set Test Variable 	${uri_link}		/pac-api/campaign/taxonomy
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	${api_taxonomy_vertical}=			Get Count		${body}			segments
+	${api_taxonomy_segment}=					Get Count		${body}			code
+	Should Be Equal As Integers				${api_taxonomy_vertical}				${db_taxonomy_vertical}
+	Should Be Equal As Integers				${api_taxonomy_segment}					${db_taxonomy_segment}

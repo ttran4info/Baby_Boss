@@ -1,0 +1,50 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.6.7		BATCH19		OffshoreQA    PAC_BATCH5
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.6.7Defaultparentdataforchildadgroupcreation
+#API Name: 1.6.7 Default parent data for child adgroup creation
+#Method: GET
+#URL: qa-dswarm-01:18082/pac-api/parent-adgroup/child-defaultdata?parentID={adGroupId}
+#DESC: Get a list of Default parent data for child adgroup creation
+
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+
+PAC1.6.7_TC_01_Default_parent_data_for_child_adgroup_creation
+    [Documentation]     Get default data for child adgroup creation
+    Set Test Variable   ${parentId}      1035
+    Set Test Variable   ${uri_link}     /pac-api/parent-adgroup/child-defaultdata?parentID=${parentId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]
+
+
+PAC1.6.7_TC_02_Default_parent_data_for_child_adgroup_creation(Invalid parent Id)
+    [Documentation]     Get default data for child adgroup creation
+    Set Test Variable   ${parentId}      1035123123
+    Set Test Variable   ${uri_link}     /pac-api/parent-adgroup/child-defaultdata?parentID=${parentId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}     /success                    false
+    Json Value Should Equal     ${body}     /reason_code                "700-201"
+    Json Value Should Equal     ${body}     /reason_desc                "Invalid Parent ID"
+    [Tags]
+
+
+PAC1.6.7_TC_03_Default_parent_data_for_child_adgroup_creation(Invalid URL)
+    [Documentation]     Get default data for child adgroup creation
+    Set Test Variable   ${parentId}      1035123123
+    Set Test Variable   ${uri_link}     /pac-api/parent-adgroup/child-defaultdata/${parentId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}     /success                    false
+    Json Value Should Equal     ${body}     /reason_code                "400-001"
+    Json Value Should Equal     ${body}     /reason_desc                "Invalid Request."
+    [Tags]     # Known_bug       CM-1428

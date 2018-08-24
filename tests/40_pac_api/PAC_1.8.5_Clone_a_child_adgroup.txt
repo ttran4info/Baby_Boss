@@ -1,0 +1,426 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.8.5        BATCH19     OffshoreQA    PAC_BATCH7
+Suite Setup         Clean Up Campaign, Advertiser
+Suite Teardown      Clean Up Campaign, Advertiser
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.8.5Cloneachildadgroup
+#API Name: 1.8.5 Clone a child adgroup
+#Method: POST
+#URL: qa-dswarm-01:18082/pac-api/child-adgroup/child-adgroup/{adgroupId}/clone?username={username}
+#DESC: Clone a Child Adgroup.
+
+
+
+*** Variables ***
+${campaign_name_1}      PAC_regression_campaign_185_01
+${campaign_name_2}      PAC_regression_campaign_185_02
+${child_name}           PAC_regression_child_185_01_1
+${new_child_name}       PAC_regression_clone_child
+${end_date}             ${REGRESSION_END_DATE} 23:59:59
+${response_code}        200
+${success}              true
+
+${QA_TEST_ADVERTISER}   PAC_regression_Advertiser_185
+${QA_TEST_CAMPAIGN}     PAC_regression_campaign_185
+${QA_TEST_PARENT}       PAC_regression_parent_185
+${QA_TEST_CHILD}        PAC_regression_child_185_
+
+
+*** Keywords ***
+Clean Up Campaign, Advertiser
+    Delete New Campaign via DB    campaign_name=PAC_regression_campaign_18501_1
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}12
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}17
+
+
+*** Test Cases ***
+
+PAC1.8.5_TC_01_Clone the child adgroup(compare targeting from DB)
+    Get Start Date
+    Create a new campaign for PAC1.8.5      QA_TEST_ADVERTISER=${QA_TEST_ADVERTISER}
+    ...                                     campaign_name_1=${QA_TEST_CAMPAIGN}01_1
+    ...                                     campaign_name_2=${QA_TEST_CAMPAIGN}01_2
+    ...                                     child_name=${QA_TEST_CHILD}01_1
+    ...                                     new_child_name=${QA_TEST_CHILD}01_CLone
+    ...                                     campaign_start_date_time=${todaysDate}
+    ...                                     parent_start_date_time=${todaysDate}
+    ...                                     child_start_date_time=${todaysDate}
+    Create Child adgroup using Clone API
+    ...         current_child_id=${child_id_1_1}
+    ...         new_child_name=${new_child_name}_1
+    ...         parent_id=${parent_id_1_1}
+    ...         campaign_id=${campaign_id_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=200
+    ...         success=true
+    [Tags]
+
+
+PAC1.8.5_TC_02_Clone the child adgroup(clone using normal conditions. Same parent)
+    [Documentation]     Input:   Create new child adgroup with noraml conditions
+    ...                 Expected: we should get response code as = 200 and child ad-group should be created
+    #This initial call will generate campaign and parent adgroup for the rest of the test cases.
+    Create Child adgroup using Clone API
+    ...         current_child_id=${child_id_1_1}
+    ...         new_child_name=${new_child_name}_2
+    ...         parent_id=${parent_id_1_1}
+    ...         campaign_id=${campaign_id_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=200
+    ...         success=true
+    [Tags]
+
+PAC1.8.5_TC_03_Clone the child adgroup(Same Campaign, different parent)
+    [Documentation]     Input:   Create new child adgroup with noraml conditions
+    ...                 Expected: we should get response code as = 200 and child ad-group should be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_3
+    ...         parent_id=${parent_id_1_2}
+    ...         campaign_id=${campaign_id_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=200
+    ...         success=true
+    [Tags]
+
+PAC1.8.5_TC_04_Clone the child adgroup(different Campaign)
+    [Documentation]     Input:   Create new child adgroup with noraml conditions
+    ...                 Expected: we should get response code as = 200 and child ad-group should be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_4
+    ...         parent_id=${parent_id_2_1}
+    ...         campaign_id=${campaign_id_2}
+    ...         start_date=${todaysDate}
+    ...         response_code=200
+    ...         success=true
+    [Tags]
+
+
+PAC1.8.5_TC_05_Clone the child adgroup(Existing name, same parent not allow)
+    [Documentation]     Input:   Create new child adgroup with existing name
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_05
+    ...         parent_id=${parent_id_2_1}
+    ...         campaign_id=${campaign_id_2}
+    ...         start_date=${todaysDate}
+    ...         response_code=200
+    ...         success=true
+
+    Sleep    180s
+
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_05
+    ...         parent_id=${parent_id_2_1}
+    ...         campaign_id=${campaign_id_2}
+    ...         start_date=${todaysDate}
+    ...         response_code=400
+    ...         success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-204"
+    Json Value Should Equal     ${body}         /reason_desc            "Adgroup name exists."
+    [Tags]           #Failing due to taking time for saving in DB
+
+
+PAC1.8.5_TC_06_Clone the child adgroup(same name, different parent allow)
+    [Documentation]     Input:   Create new child adgroup with existing name
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=${child_name}_6
+    ...         parent_id=${parent_id_1_2}
+    ...         campaign_id=${campaign_id_1}
+    ...         start_date=${todaysDate}
+    [Tags]
+
+
+PAC1.8.5_TC_07_Clone the child adgroup(without name, auto use original name with added word clone)
+    [Documentation]     Input:   Create new child adgroup without name
+    ...                 Expected: we should get response code as = 200 and child ad-group should be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=MISSING
+    ...         parent_id=${parent_id_1_1}
+    ...         campaign_id=${campaign_id_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=200
+    ...         success=true
+    [Tags]
+
+
+PAC1.8.5_TC_08_Clone the child adgroup(name is null, auto use original name with added word clone)
+    [Documentation]     Input:   Create new child adgroup without name
+    ...                 Expected: we should get response code as = 200 and child ad-group should be created
+    #Create a new campaign for PAC1.8.5
+    Create Child adgroup using Clone API
+    ...         new_child_name=Null
+    ...         parent_id=${parent_id_1_1}
+    ...         campaign_id=${campaign_id_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=200
+    ...         success=true
+    [Tags]       # CM-1105          Known_bug
+
+
+PAC1.8.5_TC_09_Clone the child adgroup(name is NULL all caps, auto use original name with added word clone)
+    [Documentation]     Input:   Create new child adgroup without name
+    ...                 Expected: we should get response code as = 200 and child ad-group should be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=NULL
+    ...         parent_id=${parent_id_1_2}
+    ...         campaign_id=${campaign_id_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=200
+    ...         success=true
+    [Tags]     #    CM-1105      Known_bug
+
+
+PAC1.8.5_TC_010_Clone the child adgroup(name is null all lower case, auto use original name with added word clone)
+    [Documentation]     Input:   Create new child adgroup without name
+    ...                 Expected: we should get response code as = 200 and child ad-group should be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=null
+    ...         parent_id=${parent_id_2_1}
+    ...         campaign_id=${campaign_id_2}
+    ...         start_date=${todaysDate}
+    ...         response_code=200
+    ...         success=true
+    [Tags]    #   CM-1105        Known_bug
+
+
+PAC1.8.5_TC_011_Clone the child adgroup(start date invalid format)
+    [Documentation]     Input:   Create new child adgroup with start date invalid format
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    ${yyyy}   ${mm}   ${dd}   ${hours}   ${minutes}   ${seconds}=      Get Time   year,month,day,hours,minutes,seconds      UTC + 40 min
+    Set Test Variable                   ${start_date}       ${mm}-${dd}-${yyyy} ${hours}:${minutes}
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_9
+    ...         start_date=${start_date}
+    ...         parent_id=${parent_id_1_1}
+    ...         response_code=400
+    ...         success=false
+    Json Value Should Equal     ${body}         /reason_code                    "400-999"
+    Json Value Should Equal     ${body}         /reason_desc                    "Validation Failure"
+    Json Value Should Equal     ${body}         /errors/0/field                 "startDate"
+    Json Value Should Equal     ${body}         /errors/0/reason_desc             "Start Date must be in {MM/dd/yyyy HH:mm} format"
+    [Tags]
+
+
+PAC1.8.5_TC_012_Clone the child adgroup(start Date before parent start date - Don't allow)
+    [Documentation]     Input:   Create new child adgroup with start Date Yesterday/Today
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    Get Start Date
+    Create a new campaign for PAC1.8.5      QA_TEST_ADVERTISER=${QA_TEST_ADVERTISER}12
+    ...                                     campaign_name_1=PAC_regression_campaign_185_012_1
+    ...                                     campaign_name_2=PAC_regression_campaign_185_012_2
+    ...                                     child_name=PAC_regression_child_185_12_1
+    ...                                     new_child_name=PAC_regression_clone_child_185_12_1
+    ...                                     campaign_start_date_time=${todaysDate}
+    ...                                     parent_start_date_time=${todaysDate}
+    ...                                     child_start_date_time=${todaysDate}
+    Log     ${todaysDate}
+    Log     ${end_date}
+    ${end_date}=       Evaluate    '${end_date}'.replace('"','')
+    ${end_date} =   Get Substring   ${end_date}  0  -3
+    Log    ${end_date}
+
+    ${yyyy}   ${mm}   ${dd}   ${hours}   ${minutes}=      Get Time   year,month,day,hours,minutes      UTC - 5 day
+    Set Suite Variable   ${CloneStartDate}      ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_10
+    ...         parent_id=${parent_id_1_1}
+    ...         start_date=${CloneStartDate}
+    ...         response_code=400
+    ...         success=false
+    Json Value Should Equal     ${body}    /reason_code            "400-999"
+    Json Value Should Equal     ${body}    /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}    /errors/0/field         "startDate"
+    # Json Value Should Equal     ${body}    /errors/0/reason_desc   "Child adGroup start date has to be within today's date and within parent adGroup date Range (${todaysDate} - ${end_date} GMT)"
+    Should Match Regexp            ${body}       Child adGroup start date has to be within today's date and within parent adGroup date Range
+    [Tags]
+
+
+PAC1.8.5_TC_013_Clone the child adgroup(start Date after parent start date - allow)
+    [Documentation]     Input:   Create new child adgroup with start Date Yesterday/Today
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    ${yyyy}   ${mm}   ${dd}   ${hours}   ${minutes}=      Get Time   year,month,day,hours,minutes      UTC + 5 day
+    Set Suite Variable   ${CloneStartDate}      ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_11
+    ...         start_date=${CloneStartDate}
+    ...         parent_id=${parent_id_1_2}
+    ...         response_code=200
+    ...         success=true
+    [Tags]
+
+
+PAC1.8.5_TC_014_Clone the child adgroup(start Date null - Don't allow)
+    [Documentation]     Input:   Create new child adgroup with start Date null
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_12
+    ...         start_date=null
+    ...         parent_id=${parent_id_1_2}
+    ...         start_date=null
+    ...         response_code=400
+    ...         success=false
+    Json Value Should Equal     ${body}         /reason_code                    "400-999"
+    Json Value Should Equal     ${body}         /reason_desc                    "Validation Failure"
+    Json Value Should Equal     ${body}         /errors/0/field                 "startDate"
+    Json Value Should Equal     ${body}         /errors/0/reason_desc           "Start Date must be in {MM/dd/yyyy HH:mm} format"
+    [Tags]
+
+
+PAC1.8.5_TC_015_Clone the child adgroup(start Date MISSING - Don't allow)
+    [Documentation]     Input:   Create new child adgroup with start Date MISSING
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_13
+    ...         start_date=MISSING
+    ...         parent_id=${parent_id_1_1}
+    ...         response_code=400
+    ...         success=false
+    Json Value Should Equal     ${body}         /reason_code                    "400-999"
+    Json Value Should Equal     ${body}         /reason_desc                    "Validation Failure"
+    Json Value Should Equal     ${body}         /errors/0/field                 "startDate"
+    Json Value Should Equal     ${body}         /errors/0/reason_desc             "Start Date Required."
+    [Tags]
+
+
+PAC1.8.5_TC_016_Clone the child adgroup(end date invalid format)
+    [Documentation]     Input:   Create new child adgroup with end date invalid format
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    Set Test Variable                   ${end_date}       05-28-2011 04:30
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_14
+    ...         end_date=${end_date}
+    ...         parent_id=${parent_id_1_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=400
+    ...         success=false
+    Json Value Should Equal     ${body}         /reason_code                    "400-999"
+    Json Value Should Equal     ${body}         /reason_desc                    "Validation Failure"
+    Json Value Should Equal     ${body}         /errors/0/field                 "endDate"
+    Json Value Should Equal     ${body}         /errors/0/reason_desc             "End Date must be in {MM/dd/yyyy HH:mm} format"
+    [Tags]
+
+
+PAC1.8.5_TC_017_Clone the child adgroup(end Date After parent end date - Don't allow)
+    [Documentation]     Input:   Create new child adgroup with end Date Yesterday/Today
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    Create a new campaign for PAC1.8.5      QA_TEST_ADVERTISER=${QA_TEST_ADVERTISER}17
+    ...                                     campaign_name_1=PAC_regression_campaign_185_017_1
+    ...                                     campaign_name_2=PAC_regression_campaign_185_017_2
+    ...                                     child_name=PAC_regression_child_185_17_1
+    ...                                     new_child_name=PAC_regression_clone_child_185_17_1
+    ...                                     campaign_start_date_time=${todaysDate}
+    ...                                     parent_start_date_time=${todaysDate}
+    ...                                     child_start_date_time=${todaysDate}
+    Log         ${end_date}
+    ${end_date}=        Evaluate    '${end_date}'.replace('"','')
+    ${end_date} =       Get Substring   ${end_date}  -3
+    Log    ${end_date}
+    Set Test Variable       ${CloneEndDate}     07/11/2019 23:59:59
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_15
+    ...         end_date=${CloneEndDate}
+    ...         parent_id=${parent_id_1_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=400
+    ...         success=false
+    Json Value Should Equal     ${body}         /reason_code                    "400-999"
+    Json Value Should Equal     ${body}         /reason_desc                    "Validation Failure"
+    Json Value Should Equal     ${body}         /errors/0/field                 "endDate"
+    Should Match Regexp         ${body}         "Child adGroup end date has to be within today's date and within parent adGroup date Range
+    # Json Value Should Equal     ${body}         /errors/0/reason_desc           "Child adGroup end date has to be within today's date and within parent adGroup date Range (${todaysDate} - ${end_date} GMT)"
+    [Tags]      #above line commented due to some minor error in seconds
+
+
+PAC1.8.5_TC_018_Clone the child adgroup(end Date before parent end date - allow)
+    [Documentation]     Input:   Create new child adgroup with end Date Yesterday/Today
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_16
+    ...         end_date=06/01/2018 23:59
+    ...         parent_id=${parent_id_1_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=400
+    ...         success=false
+    Should Match Regexp         ${body}             adGroup end date has to be within today's date and within parent adGroup date Range
+    [Tags]
+
+PAC1.8.5_TC_019_Clone the child adgroup(end Date null - Don't allow)
+    [Documentation]     Input:   Create new child adgroup with end Date null
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_17
+    ...         end_date=null
+    ...         parent_id=${parent_id_1_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=400
+    ...         success=false
+    Json Value Should Equal     ${body}         /reason_code                    "400-999"
+    Json Value Should Equal     ${body}         /reason_desc                    "Validation Failure"
+    Json Value Should Equal     ${body}         /errors/0/field                 "endDate"
+    Json Value Should Equal     ${body}         /errors/0/reason_desc           "End Date must be in {MM/dd/yyyy HH:mm} format"
+    [Tags]
+
+
+PAC1.8.5_TC_020_Clone the child adgroup(end Date MISSING - Don't allow)
+    [Documentation]     Input:   Create new child adgroup with end Date MISSING
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_18
+    ...         end_date=MISSING
+    ...         parent_id=${parent_id_1_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=400
+    ...         success=false
+    Json Value Should Equal     ${body}         /reason_code                    "400-999"
+    Json Value Should Equal     ${body}         /reason_desc                    "Validation Failure"
+    Json Value Should Equal     ${body}         /errors/0/field                 "endDate"
+    Json Value Should Equal     ${body}         /errors/0/reason_desc           "End Date must be in {MM/dd/yyyy HH:mm} format"
+    [Tags]
+
+
+PAC1.8.5_TC_021_Clone the child adgroup(invalid parent_id)
+    [Documentation]     Input:   Create new child adgroup with end Date Yesterday/Today
+    ...                 Expected: we should get response code as = 400 and child ad-group should not be created
+    ${parent_id}=       Evaluate   ${parent_id_1_1}+123123
+    Create Child adgroup using Clone API
+    ...         new_child_name=${new_child_name}_19
+    ...         parent_id=${parent_id}
+    ...         start_date=${todaysDate}
+    ...         response_code=400
+    ...         success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-200"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Parent Adgroup Request."
+    [Tags]      #known_bug   CM-878
+
+#---------------------------------------------------------------------------------------------------------------
+
+
+
+
+#---------------------------------------------------------------------------------------------------------------
+
+PAC1.8.5_TC_022_Clone the Child Adgroup(Deal Targetting CM-2224)
+    [Documentation]     Input:   Create new child adgroup with deal Targetting
+    ...                 Expected: we should get response code as = 200 and child ad-group be created
+
+    Create Child Adgroup via API        child_name=${QA_TEST_CHILD}0291
+    ...                                 child_parent_campaign_id=${parent_id_1_1}
+    ...                                 child_start_date_time=${todaysDate}
+    ...                                 child_targetDeal={"dealIds":"1212","auctionOverride":2,"bidFloor":null,"exchange":369}
+    ...                                 response_code=200
+    ${child_id_1_1}=        Get JSON Value      ${body}     /childId
+    Set Suite Variable      ${child_id_1_1}        ${child_id_1_1}
+    Create Child adgroup using Clone API
+    ...         current_child_id=${child_id_1_1}
+    ...         new_child_name=${new_child_name}_Deal_tar_clone
+    ...         parent_id=${parent_id_1_1}
+    ...         campaign_id=${campaign_id_1}
+    ...         start_date=${todaysDate}
+    ...         response_code=200
+    ...         success=true
+    Sleep 	30s
+    [Tags]

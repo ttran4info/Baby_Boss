@@ -1,0 +1,454 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.4.9		BATCH19      OffshoreQA    PAC_BATCH3
+Suite Setup    		Clean Up Pre-Requisite Data for PAC1.4.9
+Suite Teardown    	Clean Up Pre-Requisite Data for PAC1.4.9
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.4.9PartialUpdateaCampaign
+# API Name: 1.4.9 Partial Update a Campaign
+# Method: PATCH
+# URL: qa-dswarm-01:18082/pac-api/campaign/campaign/{campaignId}?username={username}
+# DESC: Partially update Campaign.
+
+*** Variables ***
+
+# Need to add tests for all mandatory fields for positive and negative scenarios
+
+
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.4.9
+    Delete New Campaign via DB    campaign_name=PAC_regression_campaign_149
+    Delete New Campaign via DB    campaign_name=PAC_regression_campaign_0149
+
+    Set Suite Variable    ${Advname}    QATEST_Advertiser_PAC1.4.9
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+
+Set Prerequisite Data for Partial Update of campaign
+    [Arguments]     ${campaign_name}=PAC_regression_campaign_0149_000
+    ...                 ${campaign_external_id}="BVI012345678"
+    ...                 ${campaign_io}=6624
+    ...                 ${campaign_access_control}=15
+
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    Log     ${Advname}
+    Create Advertiser      uri=${uri_link}
+    ...                    data={"name": "${Advname}"}
+    ...                    expected_status_code=200
+    ...                    success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+    Get Start Date
+
+    Create New Campaign via API     campaign_name=${campaign_name}
+    ...                             campaign_start_date_time=${todaysDate}
+    ...                             campaign_external_id=${campaign_external_id}
+    ...                             campaign_io=${campaign_io}
+    ...                             campaign_advertiser_id=${Advertiser_ID}
+    ...                             campaign_access_control=${campaign_access_control}
+    ...                                 uri=/pac-api/campaign/campaign?username=${QA_CATALINA_USER}
+    ${campaign_Id}       Get JSON Value      ${body}     /campaign/id
+    Set Suite Variable      ${campaignId}       ${campaign_Id}
+
+
+
+*** Test Cases ***
+
+PAC1.4.9_TC_01.1_Process Partial Update a Campaign with valid data(attribute as endDate with valid value, accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute and its value,
+    ...					Expected : API should get processed successfully with response code 200.
+    Set Prerequisite Data for Partial Update of campaign        campaign_name=PAC_regression_campaign_0149_011
+    Set Test Variable 	${uri}			/pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="endDate"
+    ...												value="${REGRESSION_END_DATE} 02:23"
+    ...												response_code=200
+    [Tags]
+
+
+PAC1.4.9_TC_02.1_Process Partial Update a Campaign with Campaign as null value(attribute as endDate with valid value, Do not accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute and its value,
+    ...                 Expected : API should get processed successfully with response code 400.
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/null?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="endDate"
+    ...                                             value="${REGRESSION_END_DATE} 02:23"
+    ...                                             response_code=400
+    ...                                             reason_code="700-001"
+    ...                                             reason_desc="Invalid Campaign id."
+    [Tags]
+
+
+PAC1.4.9_TC_02.2_Process Partial Update a Campaign with Campaign as Blank value(attribute as endDate with valid value, Do not accept)
+    [Documentation]     Input : Make a request to patch a Campaign as Blank value with valid attribute and its value,
+    ...                 Expected : API should get processed successfully with response code 400.
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/''?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="endDate"
+    ...                                             value="${REGRESSION_END_DATE} 02:23"
+    ...                                             response_code=400
+    ...                                             reason_code="700-001"
+    ...                                             reason_desc="Invalid Campaign id."
+    [Tags]
+
+
+PAC1.4.9_TC_02.3_Process Partial Update a Campaign with missign campaign value(attribute as endDate with valid value, Do not accept)
+    [Documentation]     Input : Make a request to patch a Campaign with missing campaign id and valid attribute and its value,
+    ...                 Expected : API should get processed successfully with response code 400.
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="endDate"
+    ...                                             value="${REGRESSION_END_DATE} 02:23"
+    ...                                             response_code=400
+    ...                                             reason_code="400-001"
+    ...                                             reason_desc="Invalid Request."
+    [Tags]
+
+
+PAC1.4.9_TC_02.4_Process Partial Update a Campaign with Campaign as invalid characters value(attribute as endDate with valid value, Do not accept)
+    [Documentation]     Input : Make a request to patch a Campaign as invalid characters value with valid attribute and its value,
+    ...                 Expected : API should get processed successfully with response code 400.
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/fds#$?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="endDate"
+    ...                                             value="${REGRESSION_END_DATE} 02:23"
+    ...                                             response_code=400
+    ...                                             reason_code="700-001"
+    ...                                             reason_desc="Invalid Campaign id."
+    [Tags]
+
+
+PAC1.4.9_TC_03.1_Process Partial Update a Campaign for Missing attribute(attribute MISSING with valid value, Do not accept)
+    [Documentation]     Input : Make a request to patch a Campaign as invalid characters value with missing attribute and its value,
+    ...                 Expected : API should get processed successfully with response code 400.
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="MISSING"
+    ...                                             value="${REGRESSION_END_DATE} 02:23"
+    ...                                             response_code=400
+    ...                                             reason_code="400-999"
+    ...                                             reason_desc="Validation Failure"
+    ...                                             errorDetail_reason_code=NA
+    ...                                             errorDetail_reason_desc="Invalid Atrribute Name."
+    ...                                             errorDetail_field="attribute"
+    [Tags]
+
+
+PAC1.4.9_TC_03.2_Process Partial Update a Campaign for Missing value(attribute endDate with MISSING value, Do not accept)
+    [Documentation]     Input : Make a request to patch a Campaign as invalid characters value with valid attribute and its missing value,
+    ...                 Expected : API should get processed successfully with response code 400.
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="endDate"
+    ...                                             value="MISSING"
+    ...                                             response_code=400
+    ...                                             reason_code="400-999"
+    ...                                             reason_desc="Validation Failure"
+    ...                                             errorDetail_reason_code="700-801"
+    ...                                             errorDetail_reason_desc="Unsupported timestamp format."
+    ...                                             errorDetail_field="endDate"
+    [Tags]
+
+
+PAC1.4.9_TC_03.3_Process Partial Update a Campaign for null value(attribute endDate with null value, Do not accept)
+    [Documentation]     Input : Make a request to patch a Campaign as invalid characters value with valid attribute and its null value,
+    ...                 Expected : API should get processed successfully with response code 400.
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="endDate"
+    ...                                             value=null
+    ...                                             response_code=400
+    ...                                             reason_code="400-999"
+    ...                                             reason_desc="Validation Failure"
+    ...                                             errorDetail_reason_code="700-801"
+    ...                                             errorDetail_reason_desc="Unsupported timestamp format."
+    ...                                             errorDetail_field="endDate"
+    [Tags]
+
+
+#-----------------------------------------------------------------------------------------------------------------
+PAC1.4.9_TC_04.1_Process Partial Update a Campaign with valid data(storeVisitDatasource : null, accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute storeVisitDatasource
+    ...                         and value as null ,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_181
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_storeVisitDatasource=1
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+    Set Test Variable   ${uri}            /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="storeVisitDatasource"
+    ...                                             value=null
+    ...                                             response_code=200
+    [Tags]   #   CM-904
+
+
+PAC1.4.9_TC_04.2_Process Partial Update a Campaign with valid data(storeVisitDatasource : 1, accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute storeVisitDatasource
+    ...                         and value as 1 ,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_182
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_storeVisitDatasource=2
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="storeVisitDatasource"
+    ...                                             value=1
+    ...                                             response_code=200
+    [Tags]   #   CM-904
+
+
+PAC1.4.9_TC_04.3_Process Partial Update a Campaign with valid data(storeVisitDatasource : 999, accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute storeVisitDatasource
+    ...                         and value as 999 ,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_183
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_storeVisitDatasource=2
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+    ${campnID}=     Get JSON Value      ${body}         /campaign/id
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campnID}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="storeVisitDatasource"
+    ...                                             value=999
+    ...                                             response_code=200
+    [Tags]   #   CM-904
+
+
+PAC1.4.9_TC_04.4_Process Partial Update a Campaign with valid data(storeVisitDatasource : MISSING, accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute storeVisitDatasource
+    ...                         and value as MISSING ,
+    ...                 Expected : API should get processed with default value as 2 and
+    ...                 successfully with response code 200.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_184
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_storeVisitDatasource=1
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+    ${campnID}=     Get JSON Value      ${body}         /campaign/id
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campnID}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="storeVisitDatasource"
+    ...                                             value=""
+    ...                                             response_code=200
+    [Tags]   #   CM-904
+
+
+PAC1.4.9_TC_04.5_Process Partial Update a Campaign with valid data(storeVisitDatasource : 0, Don't accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute storeVisitDatasource
+    ...                         and value as 999 ,
+    ...                 Expected : API should allow not to update a new campaign successfully with response code 400
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_185
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_storeVisitDatasource=2
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+    ${campnID}=     Get JSON Value      ${body}         /campaign/id
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campnID}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="storeVisitDatasource"
+    ...                                             value=0
+    ...                                             response_code=400
+    [Tags]   #   CM-904
+
+
+
+PAC1.4.9_TC_04.6_Process Partial Update a Campaign with valid data(storeVisitDatasource : -1, Don't accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute storeVisitDatasource
+    ...                         and value as -1 ,
+    ...                 Expected : API should allow not to update a new campaign successfully with response code 400
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_186
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_storeVisitDatasource=2
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+    ${campnID}=     Get JSON Value      ${body}         /campaign/id
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campnID}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="storeVisitDatasource"
+    ...                                             value=-1
+    ...                                             response_code=400
+    [Tags]   #   CM-904
+
+
+PAC1.4.9_TC_04.7_Process Partial Update a Campaign with valid data(storeVisitDatasource : abc, Don't accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute storeVisitDatasource
+    ...                         and value as abc ,
+    ...                 Expected : API should allow not to update a new campaign successfully with response code 400
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_187
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_storeVisitDatasource=2
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+    ${campnID}=     Get JSON Value      ${body}         /campaign/id
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campnID}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="storeVisitDatasource"
+    ...                                             value=abc
+    ...                                             response_code=400
+    [Tags]   #   CM-904
+
+
+PAC1.4.9_TC_04.8_Process Partial Update a Campaign with valid data(storeVisitDatasource : !@#, Don't accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute storeVisitDatasource
+    ...                         and value as !@# ,
+    ...                 Expected : API should allow not to update a new campaign successfully with response code 400
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_188
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_storeVisitDatasource=2
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+    ${campnID}=     Get JSON Value      ${body}         /campaign/id
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campnID}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="storeVisitDatasource"
+    ...                                             value=!@#
+    ...                                             response_code=400
+    [Tags]    #  CM-904
+
+#-----------------------------------------------------------------------------------------------------------------
+
+PAC1.4.9_TC_05.1_Process Partial Update a Campaign with valid data(name : duplicate for different advertiser, accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute name as duplicate value for different advertiser
+    ...                         and value as MISSING ,
+    ...                 Expected : API should get processed with default value as 2 and
+    ...                 successfully with response code 200.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_051_1
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_051_2
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=669
+    ...                                 response_code=200
+    ${campnID}=     Get JSON Value      ${body}         /campaign/id
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campnID}?username=${QA_DEFAULT_USER}
+
+    Patch 1.4.9 Partial Update a Campaign           attribute="name"
+    ...                                             value="PAC_regression_campaign_0149_051_1"
+    ...                                             response_code=200
+    [Tags]    #  Known_bug       CM-883
+
+
+PAC1.4.9_TC_05.2_Process Partial Update a Campaign with valid data(name : duplicate for same advertiser, don't accept)
+    [Documentation]     Input : Make a request to patch a Campaign with valid attribute name as duplicate value for same advertiser
+    ...                         and value as MISSING ,
+    ...                 Expected : API should get processed with default value as 2 and
+    ...                 successfully with response code 200.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_052_1
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_052_2
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+
+    ${campnID}=     Get JSON Value      ${body}         /campaign/id
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campnID}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="name"
+    ...                                             value="PAC_regression_campaign_0149_052_1"
+    ...                                             response_code=400
+    [Tags]    #  Known_bug       CM-883
+
+#-----------------------------------------------------------------------------------------------------------------
+
+PAC1.4.9_TC_06.1.1_Process Partial Update a Campaign with valid data(External ID : Valid value for catalina user group access control, accept)
+    [Documentation]     Input : Make a request to patch a Campaign for externalId with valid value,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_0611
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+
+    Patch 1.4.9 Partial Update a Campaign           attribute="externalId"
+    ...                                             value="BVI01234567"
+    ...                                             response_code=200
+    [Tags]    #  Known_bug       CM-1121   #  CM-1277
+
+
+PAC1.4.9_TC_06.2_Process Partial Update a Campaign with valid data(attribute as externalId with value as blank, don't accept)
+    [Documentation]     Input : Make a request to patch a Campaign for externalId with blank value,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_062
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="externalId"
+    ...                                             value=""
+    ...                                             response_code=400
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "externalId"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "External ID cannot be blank"
+    [Tags]     #  Known_bug       CM-1121    # CM-1343
+
+
+
+PAC1.4.9_TC_06.3_Process Partial Update a Campaign with valid data(attribute as externalId with value as null, don't accept)
+    [Documentation]     Input : Make a request to patch a Campaign for externalId with blank value,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_063
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="externalId"
+    ...                                             value=null
+    ...                                             response_code=400
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "externalId"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "External ID cannot be blank"
+    [Tags]    #  Known_bug       CM-1121    # CM-1343
+
+
+PAC1.4.9_TC_06.4_Process Partial Update a Campaign with valid data(attribute as externalId with value more than 14 characters, don't accept)
+    [Documentation]     Input : Make a request to patch a Campaign for externalId with blank value,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_064
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="externalId"
+    ...                                             value="BVI0123456789145646"
+    ...                                             response_code=400
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "externalId"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "External ID must be no more than 14 characters"
+    [Tags]    #  Known_bug       CM-1121    # CM-1343
+
+
+PAC1.4.9_TC_06.5_Process Partial Update a Campaign with valid data(attribute as externalId do not start with BVI, don't accept)
+    [Documentation]     Input : Make a request to patch a Campaign for externalId with blank value,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_065
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="externalId"
+    ...                                             value="ABCDE0123"
+    ...                                             response_code=400
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "externalId"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "External ID must begin with BVI"
+    [Tags]     #  Known_bug       CM-1121    # CM-1343
+
+
+PAC1.4.9_TC_06.6_Process Partial Update a Campaign with valid data(attribute as externalId contains special characters, don't accept)
+    [Documentation]     Input : Make a request to patch a Campaign for externalId with blank value,
+    ...                 Expected : API should not get processed successfully with response code 400.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_0149_066
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+
+    Set Test Variable   ${uri}          /pac-api/campaign/campaign/${campaignId}?username=${QA_DEFAULT_USER}
+    Patch 1.4.9 Partial Update a Campaign           attribute="externalId"
+    ...                                             value="BVI.#$%12345"
+    ...                                             response_code=400
+    Json Value Should Equal     ${body}     /reason_code            "400-999"
+    Json Value Should Equal     ${body}     /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}     /errors/0/field         "externalId"
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "External ID must contain only letters and numbers"
+    [Tags]    #  Known_bug       CM-1121    # CM-1343
+
+#-----------------------------------------------------------------------------------------------------------------

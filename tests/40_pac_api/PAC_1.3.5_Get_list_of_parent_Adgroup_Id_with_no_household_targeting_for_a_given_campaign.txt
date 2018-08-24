@@ -1,0 +1,144 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.3.5       BATCH19     OffshoreQA      PAC_BATCH7
+Suite Setup         Clean Up Pre-Requisite Data for PAC1.3.5
+Suite Teardown      Clean Up Pre-Requisite Data for PAC1.3.5
+
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.3.5GetlistofparentAdgroupIdwithnohouseholdtargetingforagivencampaign
+# API Name: 1.3.5 Get list of parent Adgroup Id with no household targeting for a given campaign
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/campaign/adgroups-hh-all?campaignId={campaignId}
+# DESC : Get list of parent Adgroup Id with no household targeting for a given campaign
+# QA Jira Task : https://jira.adhaven.com/browse/CM-1779
+# Dev Jira Task : https://jira.adhaven.com/browse/CM-1296
+
+
+*** Variables ***
+
+
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.3.5
+    Delete New Campaign via DB    campaign_name=PAC_regression_campaign_135
+    Set Suite Variable    ${Advname}    QATEST_Advertiser_PAC1.3.1
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+
+Create Sample Advertiser for Create Campaign PAC1.3.5
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    Log     ${Advname}
+    Create Advertiser      uri=${uri_link}
+    ...                    data={"name": "${Advname}"}
+    ...                    expected_status_code=200
+    ...                    success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+
+
+*** Test Cases ***
+#------------------------------------------------------------------------------------------------------------
+PAC1.3.5_TC_01.1_Get list of parent Adgroup Id with no household targeting for a given campaign (with valid URL, accept)
+    [Documentation]     Input:          Use API to Get list of parent Adgroup Id with no household targeting for a given campaign,
+    ...                 Expected:       API should process successfully and response code is returned as 200 with valid data.
+    Create Sample Advertiser for Create Campaign PAC1.3.5
+    Get Start Date
+
+    Create New Campaign via API     campaign_name=PAC_regression_campaign_135_011
+    ...                             campaign_start_date_time=${todaysDate}
+    ...                             campaign_advertiser_id=${Advertiser_ID}
+
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_135_011
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 parent_campaign_id=${Campaign_Id}
+    ...                                 response_code=200
+    Get list of parent Adgroup Id with no household targeting for a given campaign
+    ...     uri=pac-api/campaign/adgroups-hh-all/?campaignId=${Campaign_Id}
+    ...     response_code=200
+    ...     success=true
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------
+PAC1.3.5_TC_02.1_Get list of parent Adgroup Id with no household targeting for a given campaign (invalid campaign id, don't accept)
+    [Documentation]     Input:          Use API to Get list of parent Adgroup Id with no household targeting for a given campaign,
+    ...                 Expected:       API should not process successfully and response code is returned as 400 with valid data.
+    Set Test Variable    ${Campaign_Id}    9999
+    Get list of parent Adgroup Id with no household targeting for a given campaign
+    ...     uri=pac-api/campaign/adgroups-hh-all/?campaignId=${Campaign_Id}
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "800-003"
+    Json Value Should Equal        ${body}         /reason_desc            "Campaign id is not found."
+    [Tags]
+
+
+PAC1.3.5_TC_02.2_Get list of parent Adgroup Id with no household targeting for a given campaign (Missing campaign id, don't accept)
+    [Documentation]     Input:          Use API to Get list of parent Adgroup Id with no household targeting for a given campaign,
+    ...                 Expected:       API should not process successfully and response code is returned as 400 with valid data.
+    Get list of parent Adgroup Id with no household targeting for a given campaign
+    ...     uri=pac-api/campaign/adgroups-hh-all/
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "700-001"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Campaign id."
+    [Tags]
+
+
+PAC1.3.5_TC_02.3_Get list of parent Adgroup Id with no household targeting for a given campaign (campaign id blank, don't accept)
+    [Documentation]     Input:          Use API to Get list of parent Adgroup Id with no household targeting for a given campaign,
+    ...                 Expected:       API should not process successfully and response code is returned as 400 with valid data.
+    Get list of parent Adgroup Id with no household targeting for a given campaign
+    ...     uri=pac-api/campaign/adgroups-hh-all/?campaignId=""
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "700-001"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Campaign id."
+    [Tags]
+
+
+PAC1.3.5_TC_02.4_Get list of parent Adgroup Id with no household targeting for a given campaign (null campaign id, don't accept)
+    [Documentation]     Input:          Use API to Get list of parent Adgroup Id with no household targeting for a given campaign,
+    ...                 Expected:       API should not process successfully and response code is returned as 400 with valid data.
+    Get list of parent Adgroup Id with no household targeting for a given campaign
+    ...     uri=pac-api/campaign/adgroups-hh-all/?campaignId=null
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "700-001"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Campaign id."
+    [Tags]
+
+
+PAC1.3.5_TC_02.5_Get list of parent Adgroup Id with no household targeting for a given campaign (campaign id special characters, don't accept)
+    [Documentation]     Input:          Use API to Get list of parent Adgroup Id with no household targeting for a given campaign,
+    ...                 Expected:       API should not process successfully and response code is returned as 400 with valid data.
+    Get list of parent Adgroup Id with no household targeting for a given campaign
+    ...     uri=pac-api/campaign/adgroups-hh-all/?campaignId=@#$%
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "700-001"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Campaign id."
+    [Tags]
+
+
+PAC1.3.5_TC_02.6_Get list of parent Adgroup Id with no household targeting for a given campaign (campaign id any negative value, don't accept)
+    [Documentation]     Input:          Use API to Get list of parent Adgroup Id with no household targeting for a given campaign,
+    ...                 Expected:       API should not process successfully and response code is returned as 400 with valid data.
+    Create New Campaign via API     campaign_name=PAC_regression_campaign_135_026
+    ...                             campaign_start_date_time=${todaysDate}
+    ...                             campaign_advertiser_id=${Advertiser_ID}
+
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_135_026
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 parent_campaign_id=${Campaign_Id}
+    ...                                 response_code=200
+    Get list of parent Adgroup Id with no household targeting for a given campaign
+    ...     uri=pac-api/campaign/adgroups-hh-all/?campaignId=-${Campaign_Id}
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "800-003"
+    Json Value Should Equal        ${body}         /reason_desc            "Campaign id is not found."
+    [Tags]
+
+
+#------------------------------------------------------------------------------------------------------------

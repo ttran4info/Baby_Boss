@@ -1,0 +1,61 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.5.3		BATCH19	    PAC_BATCH3	
+
+#https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.5.2updateanexistingadvertiser
+#API Name: 1.5.3. Get all advertisers by group Id
+#Method: GET
+#URL: /pac-api/partner/checkexists?name=qasdfasasd
+#userName = rhino.users
+#groupId = rhino.groups
+#Get advertisers name exists. This request will be called by Phoenix advertiser list page.
+
+*** Variables ***
+
+*** Keywords ***
+  
+*** Test Cases ***
+
+		
+PAC1.5.3_TC_01_Get Advertiser id with existing Advertiser name
+	[Documentation]		Send GET request to check advertiser name exists or not
+	Set Test Variable 	${uri_link}		/pac-api/partner/checkexists?name=Barilla	
+	Get Advertiser	uri=${uri_link}		expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/success			true
+	Json Value Should Equal		${body}		/val				546
+	[Tags]	
+	
+PAC1.5.3_TC_02_Get Advertiser id with existing Advertiser name with special character
+	[Documentation]		Send GET request to check advertiser name exists or not
+	Set Test Variable 	${uri_link}		/pac-api/partner/checkexists?name=E*Trade	
+	Get Advertiser	uri=${uri_link}		expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/success			true
+	Json Value Should Equal		${body}		/val				598
+	[Tags]	
+	
+	
+PAC1.5.3_TC_03_Get Advertiser id with invalid or none exisitng Advertiser name
+	[Documentation]		Send GET request to check advertiser name exists or not
+	Set Test Variable 	${uri_link}		/pac-api/partner/checkexists?name=Tarilla	
+	Get Advertiser	uri=${uri_link}		expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/success			true
+	Json Value Should Equal		${body}		/val				null
+	[Tags]	
+	
+PAC1.5.3_TC_04_Get Advertiser id without Advertiser name
+	[Documentation]		Send GET request to check advertiser name exists without name
+	Set Test Variable 	${uri_link}		/pac-api/partner/checkexists?name=	
+	Get Advertiser	uri=${uri_link}		expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/success			false
+	Json Value Should Equal		${body}		/reason_desc		"Invalid Request."
+	Json Value Should Equal		${body}		/val				null
+	[Tags]	
+	
+	
+PAC1.5.3_TC_05_Get Advertiser id without Advertiser name
+	[Documentation]		Send GET request to check if advertiser name exists with space before name
+	Set Test Variable 	${uri_link}		/pac-api/partner/checkexists?name= Barilla
+	Get Advertiser	uri=${uri_link}		expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/success			true
+	Json Value Should Equal		${body}		/val				null
+	[Tags]	

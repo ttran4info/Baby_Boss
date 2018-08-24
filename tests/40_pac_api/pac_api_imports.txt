@@ -1,0 +1,7 @@
+*** Settings ***
+Resource	pac_api.txt
+Resource	um_api.txt
+Resource	database.txt
+Resource 	creative_api.txt
+Library		Selenium2Library
+Library		Collections

@@ -1,0 +1,205 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC2.1.2      BATCH19    PAC_BATCH7
+
+
+#https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-2.1.1Cacherefresh
+#API Name: 2.1.1 Cache refresh
+#Method: GET
+#URL: /pac-api/cache/reload
+*** Variables ***
+
+*** Keywords ***
+
+
+*** Test Cases ***
+PAC_2.1.2.1_TC_01 Day of Week Cache_details(Normal, accept)
+    [Documentation]     Make a request to get days of week cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.day.of.week
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.day.of.week
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.2_TC_01 Country Cache_details(Normal, accept)
+    [Documentation]     Make a request to get country cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.geo.country
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.geo.country
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.3_TC_01 States Cache_details(Normal, accept)
+    [Documentation]     Make a request to get States cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.geo.state
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.geo.state
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.4_TC_01 DMA Cache_details(Normal, accept)
+    [Documentation]     Make a request to get DMA cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.geo.dma
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.geo.dma
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.5_TC_01 Traffic Type Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Traffic Type cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.traffic.type
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.traffic.type
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.6_TC_01 Category Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Category cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.category
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.category
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.7_TC_01 ZIP Cache_details(Normal, accept)
+    [Documentation]     Make a request to get ZIP cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.geo.zip
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.geo.zip
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.8_TC_01 Target Carrier Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Target Carrier cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.carrier
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.carrier
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.9_TC_01 Target Language Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Target Language cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.language
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.language
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.10_TC_01 Target Location Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Target Location cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.location
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.location
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.11_TC_01 Target Exchange Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Target Exchange cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.exchange
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.exchange
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.12_TC_01 Target Device Os Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Target Device Os cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.device.os
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.device.os
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.13_TC_01 Target Device Type Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Target Device Type cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.device.type
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.device.type
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.14_TC_01 Target Auction Override Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Target Auction Override cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.auction.override
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.auction.override
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.15_TC_01 Supported Partners Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Supported Partners cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.deal.supported.partner
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.supported.partner
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.16_TC_01 Target Device Manufacturer Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Target Device Manufacturer cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.device.manufacturer
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.device.manufacturer
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.17_TC_01 Video Stream Position Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Video Stream Position cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.video.stream.position
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.video.stream.position
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+
+PAC_2.1.2.18_TC_01 Target Time of Day User Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Target Time of Day User cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.time.of.day.user
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.time.of.day.user
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+
+
+PAC_2.1.2.19_TC_01 Target Time of Day Cache_details(Normal, accept)
+    [Documentation]     Make a request to get Target Time of Day cache details
+    Set Test Variable   ${uri_link}     /pac-api/cache/detail/pac.target.time.of.day
+    Cache Details Using API     uri=${uri_link}
+    ...                         cacheName=pac.target.time.of.day
+    ...                         expected_status_code=200
+    ...                         success=true
+    [Tags]
+

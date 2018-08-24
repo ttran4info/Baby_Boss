@@ -1,0 +1,553 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC        PAC1.9.1    BATCH19        OffshoreQA    PAC_BATCH7
+Suite Setup         Clean Up Pre-Requisite Data for PAC1.9.1
+Suite Teardown      Clean Up Pre-Requisite Data for PAC1.9.1
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.9.1Searchincampaign
+# API Name: 1.9.1 Search in campaign
+# Method: POST
+# URL : qa-dswarm-01:18082/pac-api/search/campaign?groupId={groupId}
+# DESC : keyword to search and the selection which can be any among (all , advertiser , campaign , parentadgroup , childadgroup )
+
+# Need to add suit set up and teardown for child adgroup once it is ready
+
+*** Variables ***
+${groupId}        1
+${Advname}        QATEST_Advertiser_PAC1.9.1
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.9.1
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+Create Pre-Requisite Data for Create Campaign PAC1.9.1
+    Set Suite Variable    ${uri_link_Advertiser}    /pac-api/partner/advertiser
+    Log     ${Advname}
+
+    Comment                                 Create Advertiser for PAC1.9.1
+
+    Create Advertiser                       uri=${uri_link_Advertiser}
+    ...                                     data={"name": "${Advname}"}
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+    Comment                                 Create a campaign without any Parent And Child
+    Get Start Date
+    Set Suite Variable                      ${CampaignWithoutParent_name}    PAC_regression_campaign_191_01
+    Set Test Variable                       ${campaign_status}    1
+    Create New Campaign via API             campaign_name=${CampaignWithoutParent_name}
+    ...                                     campaign_start_date_time=${todaysDate}
+    ...                                     campaign_advertiser_id=${Advertiser_ID}
+    ...                                     campaign_status=${campaign_status}
+    ${campaignId}     Get Json Value         ${body}     /campaign/id
+    Log     ${campaignId}
+    Set Suite Variable    ${CampaignWithoutParent_ID}    ${campaignId}
+
+    Comment                                 Create campaign with one parent without child
+    Set Suite Variable                      ${CampaignWithParent_name}    PAC_regression_campaign_191_02
+    Set Test Variable                       ${campaign_status}    1
+    Create New Campaign via API             campaign_name=${CampaignWithParent_name}
+    ...                                     campaign_start_date_time=${todaysDate}
+    ...                                     campaign_advertiser_id=${Advertiser_ID}
+    ...                                     campaign_status=${campaign_status}
+    ${campaignId}     Get Json Value         ${body}     /campaign/id
+    Log     ${campaignId}
+    Set Suite Variable    ${CampaignWithParent_ID}    ${campaignId}
+
+
+    Set Suite Variable                      ${Parent_Name1}        PAC_regression_parent_191_02
+    Create Parent Adgroup via API           parent_name=${Parent_Name1}
+    ...                                     parent_start_date_time=${todaysDate}
+    ...                                     parent_campaign_id=${CampaignWithParent_ID}
+    ...                                     response_code=200
+    ${parent_id}     Get Json Value         ${body}     /parent/id
+    Log     ${parent_id}
+    Set Suite Variable    ${Parent_ID1}    ${parent_id}
+
+    Comment    Create campaign, Parent and Child
+    Set Suite Variable                      ${CampaignWithChild_name}    PAC_regression_campaign_191_03
+    Set Test Variable                       ${campaign_status}    1
+    Create New Campaign via API             campaign_name=${CampaignWithChild_name}
+    ...                                     campaign_start_date_time=${todaysDate}
+    ...                                     campaign_advertiser_id=${Advertiser_ID}
+    ...                                     campaign_status=${campaign_status}
+    ${campaignId}     Get Json Value         ${body}     /campaign/id
+    Log     ${campaignId}
+    Set Suite Variable    ${CampaignWithChild_ID}    ${campaignId}
+
+
+    Set Suite Variable                      ${ParentWithChild_Name}        PAC_regression_parent_191_03
+    Create Parent Adgroup via API           parent_name=${ParentWithChild_Name}
+    ...                                     parent_start_date_time=${todaysDate}
+    ...                                     parent_campaign_id=${CampaignWithChild_ID}
+    ...                                     response_code=200
+    ${parent_id}     Get Json Value         ${body}     /parent/id
+    Log     ${parent_id}
+    Set Suite Variable    ${ParentWithChild_ID}    ${parent_id}
+
+    Set Suite Variable                      ${child_name}        PAC_regression_child_191_03
+    Create Child Adgroup via API            child_name=${child_name}
+    ...                                     child_parent_campaign_id=${ParentWithChild_ID}
+    ...                                     child_start_date_time=${todaysDate}
+    ...                                     response_code=200
+    ${child_id}     Get Json Value         ${body}     /childId
+    Log     ${child_id}
+    Set Suite Variable    ${Child_ID}    ${child_id}
+
+
+
+*** Test Cases ***
+PAC1.9.1_TC_0.0_Create Pre-requisite Data
+    Create Pre-Requisite Data for Create Campaign PAC1.9.1
+    Sleep     180s
+    [Tags]
+
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.9.1_TC_01.1_Get keyword to search and the selection for campaign by id (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection for campaign id
+    ...                   Expected:       API should process successfully with response code 200.
+    Get 1.9.1 Get Search in campaign using API
+    ...        uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${CampaignWithoutParent_ID}"
+    ...        selection=campaign
+    ...        id=${CampaignWithoutParent_ID}
+    ...        name=${CampaignWithoutParent_name}
+    ...        type=campaign
+    ...        response_code=200
+    ...        success=true
+    ${searchResults}=    Get Json Value     ${body}    /searchResults
+    Log    ${searchResults}
+    Set Test Variable       ${expected_searchResults}      [{"type":"campaign","id":"${CampaignWithoutParent_ID}","name":"${CampaignWithoutParent_name}"}]
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]
+
+
+PAC1.9.1_TC_01.2_Get keyword to search and the selection for campaign by name (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection for campaign name
+    ...                   Expected:       API should process successfully with response code 200.
+    Get 1.9.1 Get Search in campaign using API
+    ...        uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${CampaignWithoutParent_name}"
+    ...        selection=campaign
+    ...        id=${CampaignWithoutParent_ID}
+    ...        name=${CampaignWithoutParent_name}
+    ...        type=campaign
+    ...        response_code=200
+    ...        success=true
+    ${searchResults}=    Get Json Value     ${body}    /searchResults
+    Log    ${searchResults}
+    Set Test Variable       ${expected_searchResults}      [{"type":"campaign","id":"${CampaignWithoutParent_ID}","name":"${CampaignWithoutParent_name}"}]
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]        #    Known_bug         CM-866
+
+
+
+PAC1.9.1_TC_02.1_Get keyword to search and the selection for parentadgroup by id (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection for parentadgroup by id
+    ...                   Expected:       API should process successfully with response code 200.
+    Log    ${Parent_ID1}
+
+    Get 1.9.1 Get Search in campaign using API
+    ...        uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${Parent_ID1}"
+    ...        selection=parentadgroup
+    ...        id=${Parent_ID1}
+    ...        name=${Parent_Name1}
+    ...        type=parentadgroup
+    ...        response_code=200
+    ...        success=true
+
+    ${searchResults}=    Get Json Value     ${body}    /searchResults
+    Log    ${searchResults}
+    Set Test Variable       ${expected_searchResults}      [{"type":"parentadgroup","id":"${Parent_ID1}","name":"${Parent_Name1}"}]
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]  failed
+
+
+PAC1.9.1_TC_02.2_Get keyword to search and the selection for parentadgroup by name (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection for parentadgroup by name
+    ...                   Expected:       API should process successfully with response code 200.
+    Get 1.9.1 Get Search in campaign using API
+    ...        uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${Parent_Name1}"
+    ...        selection=parentadgroup
+    ...        id=${Parent_ID1}
+    ...        name=${Parent_Name1}
+    ...        type=parentadgroup
+    ...        response_code=200
+    ...        success=true
+
+    ${searchResults}=    Get Json Value     ${body}    /searchResults
+    Log    ${searchResults}
+    Set Test Variable       ${expected_searchResults}      [{"type":"parentadgroup","id":"${Parent_ID1}","name":"${Parent_Name1}"}]
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]        #    Known_bug         CM-866
+
+
+PAC1.9.1_TC_03.1_Get keyword to search and the selection for childadgroup by id (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection for childadgroup by id
+    ...                   Expected:       API should process successfully with response code 200.
+    Get 1.9.1 Get Search in campaign using API
+    ...        uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${Child_ID}"
+    ...        selection=childadgroup
+    ...        id=${Child_ID}
+    ...        name=${child_name}
+    ...        type=childadgroup
+    ...        response_code=200
+    ...        success=true
+
+    ${searchResults}=    Get Json Value     ${body}    /searchResults
+    Log    ${searchResults}
+    Set Test Variable       ${expected_searchResults}      [{"type":"childadgroup","id":"${Child_ID}","name":"${child_name}"}]
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]
+
+
+PAC1.9.1_TC_03.2_Get keyword to search and the selection for childadgroup by name (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection for childadgroup by name
+    ...                   Expected:       API should process successfully with response code 200.
+    Get 1.9.1 Get Search in campaign using API
+    ...        uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${child_name}"
+    ...        selection=childadgroup
+    ...        id=${Child_ID}
+    ...        name=${child_name}
+    ...        type=childadgroup
+    ...        response_code=200
+    ...        success=true
+
+    ${searchResults}=    Get Json Value     ${body}    /searchResults
+    Log    ${searchResults}
+    Set Test Variable       ${expected_searchResults}      [{"type":"childadgroup","id":"${Child_ID}","name":"${child_name}"}]
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]
+
+
+PAC1.9.1_TC_04.1_Get keyword to search and the selection for all by campaign id (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection all for campaign id
+    ...                   Expected:       API should process successfully with response code 200.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${CampaignWithoutParent_ID}"
+    ...        selection=all
+    ...        id=${CampaignWithoutParent_ID}
+    ...        name=${CampaignWithoutParent_name}
+    ...        type=campaign
+    ...        allFlag=1
+    ...     response_code=200
+    ...        success=true
+
+    ${searchResults}=    Get Json Value    ${body}    /campaigns
+    Set Test Variable    ${expected_searchResults}    {"type": "campaign", "id": "${CampaignWithoutParent_ID}", "name": "${CampaignWithoutParent_name}"}]  #,"parents":[],"children":[]}
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]
+
+
+PAC1.9.1_TC_05.2_Get keyword to search and the selection for all by campaign name (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection all for campaign name
+    ...                   Expected:       API should process successfully with response code 200.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...        uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${CampaignWithoutParent_name}"
+    ...        selection=all
+    ...        id=${CampaignWithoutParent_ID}
+    ...        name=${CampaignWithoutParent_name}
+    ...        type=campaign
+    ...        allFlag=1
+    ...        response_code=200
+    ...        success=true
+
+    ${searchResults}=    Get Json Value    ${body}    /campaigns
+    Set Test Variable    ${expected_searchResults}    {"type": "campaign", "id": "${CampaignWithoutParent_ID}", "name": "${CampaignWithoutParent_name}"}]  #,"parents":[],"children":[]}
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]        #    PAC1.9.1_TC_05.2    Known_bug         CM-866
+
+
+PAC1.9.1_TC_05.3_Get keyword to search and the selection for all by parentadgroup id (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection for all by parentadgroup id
+    ...                   Expected:       API should process successfully with response code 200.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...        uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${Parent_ID1}"
+    ...        selection=all
+    ...        id=${Parent_ID1}
+    ...        name=${Parent_Name1}
+    ...        type=parentadgroup
+    ...        allFlag=1
+    ...        response_code=200
+    ...        success=true
+
+    ${searchResults}=    Get Json Value    ${body}    /parents
+    Set Test Variable    ${expected_searchResults}    {"type": "parentadgroup", "id": "${Parent_ID1}", "name": "${Parent_Name1}"}]  #,"parents":[],"children":[]}
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]
+
+
+PAC1.9.1_TC_05.6_Get keyword to search and the selection for all by parentadgroup name (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection for all by parentadgroup name
+    ...                   Expected:       API should process successfully with response code 200.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...        uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${Parent_Name1}"
+    ...        selection=all
+    ...        id=${Parent_ID1}
+    ...        name=${Parent_Name1}
+    ...        type=parentadgroup
+    ...        allFlag=1
+    ...        response_code=200
+    ...        success=true
+
+    ${searchResults}=    Get Json Value    ${body}    /parents
+    Set Test Variable    ${expected_searchResults}    {"type": "parentadgroup", "id": "${Parent_ID1}", "name": "${Parent_Name1}"}  #,"parents":[],"children":[]}
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]           #     Known_bug         CM-866
+
+
+PAC1.9.1_TC_05.7_Get keyword to search and the selection for all by childadgroup id (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection for all by childadgroup id
+    ...                   Expected:       API should process successfully with response code 200.
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${Child_ID}"
+    ...        selection=all
+    ...        id=${Child_ID}
+    ...        name=${child_name}
+    ...        type=childadgroup
+    ...        allFlag=1
+    ...     response_code=200
+    ...        success=true
+
+    ${searchResults}=    Get Json Value    ${body}    /children
+    Set Test Variable    ${expected_searchResults}    {"type": "childadgroup", "id": "${child_id}", "name": "${child_name}"}]  #,"parents":[],"children":[]}
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]
+
+
+PAC1.9.1_TC_05.8_Get keyword to search and the selection for all by childadgroup name (with valid URL, accept)
+    [Documentation]        Input:          Use API to keyword to search and the selection for all by childadgroup name
+    ...                   Expected:       API should process successfully with response code 200.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${child_name}"
+    ...        selection=all
+    ...        id=${Child_ID}
+    ...        name=${child_name}
+    ...        type=childadgroup
+    ...        allFlag=1
+    ...     response_code=200
+    ...        success=true
+
+    ${searchResults}=    Get Json Value    ${body}    /children
+    Set Test Variable    ${expected_searchResults}    {"type": "childadgroup", "id": "${child_id}", "name": "${child_name}"}]  #,"parents":[],"children":[]}
+    Should match Regexp      ${searchResults}       ${expected_searchResults}
+    [Tags]
+
+
+PAC1.9.1_TC_06.1_Get keyword to search and the selection (with invalid URL, don't accept)
+    [Documentation]        Input:          Use API to keyword to search with invalid URL
+    ...                   Expected:       API should not process successfully with response code 400.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search^&^*/campaign?groupId=${groupId}
+    ...        keyword="${Empty}"
+    ...        selection=${Empty}
+    ...        id=""
+    ...        name=""
+    ...        type=""
+    ...     response_code=400
+    ...        success=false
+
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+
+    [Tags]        #  Known_bug     CM-1387        CM-1428
+
+
+PAC1.9.1_TC_06.2_Get keyword to search and the selection (with Missing keyword, don't accept)
+    [Documentation]        Input:          Use API to keyword to search with missing keyword
+    ...                   Expected:       API should not process successfully with response code 400.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="MISSING"
+    ...        selection=all
+    ...        id=""
+    ...        name=""
+    ...        type=""
+    ...     response_code=400
+    ...        success=false
+    ...        expected_reason_code="400-999"
+    ...        expected_reason_desc="Validation Failure"
+    ...        expected_error_reason_desc="Search key cannot be empty"
+    ...        expected_field="keyword"
+    [Tags]
+
+
+PAC1.9.1_TC_06.3_Get keyword to search and the selection (with null keyword, don't accept)
+    [Documentation]        Input:          Use API to keyword to search with null keyword
+    ...                   Expected:       API should not process successfully with response code 400.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword=null
+    ...        selection=all
+    ...        id=""
+    ...        name=""
+    ...        type=""
+    ...     response_code=400
+    ...        success=false
+    ...        expected_reason_code="400-999"
+    ...        expected_reason_desc="Validation Failure"
+    ...        expected_error_reason_desc="Search key cannot be empty"
+    ...        expected_field="keyword"
+    [Tags]
+
+
+PAC1.9.1_TC_06.4_Get keyword to search and the selection (with blank keyword, don't accept)
+    [Documentation]        Input:          Use API to keyword to search with blank keyword
+    ...                   Expected:       API should not process successfully with response code 400.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword=""
+    ...        selection=all
+    ...        id=""
+    ...        name=""
+    ...        type=""
+    ...     response_code=400
+    ...        success=false
+    ...        expected_reason_code="400-999"
+    ...        expected_reason_desc="Validation Failure"
+    ...        expected_error_reason_desc="Search key cannot be empty"
+    ...        expected_field="keyword"
+    [Tags]
+
+
+PAC1.9.1_TC_06.5_Get keyword to search and the selection (with blank double quotes keyword, don't accept)
+    [Documentation]        Input:          Use API to keyword to search with blank double quotes keyword
+    ...                   Expected:       API should not process successfully with response code 400.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="${Empty}"
+    ...        selection=all
+    ...        id=""
+    ...        name=""
+    ...        type=""
+    ...     response_code=400
+    ...        success=false
+    ...        expected_reason_code="400-999"
+    ...        expected_reason_desc="Validation Failure"
+    ...        expected_error_reason_desc="Search key cannot be empty"
+    ...        expected_field="keyword"
+    [Tags]
+
+
+
+PAC1.9.1_TC_06.6_Get keyword to search and the selection (with Missing selection, don't accept)
+    [Documentation]        Input:          Use API to keyword to search with missing selection
+    ...                   Expected:       API should not process successfully with response code 400.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="campaign"
+    ...        selection=MISSING
+    ...        id=""
+    ...        name=""
+    ...        type=""
+    ...     response_code=400
+    ...        success=false
+    ...        expected_reason_code="400-999"
+    ...        expected_reason_desc="Validation Failure"
+    ...        expected_error_reason_desc="Selection criteria cannot be empty"
+    ...        expected_field="selection"
+    [Tags]
+
+
+PAC1.9.1_TC_06.7_Get keyword to search and the selection (with null selection, don't accept)
+    [Documentation]        Input:          Use API to keyword to search with null selection
+    ...                   Expected:       API should not process successfully with response code 400.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="campaign"
+    ...        selection=null
+    ...        id=""
+    ...        name=""
+    ...        type=""
+    ...     response_code=400
+    ...        success=false
+    ...        expected_reason_code="400-999"
+    ...        expected_reason_desc="Validation Failure"
+    ...        expected_error_reason_desc="Selection criteria cannot be empty"
+    ...        expected_field="selection"
+    [Tags]
+
+
+PAC1.9.1_TC_06.8_Get keyword to search and the selection (with blank selection, don't accept)
+    [Documentation]        Input:          Use API to keyword to search with blank selection
+    ...                   Expected:       API should not process successfully with response code 400.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="campaign"
+    ...        selection=${Empty}
+    ...        id=""
+    ...        name=""
+    ...        type=""
+    ...     response_code=400
+    ...        success=false
+    ...        expected_reason_code="400-999"
+    ...        expected_reason_desc="Validation Failure"
+    ...        expected_error_reason_desc="Selection criteria cannot be empty"
+    ...        expected_field="selection"
+    [Tags]
+
+
+PAC1.9.1_TC_06.9_Get keyword to search and the selection (with blank double quotes selection, don't accept)
+    [Documentation]        Input:          Use API to keyword to search with blank double quotes selection
+    ...                   Expected:       API should not process successfully with response code 400.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="campaign"
+    ...        selection=${Empty}
+    ...        id=""
+    ...        name=""
+    ...        type=""
+    ...     response_code=400
+    ...        success=false
+    ...        expected_reason_code="400-999"
+    ...        expected_reason_desc="Validation Failure"
+    ...        expected_error_reason_desc="Selection criteria cannot be empty"
+    ...        expected_field="selection"
+    [Tags]
+
+
+PAC1.9.1_TC_06.10_Get keyword to search and the selection (with invalid selection, don't accept)
+    [Documentation]        Input:          Use API to keyword to search with selection apart from advertiser,
+    ...                                    campaign, parentadgroup, childadgroup
+    ...                   Expected:       API should not process successfully with response code 400.
+
+    Get 1.9.1 Get Search in campaign using API
+    ...     uri=pac-api/search/campaign?groupId=${groupId}
+    ...        keyword="campaign"
+    ...        selection=mostofAds
+    ...        id=""
+    ...        name=""
+    ...        type=""
+    ...     response_code=400
+    ...        success=false
+    ...        expected_reason_code="400-999"
+    ...        expected_reason_desc="Validation Failure"
+    ...        expected_error_reason_desc="Selection criteria cannot be empty"
+    ...        expected_field="selection"
+    [Tags]

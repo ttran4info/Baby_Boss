@@ -1,0 +1,34 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.7.1      BATCH19    PAC_BATCH6
+
+
+#https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.7.1Getdayofweekmasterdata
+#API Name: 1.7.1 Get day of week master data
+#Method: GET
+#URL: /pac-api/child-adgroup/day-of-week
+
+*** Variables ***
+
+*** Keywords ***
+
+
+*** Test Cases ***
+PAC1.7.1_TC_01_get_days_of_week_master_data_list_(Normal)
+    [Documentation]     Make a request for Get days of week master data
+    Set Test Variable   ${uri_link}     /pac-api/child-adgroup/day-of-week
+    Get Day Of Week Master Data List From API   uri=${uri_link}         expected_status_code=200    success=true
+    #Set Test Variable   ${options}   [{"id": 2, "name": "sun"}, {"id": 3, "name": "mon"}, {"id": 4, "name": "tue"}, {"id": 5, "name": "wed"}, {"id": 6, "name": "thu"}, {"id": 7, "name": "fri"}, {"id": 8, "name": "sat"}]
+    #Log   ${options}
+    #${response_options}=    Get Json Value  ${body}  /options
+    #Log     ${response_options}
+    #Run Keyword If  '${expected_status_code}'=='200'    Should Match Regexp   ${response_options}   ${options}
+    #Should Match Regexp   ${response_options}   ${options}
+    [Tags]
+
+PAC1.7.1_TC_02_get_days_of_week_master_data_list_(Invalid URL String)
+    [Documentation]     Make a request for Get days of week master data with invalid api string
+    Set Test Variable   ${uri_link}     /pac-api/child-adgroup/day-of-w
+    Get Day Of Week Master Data List From API    uri=${uri_link}         expected_status_code=400    success=false
+    [Tags]   #   Known_bug       CM-1428
+

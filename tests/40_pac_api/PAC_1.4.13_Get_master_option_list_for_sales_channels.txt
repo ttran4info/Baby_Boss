@@ -1,0 +1,24 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC    PAC1.4.13    BATCH19    PAC_BATCH2
+
+#https:https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.4.13Getmasteroptionlistforsaleschannels
+#API Name: 1.4.5 Get master option list for sales channels
+#Method: GET
+#URL: /pac-api/campaign/channels
+#DESC: Get master option list for sales channels
+#groups
+#
+#
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+
+PAC1.4.13_TC_01_Get master option list for sales channels(Check Vertical)
+    Set Test Variable    ${uri_link}    /pac-api/campaign/channels
+    PAC API          uri=${uri_link}       request_type=GET    expected_status_code=200    success=true
+    Should Match Regexp    ${body}    {"id":32,"name":"ATT"}
+    Should Match Regexp    ${body}    {"id":39,"name":"NBCU"}

@@ -1,0 +1,141 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC    PAC1.2.1    BATCH19    PAC_BATCH1
+
+#https://wiki.4info.com/pages/viewpage.action?pageId=29917295
+#API Name: 1.2. Get campaigns from advertiser id and group id
+#Method: GET
+#URL: /pac-api/partner/campaigns?groupId={groupId}&advertiserId={partnerId}
+#userName = rhino.users
+#groupId = rhino.groups
+#Get a list of campaigns which belong to some advertiser and have group permission.
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+PAC1.2.1_TC_01_Get_Campaign_From_Advertiser_id_And_group_id (1-admin)
+	[Documentation]		Make a request for admin user group 1 and check the result advertiser ID,name
+	Set Test Variable	${groupId}		1
+	Set Test Variable	${partnerId}		670
+	Set Test Variable 	${uri_link}		pac-api/campaign/campaigns?groupId=${groupId}&advertiserId=${partnerId}
+	PAC API                                 uri=${uri_link}               request_type=GET			expected_status_code=200	success=true
+	${campaigns}=		Get Json Value			${body}		/campaigns
+	Log    ${campaigns}
+	Should Match Regexp    ${body}    {"id":1907,"name":"05_RTB_Mopub"
+	Should Match Regexp    ${body}    {"id":1976,"name":"06_RTB_Nexage
+	Should Match Regexp    ${body}    "isStruggling":false
+	[Tags]
+
+
+PAC1.2.1_TC_02_Get_Campaign_From_Advertiser_id_And_group_id (15-Catalina)
+	[Documentation]		Make a request for Catalina user group 15 and check the result advertiser ID,name
+	Set Test Variable	${groupId}		15
+	Set Test Variable	${partnerId}		670
+	Set Test Variable 	${uri_link}		pac-api/campaign/campaigns?groupId=${groupId}&advertiserId=${partnerId}
+	PAC API                                 uri=${uri_link}               request_type=GET			expected_status_code=200	success=true
+	${campaigns}=		Get Json Value			${body}		/campaigns
+	Should Match Regexp			${body}		{"id":2041,"name":"4_CAT"
+	Should Match Regexp    ${body}    "isStruggling":true
+	[Tags]
+
+
+PAC1.2.1_TC_03_Get_Campaign_From_Advertiser_id_And_group_id (16-QA)
+	[Documentation]		Make a request for QA user group 16 and check the result advertiser ID,name
+	Set Test Variable	${groupId}		16
+	Set Test Variable	${partnerId}	670
+	Set Test Variable 	${uri_link}		pac-api/campaign/campaigns?groupId=${groupId}&advertiserId=${partnerId}
+	PAC API                                 uri=${uri_link}               request_type=GET			expected_status_code=200	success=true
+	${campaigns}=		Get Json Value			${body}		/campaigns
+	Should Match Regexp			${body}		[{"id":2138,"name":"4_QA","statusDisplay":"Live","startDate":"06/11/2015","startTime":"00:00","endDate":"06/11/2018","endTime":"23:59","timezone":"E","budget":0,"statistics":{"impressionGoal":null,"impressionDelivered":null,"clicks":null,"ctr":null,"revenue":null,"cost":null,"margin":null},"isStruggling":false}]}
+	Should Match Regexp    ${body}    "isStruggling":false
+	[Tags]
+
+	# CM-476
+
+PAC1.2.1_TC_04_Get_Campaign_From_Advertiser_id_And_group_id (99-Unknown, expected error)
+	[Documentation]		Make a request for admin user group 99 and check the result advertiser ID,name
+	Set Test Variable	${groupId}		99
+	Set Test Variable	${partnerId}		670
+	Set Test Variable 	${uri_link}		pac-api/campaign/campaigns?groupId=${groupId}&advertiserId=${partnerId}
+	PAC API                                 uri=${uri_link}               request_type=GET			expected_status_code=400	success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"800-002"                   #"600-001"
+	Should Be Equal As Strings   ${reason}	 Group id is not found.     #"Invalid Group id."
+	[Tags]
+
+
+PAC1.2.1_TC_05_Get_Campaign_From_Advertiser_id_And_group_id (abc-Unknown, expected error)
+	[Documentation]		Make a request for QA user group abc and check the result advertiser ID,name
+	Set Test Variable	${groupId}		abc
+	Set Test Variable	${partnerId}	670
+	Set Test Variable 	${uri_link}		pac-api/campaign/campaigns?groupId=${groupId}&advertiserId=${partnerId}
+	PAC API                                 uri=${uri_link}               request_type=GET			expected_status_code=400	success=false
+	Should Match Regexp			${body}		"reason_code":"600-001"            #"400-001"
+	Should Match Regexp			${body}		"reason_desc":"Invalid Group id."  #"Invalid Request."
+	[Tags]
+
+
+PAC1.2.1_TC_06_Get_Campaign_From_Advertiser_id_And_group_id (missing group id - expected error)
+	[Documentation]		Make a request for QA user missing group and check the result advertiser ID,name
+	Set Test Variable	${partnerId}		670
+	Set Test Variable 	${uri_link}		pac-api/campaign/campaigns?groupId=&advertiserId=${partnerId}
+	PAC API                                 uri=${uri_link}               request_type=GET			expected_status_code=400	success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"600-001"
+	Should Be Equal As Strings   ${reason}	 Invalid Group id.
+	[Tags]
+
+
+PAC1.2.1_TC_07_Get_Campaign_From_Advertiser_id_And_group_id (1-admin, compare advertiser count with DB)
+	[Documentation]		Make a request for admin user group 1 and check the result advertiser ID,name
+	Set Test Variable	${groupId}		1
+	Set Test Variable	${partnerId}		670
+	Set Test Variable 	${uri_link}		pac-api/campaign/campaigns?groupId=${groupId}&advertiserId=${partnerId}
+	PAC API                                 uri=${uri_link}               request_type=GET			expected_status_code=200	success=true
+	${campaigns}=		Get Json Value			${body}		/campaigns
+	@{campaigns_list}=				String.Split String 					${campaigns}				}, {
+	${campaigns_count_api}=			Get Length 								${campaigns_list}
+	Log		Api List Lenght is -> ${campaigns_count_api}
+	Get All Camapigns By GroupId via DB		groupid=${groupId}	partnerId=${partnerId}
+	Should Be Equal As Integers		${campaigns_count_api}	${campaign_count_db}
+	[Tags]
+
+
+PAC1.2.1_TC_08_Get_Campaign_From_Advertiser_id_And_group_id (1-admin, compare advertiser count with DB)
+	[Documentation]		Make a request for admin user group 1 and check the result advertiser ID,name
+	Set Test Variable	${groupId}		15
+	Set Test Variable	${partnerId}		670
+	Set Test Variable 	${uri_link}		pac-api/campaign/campaigns?groupId=${groupId}&advertiserId=${partnerId}
+	PAC API                                 uri=${uri_link}               request_type=GET			expected_status_code=200	success=true
+	${campaigns}=		Get Json Value			${body}		/campaigns
+	@{campaigns_list}=				String.Split String 					${campaigns}				}, {
+	${campaigns_count_api}=			Get Length 								${campaigns_list}
+	Log		Api List Lenght is -> ${campaigns_count_api}
+	Get All Camapigns By GroupId via DB		groupid=${groupId}	partnerId=${partnerId}
+	Should Be Equal As Integers		${campaigns_count_api}		${campaign_count_db}
+	[Tags]
+
+
+PAC1.2.1_TC_09_Get_Campaign_From_Advertiser_id_And_group_id (1-admin, compare advertiser count with DB)
+	[Documentation]		Make a request for admin user group 1 and check the result advertiser ID,name
+	Set Test Variable	${groupId}		16
+	Set Test Variable	${partnerId}		670
+	Set Test Variable 	${uri_link}		pac-api/campaign/campaigns?groupId=${groupId}&advertiserId=${partnerId}
+	PAC API                                 uri=${uri_link}               request_type=GET			expected_status_code=200	success=true
+	${campaigns}=		Get Json Value			${body}		/campaigns
+	@{campaigns_list}=				String.Split String 					${campaigns}				}, {
+	${campaigns_count_api}=			Get Length 								${campaigns_list}
+	Log		Api List Lenght is -> ${campaigns_count_api}
+	Get All Camapigns By GroupId via DB		groupid=${groupId}	partnerId=${partnerId}
+	Should Be Equal As Integers		${campaigns_count_api}	${campaign_count_db}
+	[Tags]
+
+	#  CM-476
+
+
+
+

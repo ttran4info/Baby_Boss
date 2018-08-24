@@ -1,0 +1,37 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.7.3		BATCH19	    OffshoreQA	  PAC_BATCH6    #Exclude
+
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.7.2Gettimeofdaymasterdata
+# API Name: 1.7.3 Get private marketplace master data
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/private-marketplace
+# DESC : get private marketplace master data list
+
+*** Variables ***
+#
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.3_TC_01.1_Get private marketplace master data list (with valid URL, accept)
+	[Documentation]		Input:          Use API to get private marketplace master data list,
+	...   		        Expected:       API should process successfully and response code is returned as 200 with valid data.
+	Get 1.7.3 Get time of day master data       uri=pac-api/child-adgroup/private-marketplace
+    ...                                         response_code=200
+	...				                            success=true
+    [Tags]  #    Known_bug     CM-728       CM-606
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.3_TC_01.2_Get private marketplace master data list (with invalid URL, Don't accept)
+	[Documentation]		Input:          Use API to get private marketplace master data list,
+	...   		        Expected:       API should not process successfully and response code is returned as 400 with valid data.
+	Get 1.7.3 Get time of day master data       uri=pac-api/child-adgroup/private-marketplace-1234
+    ...                                         response_code=400
+	...				                            success=false
+	Should Match Regexp  ${body}  "reason_code":"400-001"
+	Should Match Regexp  ${body}  "reason_desc":"Invalid Request."
+    [Tags]		#  Known_bug       CM-1428
+#--------------------------------------------------------------------------------------------------------------------------------------------

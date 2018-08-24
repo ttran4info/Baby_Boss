@@ -1,0 +1,131 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.6.9   offshoreQA    BATCH19    PAC_BATCH5
+Suite Setup         Clean Up Pre-Requisite Data for PAC1.6.9
+Suite Teardown      Clean Up Pre-Requisite Data for PAC1.6.9
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.6.9ArchiveaParentAdgroup
+# 1.6.9 Archive a  Parent Adgroup
+# Method: DELETE
+# URL : qa-dswarm-01:18082/pac-api/parent-adgroup/parent-adgroup/{adgroupId}
+# Description : Archive the parent adgroup by id
+
+
+*** Variable ***
+
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.6.9
+    Delete New Campaign via DB    campaign_name=PAC_regression_campaign_169
+    Cleanup Advertiser From DB          advertiser_name=QATEST_Advertiser_PAC1.6.9
+    Set Suite Variable    ${Advname}    QATEST_Advertiser_PAC1.6.9
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+Create Sample Advertiser for Create Campaign PAC1.6.9
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    Log     ${Advname}
+    Create Advertiser      uri=${uri_link}
+    ...         data={"name": "${Advname}"}
+    ...         expected_status_code=200
+    ...         success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+
+*** Test cases ***
+
+PAC1.6.9_TC_00_Create New Campaign Data creation
+    [Documentation]		Creating New campaign for testing
+    Create Sample Advertiser for Create Campaign PAC1.6.9
+    Get Start Date
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_169
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    Set Suite Variable 	${campaignID}	${campaignID}
+    Log		Campaign ID: ${campaignID}
+
+
+PAC1.6.9_TC_01_Archive the parent adgroup by id (Normal Condition, accept)
+    [Documentation]     Input : Archive the parent adgroup for existing parent adgroup id,
+    ...                 Expected : Request should get processed successfully with response code 200.
+    Log		Campaign ID: ${campaignID}
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_01
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 response_code=200
+    ${adgroupId}=     Get Json Value   ${body}   /parent/id
+    Archive a parent adgroup            adgroupId=${adgroupId}
+    ...                                 url=pac-api/parent-adgroup/parent-adgroup/${adgroupId}
+    ...                                 response_code=200
+    ...                                 success=true
+    [Tags]
+
+PAC1.6.9_TC_02_Archive the parent adgroup by id (with already archived parent adgroup id, don't accept)
+    [Documentation]     Input : Archive the parent adgroup for with already archived parent adgroup id,
+    ...                 Expected : Request should not get processed successfully with response code 400.
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_02
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 response_code=200
+    ${adgroupId}=     Get Json Value   ${body}   /parent/id
+    Archive a parent adgroup            adgroupId=${adgroupId}
+    ...                                 url=pac-api/parent-adgroup/parent-adgroup/${adgroupId}
+    ...                                 response_code=200
+    ...                                 success=true
+    Archive a parent adgroup            adgroupId=${adgroupId}
+    ...                                 url=pac-api/parent-adgroup/parent-adgroup/${adgroupId}
+    ...                                 response_code=400
+    ...                                 success=false
+    ...                                 reason_code="700-203"
+    ...                                 reason_desc="Archived Parent Adgroup."
+    [Tags]
+
+
+PAC1.6.9_TC_03_Archive the parent adgroup by id (invalid parent adgroup, don't accept)
+    [Documentation]     Input : Archive the parent adgroup for invalid parent adgroup id,
+    ...                 Expected : Request should not get processed successfully with response code 400.
+    Set Test Variable       ${adgroupId}     232644646844
+    Archive a parent adgroup            adgroupId=${adgroupId}
+    ...                                 url=pac-api/parent-adgroup/parent-adgroup/${adgroupId}
+    ...                                 response_code=400
+    ...                                 success=false
+    ...                                 reason_code="700-201"
+    ...                                 reason_desc="Invalid Adgroup id."
+    [Tags]    #  Known_bug       CM-915
+
+
+PAC1.6.9_TC_04_Archive the parent adgroup by id (NULL parent adgroup, don't accept)
+    [Documentation]     Input : Archive the parent adgroup for invalid parent adgroup id,
+    ...                 Expected : Request should not get processed successfully with response code 400.
+    Set Test Variable       ${adgroupId}     null
+    Archive a parent adgroup            adgroupId=${adgroupId}
+    ...                                 url=pac-api/parent-adgroup/parent-adgroup/${adgroupId}
+    ...                                 response_code=400
+    ...                                 success=false
+    ...                                 reason_code="700-201"
+    ...                                 reason_desc="Invalid Adgroup id."
+    [Tags]
+
+
+PAC1.6.9_TC_05_Archive the parent adgroup by id (empty parent adgroup, don't accept)
+    [Documentation]     Input : Archive the parent adgroup for empty parent adgroup id,
+    ...                 Expected : Request should not get processed successfully with response code 400.
+    Set Test Variable       ${adgroupId}     ${Empty}
+    Archive a parent adgroup            adgroupId=${adgroupId}
+    ...                                 url=pac-api/parent-adgroup/parent-adgroup/${adgroupId}
+    ...                                 response_code=400
+    ...                                 success=false
+    ...                                 reason_code="400-001"
+    ...                                 reason_desc="Invalid Request."
+    [Tags]
+
+
+PAC1.6.9_TC_06_Archive the parent adgroup by id (parent adgroup as "", don't accept)
+    [Documentation]     Input : Archive the parent adgroup for parent adgroup as "",
+    ...                 Expected : Request should not get processed successfully with response code 400.
+    Set Test Variable       ${adgroupId}     ""
+    Archive a parent adgroup            adgroupId=${adgroupId}
+    ...                                 url=pac-api/parent-adgroup/parent-adgroup/${adgroupId}
+    ...                                 response_code=400
+    ...                                 success=false
+    ...                                 reason_code="700-201"
+    ...                                 reason_desc="Invalid Adgroup id."
+    [Tags]

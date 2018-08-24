@@ -1,0 +1,156 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.8.6   offshoreQA    BATCH19    PAC_BATCH7
+Suite Setup    	    Clean Up Campaign, Advertiser
+Suite Teardown      Clean Up Campaign, Advertiser
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.8.6ArchiveaChildAdgroup
+# 1.8.6 Archive a  Child Adgroup
+# Method: Delete
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/child-adgroup/{adgroupId}
+
+*** Variable ***
+${child_name}		     PAC_regression_child
+${campaign_name_1}		PAC_regression_campaign_186_01
+${QA_TEST_ADVERTISER}   PAC_regression_Advertiser_186
+${QA_TEST_CAMPAIGN}     PAC_regression_campaign_186
+${QA_TEST_PARENT}       PAC_regression_parent_186
+${QA_TEST_CHILD}        PAC_regression_child_186_
+*** Keywords ***
+Create a new campaign for PAC1.8.6
+    [Arguments]             ${campaign_advertiser_id}=
+    ...                     ${campaign_name}=
+    Get Start Date
+    Set Test Variable       ${username}         ${QA_DEFAULT_USER}
+    ${yyyy}   ${mm}   ${dd}   ${hours}   ${minutes} =      Get Time   year,month,day,hours,minutes      UTC + 40 min
+    Set Suite Variable   ${todays_date}      ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+    Log   ${todays_date}
+#campaign #1
+    Create New Campaign via API         campaign_name=${campaign_name_1}
+    ...                                 campaign_start_date_time=${todays_date}
+    ...                                 campaign_advertiser_id=${campaign_advertiser_id}
+    ${parent_campaign_id}       Get JSON Value      ${body}     /campaign/id
+    Set Suite Variable      ${campaign_id_1}       ${parent_campaign_id}
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_186_01
+    ...                                 parent_campaign_id=${Campaign_Id}
+    ...                                 parent_start_date_time=${todays_date}
+    ...                                 HHMMSS_Flag=0
+    ...                                 response_code=200
+    ${parent_id_1_1}=        Get JSON Value      ${body}     /parent/id
+    Set Suite Variable		${parent_id_1_1}		${parent_id_1_1}
+
+Clean Up Campaign, Advertiser
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+
+*** Test cases ***
+
+PAC1.8.6_TC_01_Archive_a_child_adgroup(Normal Condition, and DB validation)
+    [Documentation]     Generating data for Archive child-adgroup
+    Log To Console                              "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create a new campaign for PAC1.8.6          campaign_advertiser_id=${advertiser_id}
+    ...                                         campaign_name=${QA_TEST_CAMPAIGN}01
+    Create Child Adgroup via API        child_name=${child_name}_1
+    ...									child_parent_campaign_id=${parent_id_1_1}
+    ...                                 child_start_date_time=${todays_date}
+    ...                                 response_code=200
+   	${child_groupid}=     Get Json Value   ${body}   /childId
+    Archive_a_child_adgroup             child_groupid=${child_groupid}
+    ...                                 response_code=200
+    Validate archived child adgroup		adgroup_id=${child_groupid}
+    [Tags]
+
+
+PAC1.8.6_TC_02_Archive_a_child_adgroup(Archived child adgroup)
+    [Documentation]        [input] : Archive child adgroup with alredy archived adgroup
+    ...                    [output] : Response should give 400 error and child adgroup should not be archived.
+    Create Child Adgroup via API        child_name=${child_name}_2
+    ...									child_parent_campaign_id=${parent_id_1_1}
+    ...                                 child_start_date_time=${todays_date}
+    ...                                 response_code=200
+   	${child_groupid}=     Get Json Value   ${body}   /childId
+    Archive_a_child_adgroup             ${child_groupid}
+    Sleep 	2s
+    Archive_a_child_adgroup             ${child_groupid}
+    ...                                 response_code=400
+    Json Value Should Equal     ${body}         /reason_code            "700-905"
+    Json Value Should Equal     ${body}         /reason_desc            "Archived Child Adgroup."
+    [Tags]
+
+
+PAC1.8.6_TC_03_Archive_a_child_adgroup(Invalid adgroup id)
+    [Documentation]     Generating data for Archive child-adgroup
+    Create Child Adgroup via API        child_name=${child_name}_3
+    ...									child_parent_campaign_id=${parent_id_1_1}
+    ...                                 child_start_date_time=${todays_date}
+    ...                                 response_code=200
+   	${child_groupid}=     Get Json Value   ${body}   /childId
+    ${child_groupid}=       Evaluate   ${child_groupid}+12323
+    Archive_a_child_adgroup             ${child_groupid}
+    ...                                 response_code=400
+    Json Value Should Equal     ${body}         /reason_code            "800-004"
+    Json Value Should Equal     ${body}         /reason_desc            "AdGroup id is not found."
+    [Tags]
+
+
+PAC1.8.6_TC_04_Archive_a_child_adgroup(Invalid url)
+    [Documentation]        [input] : Archive child adgroup with invalid url
+    ...                    [output] : Response should give 400 error and child adgroup should not be archived.
+    Set Test Variable       ${campaign_name_1}          PAC_regression_campaign_186_04
+    Create a new campaign for PAC1.8.6                 campaign_advertiser_id=${advertiser_id}
+    ...                                         campaign_name=${QA_TEST_CAMPAIGN}04
+    Create Child Adgroup via API        child_name=${child_name}_4
+    ...									child_parent_campaign_id=${parent_id_1_1}
+    ...                                 child_start_date_time=${todays_date}
+    ...                                 response_code=200
+   	${child_groupid}=     Get Json Value   ${body}   /childId
+    Archive_a_child_adgroup             ${child_groupid}
+    ...                                 url=pac-api/child-adgroup/child-adgroup/child/childgroup
+    ...                                 response_code=400
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]      #  Known_bug       CM-1428
+
+
+PAC1.8.6_TC_05_Archive_a_child_adgroup(archiving parent adgroup not allow)
+    [Documentation]     Generating data for Archive child-adgroup
+    Create Child Adgroup via API        child_name=${child_name}_5
+    ...									child_parent_campaign_id=${parent_id_1_1}
+    ...                                 child_start_date_time=${todays_date}
+    ...                                 response_code=200
+   	${child_groupid}=     Get Json Value   ${body}   /childId
+    Archive_a_child_adgroup             child_groupid=${parent_id_1_1}
+    ...                                 response_code=400
+    Json Value Should Equal     ${body}         /reason_code            "700-201"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Adgroup id."
+    [Tags]
+
+
+PAC1.8.6_TC_06_Archive_a_child_adgroup(archiving child adgroup null - not allow)
+    [Documentation]     Generating data for Archive child-adgroup
+    Create Child Adgroup via API        child_name=${child_name}_6
+    ...									child_parent_campaign_id=${parent_id_1_1}
+    ...                                 child_start_date_time=${todays_date}
+    ...                                 response_code=200
+   	${child_groupid}=     Get Json Value   ${body}   /childId
+    Archive_a_child_adgroup             child_groupid=null
+    ...                                 response_code=400
+    Json Value Should Equal     ${body}         /reason_code            "700-201"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Adgroup id."
+    [Tags]
+
+
+PAC1.8.6_TC_07_Archive_a_child_adgroup(archiving child adgroup blank - not allow)
+    [Documentation]     Generating data for Archive child-adgroup
+    Create Child Adgroup via API        child_name=${child_name}_7
+    ...									child_parent_campaign_id=${parent_id_1_1}
+    ...                                 child_start_date_time=${todays_date}
+    ...                                 response_code=200
+   	${child_groupid}=     Get Json Value   ${body}   /childId
+    Archive_a_child_adgroup             child_groupid=${EMPTY}
+    ...                                 response_code=400
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+

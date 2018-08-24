@@ -1,0 +1,38 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC    PAC1.7.12    BATCH19    OffshoreQA    PAC_BATCH6
+
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.7.12GetTargetingExchangeMasterdata
+# API Name:1.7.12 Get Targeting Exchange Master data
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/exchange
+# DESC : Get Targeting Exchange Master data
+
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.12_TC_01.1_Get_Targeting_Exchange_Master_data(with valid URL, accept)
+    [Documentation]        Input:          Use API to Get Targeting Exchange Master data
+    ...                   Expected:       API should process successfully and response code is returned as 200 with valid data.
+    Get 1.7.12 Get Targeting Exchange Master data using API
+    ...    uri=pac-api/child-adgroup/exchange
+    ...    response_code=200
+    [Tags]
+
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.12_TC_01.2_Get time of day master data (with invalid URL, Don't accept)
+    [Documentation]        Input:          Use API to Get Targeting Exchange Master data
+    ...                   Expected:       API should not process and response code is returned as 400
+    Get 1.7.12 Get Targeting Exchange Master data using API
+    ...       uri=pac-api/child-adgroup/exchanges
+    ...       response_code=400
+    Should Match Regexp  ${body}      "reason_code":"400-001"
+    Should Match Regexp  ${body}      "reason_desc":"Invalid Request."
+    [Tags]        #  Known_bug       CM-1428
+#--------------------------------------------------------------------------------------------------------------------------------------------

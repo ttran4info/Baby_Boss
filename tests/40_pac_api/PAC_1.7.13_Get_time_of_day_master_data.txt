@@ -1,0 +1,34 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.7.13		BATCH19	    OffshoreQA    PAC_BATCH6
+
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.7.2Gettimeofdaymasterdata
+# API Name: 1.7.13 Get time of day master data
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/time-of-day
+# DESC : get time of day master data list
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.13_TC_01.1_Get time of day master data (with valid URL, accept)
+	[Documentation]		Input:          Use API to Get time of day master data,
+	...   		        Expected:       API should process successfully and response code is returned as 200 with valid data.
+	Get 1.7.13 Get time of day master data using API       uri=pac-api/child-adgroup/time-of-day
+	...                                         response_code=200
+	[Tags]
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.13_TC_01.2_Get time of day master data (with invalid URL, Don't accept)
+	[Documentation]		Input:          Use API to Get time of day master data,
+	...   		        Expected:       API should process successfully and response code is returned as 200 with valid data.
+	Get 1.7.13 Get time of day master data using API       uri=pac-api/child-adgroup/time-of-days
+	...                                         response_code=400
+	Should Match Regexp  ${body}  	"reason_code":"400-001"
+	Should Match Regexp  ${body}  	"reason_desc":"Invalid Request."
+    [Tags]		#  Known_bug       CM-1428
+#--------------------------------------------------------------------------------------------------------------------------------------------

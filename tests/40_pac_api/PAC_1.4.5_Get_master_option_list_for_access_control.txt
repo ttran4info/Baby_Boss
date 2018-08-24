@@ -1,0 +1,29 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.4.5		BATCH19		PAC_BATCH2
+
+#https://wiki.4info.com/pages/viewpage.action?pageId=29917295
+#API Name: 1.4.5 Get master option list for access control
+#Method: GET
+#URL: /pac-api/campaign/groups
+#DESC: Get master list
+#groups
+#
+#
+
+*** Variables ***
+	
+*** Keywords ***
+
+*** Test Cases ***
+
+PAC1.4.5_TC_01_Get_Master_Option_list_for_access_control(Check Vertical)
+	Set Test Variable 	${uri_link}		/pac-api/campaign/groups
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp		${body}				{"id":12,"name":"ATT"}
+	Should Match Regexp		${body}				{"id":15,"name":"Catalina Self Service"}
+	Should Match Regexp		${body}				{"id":13,"name":"BellTower"}
+	Should Match Regexp		${body}				{"id":6,"name":"Catalina"}
+	Should Match Regexp		${body}				{"id":14,"name":"Catalina Training"}
+	Should Match Regexp		${body}				{"id":22,"name":"Dataline"}
+	Should Match Regexp		${body}				{"id":17,"name":"Datamyx"}

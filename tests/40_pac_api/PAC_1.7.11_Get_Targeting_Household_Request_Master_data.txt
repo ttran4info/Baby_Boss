@@ -1,0 +1,41 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.7.11		BATCH19	    OffshoreQA	    PAC_BATCH6	
+
+
+# https://wiki.4info.com/pages/viewpage.action?title=PAC+API+documentation&spaceKey=Software#PACAPIdocumentation-1.7.11GetTargetingHouseholdRequestMasterdata
+# API Name: 1.7.11 Get Targeting Household Request Master data
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/geographic-household-request
+# DESC : get targeting household request master data list
+# QA Jira Task : https://jira.adhaven.com/browse/CM-600
+# Dev Jira Task : https://jira.adhaven.com/browse/CM-468
+
+
+*** Variables ***
+# Need to append sql and result comparison for stateList
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.11_TC_01.1_Get targeting household request master data list (with valid URL, accept)
+	[Documentation]		Input:          Use API to get targeting household request master data list,
+	...   		        Expected:       API should process successfully and response code is returned as 200 with valid data.
+	Get 1.7.11 Get targeting household request master data list using API
+	...     uri=pac-api/child-adgroup/geographic-household-request
+	...     response_code=200
+	[Tags]
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.11_TC_01.2_Get targeting household request master data list (with invalid URL, Don't accept)
+	[Documentation]		Input:          Use API to get targeting household request master data list,
+	...   		        Expected:       API should process successfully and response code is returned as 200 with valid data.
+	Get 1.7.11 Get targeting household request master data list using API
+	...     uri=pac-api/child-adgroup/geographic-household-request1234
+	...     response_code=400
+	Should Match Regexp  ${body}  "reason_code":"400-001"
+	Should Match Regexp  ${body}  "reason_desc":"Invalid Request."
+    [Tags]		#  Known_bug       CM-1428
+#--------------------------------------------------------------------------------------------------------------------------------------------

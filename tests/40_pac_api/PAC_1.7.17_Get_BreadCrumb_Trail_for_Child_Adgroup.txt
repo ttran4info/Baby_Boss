@@ -1,0 +1,41 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.7.17    BATCH19     OffshoreQA    PAC_BATCH6
+
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.7.17GetBreadCrumbTrailforChildAdgroup.
+# API Name: 1.7.17 Get BreadCrumb Trail for Child Adgroup
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/trail/{id}
+# DESC : Get BreadCrumb Trail for Child Adgroup
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.17_TC_01.1_Get trail log for Child Adgroup (with valid URL, accept)
+    [Documentation]     Input:      Use API to Get trail log for Child Adgroup with valid url,
+    ...                 Expected:   API should process successfully with response code 200.
+    Set Test Variable       ${id}       1235
+    Get 1.7.17 Get trail log for Child Adgroup using API
+    ...        uri=pac-api/child-adgroup/trail/${id}
+    ...        childID=${id}
+    ...        response_code=200
+    [Tags]
+
+#--------------------------------------------------------------------------------------------------------------------------------------------
+
+PAC1.7.17_TC_02.1_Get trail log for Child Adgroup (with invalid URL, Don't accept)
+    [Documentation]     Input:          Use API to Get trail log for Child Adgroup with invalid url,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable       ${id}       1235
+    Get 1.7.17 Get trail log for Child Adgroup using API
+    ...       uri=pac-api/child-adgroup/trailCFEFE/${id}
+    ...       response_code=400
+    Should Match Regexp  ${body}    "reason_code":"400-001"
+    Should Match Regexp  ${body}    "reason_desc":"Invalid Request."
+    [Tags]      #  Known_bug       CM-1428
+
+#--------------------------------------------------------------------------------------------------------------------------------------------

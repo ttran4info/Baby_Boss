@@ -1,0 +1,91 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC    PAC0.0    BATCH19    PAC_SANITY    PAC_BATCH1
+
+
+# https://wiki.4info.com/pages/viewpage.action?pageId=29917295#PACAPIdocumentation-1.1.1GetalladvertisersbygroupId
+# API Name: 1.1. Get all advertisers by group Id
+# Method: GET
+# URL: /pac-api/partner/advertisers?groupId={groupId}
+# userName = rhino.users
+# groupId = rhino.groups
+# Get all associated advertisers by group id. This request will be called by Phoenix advertiser list page.
+
+
+*** Variables ***
+
+
+*** Keywords ***
+API Test
+	[Arguments]		${connection_type}=http
+	...				${server}=
+	...				${port}=
+	...				${uri}=
+	...				${expected_status_code}=200
+	...				${success}=NA
+	#Create Session   docker    ${connection_type}://${server}:${port}
+	#Create Session   docker    http://10.34.64.120:8080/
+	#${headers}    Create Dictionary     Accept=application/json
+	#${resp}=	Get Request		docker	${uri}			headers=${headers}
+	#Set Test Variable		${resp}		${resp}
+    #${resp}    RequestsLibrary.Get Request    docker   ${uri}    headers=${headers}
+    #Log    Response: '${resp.content}'
+	#Set Suite Variable       ${body}     ${resp.content}
+	#Should Be Valid Json 	 ${body}
+	#Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+	#Run Keyword Unless 	'${success}'=='NA'			Should Match Regexp		${body}		"success":${success}
+	PAC API		connection_type=${connection_type}							#http or https
+    ...            server=${server}							#qa-api.4info.com
+    ...            port=${port}						#443 for https or 8080 for http
+    ...            uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=${expected_status_code}						#normally 200 for working condition, 400 for failure
+    ...            success=${success}	
+*** Test Cases ***
+
+PAC0.0_TC_01_Get_All_Advertiser_by_group_id (1-admin) - KONG END POINT via http
+	[Documentation]		Testing Kong Endpoint is working via http
+	Set Test Variable	${groupId}		1
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertisers?groupId=${groupId}
+	API Test		connection_type=http
+	...				server=${QA_KONG}
+	...				port=${QA_KONG_PORT}
+	...				uri=${uri_link}
+	...				expected_status_code=200
+	...				success=true
+	#${advertisers}=		Get Json Value			${body}		/advertisers
+	Should Match Regexp			${body}		{"id":670,"name":"QA_REGRESSION",
+	Should Match Regexp			${body}		{"id":694,"name":"QA_Performance",
+	[Tags]	exclude
+
+
+PAC0.0_TC_02_Get_All_Advertiser_by_group_id (1-admin) - QA-DSWARM-01 via http
+	[Documentation]		Test PAC api work with docker end point qa-dswarm-01
+	Set Test Variable	${groupId}		1
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertisers?groupId=${groupId}
+	API Test	connection_type=http
+	...			server=qa-dswarm-01
+	...			port=18082
+	...			uri=${uri_link}
+	...			expected_status_code=200
+	...			success=true
+	#${advertisers}=		Get Json Value			${body}		/advertisers
+	Should Match Regexp			${body}		{"id":670,"name":"QA_REGRESSION",
+	Should Match Regexp			${body}		{"id":694,"name":"QA_Performance",
+	[Tags]	exclude
+
+
+PAC0.0_TC_03_Get_All_Advertiser_by_group_id (1-admin) - qa-api.4info.com via https
+	[Documentation]		Test PAC api work with external f5 end point via https
+	Set Test Variable	${groupId}		1
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertisers?groupId=${groupId}
+	API Test	connection_type=https
+	...			server=qa-api-proxy.4info.com
+	...			port=443
+	...			uri=${uri_link}
+	...			expected_status_code=200
+	...			success=true
+	#${advertisers}=		Get Json Value			${body}		/advertisers
+	Should Match Regexp			${body}		{"id":670,"name":"QA_REGRESSION",
+	Should Match Regexp			${body}		{"id":694,"name":"QA_Performance",
+	[Tags]

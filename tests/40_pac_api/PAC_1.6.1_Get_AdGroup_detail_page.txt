@@ -1,0 +1,413 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags             PAC    PAC1.6.1    BATCH19    OffshoreQA    PAC_BATCH4
+Suite Setup         Delete New Campaign via DB      campaign_name=PAC_regression_campaign_161
+Suite Teardown      Delete New Campaign via DB      campaign_name=PAC_regression_campaign_161
+
+
+#https://wiki.4info.com/pages/viewpage.action?pageId=29917295#PACAPIdocumentation-1.6.1Getparentadgroupsdetail
+#API Name: 1.6.1 Get parent adgroups detail
+#Method: GET
+#URL: /pac-api/parent-adgroup/parent-adgroup/${groupId}
+#DESC: Get detail of Ad Group by id.
+#rhino.campaign
+#rhino.taxonomy
+#rhino.taxonomy_level1
+#campaign_taxonomy_levels
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+
+PAC1.6.1_TC_01_Get_AdGroup_Detail(Check All Parameters exist for Parent ad group)
+    [Documentation]    Make a request for Parent Ad Group and check response
+    Set Test Variable    ${groupId}    1043     #  74759    # 37891
+    # Create a new campaign for PAC1.6.4         campaign_name=PAC_regression_campaign_161_011
+    # Create Parent Adgroup via API       parent_name=PAC_regression_parent_161_011
+ #    ...                                 parent_campaign_id=${Campaign_Id}
+    # ${groupId}=     Get JSON Value     ${body}     /parent/id
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    ${parent}=  Get Json Value  ${body}     /parent
+    Validate List Of Keywords   keyword_string=${parent}    keyword=id,name,status,startDate,endDate,timezone,impressionGoal,externalId,ipFcOverall,ipFcDaily,ipFcDays,hhFcOverall,hhFcDaily,hhFcDays,deviceFcOverall,deviceFcDaily,deviceFcDays,measurement,datapartner,viewability,isConversionTracked,conversionTrackingPixels,"targeting,"childAdGroups,"campaignId"
+    [Tags]
+
+
+PAC1.6.1_TC_02_Get_AdGroup_Detail(Check Paramenters Data vs DB Parent Ad Group with multi Child Ad Group)
+    [Documentation]    Make a request for Parent Ad Group with multiple child Ad Groups and check response
+    Set Test Variable    ${groupId}    1153    #  74759    #  37891
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    ${parent}=        Get Json Value        ${body}    /parent
+    Validate List Of Keywords   keyword_string=${parent}    keyword=id,name,status,startDate,endDate,timezone,impressionGoal,externalId,ipFcOverall,ipFcDaily,ipFcDays,hhFcOverall,hhFcDaily,hhFcDays,deviceFcOverall,deviceFcDaily,deviceFcDays,measurement,datapartner,viewability,isConversionTracked,conversionTrackingPixels,"targeting,"childAdGroups,"campaignId"
+
+    [Tags]
+
+
+PAC1.6.1_TC_03_Get_AdGroup_Detail(Check Paramenters Data vs DB Parent Ad Group with NO Child Ad Group)
+    [Documentation]    Make a request for Parent Ad Group with multiple child Ad Groups and check response
+    Set Test Variable    ${groupId}    24250
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    ${parent}=        Get Json Value        ${body}        /parent
+    Validate List Of Keywords   keyword_string=${parent}    keyword=id,name,status,startDate,endDate,timezone,impressionGoal,externalId,ipFcOverall,ipFcDaily,ipFcDays,hhFcOverall,hhFcDaily,hhFcDays,deviceFcOverall,deviceFcDaily,deviceFcDays,measurement,datapartner,viewability,isConversionTracked,conversionTrackingPixels,"targeting,"childAdGroups,"campaignId"
+    [Tags]
+
+
+PAC1.6.1_TC_04_Get_AdGroup_Detail(Status 1 - Active)
+    [Documentation]    Verify active parent ad group
+    Set Test Variable    ${groupId}    24250
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/status      1
+    [Tags]
+
+
+PAC1.6.1_TC_05_Get_AdGroup_Detail(Status 3 - Deleted means Archived)
+    [Documentation]    Verify Deleted ad group
+    Set Test Variable    ${groupId}    1158    #38312
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal    ${body}    /reason_code      "700-203"
+    Json Value Should Equal    ${body}    /reason_desc      "Archived Parent Adgroup."
+    [Tags]    #  CM-721
+
+
+PAC1.6.1_TC_06_Get_AdGroup_Detail(Check timezone)
+    [Documentation]    Verify Ad Group time zone
+    Set Test Variable    ${groupId}     24250           #39755
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/timezone    "E"
+    [Tags]
+
+
+PAC1.6.1_TC_07_Get_AdGroup_Detail(Check impressionGoal)
+    [Documentation]    Verify Ad Group impression goal
+    Set Test Variable    ${groupId}    24250
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/impressionGoal  "100"
+    [Tags]
+
+
+PAC1.6.1_TC_08_Get_AdGroup_Detail(Check null External ID)
+    [Documentation]    Verify null External id
+    Set Test Variable    ${groupId}    24250
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/externalId  null
+    [Tags]
+
+
+PAC1.6.1_TC_09_Get_AdGroup_Detail(Check External ID)
+    [Documentation]    Verify External Id
+    Set Test Variable    ${groupId}    38728
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/externalId  "BVT98765432"
+    [Tags]
+
+
+PAC1.6.1_TC_10_Get_AdGroup_Detail(Check ipFcOverall)
+    [Documentation]    Verify Ad Group IP FC Overall
+    Set Test Variable    ${groupId}    38306
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/ipFcOverall     null
+    [Tags]
+
+
+PAC1.6.1_TC_11_Get_AdGroup_Detail(Check ipFcDaily)
+    [Documentation]    Verify Ad Group IP FC Daily
+    Set Test Variable    ${groupId}    38306
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/ipFcDaily   7
+    [Tags]
+
+
+PAC1.6.1_TC_12_Get_AdGroup_Detail(Check ipFcDays)
+    [Documentation]    Verify Ad Group IP FC Days
+    Set Test Variable    ${groupId}    38306
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/ipFcDays    1
+    [Tags]
+
+
+PAC1.6.1_TC_13_Get_AdGroup_Detail(Check hhFcOverall)
+    [Documentation]    Verify Ad Group HH FC Overall
+    Set Test Variable    ${groupId}    38139
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/hhFcOverall     99
+    [Tags]
+
+
+PAC1.6.1_TC_14_Get_AdGroup_Detail(Check hhFcDaily)
+    [Documentation]    Verify Ad Group HH FC Daily
+    Set Test Variable    ${groupId}    38139
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/hhFcDaily   7
+    [Tags]
+
+
+PAC1.6.1_TC_15_Get_AdGroup_Detail(Check hhFcDays)
+    [Documentation]    Verify Ad Group HH FC days
+    Set Test Variable    ${groupId}    38139
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/hhFcDays    1
+    [Tags]
+
+
+PAC1.6.1_TC_16_Get_AdGroup_Detail(Check deviceFcOverall)
+    [Documentation]    Verify Ad Group Device FC Overall
+    Set Test Variable    ${groupId}    38310
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    # Json Value Should Equal    ${body}    /reason_code      "700-201"
+    # Json Value Should Equal    ${body}    /reason_desc      "Invalid Adgroup id."
+    [Tags]
+
+
+PAC1.6.1_TC_17_Get_AdGroup_Detail(Check deviceFcDaily)
+    [Documentation]    Verify Ad Group Device FC Daily
+    Set Test Variable    ${groupId}    35988        #38310
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/deviceFcDaily  5
+    [Tags]
+
+
+PAC1.6.1_TC_18_Get_AdGroup_Detail(Check deviceFcDays)
+    [Documentation]    Verify Ad Group Device FC Days
+    Set Test Variable    ${groupId}    38310
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/deviceFcDays    1
+    [Tags]
+
+
+PAC1.6.1_TC_19_Get_AdGroup_Detail(Check measurement)
+    [Documentation]    Verify Ad Group Measurements
+    Set Test Variable    ${groupId}    38324
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/measurement     [7, 11]
+    [Tags]
+
+
+PAC1.6.1_TC_20_Get_AdGroup_Detail(Check datapartner)
+    [Documentation]    Verify Ad Group Data Partner
+    Set Test Variable    ${groupId}    38324
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/datapartner     9
+    [Tags]
+
+
+PAC1.6.1_TC_21_Get_AdGroup_Detail(Check viewability)
+    [Documentation]    Verify Ad Group Viewablity null
+    Set Test Variable    ${groupId}    38324
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/viewability        null
+    [Tags]
+
+
+PAC1.6.1_TC_22_Get_AdGroup_Detail(Check viewability1)
+    [Documentation]    Verify Ad Group Viewablity 1
+    Set Test Variable    ${groupId}    38134
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/viewability/requirementType     2
+    Json Value Should Equal    ${body}    /parent/viewability/measurableGoal      0.77
+    Json Value Should Equal    ${body}    /parent/viewability/viewableGoal        0.71
+    Json Value Should Equal    ${body}    /parent/viewability/viPercentage        0.7
+    Json Value Should Equal    ${body}    /parent/viewability/extrapolate            true
+    Json Value Should Equal    ${body}    /parent/viewability/status                true
+    [Tags]
+
+
+PAC1.6.1_TC_23_Get_AdGroup_Detail(Check viewability2)
+    [Documentation]    Verify Ad Group Viewablity 2
+    Set Test Variable    ${groupId}    37279
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/viewability/requirementType        1
+    Json Value Should Equal    ${body}    /parent/viewability/measurableGoal      0.5
+    Json Value Should Equal    ${body}    /parent/viewability/viewableGoal        0.88
+    Json Value Should Equal    ${body}    /parent/viewability/viPercentage        0.88
+    Json Value Should Equal    ${body}    /parent/viewability/extrapolate            true
+    Json Value Should Equal    ${body}    /parent/viewability/status              true
+    [Tags]
+
+
+PAC1.6.1_TC_24_Get_AdGroup_Detail(Check viewability3)
+    [Documentation]    Verify Ad Group Viewablity 3
+    Set Test Variable    ${groupId}    38134
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/viewability/requirementType        2
+    Json Value Should Equal    ${body}    /parent/viewability/measurableGoal      0.77
+    Json Value Should Equal    ${body}    /parent/viewability/viewableGoal        0.71
+    Json Value Should Equal    ${body}    /parent/viewability/viPercentage        0.7
+    Json Value Should Equal    ${body}    /parent/viewability/extrapolate         true
+    Json Value Should Equal    ${body}    /parent/viewability/status              true
+    [Tags]
+
+
+PAC1.6.1_TC_25_Get_AdGroup_Detail(Check isConversionTracked)
+    [Documentation]    Verify Ad Group Conversion Tracking false
+    Set Test Variable    ${groupId}    38134
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/isConversionTracked        false
+    [Tags]
+
+
+PAC1.6.1_TC_26_Get_AdGroup_Detail(Check "conversionTrackingPixels")
+    [Documentation]    Verify Ad Group Conversion Tracking true
+    Set Test Variable    ${groupId}    39755
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Should Match Regexp        ${body}    https://qa-events-svcolo.adhaven.com:443.*conversion.*iframe id=\\\\"cf${groupId}\\\\" name=\\\\"cf${groupId}\\\\"
+    [Tags]
+
+
+PAC1.6.1_TC_27_Get_AdGroup_Detail(Check targeting)
+    [Documentation]    Verify Ad Group HH targeting
+    Set Test Variable    ${groupId}    37595
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/targeting/householdSegments        []
+    Json Value Should Equal    ${body}    /parent/targeting/boost                false
+    Json Value Should Equal    ${body}    /parent/targeting/deviceSegments        []
+    Json Value Should Equal    ${body}    /parent/targeting/geofenceSegment        403
+    Json Value Should Equal    ${body}    /parent/targeting/geofenceSegmentExcluded    false
+    [Tags]
+
+
+PAC1.6.1_TC_28_Get_AdGroup_Detail(Check childAdGroups)
+    [Documentation]    Verify Child ad group for parent
+    Set Test Variable    ${groupId}    37595
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/childAdGroups/0/id        37596
+    Json Value Should Equal    ${body}    /parent/childAdGroups/0/name    "TEST GEO Apple-403 2695"
+    [Tags]
+
+
+PAC1.6.1_TC_29_Get_AdGroup_Detail(Check childAdGroups)
+    [Documentation]    Verify Child ad group for parent response
+    Set Test Variable    ${groupId}    37595
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Should Match Regexp        ${body}        {"id":37596,"name":"TEST GEO Apple-403 2695"}
+    [Tags]
+
+
+PAC1.6.1_TC_30_Get_AdGroup_Detail(Check campaignId)
+    [Documentation]    Verify campaign for parent ad group
+    Set Test Variable    ${groupId}    37595
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Json Value Should Equal    ${body}    /parent/campaignId      2117
+    [Tags]
+
+
+PAC1.6.1_TC_31_Get_AdGroup_Detail(For Invalid Parent ad group)
+    [Documentation]    Make get call for invalid ad group
+    Set Test Variable    ${groupId}    50000
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal    ${body}    /success            false
+    Json Value Should Equal    ${body}    /reason_code        "800-004"
+    Json Value Should Equal    ${body}    /reason_desc        "AdGroup id is not found."
+    [Tags]
+
+
+PAC1.6.1_TC_32_Get_AdGroup_Detail(Invalid Request Parent ad group)
+    [Documentation]    Make get call for invalid ad group (alpha numeric)
+    Set Test Variable    ${groupId}    abc12
+    Set Test Variable     ${uri_link}    /pac-api/parent-adgroup/parent-adgroup/${groupId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal    ${body}    /success            false
+    Json Value Should Equal    ${body}    /reason_code        "700-201"
+    Json Value Should Equal    ${body}    /reason_desc        "Invalid Adgroup id."
+    [Tags]    #Known_bug   CM-619
+
+
+
+

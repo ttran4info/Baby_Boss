@@ -1,0 +1,39 @@
+
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.7.10		BATCH19	    OffshoreQA    PAC_BATCH6
+
+
+# https://wiki.4info.com/pages/viewpage.action?title=PAC+API+documentation&spaceKey=Software#PACAPIdocumentation-1.7.10GetTargetingTrafficTypemasterdata
+# API Name: 1.7.10 Get Targeting Traffic Type master data
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/targeting-traffic
+# DESC : get targeting traffic type master data list
+
+
+*** Variables ***
+# Need to append sql
+
+
+*** Keywords ***
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.10_TC_01.1_Get targeting category master data list (with valid URL, accept)
+	[Documentation]		Input:          Use API to get targeting traffic type master data list,
+	...   		        Expected:       API should process successfully and response code is returned as 200 with valid data.
+	Get 1.7.10 Get Targeting Traffic Type master data using API
+	...     uri=pac-api/child-adgroup/targeting-traffic
+	...     response_code=200
+	[Tags]
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.10_TC_01.2_Get targeting category master data list (with invalid URL, Don't accept)
+	[Documentation]		Input:          Use API to get targeting traffic type master data list,
+	...   		        Expected:       API should process successfully and response code is returned as 200 with valid data.
+	Get 1.7.10 Get Targeting Traffic Type master data using API
+	...     uri=pac-api/child-adgroup/targeting-traffic1234
+	...     response_code=400
+	Should Match Regexp  ${body}  "reason_code":"400-001"
+	Should Match Regexp  ${body}  "reason_desc":"Invalid Request."
+    [Tags]		#  Known_bug       CM-1428
+#--------------------------------------------------------------------------------------------------------------------------------------------

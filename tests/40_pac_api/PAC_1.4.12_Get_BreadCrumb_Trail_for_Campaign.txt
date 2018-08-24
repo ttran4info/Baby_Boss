@@ -1,0 +1,253 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.4.12		BATCH19		OffshoreQA    PAC_BATCH2
+Suite Setup         Clean Up Pre-Requisite Data for PAC1.4.12
+Suite Teardown      Clean Up Pre-Requisite Data for PAC1.4.12
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.4.12GetBreadCrumbTrailforCampaign.
+# API Name: 1.4.12 Get  BreadCrumb Trail for Campaign.
+# Method: GET
+# URL: qa-dswarm-01:18082/pac-api/campaign/trail/{campaignId}
+# DESC: Get BreadCrumb trail log for Campaign
+# rhino.campaign
+
+
+# Need to add validation for valid data after successful run.
+
+*** Variables ***
+
+
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.4.12
+    Delete New Campaign via DB    campaign_name=PAC_regression_campaign_135
+    Set Suite Variable    ${Advname}    QATEST_Advertiser_PAC1.4.12
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+
+Create Sample Advertiser for Create Campaign PAC1.4.12
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    Log     ${Advname}
+    Create Advertiser      uri=${uri_link}
+    ...                    data={"name": "${Advname}"}
+    ...                    expected_status_code=200
+    ...                    success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+*** Test Cases ***
+#-----------------------------------------------------------------------
+PAC1.4.12_TC_01.1_Get BreadCrumb trail log for Campaign (Valid Campaign ID, Accept)
+    [Documentation]     Input : Get BreadCrumb trail log for Campaign with valid campaign id,
+    ...                 Expected : API should get processed successfully with response code 200.
+    Create Sample Advertiser for Create Campaign PAC1.4.12
+    Get Start Date
+    Set Test Variable   ${campaign_name}    PAC_regression_campaign_1412_011
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                             campaign_advertiser_id=${Advertiser_ID}
+    ...                                 response_code=200
+    ${campaignId}=      Get JSON Value      ${body}     /campaign/id
+    Set Test Variable   ${url}          pac-api/campaign/trail/${campaignId}
+    Get BreadCrumb trail log for Campaign       url=${url}
+    ...                                         campaignId=${campaignId}
+    ...                                         status_code=200
+    ...                                         success=true
+    [Tags]
+
+# Need to confirm whether parent adgroup and child adgroups displayed in response. If not then need to be removed below scripts.
+
+# PAC1.4.12_TC_01.2_Get BreadCrumb trail log for Campaign (with Parent Adgroup data, Accept)
+#     [Documentation]     Input : Get BreadCrumb trail log for Campaign with Parent Adgroup data,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Set Test Variable   ${campaign_name}    PAC_regression_campaign_1412_012
+#     Create New Campaign via API         campaign_name=${campaign_name}
+    # ...                             campaign_advertiser_id=${Advertiser_ID}
+#     ...                                 response_code=200
+#     ${campaignId}=      Get JSON Value      ${body}     /campaign/id
+#     Create Parent Adgroup via API       parent_name=PAC_regression_parent_1412_012
+#     ...                                 parent_campaign_id=${campaignId}
+#     ...                                 response_code=200
+#     Set Test Variable   ${url}          pac-api/campaign/trail/${campaignId}
+#     Get BreadCrumb trail log for Campaign       url=${url}
+#     ...                                         campaignId=${campaignId}
+#     ...                                         status_code=200
+#     ...                                         success=true
+#     [Tags]
+
+
+# PAC1.4.12_TC_01.3_Get BreadCrumb trail log for Campaign (with Child Adgroup data, Accept)
+#     [Documentation]     Input : Get BreadCrumb trail log for Campaign with Child Adgroup data,
+#     ...                 Expected : API should get processed successfully with response code 200.
+#     Set Test Variable   ${campaign_name}    PAC_regression_campaign_1412_013
+#     Create New Campaign via API         campaign_name=${campaign_name}
+    # ...                             campaign_advertiser_id=${Advertiser_ID}
+#     ...                                 response_code=200
+#     ${campaignId}=      Get JSON Value      ${body}     /campaign/id
+
+#     Create Parent Adgroup via API       parent_name=PAC_regression_parent_1412_013
+#     ...                                 parent_campaign_id=${campaignId}
+#     ...                                 response_code=200
+#     ${parentID}     Get JSON Value      ${body}     /parent/id
+
+#     Set Test Variable             ${child_name}     PAC_regression_child_1412_013
+#     Set Test Variable             ${child_status}     1
+#     Set Test Variable             ${child_start_date_time}     ${REGRESSION_START_DATE} 04:30:00
+#     Set Test Variable             ${child_end_date_time}     ${REGRESSION_END_DATE} 04:30:00
+#     Set Test Variable             ${child_timezone}     G
+#     Set Test Variable             ${child_parent_campaign_id}    ${parent_ID}    #  1035
+#     Set Test Variable             ${child_impression_goal}     10000
+#     Set Test Variable             ${child_externalID}     ExternalID
+#     Set Test Variable             ${child_cmp}     1.0
+#     Set Test Variable             ${child_domain}     yahoo.com
+#     Set Test Variable             ${child_is_behavioral_targeted}     false
+#     Set Test Variable             ${child_screen_type}     1
+#     Set Test Variable             ${child_target_day_of_week}     [2]
+#     Set Test Variable             ${child_target_geo_state}     [2]
+#     Set Test Variable             ${child_target_geo_state_exclude}     [3]
+#     Set Test Variable             ${child_target_geo_country}     [4]
+#     Set Test Variable             ${child_target_streaming_position}     [2]
+#     Set Test Variable             ${child_target_location}     [3]
+#     Set Test Variable             ${child_target_carrier}     [4]
+#     Set Test Variable             ${child_target_traffic_type}     [3]
+#     Set Test Variable             ${child_target_category}     [4]
+#     Set Test Variable             ${child_target_category_excluded}     [2]
+#     Set Test Variable             ${child_target_language}     null
+#     Set Test Variable             ${child_target_xchange}     null
+#     Set Test Variable             ${child_target_device_manufacturer}     [2]
+#     Set Test Variable             ${child_target_device_model}     [3]
+#     Set Test Variable             ${child_target_device_type}     [2]
+#     Set Test Variable             ${child_target_device_OS}     [2]
+#     Set Test Variable             ${child_target_device_OS_version}     [2]
+#     Set Test Variable             ${child_deal_ids}     7411
+#     Set Test Variable             ${child_auction_override}     2
+#     Set Test Variable             ${child_bid_floor}     null
+#     Set Test Variable             ${child_exchange}     389
+#     Set Test Variable             ${response_code}     200
+#     Create Child Adgroup via API        child_name=${child_name}
+#     ...                                 child_status=${child_status}
+#     ...                                 child_start_date_time=${child_start_date_time}
+#     ...                                 child_end_date_time=${child_end_date_time}
+#     ...                                 child_timezone=${child_timezone}
+#     ...                                 child_parent_campaign_id=${child_parent_campaign_id}
+#     ...                                 child_impression_goal=${child_impression_goal}
+#     ...                                 child_externalID=${child_externalID}
+#     ...                                 child_cmp=${child_cmp}
+#     ...                                 child_domain=${child_domain}
+#     ...                                 child_is_behavioral_targeted=${child_is_behavioral_targeted}
+#     ...                                 child_screen_type=${child_screen_type}
+#     ...                                 child_target_day_of_week=${child_target_day_of_week}
+#     ...                                 child_target_geo_state=${child_target_geo_state}
+#     ...                                 child_target_geo_state_exclude=${child_target_geo_state_exclude}
+#     ...                                 child_target_geo_country=${child_target_geo_country}
+#     ...                                 child_target_streaming_position=${child_target_streaming_position}
+#     ...                                 child_target_location=${child_target_location}
+#     ...                                 child_target_carrier=${child_target_carrier}
+#     ...                                 child_target_traffic_type=${child_target_traffic_type}
+#     ...                                 child_target_category=${child_target_category}
+#     ...                                 child_target_category_excluded=${child_target_category_excluded}
+#     ...                                 child_target_language=${child_target_language}
+#     ...                                 child_target_xchange=${child_target_xchange}
+#     ...                                 child_target_device_manufacturer=${child_target_device_manufacturer}
+#     ...                                 child_target_device_model=${child_target_device_model}
+#     ...                                 child_target_device_type=${child_target_device_type}
+#     ...                                 child_target_device_OS=${child_target_device_OS}
+#     ...                                 child_target_device_OS_version=${child_target_device_OS_version}
+#     ...                                 child_deal_ids=${child_deal_ids}
+#     ...                                 child_auction_override=${child_auction_override}
+#     ...                                 child_bid_floor=${child_bid_floor}
+#     ...                                 child_exchange=${child_exchange}
+#     ...                                 response_code=${response_code}
+#     ${adgroupId}=   Get JSON Value      ${body}         /childId
+
+#     Set Test Variable   ${url}          pac-api/campaign/trail/${campaignId}
+#     Get BreadCrumb trail log for Campaign       url=${url}
+#     ...                                         campaignId=${campaignId}
+#     ...                                         status_code=200
+#     ...                                         success=true
+#     [Tags]
+#---------------------------------------------------------------------------------------------
+PAC1.4.12_TC_02.1_Get BreadCrumb trail log for Campaign (Campaign ID : Missing, Don't accept)
+    [Documentation]     Input : Get BreadCrumb trail log for Campaign with missing campaign id
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${url}          pac-api/campaign/trail/
+    Get BreadCrumb trail log for Campaign       url=${url}
+    ...                                         status_code=400
+    ...                                         success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]    #  Known_bug       CM-1428
+
+
+PAC1.4.12_TC_02.2_Get BreadCrumb trail log for Campaign (Campaign ID : null, Don't accept)
+    [Documentation]     Input : Get BreadCrumb trail log for Campaign with null campaign id
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${url}          pac-api/campaign/trail/null
+    Get BreadCrumb trail log for Campaign       url=${url}
+    ...                                         status_code=400
+    ...                                         success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Campaign id."
+    [Tags]
+
+
+PAC1.4.12_TC_02.3_Get BreadCrumb trail log for Campaign (Campaign ID : blank, Don't accept)
+    [Documentation]     Input : Get BreadCrumb trail log for Campaign with blank campaign id
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${url}          pac-api/campaign/trail/""
+    Get BreadCrumb trail log for Campaign       url=${url}
+    ...                                         status_code=400
+    ...                                         success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Campaign id."
+    [Tags]
+
+
+PAC1.4.12_TC_02.4_Get BreadCrumb trail log for Campaign (Campaign ID : abcde, Don't accept)
+    [Documentation]     Input : Get BreadCrumb trail log for Campaign with "abcde" campaign id
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${url}          pac-api/campaign/trail/abcde
+    Get BreadCrumb trail log for Campaign       url=${url}
+    ...                                         status_code=400
+    ...                                         success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Campaign id."
+    [Tags]
+
+
+PAC1.4.12_TC_02.5_Get BreadCrumb trail log for Campaign (Campaign ID : special characters, Don't accept)
+    [Documentation]     Input : Get BreadCrumb trail log for Campaign with special characters "@@#@#" campaign id
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${url}          pac-api/campaign/trail/@@#@#
+    Get BreadCrumb trail log for Campaign       url=${url}
+    ...                                         status_code=400
+    ...                                         success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Campaign id."
+    [Tags]
+
+
+PAC1.4.12_TC_02.6_Get BreadCrumb trail log for Campaign (Campaign ID : 99999, Don't accept)
+    [Documentation]     Input : Get BreadCrumb trail log for Campaign with 99999 campaign id
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${url}          pac-api/campaign/trail/""
+    Get BreadCrumb trail log for Campaign       url=${url}
+    ...                                         status_code=400
+    ...                                         success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Campaign id."
+    [Tags]
+
+
+PAC1.4.12_TC_02.7_Get BreadCrumb trail log for Campaign (Campaign ID : -520, Don't accept)
+    [Documentation]     Input : Get BreadCrumb trail log for Campaign with -520 campaign id
+    ...                 Expected : API should get processed successfully with response code 200.
+    Set Test Variable   ${url}          pac-api/campaign/trail/-520
+    Get BreadCrumb trail log for Campaign       url=${url}
+    ...                                         status_code=400
+    ...                                         success=false
+    Json Value Should Equal     ${body}         /reason_code            "800-003"
+    Json Value Should Equal     ${body}         /reason_desc            "Campaign id is not found."
+    [Tags]
+
+#---------------------------------------------------------------------------------------------

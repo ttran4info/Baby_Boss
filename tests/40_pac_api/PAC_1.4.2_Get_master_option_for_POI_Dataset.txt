@@ -1,0 +1,81 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.4.2		BATCH19    PAC_BATCH2
+
+#https://wiki.4info.com/pages/viewpage.action?pageId=29917295
+#API Name: 1.4.2 Get master option list for store visits
+#Method: GET
+#URL: /pac-api/campaign/storevisits
+#DESC: Get detail of campaign by id.
+#DB: target_poi_category,target_poi_name campgaign_store_visits
+#
+#
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+PAC1.4.2_TC_01_Get_Master_Option_list_for_store_visists(POI Category - Auto parts)
+	[Documentation] 		Input: 			Send Get request for Master option list for store visits
+	...						Expected : 	 	After getting response for API request the status code should be 200 and body should be match
+	Set Test Variable 	${datasource_id} 		1
+	Set Test Variable 	${insights_ui_flag}		true
+	Set Test Variable 	${uri_link}		 pac-api/campaign/poidataset/${datasource_id} 	 # /pac-api/campaign/storevisits
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp		${body}				"id":47,"name":"AUTO PARTS"
+	[Tags] 	# Known_bug 	 CM-811		PAC1.4.2_TC_01
+
+
+PAC1.4.2_TC_02_Get_Master_Option_list_for_store_visists(POI Category - Live - 1)
+	[Documentation] 		Input: 			Send Get request for Master option list for store visits with POI Catogory - Live -1
+	...						Expected:  		After getting response for API request the status code should be 200 and body should be match
+	Set Test Variable 	${datasource_id} 		1
+	Set Test Variable 	${insights_ui_flag}		true
+	Set Test Variable 	${uri_link}		pac-api/campaign/poidataset/${datasource_id} 	 # /pac-api/campaign/storevisits
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp		${body}				"id":47,"name":"AUTO PARTS","live":true
+	[Tags]  #Known_bug 	 CM-811
+
+
+PAC1.4.2_TC_03_Get_Master_Option_list_for_store_visists(POI Category - Live - 0)
+	[Documentation] 		Input:  		Send Get request for Master option list for store visits with POI Catogory - Live -0
+	...						Expected : 	 	After getting response for API request the status code should be 200 and body should be match
+	Set Test Variable 	${datasource_id} 		1
+	Set Test Variable 	${insights_ui_flag}		true
+	Set Test Variable 	${uri_link}		pac-api/campaign/poidataset/${datasource_id} 	 # /pac-api/campaign/storevisits
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp		${body}				"id":48,"name":"AUTO EXHAUST SYSTEM REPAIR SHOPS","live":false
+	[Tags]		Exclude	#no store visit containing false live. It's not even used.
+
+
+PAC1.4.2_TC_04_Get_Master_Option_list_for_store_visists(POI Store - Autozone)
+	[Documentation] 		Input : 		Send Get request for Master option list for store visits with POI Store Autozone
+	...						Expected : 	 	After getting response for API request the status code should be 200 and body should be match
+	Set Test Variable 	${datasource_id} 		2
+	Set Test Variable 	${insights_ui_flag}		true
+	Set Test Variable 	${uri_link}		pac-api/campaign/poidataset/${datasource_id} 	 # /pac-api/campaign/storevisits
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp		${body}				{"id":4411,"name":"Autozone","insightsUIFlag":true,"datasourceId":2}
+	[Tags]		#Known_bug 	 CM-811
+
+
+PAC1.4.2_TC_05_Get_Master_Option_list_for_store_visists(Count vs DB)
+	[Documentation] 		Input: 			Send Get request for Master option list for store visits and also checking with DB
+	...						Expected: 		The response from DB and API should be same.
+	Set Test Variable 	${datasource_id} 		1
+	Set Test Variable 	${insights_ui_flag}		true
+	Get Master Option List For Store Visits via DB 		datasource_id=${datasource_id}
+	...													insights_ui_flag=${insights_ui_flag}
+	Set Test Variable 	${uri_link}		pac-api/campaign/poidataset/${datasource_id}?insightsUIFlag=${insights_ui_flag} 	 # /pac-api/campaign/storevisits
+	PAC API              request_type=GET 	uri=${uri_link}			expected_status_code=200	success=true
+	${store_visist_category_count_api}=			Get Count		${body}			poiNames
+	${store_visist_count_api}=					Get Count		${body}			insightsUIFlag
+	Log     ${body}
+	Log     ${store_visist_category_count_api}
+	Log     ${store_visist_category_count_db}
+	Should Be Equal As Integers				${store_visist_category_count_api}				${store_visist_category_count_db}
+	Should Be Equal As Integers				${store_visist_count_api}						${store_visist_count_db}
+    [Tags]  #Known_bug 	 CM-811
+
+

@@ -1,0 +1,441 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC    PAC1.4.1    BATCH19    PAC_BATCH2
+Suite Setup        Clean Up Pre-Requisite Data for PAC1.4.1
+Suite Teardown      Clean Up Pre-Requisite Data for PAC1.4.1
+#https://wiki.4info.com/pages/viewpage.action?pageId=29917295
+#API Name: 1.4.1 Get campaign detail
+#Method: GET
+#URL: /pac-api/campaign/campaign/{campaignId}
+#DESC: Get detail of campaign by id.
+#rhino.campaign
+#rhino.taxonomy
+#rhino.taxonomy_level1
+#campaign_taxonomy_levels
+
+*** Variables ***
+
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.4.1
+    Delete New Campaign via DB    campaign_name=PAC_regression_campaign_141
+    Set Suite Variable    ${Advname}    QATEST_Advertiser_PAC1.4.1
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+
+Create Sample Advertiser for Create Campaign PAC1.4.1
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    Log     ${Advname}
+    Create Advertiser      uri=${uri_link}
+    ...                    data={"name": "${Advname}"}
+    ...                    expected_status_code=200
+    ...                    success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+
+*** Test Cases ***
+
+PAC1.4.1_TC_01_Get_Campaign_Detail(Check All Parameters exist)
+    [Documentation]    Make a request for campaign and check all returning parameters exist
+    Set Test Variable   ${campaignId}    2169
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API     uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    ${campaign}=        Get Json Value      ${body}        /campaign
+    Validate List Of Keywords        keyword_string=${campaign}
+    ...         keyword=id,name,status,startDate,endDate,timezone,externalId,insertionOrder,vertical,segment,controlGroupSize,accessControl,storeVisits,poiNameId,topSelection,demoDatasource,demoHideChartId
+    [Tags]
+
+
+PAC1.4.1_TC_02_Get_Campaign_Detail(Check Paramenters Data vs DB campaign with multi group)
+    [Documentation]    Using API to get campaign detail compare it to DB. For campaign with multiple parents,child.
+    Set Test Variable   ${campaignId}    1907
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API    uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Get Campaign Details From DB        campaignId=${campaignId}
+    Compare Campaign API vs DB
+    [Tags]
+
+
+PAC1.4.1_TC_03_Get_Campaign_Detail(Check Paramenters Data vs DB campaign with zero group)
+    [Documentation]    Using API to get campaign detail compare it to DB. For campaign with no parents,child.
+    Set Test Variable   ${campaignId}    2170
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Get Campaign Details From DB        campaignId=${campaignId}
+    Compare Campaign API vs DB
+    [Tags]
+
+
+PAC1.4.1_TC_04_Get_Campaign_Detail(SMB campaign, no show)
+    [Documentation]    Make a request for SMB campaign, expect failure since we do not want to show smb campaign
+    Set Test Variable   ${campaignId}    1290
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=400
+    ...         success=false
+    #Run keyword If  '${resp.status_code}'=='400'    Set Test Variable   ${errorDetail}   [{"reason_code": "700-005", "reason_desc": "Archived Campaign or SMB Campaign."}]
+    #Run keyword If  '${resp.status_code}'=='400'    Json Value Should Equal  ${body}  /errorDetail   ${errorDetail}
+    Json Value Should Equal    ${body}    /reason_code            "700-005"
+    Json Value Should Equal    ${body}    /reason_desc            "Archived Campaign or SMB Campaign."
+    [Tags]
+
+
+PAC1.4.1_TC_05_Get_Campaign_Detail(Empty Campaign, no parent, no child)
+    [Documentation]    Make a request for campaign that is empty (no parent or child adgroup)
+    Create Sample Advertiser for Create Campaign PAC1.4.1
+    Get Start Date
+    Set Test Variable    ${campaign_name}    PAC_regression_campaign_141_05
+    Create New Campaign via API    campaign_name=${campaign_name}
+    ...                            campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    #${campaignId} is generated during campaign creation
+    #Set Test Variable  ${campaignId}    2170
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    ${campaign}=        Get Json Value      ${body}        /campaign
+    Validate List Of Keywords        keyword_string=${campaign}     keyword=id,name,status,startDate,endDate,timezone,externalId,insertionOrder,vertical,segment,controlGroupSize,accessControl,storeVisits,topSelection,demoDatasource,demoHideChartId
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+    [Tags]
+
+
+PAC1.4.1_TC_06_Get_Campaign_Detail(Status 1 - Active)
+    [Documentation]    Make a request for active campaign
+    Set Test Variable       ${campaign_name}    PAC_regression_campaign_141_06
+    Set Test Variable       ${campaign_status}    1
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_status=${campaign_status}
+    #Set Test Variable  ${campaignId}    1907
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+    Json Value Should Equal    ${body}    /campaign/status            ${campaign_status}
+    [Tags]
+
+
+PAC1.4.1_TC_07_Get_Campaign_Detail(Status 2 - Paused)
+    [Documentation]    Make a request for paused campaign
+    Set Test Variable       ${campaign_name}    PAC_regression_campaign_141_07
+    Set Test Variable       ${campaign_status}    2
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_status=${campaign_status}
+    #Set Test Variable  ${campaignId}    2170
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+    Json Value Should Equal    ${body}    /campaign/status            ${campaign_status}
+    [Tags]
+
+
+PAC1.4.1_TC_08_Get_Campaign_Detail(Status 3 - Archived, no show)
+    [Documentation]    Make a request for archived campaign
+    Set Test Variable   ${campaignId}    2049
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=400
+    ...         success=false
+    # Run keyword If  '${resp.status_code}'=='400'    Set Test Variable   ${errorDetail}   [{"reason_code": "700-005", "reason_desc": "Archived Campaign or SMB Campaign."}]
+    # Run keyword If  '${resp.status_code}'=='400'    Json Value Should Equal  ${body}  /errorDetail   ${errorDetail}
+    Json Value Should Equal    ${body}    /reason_code        "700-005"
+    Json Value Should Equal    ${body}    /reason_desc        "Archived Campaign or SMB Campaign."
+    [Tags]
+
+
+PAC1.4.1_TC_09_Get_Campaign_Detail(Pending state - Start Date in future)
+    [Documentation]    Make a request for pending campaign
+    Set Test Variable       ${campaign_name}    PAC_regression_campaign_141_09
+    ${yyyy}    ${mm}    ${dd}=            Get Time      year,month,day      UTC + 2 day
+    Set Test Variable   ${start_date}       ${mm}/${dd}/${yyyy}
+    Set Test Variable        ${campaign_start_date_time}        ${start_date} 00:00
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                    campaign_start_date_time=${campaign_start_date_time}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    #There's no pending state
+    [Tags]  EXCLUDE
+
+
+PAC1.4.1_TC_09_Get_Campaign_Detail(Expired state - End Date passed)
+    #There's no expire state
+    [Tags]  EXCLUDE
+
+
+PAC1.4.1_TC_10_Get_Campaign_Detail(Timezone - Eastern)
+    [Documentation]    Make a request for campaign (Estern Timezone)
+    Set Test Variable       ${campaign_name}    PAC_regression_campaign_141_10
+    Set Test Variable        ${campaign_timezone}        E
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_timezone=${campaign_timezone}
+    #Set Test Variable  ${campaignId}    1907
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+    Json Value Should Equal    ${body}    /campaign/timezone                "E"
+
+
+PAC1.4.1_TC_11_Get_Campaign_Detail(Timezone - GMT)
+    [Documentation]    Make a request for campaign (GMT Timezone)
+    Set Test Variable       ${campaign_name}    PAC_regression_campaign_141_11
+    Set Test Variable        ${campaign_timezone}        G
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_timezone=${campaign_timezone}
+    #Set Test Variable  ${campaignId}    1976
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+    Json Value Should Equal    ${body}    /campaign/timezone                "G"
+
+
+PAC1.4.1_TC_12_Get_Campaign_Detail(External ID - Blank)
+    [Documentation]    Make a request for campaign (blank external id)
+    Set Test Variable       ${campaign_name}        PAC_regression_campaign_141_12
+    Set Test Variable       ${campaign_external_id}    ${EMPTY}
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_external_id=${campaign_external_id}
+#   Set Test Variable   ${campaignId}    1907
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /campaign/externalId              ""
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+    [Tags]  EXCLUDE   # Excluded due to CM-1121 campaign will not get created for blank external id.
+
+PAC1.4.1_TC_13_Get_Campaign_Detail(External ID - Something)
+    [Documentation]    Make a request for campaign (valid external id)
+    Set Test Variable       ${campaign_name}        PAC_regression_campaign_141_13
+    Set Test Variable       ${campaign_external_id}    "BVI123456789"
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_external_id=${campaign_external_id}
+    #Set Test Variable  ${campaignId}    2169
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /campaign/externalId          ${campaign_external_id}
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+
+
+PAC1.4.1_TC_14_Get_Campaign_Detail(Control Group Size 10)
+    [Documentation]    Make a request for campaign (Control Group size 10)
+    Set Test Variable       ${campaign_name}            PAC_regression_campaign_141_14
+    Set Test Variable       ${campaign_congrol_group_size}    10
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_congrol_group_size=${campaign_congrol_group_size}
+#   Set Test Variable   ${campaignId}    2170
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /campaign/controlGroupSize        ${campaign_congrol_group_size}
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+
+
+PAC1.4.1_TC_15_Get_Campaign_Detail(Control Group Size 0)
+    [Documentation]    Make a request for campaign (Control Group size 0)
+    Set Test Variable       ${campaign_name}            PAC_regression_campaign_141_15
+    Set Test Variable       ${campaign_congrol_group_size}    0
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_congrol_group_size=${campaign_congrol_group_size}
+#   Set Test Variable   ${campaignId}    1907
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /campaign/controlGroupSize        ${campaign_congrol_group_size}
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+
+
+PAC1.4.1_TC_16_Get_Campaign_Detail(Access Control (blank) - Admin Only)
+    [Documentation]    Make a request for campaign (Access control Blank)
+    Set Test Variable       ${campaign_name}            PAC_regression_campaign_141_16
+    Set Test Variable       ${campaign_access_control}      ${EMPTY}
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_access_control=${campaign_access_control}
+#   Set Test Variable   ${campaignId}    1907
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+    Should Match Regexp     ${body}    "accessControl":\\[\\]
+    #Json Value Should Equal    ${body}    /campaign/0/accessControl                []
+
+
+PAC1.4.1_TC_17_Get_Campaign_Detail(Access Control - Catalina)
+    [Documentation]    Make a request for campaign (Access control 15 Catalina)
+    Set Test Variable       ${campaign_name}            PAC_regression_campaign_141_17
+    Set Test Variable       ${campaign_access_control}      15
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_access_control=${campaign_access_control}
+#   Set Test Variable   ${campaignId}    2041
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Should Match Regexp     ${body}    "accessControl":\\[${campaign_access_control}\\]
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+    #Json Value Should Equal    ${body}    /campaign/0/accessControl                [15]
+
+
+PAC1.4.1_TC_18_Get_Campaign_Detail(StoreVisit - blank POI)
+    [Documentation]    Make a request for campaign (StoreVisit - blank POI)
+    Set Test Variable       ${campaign_name}            PAC_regression_campaign_141_18
+    Set Test Variable       ${campaign_store_visit}        ${EMPTY}
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_store_visit=${campaign_store_visit}
+    #Set Test Variable  ${campaignId}    1907
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Should Match Regexp     ${body}    "storeVisits":\\[\\]
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+    #Json Value Should Equal    ${body}    /campaign/0/storeVisits              []
+
+
+PAC1.4.1_TC_19_Get_Campaign_Detail(StoreVisit - Multiple POI)
+    [Documentation]    Make a request for campaign (StoreVisit - Multiple POI)
+    Set Test Variable       ${campaign_name}            PAC_regression_campaign_141_19
+    Set Test Variable       ${campaign_store_visit}        {"topSelection": true, "poiNameId": 1898}, {"topSelection": true, "poiNameId": 1365}
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_store_visit=${campaign_store_visit}
+#   Set Test Variable   ${campaignId}    2170
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    ${storevisit}=      Get Json Value    ${body}            /campaign/storeVisits
+    Should Match Regexp             ${storevisit}        "poiNameId": 1898
+    Should Match Regexp             ${storevisit}        "poiNameId": 1365
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+
+
+PAC1.4.1_TC_20_Get_Campaign_Detail(Datasource - Axciom)
+    [Documentation]    Make a request for campaign (Datasource 6 - Axciom)
+    Set Test Variable       ${campaign_name}            PAC_regression_campaign_141_20
+    Set Test Variable       ${campaign_demo_data_source}        7
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_demo_data_source=${campaign_demo_data_source}
+#   Set Test Variable   ${campaignId}    1907
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /campaign/demoDatasource        ${campaign_demo_data_source}
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+
+
+PAC1.4.1_TC_21_Get_Campaign_Detail(demoHideChartId - Axciom)
+    [Documentation]    Make a request for campaign (demoHideChartId 4, 6)
+    Set Test Variable       ${campaign_name}            PAC_regression_campaign_141_21
+    Set Test Variable       ${campaign_demohide_chart_id}        4, 6
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                   campaign_advertiser_id=${Advertiser_ID}
+    ...                    campaign_demohide_chart_id=${campaign_demohide_chart_id}
+#   Set Test Variable   ${campaignId}    1907
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=200
+    ...         success=true
+    #Should Match Regexp        ${body}    "demoHideChartId":\\[4, 6\\]
+    Json Value Should Equal    ${body}    /campaign/demoHideChartId        [${campaign_demohide_chart_id}]
+    Json Value Should Equal    ${body}    /campaign/id              ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name                "${campaign_name}"
+    #Should Match Regexp        ${body}    "demoHideChartId":\\[\\]
+    #Json Value Should Equal    ${body}    /campaign/0/demoHideChartId          []
+    [Tags]
+
+
+PAC1.4.1_TC_22_Get_Campaign_Detail(Campaign ID does not exist 9999999)
+    [Documentation]    Make a request for active campaign
+    Set Test Variable   ${campaignId}    9999999
+    Set Test Variable   ${uri_link}    /pac-api/campaign/campaign/${campaignId}
+    PAC API                                 uri=${uri_link}
+    ...         request_type=GET
+    ...         expected_status_code=400
+    ...         success=false
+    Json Value Should Equal    ${body}    /reason_code        "800-003"       #"700-001"
+    Json Value Should Equal    ${body}    /reason_desc        "Campaign id is not found."     #"Invalid Campaign id."
+    [Tags]
+
+
+#PAC1.4.1_TC_21_Get_Campaign_Detail(Campaign ID does not exist abc)
+    #We will not tesst mismatch data type
+#   [Tags]    EXCLUDE

@@ -1,0 +1,39 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.7.4		BATCH19	    OffshoreQA	  PAC_BATCH6    #Exclude
+
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.7.2Gettimeofdaymasterdata
+# API Name: 1.7.4 Get video streaming positions master data
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/video-stream-position
+# DESC : get video streaming positions master data list
+
+
+*** Variables ***
+#
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.4_TC_01.1_Get video streaming positions master data list (with valid URL, accept)
+	[Documentation]		Input:          Use API to Get video streaming positions master data list,
+	...   		        Expected:       API should process successfully and response code is returned as 200 with valid data.
+	Get 1.7.4 Get time of day master data       uri=pac-api/child-adgroup/video-stream-position
+	...                                         response_code=200
+	...                                         success=true
+	[Tags]
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.4_TC_01.2_Get video streaming positions master data list (with invalid URL, Don't accept)
+	[Documentation]		Input:          Use API to get video streaming positions master data list,
+	...   		        Expected:       API should not process successfully and response code is returned as 400 with valid data.
+	Get 1.7.4 Get time of day master data       uri=pac-api/child-adgroup/video-stream-position-1234
+	...                                         response_code=400
+	...                                         success=false
+	Should Match Regexp  ${body}  "reason_code":"400-001"
+	Should Match Regexp  ${body}  "reason_desc":"Invalid Request."
+    [Tags]	 #	Known_bug       CM-1428
+#--------------------------------------------------------------------------------------------------------------------------------------------

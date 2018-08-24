@@ -1,0 +1,473 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC    PAC1.1.4    BATCH19    PAC_BATCH1   # Known_bug    CM-2216
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.1.4GetChannelCPMbyDataSourceId
+# API Name: 1.1.4 Get Average CPM by DataSource Id
+# Method: GET
+# URL: /pac-api/partner/channelCPM?datasourceId={datasourceId}
+# rhino.forecast_channel_cpm
+# Get all associated CPM values by datasource id. This request will be called by Forecasting page.
+# Return a map of the UI selection parameters in UI eg. creative Type, Creative Size, Traffic Type and Device Type
+# For creative type
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#----------------------------------------------------------------------------------------------------------
+PAC1.1.4_TC_01.1.1_Get Average CPM by DataSource ATT (datasource id 32 and creative type as video, Accept)
+    [Documentation]     Make a request for datasource id 32 and check the result all associated CPM values
+    Get Average CPM by DataSource Id        datasourceId=32
+    ...                                     creativeType="video"
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]
+
+
+PAC1.1.4_TC_01.1.2_Get Average CPM by DataSource ATT (datasource id 32 and creative type as banner, Accept)
+    [Documentation]     Make a request for datasource id 32 and check the result all associated CPM values
+    Get Average CPM by DataSource Id        datasourceId=32
+    ...                                     creativeType="banner"
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]
+
+
+PAC1.1.4_TC_01.2.1_Get Average CPM by DataSource NBCU (datasource id 39 and creative type as video, Accept)
+    [Documentation]     Make a request for datasource id 39 and check the result all associated CPM values
+    Get Average CPM by DataSource Id        datasourceId=39
+    ...                                     creativeType="video"
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]
+
+
+PAC1.1.4_TC_01.2.2_Get Average CPM by DataSource NBCU (datasource id 39 and creative type as banner, Accept)
+    [Documentation]     Make a request for datasource id 39 and check the result all associated CPM values
+    Get Average CPM by DataSource Id        datasourceId=39
+    ...                                     creativeType="banner"
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]
+
+
+PAC1.1.4_TC_01.3.1_Get Average CPM by DataSource 4Info (datasource id 44 and creative type as video, Accept)
+    [Documentation]     Make a request for datasource id 44 and check the result all associated CPM values
+    Get Average CPM by DataSource Id        datasourceId=44
+    ...                                     creativeType="video"
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]  #  Known_bug    CM-2216
+
+
+PAC1.1.4_TC_01.3.2_Get Average CPM by DataSource 4Info (datasource id 44 and creative type as banner, Accept)
+    [Documentation]     Make a request for datasource id 44 and check the result all associated CPM values
+    Get Average CPM by DataSource Id        datasourceId=44
+    ...                                     creativeType="banner"
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]  #  Known_bug    CM-2216
+
+
+PAC1.1.4_TC_01.4.1_Get Average CPM by DataSource Catalina (datasource id 45 and creative type as video, Accept)
+    [Documentation]     Make a request for datasource id 45 and check the result all associated CPM values
+    Get Average CPM by DataSource Id        datasourceId=45
+    ...                                     creativeType="video"
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]  #  Known_bug    CM-2216
+
+
+PAC1.1.4_TC_01.4.2_Get Average CPM by DataSource Catalina (datasource id 45 and creative type as banner, Accept)
+    [Documentation]     Make a request for datasource id 45 and check the result all associated CPM values
+    Get Average CPM by DataSource Id        datasourceId=45
+    ...                                     creativeType="banner"
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]   # Known_bug    CM-2216
+
+
+PAC1.1.4_TC_01.5.1_Get Average CPM by DataSource Datamyx (datasource id 19 and creative type as video, Accept)
+    [Documentation]     Make a request for datasource id 45 and check the result all associated CPM values
+    Get Average CPM by DataSource Id        datasourceId=19
+    ...                                     creativeType="video"
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]    FOR-34
+
+
+PAC1.1.4_TC_01.5.2_Get Average CPM by DataSource Datamyx (datasource id 19 and creative type as banner, Accept)
+    [Documentation]     Make a request for datasource id 45 and check the result all associated CPM values
+    Get Average CPM by DataSource Id        datasourceId=19
+    ...                                     creativeType="banner"
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    [Tags]    FOR-34
+
+#----------------------------------------------------------------------------------------------------------
+PAC1.1.4_TC_02.1_Get Average CPM by DataSource (id 99 - Invalid datasource, Don't Accept)
+    [Documentation]     Make a request for datasource id 99 and check the result error
+    Get Average CPM by DataSource Id        datasourceId=99
+    ...                                     expected_status_code=400
+    ...                                     success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "700-937"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Datasource id"
+    [Tags]    Known_bug    CM-2216    EXCLUDE    #Exclude Reason : No parameter passed through UI like this
+
+
+PAC1.1.4_TC_02.2_Get Average CPM by DataSource (id = -39 - Invalid datasource, Don't Accept)
+    [Documentation]     Make a request for datasource id -39 and check the result error
+    Get Average CPM by DataSource Id        datasourceId=-39
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-937"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Datasource id"
+    [Tags]    Known_bug    CM-2216    EXCLUDE    #Exclude Reason : No parameter passed through UI like this
+
+
+
+PAC1.1.4_TC_02.3_Get Average CPM by DataSource (id abc - Invalid datasource, Don't Accept)
+    [Documentation]     Make a request for datasource id abc and check the result error
+    Get Average CPM by DataSource Id        datasourceId="abc"
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+
+PAC1.1.4_TC_02.4_Get Average CPM by DataSource (id null - Invalid datasource, Don't Accept)
+    [Documentation]     Make a request for datasource id null and check the result error
+    Get Average CPM by DataSource Id        datasourceId=null
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal    ${body}    /avgCpm                   0.0
+    Json Value Should Equal    ${body}    /reason_code              "400-999"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Json Value Should Equal    ${body}    /errors/0/reason_desc     "DatasourceId cannot be null."
+    Json Value Should Equal    ${body}    /errors/0/field           "datasourceId"
+    [Tags]
+
+
+
+PAC1.1.4_TC_02.5_Get Average CPM by DataSource (id blank - Invalid datasource, Don't Accept)
+    [Documentation]     Make a request for datasource id blank and check the result error
+    Get Average CPM by DataSource Id    datasourceId=${Empty}
+    ...                                 expected_status_code=400
+    ...                                 success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+# PAC1.1.4_TC_02.6_Get Average CPM by DataSource (id Missing - Invalid datasource, Don't Accept)
+#     [Documentation]     Make a request for datasource id blank and check the result error
+#     Get Average CPM by DataSource Id    datasourceId="MISSING"
+#     ...                                 expected_status_code=400
+#     ...                                 success=false
+
+#     Json Value Should Equal    ${body}    /avgCpm                   0.0
+#     Json Value Should Equal    ${body}    /reason_code              "400-999"
+#     Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+#     Json Value Should Equal    ${body}    /errors/0/reason_desc     "DatasourceId cannot be null."
+#     Json Value Should Equal    ${body}    /errors/0/field           "datasourceId"
+#     [Tags]
+
+#----------------------------------------------------------------------------------------------------------
+
+PAC1.1.4_TC_03.1_Get Average CPM by DataSource (deviceTypeIds 99 - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id 99 and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   deviceTypeIds=[99]
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]    Known_bug    CM-2216    EXCLUDE    #Exclude Reason : No parameter passed through UI like this
+
+
+PAC1.1.4_TC_03.2_Get Average CPM by DataSource (deviceTypeIds -39 - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id -39 and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   deviceTypeIds=[-39]
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "700-937"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Datasource id"
+    [Tags]    Known_bug    CM-2216    EXCLUDE    #Exclude Reason : No parameter passed through UI like this
+
+
+
+PAC1.1.4_TC_03.3_Get Average CPM by DataSource (deviceTypeIds abc - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id abc and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   deviceTypeIds=["abc"]
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+
+PAC1.1.4_TC_03.4_Get Average CPM by DataSource (deviceTypeIds null - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id null and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   deviceTypeIds=null
+    ...                                   expected_status_code=200
+    ...                                   success=true
+    [Tags]    EXCLUDE    #Exclude Reason : No parameter passed through UI like this
+
+
+
+PAC1.1.4_TC_03.5_Get Average CPM by DataSource (deviceTypeIds blank - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id blank and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   deviceTypeIds=${Empty}
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+# PAC1.1.4_TC_03.6_Get Average CPM by DataSource (deviceTypeIds Missing - Accept)
+#     [Documentation]     Make a request for datasource id blank and check the result error
+#     Get Average CPM by DataSource Id    datasourceId=32
+#     ...                                 deviceTypeIds="MISSING"
+#     ...                                 expected_status_code=200
+#     ...                                 success=true
+#     [Tags]
+
+#----------------------------------------------------------------------------------------------------------
+
+PAC1.1.4_TC_04.1_Get Average CPM by DataSource (trafficTypeIds 99 - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id 99 and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   trafficTypeIds=[99]
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "700-937"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Datasource id"
+    [Tags]    Known_bug    CM-2216    EXCLUDE    #Exclude Reason : No parameter passed through UI like this
+
+
+PAC1.1.4_TC_04.2_Get Average CPM by DataSource (trafficTypeIds -39 - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id -39 and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   trafficTypeIds=[-39]
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "700-937"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Datasource id"
+    [Tags]    Known_bug    CM-2216    EXCLUDE    #Exclude Reason : No parameter passed through UI like this
+
+
+
+PAC1.1.4_TC_04.3_Get Average CPM by DataSource (trafficTypeIds abc - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id abc and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   trafficTypeIds=["abc"]
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+
+PAC1.1.4_TC_04.4_Get Average CPM by DataSource (trafficTypeIds null - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id null and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   trafficTypeIds=null
+    ...                                   expected_status_code=200
+    ...                                   success=true
+    [Tags]       EXCLUDE    #Exclude Reason : No parameter passed through UI like this
+
+
+
+PAC1.1.4_TC_04.5_Get Average CPM by DataSource (trafficTypeIds blank - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id blank and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   trafficTypeIds=${Empty}
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+# PAC1.1.4_TC_04.6_Get Average CPM by DataSource (trafficTypeIds Missing, Accept)
+#     [Documentation]     Make a request for datasource id blank and check the result error
+#     Get Average CPM by DataSource Id    datasourceId=32
+#     ...                                 trafficTypeIds=["MISSING"]
+#     ...                                 expected_status_code=200
+#     ...                                 success=true
+#     [Tags]
+
+#----------------------------------------------------------------------------------------------------------
+
+PAC1.1.4_TC_05.1_Get Average CPM by DataSource (creativeSizeIds 99 - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id 99 and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   creativeSizeIds=[99]
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "700-937"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Datasource id"
+    [Tags]    Known_bug    CM-2216    EXCLUDE    #Exclude Reason : No parameter passed through UI like this
+
+
+PAC1.1.4_TC_05.2_Get Average CPM by DataSource (creativeSizeIds -39 - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id -39 and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   creativeSizeIds=[-39]
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "700-937"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Datasource id"
+    [Tags]    Known_bug    CM-2216    EXCLUDE    #Exclude Reason : No parameter passed through UI like this
+
+
+
+PAC1.1.4_TC_05.3_Get Average CPM by DataSource (creativeSizeIds abc - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id abc and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   creativeSizeIds=["abc"]
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+
+PAC1.1.4_TC_05.4_Get Average CPM by DataSource (creativeSizeIds null - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id null and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   creativeSizeIds=null
+    ...                                   expected_status_code=200
+    ...                                   success=true
+    [Tags]
+
+
+
+PAC1.1.4_TC_05.5_Get Average CPM by DataSource (creativeSizeIds blank - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id blank and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   creativeSizeIds=${Empty}
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+# PAC1.1.4_TC_05.6_Get Average CPM by DataSource (creativeSizeIds Missing, Accept)
+#     [Documentation]     Make a request for datasource id blank and check the result error
+#     Get Average CPM by DataSource Id    datasourceId=32
+#     ...                                 creativeSizeIds=["MISSING"]
+#     ...                                 expected_status_code=200
+#     ...                                 success=true
+#     [Tags]
+
+#----------------------------------------------------------------------------------------------------------
+
+PAC1.1.4_TC_06.1_Get Average CPM by DataSource (creativeType 99 - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id 99 and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   creativeType=99
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code              "800-101"
+    Json Value Should Equal    ${body}    /reason_desc              "Invalid creative type."
+    [Tags]  #  Known_bug    CM-2216
+
+
+PAC1.1.4_TC_06.2_Get Average CPM by DataSource (creativeType -39 - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id -39 and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   creativeType=-39
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code              "800-101"
+    Json Value Should Equal    ${body}    /reason_desc              "Invalid creative type."
+    [Tags]   # Known_bug    CM-2216
+
+
+
+PAC1.1.4_TC_06.3_Get Average CPM by DataSource (creativeType abc - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id abc and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   creativeType="abc"
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code              "800-101"
+    Json Value Should Equal    ${body}    /reason_desc              "Invalid creative type."
+    [Tags]
+
+
+
+PAC1.1.4_TC_06.4_Get Average CPM by DataSource (creativeType null - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id null and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   creativeType=null
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /avgCpm                   0.0
+    Json Value Should Equal    ${body}    /reason_code              "400-999"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Json Value Should Equal    ${body}    /errors/0/reason_desc     "Creative type cannot be null."
+    Json Value Should Equal    ${body}    /errors/0/field           "creativeType"
+    [Tags]
+
+
+
+PAC1.1.4_TC_06.5_Get Average CPM by DataSource (creativeType blank - Invalid, Don't Accept)
+    [Documentation]     Make a request for datasource id blank and check the result error
+    Get Average CPM by DataSource Id      datasourceId=32
+    ...                                   creativeType=${Empty}
+    ...                                   expected_status_code=400
+    ...                                   success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+# PAC1.1.4_TC_06.6_Get Average CPM by DataSource (creativeType Missing - Invalid, Don't Accept)
+#     [Documentation]     Make a request for datasource id blank and check the result error
+#     Get Average CPM by DataSource Id    datasourceId=32
+#     ...                                 creativeType="MISSING"
+#     ...                                 expected_status_code=400
+#     ...                                 success=false
+
+#     Json Value Should Equal    ${body}    /avgCpm                   0.0
+#     Json Value Should Equal    ${body}    /reason_code              "800-101"
+#     Json Value Should Equal    ${body}    /reason_desc              "Invalid creative type."
+
+#     [Tags]
+
+#----------------------------------------------------------------------------------------------------------

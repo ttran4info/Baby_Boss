@@ -1,0 +1,38 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.7.8		BATCH19	    OffshoreQA	    PAC_BATCH6	
+
+
+# https://wiki.4info.com/pages/viewpage.action?title=PAC+API+documentation&spaceKey=Software#PACAPIdocumentation-1.7.8GetGeographicRequestMasterdata
+# API Name: 1.7.8 Get Geographic Request Master data
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/geographic-request
+# DESC : get geographic request master list data
+
+
+*** Variables ***
+# Need to change SQL
+
+
+*** Keywords ***
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.8_TC_01.1_Get geographic request master list data (with valid URL, accept)
+	[Documentation]		Input:          Use API to get geographic request master list data,
+	...   		        Expected:       API should process successfully and response code is returned as 200 with valid data.
+	Get 1.7.8 Get geographic request master list data using API
+	...     uri=pac-api/child-adgroup/geographic-request
+	...     response_code=200
+	[Tags]
+#--------------------------------------------------------------------------------------------------------------------------------------------
+PAC1.7.8_TC_01.2_Get geographic request master list data (with invalid URL, Don't accept)
+	[Documentation]		Input:          Use API to get geographic request master list data,
+	...   		        Expected:       API should process successfully and response code is returned as 200 with valid data.
+	Get 1.7.8 Get geographic request master list data using API
+	...     uri=pac-api/child-adgroup/geographic-request1234
+	...     response_code=400
+	Should Match Regexp  ${body}  "reason_code":"400-001"
+	Should Match Regexp  ${body}  "reason_desc":"Invalid Request."
+    [Tags]		#  Known_bug       CM-1428
+#--------------------------------------------------------------------------------------------------------------------------------------------

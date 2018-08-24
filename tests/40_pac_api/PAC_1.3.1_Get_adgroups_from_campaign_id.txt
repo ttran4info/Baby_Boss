@@ -1,0 +1,455 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC    PAC1.3.1    BATCH19    PAC_BATCH1
+Suite Setup         Clean Up Pre-Requisite Data for PAC1.3.1
+Suite Teardown      Clean Up Pre-Requisite Data for PAC1.3.1
+
+#https://wiki.4info.com/pages/viewpage.action?pageId=29917295
+#API Name: 1.3. Get adgroups from campaign id
+#Method: GET
+#URL: /pac-api/campaign/adgroups?campaignId=${campaignId}
+#userName = rhino.users
+#groupId = rhino.groups
+#campaigns
+#Get a list of adgroup which be listed on campaign view page. Adgroups will contain statistics info.
+
+
+
+*** Variables ***
+${REGRESSION_END_DATE1}          06/11/2019
+
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.3.1
+    Delete New Campaign via DB    campaign_name=PAC_regression_campaign_131
+    Set Suite Variable    ${Advname}    QATEST_Advertiser_PAC1.3.1
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+
+Create Sample Advertiser for Create Campaign PAC1.3.1
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    Log        ${Advname}
+    Create Advertiser      uri=${uri_link}
+    ...                    data={"name": "${Advname}"}
+    ...                    expected_status_code=200
+    ...                    success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+
+*** Test Cases ***
+PAC1.3.1_TC_01_Get_Adgroups_from_campaign_id (many parents, many childs)
+    [Documentation]    Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}    1907
+    Set Test Variable    ${startDate}    "${REGRESSION_START_DATE}"
+    Set Test Variable    ${endDate}      "${REGRESSION_END_DATE1}"
+
+    Set Test Variable    ${uri_link}    /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                                             expected_status_code=200
+    ...                                             success=true
+    Json Value Should Equal    ${body}    /campaign/id    ${campaignId}
+    Json Value Should Equal    ${body}    /campaign/name    "05_RTB_Mopub"
+    ${StartDate_JSON}=    Get Json Value         ${body}         /campaign/startDate
+    Log    ${StartDate_JSON}
+    Log    ${startDate}
+    Should Be Equal As Strings    ${StartDate_JSON}      ${startDate}
+    ${EndDate_JSON}=    Get Json Value         ${body}         /campaign/endDate
+    Log        ${EndDate_JSON}
+    Log        ${endDate}
+    Log     ${REGRESSION_END_DATE1}
+    Should Be Equal As Strings    ${EndDate_JSON}      ${endDate}
+
+    Set Test Variable    ${parent_id}        34973
+    Set Test Variable    ${parent_name}        "01_Country"
+    Validate Parent Adgroup                parent_id=${parent_id}
+    ...                        parent_name=${parent_name}
+
+    Set Test Variable    ${child_id}            34975
+    Set Test Variable    ${child_name}        "Targeted Canada"    #  "Targeted Canada EDIT APP"
+    Validate Child Adgroup     parent_id=${parent_id}
+    ...                        child_id=${child_id}
+    ...                        child_name=${child_name}
+    ...                         endDate="${REGRESSION_END_DATE1}"
+
+    Set Test Variable    ${child_id}            34979
+    Set Test Variable    ${child_name}        "Targeted USA"
+    Validate Child Adgroup     parent_id=${parent_id}
+    ...                        child_id=${child_id}
+    ...                        child_name=${child_name}
+    ...                         endDate="${REGRESSION_END_DATE1}"
+
+    Set Test Variable    ${child_id}            34977
+    Set Test Variable    ${child_name}        "Targeted Guam"
+    Validate Child Adgroup     parent_id=${parent_id}
+    ...                        child_id=${child_id}
+    ...                        child_name=${child_name}
+    ...                         endDate="${REGRESSION_END_DATE1}"
+
+    Set Test Variable    ${child_id}            34978
+    Set Test Variable    ${child_name}        "Targeted Puerto Rico"
+    Validate Child Adgroup                parent_id=${parent_id}
+    ...                        child_id=${child_id}
+    ...                        child_name=${child_name}
+    ...                         endDate="${REGRESSION_END_DATE1}"
+
+    Set Test Variable    ${parent_id}        34981
+    Set Test Variable    ${parent_name}        "02_Device_OS"
+    Validate Parent Adgroup                parent_id=${parent_id}
+    ...                        parent_name=${parent_name}
+
+    Set Test Variable    ${child_id}            34985
+    Set Test Variable    ${child_name}        "Android"
+    Validate Child Adgroup                parent_id=${parent_id}
+    ...                        child_id=${child_id}
+    ...                        child_name=${child_name}
+    ...                         endDate="${REGRESSION_END_DATE1}"
+
+    Set Test Variable    ${child_id}            34986
+    Set Test Variable    ${child_name}        "IOS4"
+    Validate Child Adgroup                parent_id=${parent_id}
+    ...                        child_id=${child_id}
+    ...                        child_name=${child_name}
+    ...                         endDate="${REGRESSION_END_DATE1}"
+
+    Set Test Variable    ${parent_id}        34983
+    Set Test Variable    ${parent_name}        "03_Device_Type"
+    Validate Parent Adgroup                parent_id=${parent_id}
+    ...                        parent_name=${parent_name}
+
+    Set Test Variable    ${child_id}            34987
+    Set Test Variable    ${child_name}        "Phone"
+    Validate Child Adgroup                parent_id=${parent_id}
+    ...                        child_id=${child_id}
+    ...                        child_name=${child_name}
+    ...                         endDate="${REGRESSION_END_DATE1}"
+
+    Set Test Variable    ${child_id}            34988
+    Set Test Variable    ${child_name}        "Tablet"
+    Validate Child Adgroup                parent_id=${parent_id}
+    ...                        child_id=${child_id}
+    ...                        child_name=${child_name}
+    ...                         endDate="${REGRESSION_END_DATE1}"
+
+    # Should Match Regexp    ${body}    "isStruggling":true
+
+    #many more parents and child but we won't be validating them
+    [Tags]
+
+
+PAC1.3.1_TC_02_Get_Adgroups_from_campaign_id (1 parent, 0 child)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}        2041
+    Set Test Variable    ${startDate}        "${REGRESSION_START_DATE}"
+    Set Test Variable    ${endDate}            "${REGRESSION_END_DATE1}"
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=200
+    ...                        success=true
+    Json Value Should Equal        ${body}        /campaign/id    ${campaignId}
+    Json Value Should Equal        ${body}        /campaign/name    "4_CAT"
+    ${StartDate_JSON}=    Get Json Value         ${body}         /campaign/startDate
+    Should Be Equal As Strings    ${StartDate_JSON}      ${startDate}
+    ${EndDate_JSON}=    Get Json Value         ${body}         /campaign/endDate
+    Should Be Equal As Strings    ${EndDate_JSON}      ${endDate}
+    Set Test Variable    ${parent_id}        38727
+    Set Test Variable    ${parent_name}        "Parent_Only"
+    Validate Parent Adgroup                parent_id=${parent_id}
+    ...                        parent_name=${parent_name}
+    #child json returning blank result
+    ${child}=            Get Json Value            ${body}                /bundles/0/children
+    Should Match Regexp        ${child}        [{}]
+    Should Match Regexp    ${body}    "isStruggling":true
+    [Tags]
+
+
+PAC1.3.1_TC_03_Get_Adgroups_from_campaign_id (0 parent, 0 child)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Create Sample Advertiser for Create Campaign PAC1.3.1
+
+
+    Set Test Variable    ${campaign_name}        PAC_regression_campaign_131_03
+    Delete New Campaign via DB         campaign_name=${campaign_name}
+    Get Start Date
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                campaign_start_date_time=${todaysDate}
+    ...                             campaign_advertiser_id=${Advertiser_ID}
+
+    #Set Test Variable    ${campaignId}        2170
+    Set Test Variable    ${startDate}        "${todaysDate}"
+
+    ${startDate}=       Evaluate    '${startDate}'.replace('"','')
+    ${startDate} =   Get Substring   ${startDate}  0  -6
+    Log    ${startDate}
+
+    Set Test Variable    ${endDate}            "${REGRESSION_END_DATE}"
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=200
+    ...                        success=true
+    Json Value Should Equal        ${body}        /campaign/id    ${campaignId}
+    Json Value Should Equal        ${body}        /campaign/name    "${campaign_name}"
+    Json Value Should Equal        ${body}        /campaign/startDate    "${startDate}"
+    ${StartDate_JSON}=    Get Json Value         ${body}         /campaign/startDate
+    Log    ${StartDate_JSON}
+    Log    ${startDate}
+    Should Be Equal As Strings    ${StartDate_JSON}      "${startDate}"
+    ${EndDate_JSON}=    Get Json Value         ${body}         /campaign/endDate
+    Should Be Equal As Strings    ${EndDate_JSON}      ${endDate}
+    Json Value Should Equal        ${body}        /bundles    []
+    #We will just show empty bundle
+    #${parent}=            Get Json Value            ${body}                /bundles/0/parent
+    #${child}=            Get Json Value            ${body}                /bundles/0/children
+    #Should Match Regexp        ${parent}        {}            #blank parent
+    #Should Match Regexp        ${child}        [{}]        #blank children
+    [Tags]
+
+
+PAC1.3.1_TC_04_Get_Adgroups_from_campaign_id (expired campaign, show)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            462
+    Set Test Variable    ${campaign_name}        "Canada States"
+    Set Test Variable    ${startDate}            "03/01/2012"
+    Set Test Variable    ${endDate}                "03/02/2012"
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=200
+    ...                        success=true
+    Json Value Should Equal        ${body}        /campaign/id    ${campaignId}
+    Json Value Should Equal        ${body}        /campaign/name    ${campaign_name}
+    ${StartDate_JSON}=    Get Json Value         ${body}         /campaign/startDate
+    Should Be Equal As Strings    ${StartDate_JSON}      ${startDate}
+    ${EndDate_JSON}=    Get Json Value         ${body}         /campaign/endDate
+    Should Be Equal As Strings    ${EndDate_JSON}      ${endDate}
+    [Tags]
+
+
+PAC1.3.1_TC_05_Get_Adgroups_from_campaign_id (expired parent, show)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            462
+    Set Test Variable    ${campaign_name}        "Canada States"
+    Set Test Variable    ${startDate}            "03/01/2012"
+    Set Test Variable    ${endDate}                "03/02/2012"
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=200
+    ...                        success=true
+    Json Value Should Equal        ${body}        /campaign/id    ${campaignId}
+    Json Value Should Equal        ${body}        /campaign/name    ${campaign_name}
+    ${StartDate_JSON}=    Get Json Value         ${body}         /campaign/startDate
+    Should Be Equal As Strings    ${StartDate_JSON}      ${startDate}
+    ${EndDate_JSON}=    Get Json Value         ${body}         /campaign/endDate
+    Should Be Equal As Strings    ${EndDate_JSON}      ${endDate}
+    Set Test Variable    ${parent_id}        11633
+    Set Test Variable    ${parent_name}        "BC"
+    Validate Parent Adgroup                parent_id=${parent_id}
+    ...                        parent_name=${parent_name}
+    [Tags]
+
+
+PAC1.3.1_TC_06_Get_Adgroups_from_campaign_id (expired child, show)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            462
+    Set Test Variable    ${campaign_name}        "Canada States"
+    Set Test Variable    ${startDate}            "03/01/2012"
+    Set Test Variable    ${endDate}                "03/02/2012"
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=200
+    ...                        success=true
+    Json Value Should Equal        ${body}        /campaign/id    ${campaignId}
+    Json Value Should Equal        ${body}        /campaign/name    ${campaign_name}
+    ${StartDate_JSON}=    Get Json Value         ${body}         /campaign/startDate
+    Should Be Equal As Strings    ${StartDate_JSON}      ${startDate}
+    ${EndDate_JSON}=    Get Json Value         ${body}         /campaign/endDate
+    Should Be Equal As Strings    ${EndDate_JSON}      ${endDate}
+    Set Test Variable    ${parent_id}        11633
+    Set Test Variable    ${child_id}            11634
+    Set Test Variable    ${child_name}        "BC"
+    Set Test Variable    ${child_statusDisplay}        "Expired"         # "Ended"
+    Validate Child Adgroup     parent_id=${parent_id}
+    ...                        child_id=${child_id}
+    ...                        child_statusDisplay=${child_statusDisplay}
+    ...                        child_name=${child_name}
+    ...                        startDate=${startDate}
+    ...                        endDate=${endDate}
+    [Tags]
+
+
+PAC1.3.1_TC_07_Get_Adgroups_from_campaign_id (paused campaign, show)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaign_name}        PAC_regression_campaign_131_07
+    Delete New Campaign via DB         campaign_name=${campaign_name}
+    Create New Campaign via API        campaign_name=${campaign_name}
+    ...                                campaign_start_date_time=${todaysDate}
+    ...                             campaign_advertiser_id=${Advertiser_ID}
+    ...                                campaign_status=2
+    ${campaignId}=   Get JSON Value     ${body}     /campaign/id
+    #Set Test Variable    ${campaignId}                    2169
+    #Set Test Variable    ${campaign_name}                "PAC"
+    #Set Test Variable    ${campaign_status}                2
+    Set Test Variable    ${campaign_statusDisplay}        "Paused"
+    Set Test Variable    ${startDate}        "${todaysDate}"
+
+    ${startDate}=       Evaluate    '${startDate}'.replace('"','')
+    ${startDate} =   Get Substring   ${startDate}  0  -6
+    Log    ${startDate}
+
+    Set Test Variable    ${endDate}            "${REGRESSION_END_DATE}"
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3
+    ...                uri=${uri_link}
+    ...                expected_status_code=200
+    ...                success=true
+    Json Value Should Equal        ${body}        /campaign/id        ${campaignId}
+    Json Value Should Equal        ${body}        /campaign/name        "${campaign_name}"
+    ${StartDate_JSON}=    Get Json Value         ${body}         /campaign/startDate
+    Should Be Equal As Strings    ${StartDate_JSON}      "${startDate}"
+    ${EndDate_JSON}=    Get Json Value         ${body}         /campaign/endDate
+    Should Be Equal As Strings    ${EndDate_JSON}      ${endDate}
+    #Json Value Should Equal        ${body}        /campaign/status        ${campaign_status}
+    Json Value Should Equal        ${body}        /campaign/statusDisplay        ${campaign_statusDisplay}
+    [Tags]
+
+
+PAC1.3.1_TC_08_Get_Adgroups_from_campaign_id (paused parent, show)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            2182
+    Set Test Variable    ${campaign_name}        "PAC"
+    #Set Test Variable    ${campaign_status}        2
+    Set Test Variable    ${startDate}            ${REGRESSION_START_DATE}
+    Set Test Variable    ${endDate}                ${REGRESSION_END_DATE1}
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=200
+    ...                        success=true
+    Set Test Variable    ${parent_id}        38730
+    Set Test Variable    ${parent_name}        "Parent_1"
+    #Set Test Variable    ${parent_status}        2
+    Set Test Variable    ${parent_statusDisplay}        "Paused"
+    Validate Parent Adgroup                parent_id=${parent_id}
+    ...                        parent_name=${parent_name}
+    ...                        parent_statusDisplay=${parent_statusDisplay}
+    [Tags]
+
+
+PAC1.3.1_TC_09_Get_Adgroups_from_campaign_id (paused child, show)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            2182
+    Set Test Variable    ${campaign_name}        "PAC"
+    #Set Test Variable    ${campaign_status}        2
+    Set Test Variable    ${startDate}            ${REGRESSION_START_DATE}
+    Set Test Variable    ${endDate}                ${REGRESSION_END_DATE1}
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=200
+    ...                        success=true
+    Set Test Variable    ${parent_id}        38730
+    Set Test Variable    ${child_id}            38731
+    Set Test Variable    ${child_name}        "Child_1"
+    #Set Test Variable    ${child_status}        2
+    Set Test Variable    ${child_statusDisplay}        "Paused"
+    Validate Child Adgroup     parent_id=${parent_id}
+    ...                        child_id=${child_id}
+    ...                        child_name=${child_name}
+    ...                        child_statusDisplay=${child_statusDisplay}
+    ...                         endDate="${REGRESSION_END_DATE1}"
+    [Tags]
+
+
+PAC1.3.1_TC_10_Get_Adgroups_from_campaign_id (archived campaign, no show)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            2049
+    Set Test Variable    ${campaign_name}        "delete"
+    #Set Test Variable    ${campaign_status}        2
+    Set Test Variable    ${startDate}            "11/07/2016"
+    Set Test Variable    ${endDate}                "01/01/2017"
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=400
+    ...                        success=false
+    ...                        validation=NO
+    Json Value Should Equal        ${body}        /reason_code    "700-005"
+    Json Value Should Equal        ${body}        /reason_desc    "Archived Campaign or SMB Campaign."
+    [Tags]
+
+
+PAC1.3.1_TC_11_Get_Adgroups_from_campaign_id (archived parent, no show)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            968
+    Set Test Variable    ${parent_id}        20090
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=200    success=true
+    ...                        validation=NO
+    Should Not Match Regexp        ${body}            ${parent_id}
+    [Tags]
+
+
+
+PAC1.3.1_TC_12_Get_Adgroups_from_campaign_id (archived child, no show)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            525
+    Set Test Variable    ${child_id}                12253
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=200    success=true
+    ...                        validation=NO
+    Should Not Match Regexp        ${body}            ${child_id}
+    [Tags]
+
+
+PAC1.3.1_TC_13_Get_Adgroups_from_campaign_id (SMB campaign no show)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            1475
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=400    success=false
+    ...                        validation=NO
+    Json Value Should Equal        ${body}        /reason_code    "700-005"
+    Json Value Should Equal        ${body}        /reason_desc    "Archived Campaign or SMB Campaign."
+    [Tags]
+
+
+PAC1.3.1_TC_14_Get_Adgroups_from_campaign_id (9999999 campaign id does not exist, expect 400)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            9999999
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=400    success=false
+    ...                        validation=NO
+    Json Value Should Equal        ${body}        /reason_code    "800-003"   #"700-001"
+    Json Value Should Equal        ${body}        /reason_desc    "Campaign id is not found."     #"Invalid Campaign id."
+
+
+PAC1.3.1_TC_15_Get_Adgroups_from_campaign_id (abc, expect 400)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}            abc
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=400    success=false
+    ...                        validation=NO
+    Should Match Regexp            ${body}        "reason_code":"700-001"
+    Should Match Regexp            ${body}        "reason_desc":"Invalid Campaign id."
+    [Tags]
+
+
+PAC1.3.1_TC_16_Get_Adgroups_from_campaign_id (multi parent, multi child, compare to DB count)
+    [Documentation]        Make a request for admin user group 1 and check the result advertiser ID,name
+    Set Test Variable    ${campaignId}        1907
+    Set Test Variable     ${uri_link}        /pac-api/campaign/adgroups?campaignId=${campaignId}
+    Get UI element accesses from page URL PAC1.3    uri=${uri_link}
+    ...                        expected_status_code=200
+    ...                        success=true
+    Get Parent Count From Campaign
+    #${parent_count} variable generated
+    Set Test Variable        ${total_child_api}        0
+    :FOR    ${index}    IN RANGE   0    ${parent_count}
+    \        Log     Index: ${index}
+    \        Get Child Count From Bundle Index     bundle_index=${index}
+    \        ${total_child_api}=     Evaluate     ${total_child_api} + ${child_count}
+    \        Log        total child: ${total_child_api}
+    Get All Parent And Child By CampaignId via DB        campaignId=${campaignId}
+    Should Be Equal As Integers     ${total_child_api}    ${child_count_db}
+    Should Be Equal As Integers     ${parent_count}       ${parent_count_db}
+    [Tags]

@@ -1,0 +1,148 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.4.10   BATCH19     offshoreQA    PAC_BATCH2
+# Force Tags          PAC     PAC1.4.10       BATCH19      offShore-QA      EXCLUDE
+
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.4.10GetListofActiveCampaignforAdvertiser.
+# API Name: 1.4.10 Get List of Active Campaign for Advertiser .
+# Method: PATCH
+# URL : qa-dswarm-01:18082/pac-api/campaign/active-campaigns?groupId={groupId}&advertiserId={advertiserId}
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+PAC1.4.10_TC_01_Get_list_of_active_campaign_for_advertiser(valid)
+    [Documentation]      Input:             Get List of Active Campaign for Advertiser using group id = 1 and advertiserId = 184
+    ...                  Output:            Response should be 200 and gives us active campaign list.
+    Set Test Variable   ${groupId}          1
+    Set Test Variable   ${advertiserId}     184
+    Set Test Variable   ${uri_link}         /pac-api/campaign/active-campaigns?groupId=${groupId}&advertiserId=${advertiserId}
+    PAC API                                 uri=${uri_link}               request_type=GET         expected_status_code=200    success=true
+    [Tags]
+
+PAC1.4.10_TC_02_Get_list_of_active_campaign_for_advertiser(invalid advertiserId)
+    [Documentation]      Input:             Get List of Active Campaign for Advertiser using group id = 1123123 and advertiserId = 184
+    ...                  Output:            Response should be 400 and gives response as invalid Advertiser id.
+    Set Test Variable   ${groupId}          1
+    Set Test Variable   ${advertiserId}     184111
+    Set Test Variable   ${uri_link}         /pac-api/campaign/active-campaigns?groupId=${groupId}&advertiserId=${advertiserId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-104"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Advertiser id."
+    [Tags]
+
+PAC1.4.10_TC_03_Get_list_of_active_campaign_for_advertiser(null advertiserId)
+    [Documentation]      Input:             Get List of Active Campaign for Advertiser using group id = 1 and advertiserId = null
+    ...                  Output:            Response should be 400 and gives response as Invalid Request.
+    Set Test Variable   ${groupId}          1
+    Set Test Variable   ${advertiserId}     null
+    Set Test Variable   ${uri_link}         /pac-api/campaign/active-campaigns?groupId=${groupId}&advertiserId=${advertiserId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+PAC1.4.10_TC_04_Get_list_of_active_campaign_for_advertiser(special chars advertiserId)
+    [Documentation]      Input:             Get List of Active Campaign for Advertiser using group id = @#$ and advertiserId = null
+    ...                  Output:            Response should be 400 and gives response as Invalid Request.
+    Set Test Variable   ${groupId}          1
+    Set Test Variable   ${advertiserId}     @#$
+    Set Test Variable   ${uri_link}         /pac-api/campaign/active-campaigns?groupId=${groupId}&advertiserId=${advertiserId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+PAC1.4.10_TC_05_Get_list_of_active_campaign_for_advertiser(chars advertiserId)
+    [Documentation]      Input:             Get List of Active Campaign for Advertiser using group id = ABC and advertiserId = null
+    ...                  Output:            Response should be 400 and gives response as Invalid Request.
+    Set Test Variable   ${groupId}          1
+    Set Test Variable   ${advertiserId}     ABC
+    Set Test Variable   ${uri_link}         /pac-api/campaign/active-campaigns?groupId=${groupId}&advertiserId=${advertiserId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+
+
+PAC1.4.10_TC_06_Get_list_of_active_campaign_for_advertiser(invalid groupId)
+    [Documentation]      Input:             Get List of Active Campaign for Advertiser using group id = 123123 and advertiserId = 184
+    ...                  Output:            Response should be 400 and gives response as Group id is not found.
+    Set Test Variable   ${groupId}          12312
+    Set Test Variable   ${advertiserId}     184
+    Set Test Variable   ${uri_link}         /pac-api/campaign/active-campaigns?groupId=${groupId}&advertiserId=${advertiserId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal     ${body}         /reason_code            "800-002"
+    Json Value Should Equal     ${body}         /reason_desc            "Group id is not found."
+    [Tags]
+
+PAC1.4.10_TC_07_Get_list_of_active_campaign_for_advertiser(null groupId)
+    [Documentation]      Input:             Get List of Active Campaign for Advertiser using group id = null and advertiserId = 184
+    ...                  Output:            Response should be 400 and gives response as Invalid Group id..
+    Set Test Variable   ${groupId}          null
+    Set Test Variable   ${advertiserId}     184
+    Set Test Variable   ${uri_link}     /pac-api/campaign/active-campaigns?groupId=${groupId}&advertiserId=${advertiserId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal     ${body}         /reason_code            "600-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Group id."
+    [Tags]
+
+PAC1.4.10_TC_08_Get_list_of_active_campaign_for_advertiser(special chars in groupId)
+    [Documentation]      Input:             Get List of Active Campaign for Advertiser using group id = @#$ and advertiserId = 184
+    ...                  Output:            Response should be 400 and gives response as Invalid Group id..
+    Set Test Variable   ${groupId}          @#$
+    Set Test Variable   ${advertiserId}     184
+    Set Test Variable   ${uri_link}     /pac-api/campaign/active-campaigns?groupId=${groupId}&advertiserId=${advertiserId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal     ${body}         /reason_code            "600-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Group id."
+    [Tags]
+
+PAC1.4.10_TC_09_Get_list_of_active_campaign_for_advertiser(chars in groupId)
+    [Documentation]      Input:             Get List of Active Campaign for Advertiser using group id = ABC and advertiserId = 184
+    ...                  Output:            Response should be 400 and gives response as Invalid Group id..
+    Set Test Variable   ${groupId}          @#$
+    Set Test Variable   ${advertiserId}     184
+    Set Test Variable   ${uri_link}     /pac-api/campaign/active-campaigns?groupId=${groupId}&advertiserId=${advertiserId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal     ${body}         /reason_code            "600-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Group id."
+    [Tags]
+
+
+PAC1.4.10_TC_10_Get_list_of_active_campaign_for_advertiser(invalid URL)
+    [Documentation]      Input:             Get List of Active Campaign for Advertiser using group id = 1 and advertiserId = 184 with invalid url
+    ...                  Output:            Response should be 400 and gives response as Invalid Group id..
+    Set Test Variable   ${groupId}          1
+    Set Test Variable   ${advertiserId}     184
+    Set Test Variable   ${uri_link}     /pac-api/campaign/activecampaigns?groupId=${groupId}&advertiserId=${advertiserId}
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]    #   Known_bug       CM-1428
+
+
+
+

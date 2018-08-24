@@ -1,0 +1,110 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC    PAC1.3.6    BATCH19    PAC_BATCH1    OffshoreQA    # Known_bug    CM-2064
+
+
+# https://wiki.4info.com/pages/viewpage.action?pageId=29917295
+# API Name: 1.3.6 Get campaign and parent spend from campaign id
+# Method: GET
+# URL: /pac-api/campaign/spend-eCPM?campaignId={campaignId}
+# DESC: Get spend from Metamarkets API. This is used on campaign summary page
+
+# https://metamarkets.com/api/documentation/data-queries/#dimension-tables
+
+#rhino.campaign
+#rhino.taxonomy
+#rhino.taxonomy_level1
+#campaign_taxonomy_levels
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#------------------------------------------------------------------------------------------
+PAC1.3.6_TC_01.1_Get campaign and parent spend from campaign id (Valid campaign id, Accept)
+    [Documentation]    Expected : Request should give response code 200 with valid spend
+    Set Test Variable    ${campaignId}    2139
+    Get campaign and parent spend from campaign id    campaignId=${campaignId}
+    ...     expected_status_code=200
+    ...     success=true
+
+    Get spend from Metamarkets API    campaignID=${campaignId}
+    ...                               parent_ad_group_ids=${Parents}
+
+    Compare Campaign data for API with Dimension
+    Compare Parent data for API with Dimension
+    [Tags]
+
+#------------------------------------------------------------------------------------------
+
+PAC1.3.6_TC_02.1_Get campaign and parent spend from campaign id (Invalid campaign id, Don't Accept)
+    [Documentation]    Expected : Request should give response code 400 with valid spend
+    Set Test Variable    ${campaignId}    9999
+    Get campaign and parent spend from campaign id    campaignId=${campaignId}
+    ...     expected_status_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code    "800-003"
+    Json Value Should Equal    ${body}    /reason_desc    "Campaign id is not found."
+    [Tags]
+
+
+
+PAC1.3.6_TC_02.2_Get campaign and parent spend from campaign id (Invalid campaign id, Don't Accept)
+    [Documentation]    Expected : Request should give response code 400 with valid spend
+    Set Test Variable    ${campaignId}    999
+    Get campaign and parent spend from campaign id    campaignId=${campaignId}
+    ...     expected_status_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-005"
+    Json Value Should Equal    ${body}    /reason_desc    "Archived Campaign or SMB Campaign."
+    [Tags]
+
+
+PAC1.3.6_TC_02.3_Get campaign and parent spend from campaign id (null campaign id, Don't Accept)
+    [Documentation]    Expected : Request should give response code 400 with valid spend
+    Set Test Variable    ${campaignId}    null
+    Get campaign and parent spend from campaign id    campaignId=${campaignId}
+    ...     expected_status_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Campaign id."
+    [Tags]
+
+
+
+PAC1.3.6_TC_02.4_Get campaign and parent spend from campaign id (blank campaign id, Don't Accept)
+    [Documentation]    Expected : Request should give response code 400 with valid spend
+    Set Test Variable    ${campaignId}    ""
+    Get campaign and parent spend from campaign id    campaignId=${campaignId}
+    ...     expected_status_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Campaign id."
+    [Tags]
+
+
+
+PAC1.3.6_TC_02.5_Get campaign and parent spend from campaign id (Missing campaign id, Don't Accept)
+    [Documentation]    Expected : Request should give response code 400 with valid spend
+    Set Test Variable    ${campaignId}    ${Empty}
+    Get campaign and parent spend from campaign id    campaignId=${campaignId}
+    ...     expected_status_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Campaign id."
+    [Tags]
+
+
+
+PAC1.3.6_TC_02.6_Get campaign and parent spend from campaign id (invalid characters in campaign id, Don't Accept)
+    [Documentation]    Expected : Request should give response code 400 with valid spend
+    Set Test Variable    ${campaignId}    "@#$%"
+    Get campaign and parent spend from campaign id    campaignId=${campaignId}
+    ...     expected_status_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Campaign id."
+    [Tags]
+#------------------------------------------------------------------------------------------

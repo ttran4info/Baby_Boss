@@ -1,0 +1,118 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC    PAC1.1.2    BATCH19    PAC_BATCH1
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.1.2GetallDataPartnersbygroupId
+# API Name: 1.1.2 Get all Data Partners by group Id
+# Method: GET
+# URL: /pac-api/partner/datapartner?groupId={groupId}&isChannel=false
+# userName = rhino.users
+# groupId = rhino.groups
+# Get all associated data partners by group id. This request will be called by Forecasting page.
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+*** Test Cases ***
+PAC1.1.2_TC_01.1_Get all associated data partners by group id (1-admin)
+    [Documentation]     Make a request for admin user group 1 and check the result all associated data partners
+    Set Test Variable   ${group_id}     1
+    Set Test Variable   ${uri_link}     /pac-api/partner/datapartner?groupId=${group_id}&isChannel=false
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Should Match Regexp         ${body}     {"id":44,"name":"4INFO","reach":0.8}
+    Should Match Regexp         ${body}     {"id":11,"name":"Acxiom","reach":0.8}
+    Should Match Regexp         ${body}     {"id":32,"name":"ATT","reach":0.8}
+    Should Match Regexp         ${body}     {"id":45,"name":"Catalina","reach":0.8}
+    Should Match Regexp         ${body}     {"id":19,"name":"Datamyx","reach":0.8}
+    Should Match Regexp         ${body}     {"id":21,"name":"Experian","reach":0.8}
+    Should Match Regexp         ${body}     {"id":8,"name":"NCS","reach":0.8}
+    [Tags]
+
+
+PAC1.1.2_TC_02.1_Get all associated data partners by group id (15-Catalina)
+    [Documentation]     Make a request for admin user group 15 and check the result all associated data partners
+    Set Test Variable   ${group_id}     15
+    Set Test Variable   ${uri_link}     /pac-api/partner/datapartner?groupId=${group_id}&isChannel=false
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=200
+    ...                                     success=true
+    Should Match Regexp         ${body}     {"id":8,"name":"NCS","reach":0.8}
+    Should Match Regexp         ${body}     {"id":16,"name":"NCS Score","reach":0.8}
+    [Tags]
+
+
+PAC1.1.2_TC_03.1_Get all associated data partners by group id (99-Unknown, expected error)
+    [Documentation]     Make a request for admin user group 99 and check the result error
+    Set Test Variable   ${group_id}     99
+    Set Test Variable   ${uri_link}     /pac-api/partner/datapartner?groupId=${group_id}&isChannel=false
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Should Match Regexp         ${body}     "reason_code":"800-002"
+    Should Match Regexp         ${body}     "reason_desc":"Group id is not found."
+    [Tags]
+
+
+PAC1.1.2_TC_03.2_Get all associated data partners by group id (abc-Unknown, expected error)
+    [Documentation]     Make a request for admin user group abc and check the result error
+    Set Test Variable   ${group_id}     abc
+    Set Test Variable   ${uri_link}     /pac-api/partner/datapartner?groupId=${group_id}&isChannel=false
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Should Match Regexp         ${body}     "reason_code":"600-001"
+    Should Match Regexp         ${body}     "reason_desc":"Invalid Group id."
+    [Tags]
+
+
+PAC1.1.2_TC_03.3_Get all associated data partners by group id (missing group id, expected error)
+    [Documentation]     Make a request for admin user group blank and check the result error
+    Set Test Variable   ${group_id}     ${Empty}
+    Set Test Variable   ${uri_link}     /pac-api/partner/datapartner?groupId=${group_id}&isChannel=false
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Should Match Regexp         ${body}     "reason_code":"600-001"
+    Should Match Regexp         ${body}     "reason_desc":"Invalid Group id."
+    [Tags]
+
+
+PAC1.1.2_TC_04.1_Get all associated data partners by group id (isChannel invalid, expected error)
+    [Documentation]     Make a request for admin user group 1 and isChannel invalid value check the result error
+    Set Test Variable   ${group_id}     1
+    Set Test Variable   ${uri_link}     /pac-api/partner/datapartner?groupId=${group_id}&isChannel=abcd
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Should Match Regexp         ${body}     "reason_code":"400-001"
+    Should Match Regexp         ${body}     "reason_desc":"Invalid Request."
+    [Tags]
+
+
+PAC1.1.2_TC_04.2_Get all associated data partners by group id (isChannel blank, expected error)
+    [Documentation]     Make a request for admin user group 1 and isChannel invalid value check the result error
+    Set Test Variable   ${group_id}     1
+    Set Test Variable   ${uri_link}     /pac-api/partner/datapartner?groupId=${group_id}&isChannel='${Empty}'
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Should Match Regexp         ${body}     "reason_code":"400-001"
+    Should Match Regexp         ${body}     "reason_desc":"Invalid Request."
+    [Tags]
+
+
+PAC1.1.2_TC_04.3_Get all associated data partners by group id (isChannel null, expected error)
+    [Documentation]     Make a request for admin user group 1 and isChannel invalid value check the result error
+    Set Test Variable   ${group_id}     1
+    Set Test Variable   ${uri_link}     /pac-api/partner/datapartner?groupId=${group_id}&isChannel=null
+    PAC API                                 uri=${uri_link}               request_type=GET
+    ...                                     expected_status_code=400
+    ...                                     success=false
+    Should Match Regexp         ${body}     "reason_code":"400-001"
+    Should Match Regexp         ${body}     "reason_desc":"Invalid Request."
+    [Tags]

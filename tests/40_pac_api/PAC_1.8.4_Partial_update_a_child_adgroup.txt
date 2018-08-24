@@ -1,0 +1,1570 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.8.4   offshoreQA    BATCH19    PAC_BATCH7
+Suite Setup         Clean Up Campaign, Advertiser
+Suite Teardown      Clean Up Campaign, Advertiser
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.8.4Partialupdateachildadgroup
+# 1.8.4 Partial update a child adgroup
+# Method: PATCH
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/child-adgroup/{adgroupId}?username={username}
+
+
+*** Variables ***
+${child_adgroup}                1
+${QA_TEST_ADVERTISER}   PAC_regression_Advertiser_184
+${QA_TEST_CAMPAIGN}     PAC_regression_campaign_184
+${QA_TEST_PARENT}       PAC_regression_parent_184
+${QA_TEST_CHILD}        PAC_regression_child_184_
+
+*** Keywords ***
+Create a new campaign for PAC1.8.4
+    [Arguments]         ${campaign_name}=PAC_regression_campaign_184_01
+    ...                 ${parentName}=PAC_regression_parent_184_01
+    ...                 ${campaign_start_date_time}=${REGRESSION_START_DATE} 00:00
+    ...                 ${campaign_end_date_time}=${REGRESSION_END_DATE} 23:59
+    ...                 ${parent_start_date_time}=${REGRESSION_START_DATE} 00:00
+    ...                 ${parent_end_date_time}=${REGRESSION_END_DATE} 23:59
+    ...                 ${campaign_advertiser_id}=
+    Set Test Variable       ${username}         ${QA_DEFAULT_USER}
+
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_advertiser_id=${campaign_advertiser_id}
+
+    ${parent_campaign_id}=       Get JSON Value      ${body}     /campaign/id
+    Set Suite Variable      ${Campaign_Id}       ${parent_campaign_id}
+
+    Create Parent Adgroup via API       parent_name=${parentName}
+    ...                                 parent_start_date_time=${parent_start_date_time}
+    ...                                 parent_end_date_time=${parent_end_date_time}
+    ...                                 parent_campaign_id=${Campaign_Id}
+    ...                                 HHMMSS_Flag=0
+    ...                                 response_code=200
+
+    ${parentID}=        Get JSON Value      ${body}     /parent/id
+    Set Suite Variable      ${parent_ID}        ${parentID}
+    ${timezone}=        Get JSON Value      ${body}     /parent/timezone
+    Set Suite Variable       ${campaign_timezone}      ${timezone}
+
+
+Clean Up Campaign, Advertiser
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+
+
+*** Test Case ***
+PAC1.8.4_TC_01.1_update_child_adgroup (Normal Child adgroup)
+    [Documentation]     Input:   partial update child adgroup with new name
+    ...                 Expected:we should get response code as = 200 and updation of child should be successfull
+    Get Start Date
+    Log To Console                              "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_011
+    ...                                         parentName=PAC_regression_parent_184_011
+    ...                                         campaign_start_date_time=${todaysDate}
+    ...                                         parent_start_date_time=${todaysDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_011
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=name
+    ...                                         value="PAC_regression_child_partial_updated"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]      #Known_bug   CM-1146
+
+
+PAC1.8.4_TC_01.2_update_child_adgroup (partial update with blank name)
+    [Documentation]     Input:   partial update child adgroup with blank name
+    ...                 Expected:we should get response code as = 400 and updation of child should not be successfull
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_012
+    ...                                         parentName=PAC_regression_parent_184_012
+    ...                                             campaign_start_date_time=${todaysDate}
+    ...                                             parent_start_date_time=${todaysDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_012
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=name
+    ...                                         value="${Empty}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]      #CM-722
+
+PAC1.8.4_TC_01.3_update_child_adgroup (partial update with name null)
+    [Documentation]     Input:   partial update child adgroup with null name
+    ...                 Expected:we should get response code as = 400 and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_013
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=name
+    ...                                         value=null
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]      #CM-722
+
+PAC1.8.4_TC_01.3.1_update_child_adgroup (partial update with attribute name and value missing)
+    [Documentation]     Input:   partial update child adgroup with null name
+    ...                 Expected:we should get response code as = 400 and updation of child should not be successfull
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_0131
+    ...                                         parentName=PAC_regression_parent_184_0131
+    ...                                         campaign_start_date_time=${todaysDate}
+    ...                                         parent_start_date_time=${todaysDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_0131
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=name
+    ...                                         value=MISSING
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]      #CM-722
+
+
+PAC1.8.4_TC_01.4_partial update child adgroup (name : duplicate same parent adgroup, don't accept)
+    [Documentation]     Input:   partial update child adgroup with duplicate name
+    ...                 Expected:we should get response code as = 400 and updation of child should not be successfull
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_014
+    ...                                         parentName=PAC_regression_parent_184_014
+    ...                                         campaign_start_date_time=${todaysDate}
+    ...                                         parent_start_date_time=${todaysDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_184_014_1
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_014_2
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=name
+    ...                                         value="PAC_regression_child_184_184_014_1"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    Json Value Should Equal        ${body}         /reason_code             "400-999"
+    Json Value Should Equal        ${body}         /reason_desc             "Validation Failure"
+    Json Value Should Equal        ${body}         /errors/0/reason_code    "700-204"
+    Json Value Should Equal        ${body}         /errors/0/field          "name"
+    Json Value Should Equal        ${body}         /errors/0/reason_desc    "Adgroup name exists."
+    [Tags]    #  Known_bug      CM-1525          #  CM-883
+
+
+PAC1.8.4_TC_01.5_partial update child adgroup (name : duplicate different parent adgroup, accept)
+    [Documentation]     Input:   partial update child adgroup with duplicate name
+    ...                 Expected:we should get response code as = 400 and updation of child should not be successfull
+    Get Start Date
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_015_1
+    ...                                         parentName=PAC_regression_parent_184_015_1
+    ...                                         campaign_start_date_time=${todaysDate}
+    ...                                         parent_start_date_time=${todaysDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_184_015_1
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_015_2
+    ...                                         parentName=PAC_regression_parent_184_015_2
+    ...                                         campaign_start_date_time=${todaysDate}
+    ...                                         parent_start_date_time=${todaysDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_015_2
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+
+    Partial Update Child Adgroup via API        attribute=name
+    ...                                         value="PAC_regression_child_TC_184_015_1"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]        #   Known_bug       CM-883
+#------------------------------------------------------------------------------------------------
+PAC1.8.4_TC_02.1_update_child_adgroup (partial update with status 2)
+    [Documentation]     Input:   partial update child adgroup with 2
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_021
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         child_status=1
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=status
+    ...                                         value=2
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+
+PAC1.8.4_TC_02.2_update_child_adgroup (partial update with status 1)
+    [Documentation]     Input:   partial update child adgroup with
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_022
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         child_status=2
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=status
+    ...                                         value=1
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+
+
+PAC1.8.4_TC_02.3_update_child_adgroup (partial update with invalid status as string)
+    [Documentation]     Input:   partial update child adgroup with invalid status as string
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_023
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=status
+    ...                                         value="ABC"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_02.4_update_child_adgroup (partial update with invalid value)
+    [Documentation]     Input:   partial update child adgroup with invalid value
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_024
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=status
+    ...                                         value=12343
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_03.1_update_child_adgroup (partial update with Timezone:G)
+    [Documentation]     Input:   partial update child adgroup with imezone:
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_031
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=timezone
+    ...                                         value="G"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+PAC1.8.4_TC_03.2_update_child_adgroup (partial update with Timezone:E)
+    [Documentation]     Input:   partial update child adgroup with Timezone:E
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_032
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=timezone
+    ...                                         value="E"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+PAC1.8.4_TC_03.3_update_child_adgroup (partial update with Timezone:C)
+    [Documentation]     Input:   partial update child adgroup with Timezone:C
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_033
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=timezone
+    ...                                         value="C"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+PAC1.8.4_TC_03.4_update_child_adgroup (partial update with Timezone:M)
+    [Documentation]     Input:   partial update child adgroup with Timezone:M
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_034
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=timezone
+    ...                                         value="M"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+PAC1.8.4_TC_03.5_update_child_adgroup (partial update with Timezone:P)
+    [Documentation]     Input:   partial update child adgroup with Timezone:P
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_035
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=timezone
+    ...                                         value="P"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+PAC1.8.4_TC_03.6_update_child_adgroup (partial update with Timezone:A)
+    [Documentation]     Input:   partial update child adgroup with Timezone:A
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_036
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=timezone
+    ...                                         value="A"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+PAC1.8.4_TC_03.7_update_child_adgroup (partial update with Timezone:H)
+    [Documentation]     Input:   partial update child adgroup with Timezone:H
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_037
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=timezone
+    ...                                         value="H"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+PAC1.8.4_TC_03.8_update_child_adgroup (partial update with Timezone:V)
+    [Documentation]     Input:   partial update child adgroup with Timezone:V
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_038
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=timezone
+    ...                                         value="V"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_04.1_update_child_adgroup (partial update with start date Yesterday - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_041
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC - 2 day
+    Set Test Variable   ${start_date}           ${mm}/${dd}/${yyyy} 00:00
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value=${start_date}
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_04.2_update_child_adgroup (partial update with start date Today - allow)
+    [Documentation]     Input:   partial update child adgroup with
+    ...                 Expected: API should process successfully with response code 200.
+    #Create a new campaign for PAC1.8.4
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_042
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day
+    Set Test Variable   ${start_date}           ${mm}/${dd}/${yyyy} 00:00
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value="${todaysDate}"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]    #   Known_bug       CM-882
+
+
+PAC1.8.4_TC_04.3_update_child_adgroup (partial update with start date Tomorrow - allow)
+    [Documentation]     Input:   partial update child adgroup with date Tomorrow - Don't allow
+    ...                 Expected: API should process successfully with response code 200.
+    # Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_043
+    # ...                                         parentName=PAC_regression_parent_184_043
+    # ...                                         campaign_advertiser_id=${advertiser_id}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_043
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    ${yyyy}     ${mm}       ${dd}=              Get Time            year,month,day          UTC + 2 day
+    Set Test Variable   ${start_date}           ${mm}/${dd}/${yyyy} 12:10
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value="${start_date}"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+
+PAC1.8.4_TC_04.4_update_child_adgroup (partial update with start date invalid Format - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with date invalid Format - Don't allow
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_044
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value="${mm}-${dd}-${yyyy} 00:00"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_04.5_update_child_adgroup (partial update with start date Blank - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with date Blank - Don't allow
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_045
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value="${Empty}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_04.6_update_child_adgroup (partial update with start date not with parent date range - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with date not with parent date range - Don't allow
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_046
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value="05/22/2001 00:00"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_04.7_update_child_adgroup (partial update with start date null - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with date null - Don't allow
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_047
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value="null"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_04.8_Partial Update Child Adgroup (start date : less than Parent Adgroup start date - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with start date less than Parent Adgroup start date,
+    ...                 Expected: Request should not process successfully with response code 400.
+    ${yyyy}     ${mm}       ${dd}=      Get Time            year,month,day      UTC + 10 day
+    Set Test Variable   ${StartDate}      ${mm}/${dd}/${yyyy} 10:15
+    Log     ${StartDate}
+
+    ${yyyy}     ${mm}       ${dd}=      Get Time            year,month,day      UTC + 20 day
+    Set Test Variable   ${EndDate}      ${mm}/${dd}/${yyyy} 10:15
+    Log     ${EndDate}
+
+    ${yyyy}     ${mm}       ${dd}=      Get Time            year,month,day      UTC + 4 day
+    Set Test Variable   ${UpdateStartDate}      ${mm}/${dd}/${yyyy} 10:15
+    Log     ${UpdateStartDate}
+
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_048
+    ...                                         parentName=PAC_regression_parent_184_048
+    ...                                         campaign_start_date_time=${StartDate}
+    ...                                         campaign_end_date_time=${EndDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    ...                                         parent_start_date_time=${StartDate}
+    ...                                         parent_end_date_time=${EndDate}
+
+    Set Test Variable       ${username}         ${QA_DEFAULT_USER}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_184_048
+    ...                                         child_parent_campaign_id=${parentId}
+    ...                                         child_start_date_time=${StartDate}
+    ...                                         child_end_date_time=${EndDate}
+    ...                                         response_code=200
+
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value="${UpdateStartDate}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+
+    Json Value Should Equal     ${body}     /errors/0/field         "startDate"
+    Json Value Should Equal     ${body}     /errors/0/reason_code   "700-902"
+    ${Timezone_value}=       Evaluate    '${campaign_timezone}'.replace('G','GMT')
+    ${Timezone_value}=       Evaluate     ${Timezone_value}.replace('"','')
+    Json Value Should Equal     ${body}     /errors/0/reason_desc   "Child adGroup start date has to be within today's date and within parent adGroup date Range (${startDate} - ${EndDate} ${Timezone_value})"
+    [Tags]        # Known_bug       CM-924
+
+
+PAC1.8.4_TC_04.9_Partial Update Child Adgroup (start date : greater than campaign end date - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with start date greater than campaign end date,
+    ...                 Expected: Request should not process successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=     Get Time     year,month,day,hours,minutes    UTC + 5 day
+    Set Suite Variable    ${EndtDate}   ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=     Get Time     year,month,day,hours,minutes    UTC + 9 day
+    Set Suite Variable    ${UpdateDate}   ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+    Get Start Date
+    Set Test Variable               ${campaign_name}                    PAC_regression_campaign_184_049
+    Set Test Variable               ${campaign_status}                  1
+    Set Test Variable               ${campaign_start_date_time}         ${todaysDate}
+    Set Test Variable               ${campaign_end_date_time}           ${EndtDate}
+    Set Test Variable               ${campaign_timezone}                G
+    Set Test Variable               ${campaign_external_id}             "externalid"
+    Set Test Variable               ${campaign_io}                      6624
+    Set Test Variable               ${campaign_vertical}                32
+    Set Test Variable               ${campaign_segment}                 4303
+    Set Test Variable               ${campaign_congrol_group_size}      0
+    Set Test Variable               ${campaign_access_control}          8
+    Set Test Variable               ${campaign_store_visit}             ${EMPTY}
+    Set Test Variable               ${campaign_demo_data_source}        7
+    Set Test Variable               ${campaign_demohide_chart_id}       4, 6
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_advertiser_id=${advertiser_id}
+    ...                                 campaign_timezone=${campaign_timezone}
+    ...                                 campaign_external_id=${campaign_external_id}
+    ...                                 campaign_io=${campaign_io}
+    ...                                 campaign_vertical=${campaign_vertical}
+    ...                                 campaign_segment=${campaign_segment}
+    ...                                 campaign_congrol_group_size=${campaign_congrol_group_size}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_store_visit=${campaign_store_visit}
+    ...                                 campaign_demo_data_source=${campaign_demo_data_source}
+    ...                                 campaign_demohide_chart_id=${campaign_demohide_chart_id}
+    ...                                 response_code=200
+    ${parent_campaign_id}=      Get JSON Value      ${body}     /campaign/id
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_166_086
+    ...                                 parent_campaign_id=${parent_campaign_id}
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 parent_end_date_time=${EndtDate}
+    ...                                 response_code=200
+    ${parentId}=   Get JSON Value  ${body}     /parent/id
+    Set Test Variable       ${username}         ${QA_DEFAULT_USER}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_049
+    ...                                         child_parent_campaign_id=${parentId}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${EndtDate}
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value="${UpdateDate}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]      # Known_bug       CM-924
+
+
+PAC1.8.4_TC_04.10_Partial update_child_adgroup (Start date: HH:MM:SS format - allow)
+    [Documentation]     Input:   partial update child adgroup with start date in HH:MM:SS format
+    ...                 Expected: Request should get processed successfully with response code 200.
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_0410
+    ...                                         parentName=PAC_regression_parent_184_0410
+    ...                                         campaign_start_date_time=${todaysDate}
+    ...                                         parent_start_date_time=${todaysDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_0410
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value="${todaysDate}:25"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]     # CM-827
+
+
+
+PAC1.8.4_TC_05.1_update_child_adgroup (partial update with End date Yesterday - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with
+    ...                 Expected: API should not process successfully with response code 400.
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_051
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC - 1 day
+    Set Test Variable   ${EndDate}           ${mm}/${dd}/${yyyy} 10:10
+    Partial Update Child Adgroup via API        attribute=endDate
+    ...                                         value=${EndDate}
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_05.2_update_child_adgroup (partial update with End date Today - allow)
+    [Documentation]     Input:   partial update child adgroup with
+    ...                 Expected: API should process successfully with response code 200.
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_052
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC
+    Set Test Variable   ${EndDate}           ${mm}/${dd}/${yyyy} 23:50:50
+    Partial Update Child Adgroup via API        attribute=endDate
+    ...                                         value="${EndDate}"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]             #   Known_bug       CM-882
+
+
+PAC1.8.4_TC_05.3_update_child_adgroup (partial update with End date Tomorrow - allow)
+    [Documentation]     Input:   partial update child adgroup with date Tomorrow
+    ...                 Expected: API should process successfully with response code 200.
+    # Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_053
+    # ...                                         parentName=PAC_regression_parent_184_053
+    # ...                                         campaign_advertiser_id=${advertiser_id}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_053
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 2 day
+    Set Test Variable   ${end_date}           ${mm}/${dd}/${yyyy} 23:59
+    Partial Update Child Adgroup via API        attribute=endDate
+    ...                                         value="${end_date}"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+
+PAC1.8.4_TC_05.4_update_child_adgroup (partial update with End date invalid Format - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with date invalid Format - Don't allow
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_054
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day
+    Partial Update Child Adgroup via API        attribute=startDate
+    ...                                         value="${mm}-${dd}-${yyyy} 00:00"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_05.5_update_child_adgroup (partial update with End date Blank - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with date Blank - Don't allow
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_055
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=endDate
+    ...                                         value="${Empty}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_05.6_update_child_adgroup (partial update with End date not with parent date range - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with date not with parent date range - Don't allow
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_056
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=endDate
+    ...                                         value="05/22/2040 00:00"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_05.7_update_child_adgroup (partial update with End date null - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with date null - Don't allow
+    ...                 Expected:we should get response code as =  and updation of child should not be successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_057
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=endDate
+    ...                                         value="null"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_05.8_Partial Update Child Adgroup (End date : between start date and end date of campaign - allow)
+    [Documentation]     Input:   partial update child adgroup with end date between start date and end date of campaign,
+    ...                 Expected: Request should get processed successfully with response code 200.
+    Get Start Date
+    Set Test Variable               ${campaign_name}                    PAC_regression_campaign_184_058
+    Set Test Variable               ${campaign_status}                  1
+    Set Test Variable               ${campaign_start_date_time}         ${todaysDate}
+    Set Test Variable               ${campaign_end_date_time}           ${REGRESSION_END_DATE} 23:59
+    Set Test Variable               ${campaign_timezone}                G
+    Set Test Variable               ${campaign_external_id}             "externalid"
+    Set Test Variable               ${campaign_io}                      6624
+    Set Test Variable               ${campaign_vertical}                32
+    Set Test Variable               ${campaign_segment}                 4303
+    Set Test Variable               ${campaign_congrol_group_size}      0
+    Set Test Variable               ${campaign_access_control}          8
+    Set Test Variable               ${campaign_store_visit}             ${EMPTY}
+    Set Test Variable               ${campaign_demo_data_source}        7
+    Set Test Variable               ${campaign_demohide_chart_id}       4, 6
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_timezone=${campaign_timezone}
+    ...                                 campaign_external_id=${campaign_external_id}
+    ...                                 campaign_io=${campaign_io}
+    ...                                 campaign_vertical=${campaign_vertical}
+    ...                                 campaign_segment=${campaign_segment}
+    ...                                 campaign_congrol_group_size=${campaign_congrol_group_size}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_store_visit=${campaign_store_visit}
+    ...                                 campaign_demo_data_source=${campaign_demo_data_source}
+    ...                                 campaign_demohide_chart_id=${campaign_demohide_chart_id}
+    ...                                 response_code=200
+    ${parent_campaign_id}=      Get JSON Value      ${body}     /campaign/id
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_166_098
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 parent_campaign_id=${parent_campaign_id}
+    ...                                 response_code=200
+    ${parentId}=   Get JSON Value  ${body}     /parent/id
+    Set Test Variable       ${username}         ${QA_DEFAULT_USER}
+    Create Child Adgroup via API        child_name=PAC_regression_child_184_058
+    ...                                 child_parent_campaign_id=${parent_ID}
+    ...                                 child_start_date_time=${todaysDate}
+    ...                                 child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                 response_code=200
+
+    ${yyyy}     ${mm}       ${dd}=      Get Time            year,month,day      UTC + 10 day
+    Set Test Variable   ${enddate}      ${mm}/${dd}/${yyyy} 10:15
+    Log        ${enddate}
+
+    Partial Update Child Adgroup via API        attribute=endDate
+    ...                                         value="${enddate}"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]        #   Known_bug       CM-924
+
+
+PAC1.8.4_TC_05.9_Partial Update Child Adgroup (End date : less than start date of campaign - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with end date less than start date of campaign,
+    ...                 Expected: Request should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=                      Get Time            year,month,day,hours,minutes    UTC + 5 day
+    Set Suite Variable    ${StartDate}   ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=                      Get Time            year,month,day,hours,minutes    UTC + 3 day
+    Set Suite Variable    ${UpdateEndDate}   ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+
+    Set Test Variable               ${campaign_name}                    PAC_regression_campaign_184_059
+    Set Test Variable               ${campaign_status}                  1
+    Set Test Variable               ${campaign_start_date_time}         ${StartDate}
+    Set Test Variable               ${campaign_end_date_time}           ${REGRESSION_END_DATE} 23:59
+    Set Test Variable               ${campaign_timezone}                G
+    Set Test Variable               ${campaign_external_id}             "externalid"
+    Set Test Variable               ${campaign_io}                      6624
+    Set Test Variable               ${campaign_vertical}                32
+    Set Test Variable               ${campaign_segment}                 4303
+    Set Test Variable               ${campaign_congrol_group_size}      0
+    Set Test Variable               ${campaign_access_control}          8
+    Set Test Variable               ${campaign_store_visit}             ${EMPTY}
+    Set Test Variable               ${campaign_demo_data_source}        7
+    Set Test Variable               ${campaign_demohide_chart_id}       4, 6
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_timezone=${campaign_timezone}
+    ...                                 campaign_external_id=${campaign_external_id}
+    ...                                 campaign_io=${campaign_io}
+    ...                                 campaign_vertical=${campaign_vertical}
+    ...                                 campaign_segment=${campaign_segment}
+    ...                                 campaign_congrol_group_size=${campaign_congrol_group_size}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_store_visit=${campaign_store_visit}
+    ...                                 campaign_demo_data_source=${campaign_demo_data_source}
+    ...                                 campaign_demohide_chart_id=${campaign_demohide_chart_id}
+    ...                                 response_code=200
+    ${parent_campaign_id}=      Get JSON Value      ${body}     /campaign/id
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_184_059
+    ...                                 parent_campaign_id=${parent_campaign_id}
+    ...                                 parent_start_date_time=${StartDate}
+    ...                                 parent_end_date_time=${REGRESSION_END_DATE} 23:59
+    ...                                 response_code=200
+    ${parentId}=   Get JSON Value  ${body}     /parent/id
+    Set Test Variable       ${username}         ${QA_DEFAULT_USER}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_059
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${StartDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:59
+    ...                                         response_code=200
+
+    Partial Update Child Adgroup via API        attribute=endDate
+    ...                                         value="${UpdateEndDate}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]        #   Known_bug       CM-924     PAC1.8.4_TC_05.9
+
+
+PAC1.8.4_TC_05.10_Partial Update Child Adgroup (End date : greater than end date of campaign - Don't allow)
+    [Documentation]     Input:   partial update child adgroup with end date greater than end date of campaign,
+    ...                 Expected: Request should not get processed successfully with response code 400.
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC + 5 day
+    Set Suite Variable    ${EndDate}   ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC + 10 day
+    Set Suite Variable    ${UpdateEndDate}   ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+
+    Get Start Date
+
+    Set Test Variable               ${campaign_name}                    PAC_regression_campaign_184_0510
+    Set Test Variable               ${campaign_status}                  1
+    Set Test Variable               ${campaign_start_date_time}         ${todaysDate}
+    Set Test Variable               ${campaign_end_date_time}           ${EndDate}
+    Set Test Variable               ${campaign_timezone}                G
+    Set Test Variable               ${campaign_external_id}             "externalid"
+    Set Test Variable               ${campaign_io}                      6624
+    Set Test Variable               ${campaign_vertical}                32
+    Set Test Variable               ${campaign_segment}                 4303
+    Set Test Variable               ${campaign_congrol_group_size}      0
+    Set Test Variable               ${campaign_access_control}          8
+    Set Test Variable               ${campaign_store_visit}             ${EMPTY}
+    Set Test Variable               ${campaign_demo_data_source}        7
+    Set Test Variable               ${campaign_demohide_chart_id}       4, 6
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_timezone=${campaign_timezone}
+    ...                                 campaign_external_id=${campaign_external_id}
+    ...                                 campaign_io=${campaign_io}
+    ...                                 campaign_vertical=${campaign_vertical}
+    ...                                 campaign_segment=${campaign_segment}
+    ...                                 campaign_congrol_group_size=${campaign_congrol_group_size}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_store_visit=${campaign_store_visit}
+    ...                                 campaign_demo_data_source=${campaign_demo_data_source}
+    ...                                 campaign_demohide_chart_id=${campaign_demohide_chart_id}
+    ...                                 response_code=200
+    ${parent_campaign_id}=      Get JSON Value      ${body}     /campaign/id
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_184_0510
+    ...                                 parent_campaign_id=${parent_campaign_id}
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 parent_end_date_time=${EndDate}
+    ...                                 response_code=200
+    ${parentId}=   Get JSON Value  ${body}     /parent/id
+    Set Test Variable       ${username}         ${QA_DEFAULT_USER}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_0150
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${EndDate}
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=endDate
+    ...                                         value="${UpdateEndDate}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]         #  Known_bug       CM-924
+
+
+
+PAC1.8.4_TC_05.11_Partial update_child_adgroup (End date: HH:MM:SS format - allow)
+    [Documentation]     Input:   partial update child adgroup with End date in HH:MM:SS format
+    ...                 Expected: Request should get processed successfully with response code 200.
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_0511
+    ...                                         parentName=PAC_regression_parent_184_0511
+    ...                                             campaign_start_date_time=${todaysDate}
+    ...                                             parent_start_date_time=${todaysDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_0511
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=endDate
+    ...                                         value="${REGRESSION_END_DATE} 23:40:30"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]    #  CM-827
+
+
+PAC1.8.4_TC_06.1_update_child_adgroup (update Parent Id Invalid)
+    [Documentation]     Input:   update child adgroup with Parent Id Invalid
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_061
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=parentId
+    ...                                         value=12341
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]  # known_bug   CM-850
+
+
+PAC1.8.4_TC_06.2_update_child_adgroup (update Parent Id any Strings)
+    [Documentation]     Input:   update child adgroup with Parent Id any Strings
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_062
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=parentId
+    ...                                         value="ABC"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_06.3_update_child_adgroup (update Parent Id Missing value)
+    [Documentation]     Input:   update child adgroup with Parent Id value missing, it should not update internally the parent in this case.
+    ...                 Expected:we should get response code as = 200 and updation of child should successfull
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_063
+    ...                                         parentName=PAC_regression_parent_184_063
+    ...                                             campaign_start_date_time=${todaysDate}
+    ...                                             parent_start_date_time=${todaysDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_063
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=parentId
+    ...                                         value=""
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]    #  CM-1006
+
+PAC1.8.4_TC_07.1_update_child_adgroup (update impressionGoal: 1000 - accepted)
+    [Documentation]     Input:   update child adgroup with impressionGoal : 1000
+    ...                 Expected:we should get response code as = 200 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_071
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=impressionGoal
+    ...                                         value=1000
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+
+PAC1.8.4_TC_07.2_update_child_adgroup (update Impression Goal: 0 - Not accepted)
+    [Documentation]     Input:   update child adgroup with Impression Goal: 0
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_072
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=impressionGoal
+    ...                                         value=0
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]   # known_bug     CM-851
+
+
+PAC1.8.4_TC_07.3_update_child_adgroup (update Impression Goal: Negative value - Not accepted)
+    [Documentation]     Input:   update child adgroup with Impression Goal: Negative value
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_073
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=impressionGoal
+    ...                                         value=-705
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_07.4_update_child_adgroup (update Impression Goal: Empty - Not accepted)
+    [Documentation]     Input:   update child adgroup with Impression Goal: Empty
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_074
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=impressionGoal
+    ...                                         value="${Empty}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_07.5_update_child_adgroup (update Impression Goal: Null - Not accepted)
+    [Documentation]     Input:   update child adgroup with Impression Goal: Null
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_075
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=impressionGoal
+    ...                                         value="null"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_07.6_update_child_adgroup (update Impression Goal: more than Maximum value 10 characters - Not accepted)
+    [Documentation]     Input:   update child adgroup with Impression Goal: more than Maximum value 10 characters
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_076
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=impressionGoal
+    ...                                         value="null"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_07.7_update_child_adgroup (update Impression Goal: 10.25 - Not accepted)
+    [Documentation]     Input:   update child adgroup with Impression Goal: 10.25
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_077
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=impressionGoal
+    ...                                         value="null"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+
+PAC1.8.4_TC_08.1_update_child_adgroup (update External ID: SomeString - allow)
+    [Documentation]     Input:   update child adgroup with
+    ...                 Expected:we should get response code as = 200 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_081
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         child_externalID=something_original
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=externalId
+    ...                                         value="something"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]         EXCLUDE   # Excluding tests as external id is not a field in UI for child adgroup  #known_bug    CM-864
+
+
+PAC1.8.4_TC_08.2_update_child_adgroup (update External ID: Blank - allow)
+    [Documentation]     Input:   update child adgroup with External ID: Blank
+    ...                 Expected:we should get response code as = 200 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_082
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         child_externalID=something_original
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=externalId
+    ...                                         value="${Empty}"
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]       EXCLUDE   # Excluding tests as external id is not a field in UI for child adgroup       #known_bug    CM-864
+
+
+PAC1.8.4_TC_08.3_update_child_adgroup (update External ID: null - allow)
+    [Documentation]     Input:   update child adgroup with External ID: null
+    ...                 Expected:we should get response code as = 200 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_083
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         child_externalID=something_original
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=externalId
+    ...                                         value=null
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]       EXCLUDE   # Excluding tests as external id is not a field in UI for child adgroup      #known_bug    CM-864
+
+
+
+
+PAC1.8.4_TC_08.4_update_child_adgroup (update External ID: integer - allow)
+    [Documentation]     Input:   update child adgroup with
+    ...                 Expected:we should get response code as = 200 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_084
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         child_externalID=something_original
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=externalId
+    ...                                         value=123
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]       EXCLUDE   # Excluding tests as external id is not a field in UI for child adgroup       #known_bug    CM-864
+
+
+
+PAC1.8.4_TC_09.1_update_child_adgroup (update child is behavioral targeted - true)
+    [Documentation]     Input:   update child adgroup with child is behavioral targeted - true
+    ...                 Expected:we should get response code as = 200 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_091
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=isBehavioralTargeted
+    ...                                         value=true
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]           #known_bug    CM-864
+
+
+PAC1.8.4_TC_09.2_update_child_adgroup (update child is behavioral targeted - false)
+    [Documentation]     Input:   update child adgroup with child is behavioral targeted - false
+    ...                 Expected:we should get response code as = 200 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_092
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=isBehavioralTargeted
+    ...                                         value=false
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]            #known_bug    CM-864
+
+
+PAC1.8.4_TC_09.3_update_child_adgroup (update child is behavioral targeted - 1, don't accept)
+    [Documentation]     Input:   update child adgroup with
+    ...                 Expected:we should get response code as = 200 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_093
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=isBehavioralTargeted
+    ...                                         value=1
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-302"
+    Json Value Should Equal     ${body}     /reason_desc     "Attribute Data Type does not match with Value, Expected boolean ."
+    [Tags]           #known_bug    CM-864
+
+
+PAC1.8.4_TC_09.4_update_child_adgroup (update child is behavioral targeted - 0, don't accept)
+    [Documentation]     Input:   update child adgroup with child is behavioral targeted - 0
+    ...                 Expected:we should get response code as = 200 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_094
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=isBehavioralTargeted
+    ...                                         value=0
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-302"
+    Json Value Should Equal     ${body}     /reason_desc     "Attribute Data Type does not match with Value, Expected boolean ."
+    [Tags]           #known_bug    CM-864
+
+
+PAC1.8.4_TC_09.5_update_child_adgroup (update child is behavioral targeted - integer grater than 1, don't accept)
+    [Documentation]     Input:   update child adgroup with
+    ...                 Expected:we should get response code as = 200 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_095
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=isBehavioralTargeted
+    ...                                         value=500
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-302"
+    Json Value Should Equal     ${body}     /reason_desc     "Attribute Data Type does not match with Value, Expected boolean ."
+    [Tags]            #known_bug    CM-864
+
+
+PAC1.8.4_TC_09.6_update_child_adgroup (update child is behavioral targeted - Yes, don't accept)
+    [Documentation]     Input:   update child adgroup with child is behavioral targeted - Yes
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_096
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=isBehavioralTargeted
+    ...                                         value="Yes"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-302"
+    Json Value Should Equal     ${body}     /reason_desc     "Attribute Data Type does not match with Value, Expected boolean ."
+    [Tags]
+
+
+PAC1.8.4_TC_09.7_update_child_adgroup (update child is behavioral targeted - No, don't accept)
+    [Documentation]     Input:   update child adgroup with child is behavioral targeted - No
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_097
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=isBehavioralTargeted
+    ...                                         value="No"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-302"
+    Json Value Should Equal     ${body}     /reason_desc     "Attribute Data Type does not match with Value, Expected boolean ."
+    [Tags]
+
+
+PAC1.8.4_TC_09.8_update_child_adgroup (update child is behavioral targeted - null)
+    [Documentation]     Input:   update child adgroup with child is behavioral targeted - null
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_098
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=isBehavioralTargeted
+    ...                                         value=null
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-302"
+    Json Value Should Equal     ${body}     /reason_desc     "Attribute Data Type does not match with Value, Expected boolean ."
+    [Tags]
+
+
+PAC1.8.4_TC_09.9_update_child_adgroup (child is behavioral targeted - blank, don't accept)
+    [Documentation]     Input:   update child adgroup with child is behavioral targeted - blank
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create a new campaign for PAC1.8.4          campaign_name=PAC_regression_campaign_184_099
+    ...                                         parentName=PAC_regression_parent_184_099
+    ...                                         campaign_start_date_time=${todaysDate}
+    ...                                         parent_start_date_time=${todaysDate}
+    ...                                         campaign_advertiser_id=${advertiser_id}
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_099
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=isBehavioralTargeted
+    ...                                         value="${Empty}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    Json Value Should Equal     ${body}     /reason_code            "700-302"
+    Json Value Should Equal     ${body}     /reason_desc            "Attribute Data Type does not match with Value, Expected boolean ."
+    [Tags]     # Known_bug    CM-1524
+
+
+PAC1.8.4_TC_10.1_update_child_adgroup (update CPM is 1.0 allow)
+    [Documentation]     Input:   update child adgroup with CPM is 1.0
+    ...                 Expected:we should get response code as = 200 and updation of child should successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_101
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=cpm
+    ...                                         value=1.0
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+
+PAC1.8.4_TC_10.2_update_child_adgroup (update CPM is 1 allow)
+    [Documentation]     Input:   update child adgroup with CPM is 1
+    ...                 Expected:we should get response code as = 200 and updation of child should successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_102
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=cpm
+    ...                                         value=1
+    ...                                         updated_response_code=200
+    ...                                         updated_success=true
+    [Tags]
+
+
+PAC1.8.4_TC_10.3_update_child_adgroup (update CPM is 0 Don't allow)
+    [Documentation]     Input:   update child adgroup with CPM is 0
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_103
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=cpm
+    ...                                         value==0
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]   EXCLUDE # CM-852
+
+
+PAC1.8.4_TC_10.4_update_child_adgroup (update CPM is Negative)
+    [Documentation]     Input:   update child adgroup with CPM is Negative
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_104
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=cpm
+    ...                                         value=-1
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_10.5_update_child_adgroup (update CPM is null)
+    [Documentation]     Input:   update child adgroup with
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_105
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=cpm
+    ...                                         value=null
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+PAC1.8.4_TC_10.6_update_child_adgroup (update CPM is blank)
+    [Documentation]     Input:   update child adgroup with CPM is blank
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_106
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=cpm
+    ...                                         value="${Empty}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+
+PAC1.8.4_TC_11.1_update_child_adgroup (update invalid domain)
+    [Documentation]     Input:   update child adgroup with invalid domain
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_111
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=domain
+    ...                                         value=yahoo.com.Invalid
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+PAC1.8.4_TC_11.2_update_child_adgroup (update domain name with speacial chars)
+    [Documentation]     Input:   update child adgroup with domain name with speacial chars
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_112
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=domain
+    ...                                         value=yahoo.$#$#
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+PAC1.8.4_TC_11.3_update_child_adgroup (update domain name blank)
+    [Documentation]     Input:   update child adgroup with domain name blank
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_113
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=domain
+    ...                                         value="${Empty}"
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+PAC1.8.4_TC_11.4_update_child_adgroup (update domain name Null)
+    [Documentation]     Input:   update child adgroup with domain name Null
+    ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+    Create Child Adgroup via API                child_name=PAC_regression_child_184_114
+    ...                                         child_parent_campaign_id=${parent_ID}
+    ...                                         child_start_date_time=${todaysDate}
+    ...                                         child_end_date_time=${REGRESSION_END_DATE} 23:50
+    ...                                         response_code=200
+    Partial Update Child Adgroup via API        attribute=domain
+    ...                                         value=null
+    ...                                         updated_response_code=400
+    ...                                         updated_success=false
+    [Tags]
+
+
+#exclude reason Screen type is not supported
+
+# PAC1.8.4_TC_12.1_update_child_adgroup (update screenType Valid)
+#     [Documentation]     Input:   update child adgroup with screenType Valid
+#     ...                 Expected:we should get response code as = 200 and updation of child should successfull
+#     Create Child Adgroup via API                child_name=PAC_regression_child_184_121
+#     ...                                         child_parent_campaign_id=${parent_ID}
+#     ...                                 child_start_date_time=${todaysDate}
+#     ...                                   child_end_date_time=${REGRESSION_END_DATE} 23:50
+#     ...                                         response_code=200
+#     Partial Update Child Adgroup via API        attribute=screenType
+#     ...                                         value=1
+#     ...                                         updated_response_code=200
+#     ...                                         updated_success=true
+#     [Tags]
+
+# PAC1.8.4_TC_12.2_update_child_adgroup (update screenType null)
+#     [Documentation]     Input:   update child adgroup with screenType null
+#     ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+#     Create Child Adgroup via API                child_name=PAC_regression_child_184_122
+#     ...                                         child_parent_campaign_id=${parent_ID}
+#     ...                                 child_start_date_time=${todaysDate}
+#     ...                                   child_end_date_time=${REGRESSION_END_DATE} 23:50
+#     ...                                         response_code=200
+#     Partial Update Child Adgroup via API        attribute=screenType
+#     ...                                         value=null
+#     ...                                         updated_response_code=400
+#     ...                                         updated_success=false
+#     [Tags]
+
+
+# PAC1.8.4_TC_12.3_update_child_adgroup (update screenType blank)
+#     [Documentation]     Input:   update child adgroup with screenType blank
+#     ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+#     Create Child Adgroup via API                child_name=PAC_regression_child_184_123
+#     ...                                         child_parent_campaign_id=${parent_ID}
+#     ...                                 child_start_date_time=${todaysDate}
+#     ...                                   child_end_date_time=${REGRESSION_END_DATE} 23:50
+#     ...                                         response_code=200
+#     Partial Update Child Adgroup via API        attribute=screenType
+#     ...                                         value="${Empty}"
+#     ...                                         updated_response_code=400
+#     ...                                         updated_success=false
+#     [Tags]
+
+
+# PAC1.8.4_TC_12.4_update_child_adgroup (update screenType String)
+#     [Documentation]     Input:   update child adgroup with screenType String
+#     ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+#     Create Child Adgroup via API                child_name=PAC_regression_child_184_124
+#     ...                                         child_parent_campaign_id=${parent_ID}
+#     ...                                 child_start_date_time=${todaysDate}
+#     ...                                   child_end_date_time=${REGRESSION_END_DATE} 23:50
+#     ...                                         response_code=200
+#     Partial Update Child Adgroup via API        attribute=screenType
+#     ...                                         value="ABC"
+#     ...                                         updated_response_code=400
+#     ...                                         updated_success=false
+#     [Tags]
+
+
+# PAC1.8.4_TC_12.5_update_child_adgroup (update screenType 0)
+#     [Documentation]     Input:   update child adgroup with screenType 0
+#     ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+#     Create Child Adgroup via API                child_name=PAC_regression_child_184_125
+#     ...                                         child_parent_campaign_id=${parent_ID}
+#     ...                                 child_start_date_time=${todaysDate}
+#     ...                                   child_end_date_time=${REGRESSION_END_DATE} 23:50
+#     ...                                         response_code=200
+#     Partial Update Child Adgroup via API        attribute=screenType
+#     ...                                         value=0
+#     ...                                         updated_response_code=400
+#     ...                                         updated_success=false
+#     [Tags]
+
+
+# PAC1.8.4_TC_12.6_update_child_adgroup (update screenType Negative Value)
+#     [Documentation]     Input:   update child adgroup with screenType Negative Value
+#     ...                 Expected:we should get response code as = 400 and updation of child should not successfull
+#     Create Child Adgroup via API                child_name=PAC_regression_child_184_126
+#     ...                                         child_parent_campaign_id=${parent_ID}
+#     ...                                 child_start_date_time=${todaysDate}
+#     ...                                   child_end_date_time=${REGRESSION_END_DATE} 23:50
+#     ...                                         response_code=200
+#     Partial Update Child Adgroup via API        attribute=screenType
+#     ...                                         value=-13
+#     ...                                         updated_response_code=400
+#     ...                                         updated_success=false
+#     [Tags]
+
+# PAC1.8.4_TC_13.1_update_child_adgroup (Null attribute)
+#     [Documentation]     Make a request to patch attribute for null attribute,
+#     ...                 API should not get processed successfully with response code 400.
+#     Create Child Adgroup via API                child_name=PAC_regression_child_184_131
+#     ...                                         child_parent_campaign_id=${parent_ID}
+#     ...                                 child_start_date_time=${todaysDate}
+#     ...                                   child_end_date_time=${REGRESSION_END_DATE} 23:50
+#     ...                                         response_code=200
+#     Set Test Variable   ${adgroupId}    11822
+#     Partial Update Child Adgroup via API            attribute=null
+#     ...                                             value="xyz"
+#     ...                                             updated_response_code=400
+#     [Tags]
+
+# PAC1.8.4_TC_13.2_update_child_adgroup (MISSING attribute)
+#     [Documentation]     Make a request to patch attribute for null attribute,
+#     ...                 API should not get processed successfully with response code 400.
+#     Create Child Adgroup via API                child_name=PAC_regression_child_184_132
+#     ...                                         child_parent_campaign_id=${parent_ID}
+#     ...                                 child_start_date_time=${todaysDate}
+#     ...                                   child_end_date_time=${REGRESSION_END_DATE} 23:50
+#     ...                                         response_code=200
+#     Partial Update Child Adgroup via API            attribute=MISSING
+#     ...                                             value="xyz"
+#     ...                                             updated_response_code=400
+#     [Tags]
+
+

@@ -1,0 +1,209 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.4.11    offshoreQA    BATCH19    PAC_BATCH1
+Suite Setup         Clean Up Pre-Requisite Data for PAC1.4.11
+Suite Teardown      Clean Up Pre-Requisite Data for PAC1.4.11
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.4.11Archiveacampaign
+# 1.4.11 Archive a  campaign
+# Method: Delete
+# URL : qa-dswarm-01:18082/pac-api/campaign/campaign/{campaignId}
+*** Variable ***
+
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.4.11
+    Set Suite Variable    ${Advname}    QATEST_Advertiser_PAC1.4.11
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+
+Create Sample Advertiser for Create Campaign PAC1.4.11
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    Log     ${Advname}
+    Create Advertiser      uri=${uri_link}
+    ...         data={"name": "${Advname}"}
+    ...         expected_status_code=200
+    ...         success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+
+*** Test cases ***
+PAC1.4.11_TC_00_Archive a campaign create pre-requisite data
+    Create Sample Advertiser for Create Campaign PAC1.4.11
+    Get Start Date
+    [Tags]
+
+
+PAC1.4.11_TC_01_Archive_a_campaign(Normal Condition)
+    [Documentation]     Generating data for Archive a campaign
+    Set Test Variable               ${campaign_name}                    PAC_regression_campaign_1411_01
+    Set Test Variable               ${campaign_status}                  1
+    Set Test Variable               ${campaign_start_date_time}         ${todaysDate}
+    Set Test Variable               ${campaign_end_date_time}           ${REGRESSION_END_DATE} 23:59
+    Set Test Variable               ${campaign_timezone}                G
+    Set Test Variable               ${campaign_external_id}             "BVIexternalid"
+    Set Test Variable               ${campaign_io}                      6624
+    Set Test Variable               ${campaign_vertical}                32
+    Set Test Variable               ${campaign_segment}                 4303
+    Set Test Variable               ${campaign_congrol_group_size}      0
+    Set Test Variable               ${campaign_advertiser_id}           ${Advertiser_ID}
+    Set Test Variable               ${campaign_access_control}          15
+    Set Test Variable               ${campaign_store_visit}             ${EMPTY}
+    Set Test Variable               ${campaign_demo_data_source}        7
+    Set Test Variable               ${campaign_demohide_chart_id}       4, 6
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_timezone=${campaign_timezone}
+    ...                                 campaign_external_id=${campaign_external_id}
+    ...                                 campaign_io=${campaign_io}
+    ...                                 campaign_vertical=${campaign_vertical}
+    ...                                 campaign_segment=${campaign_segment}
+    ...                                 campaign_congrol_group_size=${campaign_congrol_group_size}
+    ...                                 campaign_advertiser_id=${campaign_advertiser_id}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_store_visit=${campaign_store_visit}
+    ...                                 campaign_demo_data_source=${campaign_demo_data_source}
+    ...                                 campaign_demohide_chart_id=${campaign_demohide_chart_id}
+    ...                                 response_code=200
+    ${campaign_id}=     Get Json Value   ${body}   /campaign/id
+    Archive_a_campaign                  ${campaign_id}
+    ...                                 url=pac-api/campaign/campaign
+    ...                                 response_code=200
+    ...                                 success=true
+    [Tags]
+
+PAC1.4.11_TC_02_Archive_a_campaign(Archived campaign)
+    [Documentation]     Generating data for Archive a campaign
+    Log     ${REGRESSION_START_DATE}:${REGRESSION_END_DATE}
+    Set Test Variable               ${campaign_name}                    PAC_regression_campaign_1411_02
+    Set Test Variable               ${campaign_status}                  1
+    Set Test Variable               ${campaign_start_date_time}         ${todaysDate}
+    Set Test Variable               ${campaign_end_date_time}           ${REGRESSION_END_DATE} 23:59
+    Set Test Variable               ${campaign_timezone}                G
+    Set Test Variable               ${campaign_external_id}             "BVIexternalid"
+    Set Test Variable               ${campaign_io}                      6624
+    Set Test Variable               ${campaign_vertical}                32
+    Set Test Variable               ${campaign_segment}                 4303
+    Set Test Variable               ${campaign_congrol_group_size}      0
+    Set Test Variable               ${campaign_advertiser_id}           ${Advertiser_ID}
+    Set Test Variable               ${campaign_access_control}          15
+    Set Test Variable               ${campaign_store_visit}             ${EMPTY}
+    Set Test Variable               ${campaign_demo_data_source}        7
+    Set Test Variable               ${campaign_demohide_chart_id}       4, 6
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_timezone=${campaign_timezone}
+    ...                                 campaign_external_id=${campaign_external_id}
+    ...                                 campaign_io=${campaign_io}
+    ...                                 campaign_vertical=${campaign_vertical}
+    ...                                 campaign_segment=${campaign_segment}
+    ...                                 campaign_congrol_group_size=${campaign_congrol_group_size}
+    ...                                 campaign_advertiser_id=${campaign_advertiser_id}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_store_visit=${campaign_store_visit}
+    ...                                 campaign_demo_data_source=${campaign_demo_data_source}
+    ...                                 campaign_demohide_chart_id=${campaign_demohide_chart_id}
+    ...                                 response_code=200
+    ${campaign_id}=     Get Json Value   ${body}   /campaign/id
+    Archive_a_campaign                  ${campaign_id}
+    ...                                 url=pac-api/campaign/campaign
+    Archive_a_campaign                  ${campaign_id}
+    ...                                 url=pac-api/campaign/campaign
+    ...                                 response_code=400
+    ...                                 success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-005"
+    Json Value Should Equal     ${body}         /reason_desc            "Archived Campaign or SMB Campaign."
+    [Tags]
+
+
+PAC1.4.11_TC_03_Archive_a_campaign(invalid campaign id)
+    [Documentation]     Generating data for Archive a campaign
+    Log     ${REGRESSION_START_DATE}:${REGRESSION_END_DATE}
+    Set Test Variable               ${campaign_name}                    PAC_regression_campaign_1411_03
+    Set Test Variable               ${campaign_status}                  1
+    Set Test Variable               ${campaign_start_date_time}         ${todaysDate}
+    Set Test Variable               ${campaign_end_date_time}           ${REGRESSION_END_DATE} 23:59
+    Set Test Variable               ${campaign_timezone}                G
+    Set Test Variable               ${campaign_external_id}             "BVIexternalid"
+    Set Test Variable               ${campaign_io}                      6624
+    Set Test Variable               ${campaign_vertical}                32
+    Set Test Variable               ${campaign_segment}                 4303
+    Set Test Variable               ${campaign_congrol_group_size}      0
+    Set Test Variable               ${campaign_advertiser_id}           ${Advertiser_ID}
+    Set Test Variable               ${campaign_access_control}          15
+    Set Test Variable               ${campaign_store_visit}             ${EMPTY}
+    Set Test Variable               ${campaign_demo_data_source}        7
+    Set Test Variable               ${campaign_demohide_chart_id}       4, 6
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_timezone=${campaign_timezone}
+    ...                                 campaign_external_id=${campaign_external_id}
+    ...                                 campaign_io=${campaign_io}
+    ...                                 campaign_vertical=${campaign_vertical}
+    ...                                 campaign_segment=${campaign_segment}
+    ...                                 campaign_congrol_group_size=${campaign_congrol_group_size}
+    ...                                 campaign_advertiser_id=${campaign_advertiser_id}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_store_visit=${campaign_store_visit}
+    ...                                 campaign_demo_data_source=${campaign_demo_data_source}
+    ...                                 campaign_demohide_chart_id=${campaign_demohide_chart_id}
+    ...                                 response_code=200
+    ${campaign_id}=     Get Json Value   ${body}   /campaign/id
+    ${campaign_id}=       Evaluate   ${campaign_id}+12323
+    Archive_a_campaign                  ${campaign_id}
+    ...                                 url=pac-api/campaign/campaign/
+    ...                                 response_code=400
+    ...                                 success=false
+    Json Value Should Equal     ${body}         /reason_code            "800-003"
+    Json Value Should Equal     ${body}         /reason_desc            "Campaign id is not found."
+    [Tags]
+
+
+PAC1.4.11_TC_04_Archive_a_campaign(invalid url)
+    [Documentation]     Generating data for Archive a campaign
+    Log     ${REGRESSION_START_DATE}:${REGRESSION_END_DATE}
+    Set Test Variable               ${campaign_name}                    PAC_regression_campaign_1411_04
+    Set Test Variable               ${campaign_status}                  1
+    Set Test Variable               ${campaign_start_date_time}         ${todaysDate}
+    Set Test Variable               ${campaign_end_date_time}           ${REGRESSION_END_DATE} 23:59
+    Set Test Variable               ${campaign_timezone}                G
+    Set Test Variable               ${campaign_external_id}             "BVIexternalid"
+    Set Test Variable               ${campaign_io}                      6624
+    Set Test Variable               ${campaign_vertical}                32
+    Set Test Variable               ${campaign_segment}                 4303
+    Set Test Variable               ${campaign_congrol_group_size}      0
+    Set Test Variable               ${campaign_advertiser_id}           ${Advertiser_ID}
+    Set Test Variable               ${campaign_access_control}          15
+    Set Test Variable               ${campaign_store_visit}             ${EMPTY}
+    Set Test Variable               ${campaign_demo_data_source}        7
+    Set Test Variable               ${campaign_demohide_chart_id}       4, 6
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_start_date_time=${campaign_start_date_time}
+    ...                                 campaign_end_date_time=${campaign_end_date_time}
+    ...                                 campaign_timezone=${campaign_timezone}
+    ...                                 campaign_external_id=${campaign_external_id}
+    ...                                 campaign_io=${campaign_io}
+    ...                                 campaign_vertical=${campaign_vertical}
+    ...                                 campaign_segment=${campaign_segment}
+    ...                                 campaign_congrol_group_size=${campaign_congrol_group_size}
+    ...                                 campaign_advertiser_id=${campaign_advertiser_id}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_store_visit=${campaign_store_visit}
+    ...                                 campaign_demo_data_source=${campaign_demo_data_source}
+    ...                                 campaign_demohide_chart_id=${campaign_demohide_chart_id}
+    ...                                 response_code=200
+    ${campaign_id}=     Get Json Value   ${body}   /campaign/id
+    Archive_a_campaign                  ${campaign_id}
+    ...                                 url=pac-api/campaign/campaign/id/
+    ...                                 response_code=400
+    ...                                 success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc             "Invalid Request."
+    [Tags]     # Known_bug       CM-1428

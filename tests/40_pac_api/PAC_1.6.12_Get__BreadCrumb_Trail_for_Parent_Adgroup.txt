@@ -1,0 +1,141 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.6.12       BATCH19     OffshoreQA      PAC_BATCH6
+Suite Setup         Clean Up Pre-Requisite Data for PAC1.6.12
+Suite Teardown      Clean Up Pre-Requisite Data for PAC1.6.12
+
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.6.12GetBreadCrumbTrailforParentAdgroup.
+# API Name: 1.6.12 Get BreadCrumb Trail for Parent Adgroup
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/parent-adgroup/trail/{id}
+# DESC : Get  trail log for Parent Adgroup.
+#        Return a response with info of Parent Adgroup , Campaign and Advertiser name and Id
+# QA Jira Task : https://jira.adhaven.com/browse/CM-1778
+# Dev Jira Task : https://jira.adhaven.com/browse/CM-1050
+
+
+*** Variables ***
+
+
+*** Keywords ***
+Clean Up Pre-Requisite Data for PAC1.6.12
+    Delete New Campaign via DB    campaign_name=PAC_regression_campaign_1612
+    Set Suite Variable    ${Advname}    QATEST_Advertiser_PAC1.6.12
+    Cleanup Advertiser From DB          advertiser_name=${Advname}
+
+
+
+Create Sample Advertiser for Create Campaign PAC1.6.12
+    Set Test Variable    ${uri_link}    /pac-api/partner/advertiser
+    Log     ${Advname}
+    Create Advertiser      uri=${uri_link}
+    ...                    data={"name": "${Advname}"}
+    ...                    expected_status_code=200
+    ...                    success=true
+    ${ID}=    Get JSON Value    ${body}    /advertiser/id
+    Set Suite Variable    ${Advertiser_ID}    ${ID}
+
+*** Test Cases ***
+#------------------------------------------------------------------------------------------------------------
+PAC1.6.12_TC_01.1_Get BreadCrumb Trail for Parent Adgroup (with valid URL, accept)
+    [Documentation]     Input:          Use API to Get BreadCrumb Trail for Parent Adgroup,
+    ...                 Expected:       API should process successfully and response code is returned as 200 with valid data.
+    Create Sample Advertiser for Create Campaign PAC1.6.12
+    Get Start Date
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_1612_011
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 campaign_start_date_time=${todaysDate}
+
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_1612_011
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 parent_campaign_id=${Campaign_Id}
+    ...                                 response_code=200
+    ${parent_id}=       Get JSON Value      ${body}     /parent/id
+    Get BreadCrumb Trail for Parent Adgroup
+    ...     uri=pac-api/parent-adgroup/trail/${parent_id}
+    ...     response_code=200
+    ...     success=true
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------
+
+PAC1.6.12_TC_02.1_Get BreadCrumb Trail for Parent Adgroup (parent id invalid, don't accept)
+    [Documentation]     Input:          Use API to Get BreadCrumb Trail for Parent Adgroup,
+    ...                 Expected:       API should not process successfully with response code 200.
+    Get BreadCrumb Trail for Parent Adgroup
+    ...     uri=pac-api/parent-adgroup/trail/9999
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "700-201"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Adgroup id."
+    [Tags]
+
+
+PAC1.6.12_TC_02.2_Get BreadCrumb Trail for Parent Adgroup (parent id blank, don't accept)
+    [Documentation]     Input:          Use API to Get BreadCrumb Trail for Parent Adgroup,
+    ...                 Expected:       API should not process successfully with response code 200.
+    Get BreadCrumb Trail for Parent Adgroup
+    ...     uri=pac-api/parent-adgroup/trail/""
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "400-001"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+
+PAC1.6.12_TC_02.3_Get BreadCrumb Trail for Parent Adgroup (parent id null, don't accept)
+    [Documentation]     Input:          Use API to Get BreadCrumb Trail for Parent Adgroup,
+    ...                 Expected:       API should not process successfully with response code 200.
+    Get BreadCrumb Trail for Parent Adgroup
+    ...     uri=pac-api/parent-adgroup/trail/null
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "400-001"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+PAC1.6.12_TC_02.4_Get BreadCrumb Trail for Parent Adgroup (parent id missing, don't accept)
+    [Documentation]     Input:          Use API to Get BreadCrumb Trail for Parent Adgroup,
+    ...                 Expected:       API should not process successfully with response code 200.
+    Get BreadCrumb Trail for Parent Adgroup
+    ...     uri=pac-api/parent-adgroup/trail/
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "400-001"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+
+PAC1.6.12_TC_02.5_Get BreadCrumb Trail for Parent Adgroup (parent id characters, don't accept)
+    [Documentation]     Input:          Use API to Get BreadCrumb Trail for Parent Adgroup,
+    ...                 Expected:       API should not process successfully with response code 200.
+    Get BreadCrumb Trail for Parent Adgroup
+    ...     uri=pac-api/parent-adgroup/trail/ab@#$
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "400-001"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+
+PAC1.6.12_TC_02.6_Get BreadCrumb Trail for Parent Adgroup (parent id negative value, don't accept)
+    [Documentation]     Input:          Use API to Get BreadCrumb Trail for Parent Adgroup,
+    ...                 Expected:       API should not process successfully with response code 200.
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_1612_026
+    ...                                 campaign_advertiser_id=${Advertiser_ID}
+    ...                                 campaign_start_date_time=${todaysDate}
+
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_1612_026
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 parent_campaign_id=${Campaign_Id}
+    ...                                 response_code=200
+    ${parent_id}=       Get JSON Value      ${body}     /parent/id
+    Get BreadCrumb Trail for Parent Adgroup
+    ...     uri=pac-api/parent-adgroup/trail/-${parent_id}
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "700-201"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Adgroup id."
+    [Tags]
+#------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,99 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags         	PAC		PAC1.5.2	BATCH19    PAC_BATCH3
+
+#https://wiki.4info.com/pages/viewpage.action?pageId=29917295
+#API Name: 1.1. Get all advertisers by group Id
+#Method: GET
+#URL: /pac-api/partner/advertisers?groupId={groupId}
+#userName = rhino.users
+#groupId = rhino.groups
+#Get all associated advertisers by group id. This request will be called by Phoenix advertiser list page.
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+
+
+PAC1.5.2_TC_01_Advertiser Update existing Advertiser name
+	[Documentation]		Send Put request to update existing advertiser with same name
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser/566
+	Set Test Variable		${name}				z Sarada Test
+	Log		${name}
+	Update Advertiser	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/advertiser/id					566
+	Json Value Should Equal		${body}		/advertiser/name				"${name}"
+	[Tags]
+
+PAC1.5.2_TC_02_Advertiser Update existing Advertiser name with new name
+	[Documentation]		Send Put request to update Advertiser with new advertiser name
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser/566
+	Set Test Variable		${name}				z Gautham Test
+	Log		${name}
+	Update Advertiser	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/advertiser/id					566
+	Json Value Should Equal		${body}		/advertiser/name				"${name}"
+	[Tags]
+
+PAC1.5.2_TC_03_Advertiser Update existing Advertiser name with new name
+	[Documentation]		Send Put request to update Advertiser with new advertiser name
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser/566
+	Set Test Variable		${name}				z Sarada Test
+	Log		${name}
+	Update Advertiser	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/advertiser/id					566
+	Json Value Should Equal		${body}		/advertiser/name				"${name}"
+	[Tags]
+
+PAC1.5.2_TC_04_Advertiser try to Update Advertiser name with id that does not existing in db
+	[Documentation]		Send Put request to update advertiser name with id that does not exist
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser/999999
+	Set Test Variable		${name}			RANDOMNAME
+	Log		${name}
+	Update Advertiser	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=400
+	Json Value Should Equal		${body}		/success			false
+	Json Value Should Equal		${body}		/reason_desc		"Advertiser id not exists."
+	[Tags]
+
+PAC1.5.2_TC_05_Advertiser Update existing Advertiser name without name
+	[Documentation]		Send Put request to update Advertiser name without name
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser/253
+	Update Advertiser	uri=${uri_link}		data={"name": ""}	expected_status_code=400
+	Json Value Should Equal		${body}		/success				false
+	Json Value Should Equal		${body}		/reason_code		"400-999"
+	Json Value Should Equal		${body}		/reason_desc		"Validation Failure"
+	[Tags]
+
+PAC1.5.2_TC_06_Advertiser try to Update Advertiser name with invalid id (alpha charcter)
+	[Documentation]		Send Put request to update advertiser name with id that does not exist
+	Set Test Variable 	${uri_link}		/pac-api/partner/advertiser/abc
+	Set Test Variable		${name}				UpdateADVname
+	Log		${name}
+	Update Advertiser	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=400
+	Json Value Should Equal		${body}		/success			false
+	Json Value Should Equal		${body}		/reason_desc		"Invalid Request."
+	[Tags]
+
+# Update advertiser using an existing name that is SMB (name: PMD group, allow)
+# 	[Tags]	CM-922	Known_bug
+# Update advertiser using an existing name that is existing advertiser (name: Bayer, not allow)
+# 	[Tags]	CM-922	Known_bug
+# Update advertiser using an existing name that is Exchange name (name: 4INFO Exchange, allow)
+# 	[Tags]	CM-922	Known_bug
+# Update advertiser using an existing name that is Non-RTB Name (name: AdMarvel, allow)
+# 	[Tags]	CM-922	Known_bug
+# Update advertiser using an existing name that is Remnant Name (name: smaato_remnant_placeholder, allow)
+# 	[Tags]	CM-922	Known_bug
+
+# PAC1.5.1_TC_04_Update new Advertiser with special characters in name(QATEST_!@# ,not allow)
+# 	[Tags]	Known_bug 	CM-923
+# PAC1.5.1_TC_04_Update new Advertiser with single space(QATEST 1 , allow)
+
+# PAC1.5.1_TC_04_Update new Advertiser with double spaces(QATEST_space_space_1 , not allow)
+# 	[Tags]	Known_bug 	CM-923
+# PAC1.5.1_TC_04_Update new Advertiser with single hyphen(QATEST-1 , allow)
+
+# PAC1.5.1_TC_04_Update new Advertiser with double hyphen and single spaces and underscore (QATEST--_ 1 , allow)
+# 	[Tags]	Known_bug 	CM-923

@@ -1,0 +1,48 @@
+*** Settings ***
+Resource            pac_api_imports.txt
+Force Tags          PAC     PAC1.7.18       BATCH19     OffshoreQA      PAC_BATCH7
+Suite Setup         Delete New Campaign via DB      campaign_name=PAC_regression_campaign_135
+Suite Teardown      Delete New Campaign via DB      campaign_name=PAC_regression_campaign_135
+
+
+# https://wiki.4info.com/display/Software/PAC+API+documentation#PACAPIdocumentation-1.7.18GetTargetingClustermasterdata
+# API Name: 1.7.18 Get Targeting Cluster  master data
+# Method: GET
+# URL : qa-dswarm-01:18082/pac-api/child-adgroup/cluster
+# DESC : get targeting location master data list
+# QA Jira Task : https://jira.adhaven.com/browse/CM-1781
+# Dev Jira Task : https://jira.adhaven.com/browse/CM-690
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#------------------------------------------------------------------------------------------------------------
+PAC1.7.18_TC_01.1_Get targeting location master data list (with valid URL, accept)
+    [Documentation]     Input:          Use API to Get list of parent Adgroup Id with no household targeting for a given campaign,
+    ...                 Expected:       API should process successfully and response code is returned as 200 with valid data.
+    Get Targeting Cluster master data
+    ...     uri=pac-api/child-adgroup/cluster
+    ...     response_code=200
+    ...     success=true
+    Should Match Regexp    ${body}    {"id":326,"name":"Xarelto 728x90 MMX low view"}
+    Should Match Regexp    ${body}    {"id":16,"name":"4INFO"}
+    Should Match Regexp    ${body}    {"id":217,"name":"Desktop Banner low CTR"}
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------
+PAC1.7.18_TC_02.1_Get targeting location master data list (invalid URL, accept)
+    [Documentation]     Input:          Use API to Get list of parent Adgroup Id with no household targeting for a given campaign,
+    ...                 Expected:       API should process successfully and response code is returned as 200 with valid data.
+    Get Targeting Cluster master data
+    ...     uri=pac-api/child-adgroup/clusterADSD
+    ...     response_code=400
+    ...     success=false
+    Json Value Should Equal        ${body}         /reason_code            "400-001"
+    Json Value Should Equal        ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+#------------------------------------------------------------------------------------------------------------
