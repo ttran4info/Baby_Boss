@@ -1,0 +1,119 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY    INVENTORY3.4    BATCH20    OffshoreQA
+
+# https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-3.4.Getdefaultplacementexists
+# API Name: 3.4. Get default placement exists
+# Method: GET
+# URL: 192.168.99.100:8380/inventory-api/placement/default?groupId={groupId}&partnerSiteId={partnerSiteId}
+# DESC: Get default placement exists
+
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_3.4_TC_01.1_Get default placement exists (valid URL, Accept)
+    [Documentation]     Input: Use Inventory API to Get Get default placement exists,${Space}
+    ...                 Expected: response code as 200.
+    Set Test Variable    ${groupId}             1
+    Set Test Variable    ${partnerSiteId}       1
+    Get default placement exists    url=inventory-api/placement/default?groupId=${groupId}&partnerSiteId=${partnerSiteId}
+    ...         reason_code=200
+    ...         success=true
+    [Tags]
+
+
+InventoryAPI_3.4_TC_01.2_Get default placement exists (invalid URL, Don't Accept)
+    [Documentation]     Input: Use Inventory API to Get Get default placement exists,${Space}
+    ...                 Expected: response code as 400.
+    Set Test Variable    ${groupId}             1
+    Set Test Variable    ${partnerSiteId}       1
+    Get default placement exists    url=inventory-api/placement1234/default?groupId=${groupId}&partnerSiteId=${partnerSiteId}
+    ...         reason_code=400
+    ...         success=false
+    [Tags]
+
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_3.4_TC_02.1_Get default placement exists (invalid groupId, Don't Accept)
+    [Documentation]     Input: Use Inventory API to Get Get default placement exists,${Space}
+    ...                 Expected: response code as 400.
+    Set Test Variable    ${groupId}             99999
+    Set Test Variable    ${partnerSiteId}       1
+    Get default placement exists    url=inventory-api/placement/default?groupId=${groupId}&partnerSiteId=${partnerSiteId}
+    ...         reason_code=400
+    ...         success=false
+    [Tags]
+
+
+InventoryAPI_3.4_TC_02.2_Get default placement exists (groupId negative value, Don't Accept)
+    [Documentation]     Input: Use Inventory API to Get Get default placement exists,${Space}
+    ...                 Expected: API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${groupId}             -1
+    Set Test Variable    ${partnerSiteId}       1
+    Get default placement exists    url=inventory-api/placement/default?groupId=${groupId}&partnerSiteId=${partnerSiteId}
+    ...         reason_code=400
+    ...         success=false
+    [Tags]
+
+
+InventoryAPI_3.4_TC_02.3_Get default placement exists (groupId special characters value, Don't Accept)
+    [Documentation]     Input: Use Inventory API to Get Get default placement exists,${Space}
+    ...                 Expected: response code as 400.
+    Set Test Variable    ${groupId}             "@#$%"
+    Set Test Variable    ${partnerSiteId}       1
+    Get default placement exists    url=inventory-api/placement/default?groupId=${groupId}&partnerSiteId=${partnerSiteId}
+    ...         reason_code=400
+    ...         success=false
+    [Tags]
+
+
+InventoryAPI_3.4_TC_02.4_Get default placement exists (groupId 15, Don't Accept)
+    [Documentation]     Input: Use Inventory API to Get Get default placement exists,${Space}
+    ...                 Expected: response code as 400.
+    Set Test Variable    ${groupId}             15
+    Set Test Variable    ${partnerSiteId}       1
+    Get default placement exists    url=inventory-api/placement/default?groupId=${groupId}&partnerSiteId=${partnerSiteId}
+    ...         reason_code=200
+    ...         success=true
+    [Tags]
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_3.4_TC_03.1_Get default placement exists (partnerSiteId 99999, Don't Accept)
+    [Documentation]     Input: Use Inventory API to Get Get default placement exists,${Space}
+    ...                 Expected: response code as 400.
+    Set Test Variable    ${groupId}             1
+    Set Test Variable    ${partnerSiteId}       99999
+    Get default placement exists    url=inventory-api/placement/default?groupId=${groupId}&partnerSiteId=${partnerSiteId}
+    ...         reason_code=400
+    ...         success=false
+    [Tags]  EXCLUDE    # NON UI # Known_bug    CM-1268
+
+
+InventoryAPI_3.4_TC_03.2_Get default placement exists (partnerSiteId negative value, Don't Accept)
+    [Documentation]     Input: Use Inventory API to Get Get default placement exists,${Space}
+    ...                 Expected: response code as 400.
+    Set Test Variable    ${groupId}             1
+    Set Test Variable    ${partnerSiteId}       -1
+    Get default placement exists    url=inventory-api/placement/default?groupId=${groupId}&partnerSiteId=${partnerSiteId}
+    ...         reason_code=400
+    ...         success=false
+    [Tags]   EXCLUDE    # NON UI  # Known_bug    CM-1268
+
+
+InventoryAPI_3.4_TC_03.3_Get default placement exists (partnerSiteId special characters value, Don't Accept)
+    [Documentation]     Input: Use Inventory API to Get Get default placement exists,${Space}
+    ...                 Expected: response code as 400.
+    Set Test Variable    ${groupId}             1
+    Set Test Variable    ${partnerSiteId}       "@#$%"
+    Get default placement exists    url=inventory-api/placement/default?groupId=${groupId}&partnerSiteId=${partnerSiteId}
+    ...         reason_code=400
+    ...         success=false
+    [Tags]
+
+#-----------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,89 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.5.1		BATCH20
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+
+
+#https://wiki.4info.com/pages/viewpage.action?title=Inventory+API+documentation&spaceKey=Software#InventoryAPIdocumentation-1.1.1Getallclusters(Devdone)
+#API Name: 1.5.1 Create a cluster by "Copy and paste" filters (Dev done)
+#Method: POST
+#URL: /inventory-api/cluster/cluster?username={username}
+#DESC: Username cannot be null. The filters in request body are already been validated.
+#rhino.clusters
+#rhino.cluster_placement
+#rhino.groups_cluster
+
+*** Variables ***
+ ${max_filter}		10
+
+*** Keywords ***
+
+*** Test Cases ***
+TC_01 Create a cluster by copy and paste (User - Admin)
+	Set Test Variable		${cluster_name}			Regression_cluster_151_01
+	Set Test Variable		${user_name}			${QA_DEFAULT_USER}
+	Set Test Variable		${groupId}				1
+	Create Cluster		cluster_name=${cluster_name}				username=${user_name}			groupId=${groupId}
+	[Tags]
+
+
+TC_02 Create a cluster by copy and paste (User - Catalina)
+	Set Test Variable		${cluster_name}			Regression_cluster_151_02
+	Set Test Variable		${user_name}			${QA_CATALINA_USER}
+	Set Test Variable		${groupId}				15
+	Create Cluster		cluster_name=${cluster_name}				username=${user_name}			groupId=${groupId}
+	[Tags]
+
+
+TC_03 Create a cluster by copy and paste (User - Mixed Catalina, QA)
+	Set Test Variable		${cluster_name}			Regression_cluster_151_03
+	Set Test Variable		${user_name}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable		${groupId}				15,16
+	Create Cluster		cluster_name=${cluster_name}				username=${user_name}			groupId=${groupId}		expected_status_code=400
+	[Tags]
+
+
+TC_04 Create a cluster by copy and paste (User - Blank Username)
+    Set Test Variable    ${cluster_name}    Regression_cluster_151_04
+    Set Test Variable    ${groupId}    1
+    Create Cluster    cluster_name=${cluster_name}
+    ...    username=${EMPTY}
+    ...    groupId=${groupId}
+    ...    expected_status_code=400
+    # Json Value Should Equal    ${body}    /reason_code    "800-006"
+    # Json Value Should Equal    	${body}			/reason_desc			"User and group are not matching."
+    Json Value Should Equal    ${body}    /reason_code    "700-001"
+    Json Value Should Equal    	${body}    /reason_desc    "Username is not found."
+	[Tags]
+
+
+TC_05 Create a cluster by copy and paste (User - Username does not exist)
+	Set Test Variable		${cluster_name}			Regression_cluster_151_05
+	Set Test Variable		${user_name}			bogus@4info.com
+	Set Test Variable		${groupId}				1
+	Create Cluster		cluster_name=${cluster_name}				username=${user_name}			groupId=${groupId}		expected_status_code=400
+	Json Value Should Equal		${body}			/reason_code			"700-001"
+	Json Value Should Equal		${body}			/reason_desc			"Username is not found."
+	[Tags]
+
+
+TC_06 Create a cluster by copy and paste (Missing cluster name)
+	Set Test Variable		${cluster_name}			MISSING
+	Set Test Variable		${user_name}			bogus@4info.com
+	Set Test Variable		${groupId}				1
+	Create Cluster		cluster_name=${cluster_name}				username=${user_name}			groupId=${groupId}		expected_status_code=400
+	Json Value Should Equal		${body}			/reason_code			"700-001"
+	Json Value Should Equal		${body}			/reason_desc			"Username is not found."
+	[Tags]
+
+
+TC_07 Create a cluster by copy and paste (Blank cluster name)
+	Set Test Variable		${cluster_name}			${EMPTY}
+	Set Test Variable		${user_name}			bogus@4info.com
+	Set Test Variable		${groupId}				1
+	Create Cluster		cluster_name=${cluster_name}				username=${user_name}			groupId=${groupId}		expected_status_code=400
+	Json Value Should Equal		${body}			/reason_code			"700-001"
+	Json Value Should Equal		${body}			/reason_desc			"Username is not found."
+	[Tags]
+

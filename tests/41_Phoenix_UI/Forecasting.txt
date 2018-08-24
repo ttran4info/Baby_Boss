@@ -1,0 +1,1792 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX    Forecasting    BATCH22    OffshoreQA    PHOENIX_4
+Suite Teardown      Run Keywords    Close All Browsers    # Clear All Users Created For Forecasting UI Tests
+
+# Note : Forecasting Tests are first and Forecasting2 tests are below Forecasting tests altogether.
+
+# QA Task IDs :
+# https://jira.adhaven.com/browse/CM-1920
+# https://jira.adhaven.com/browse/FOR-47
+
+*** Variables ***
+${Home_page}           https://qa-campaigns.4info.com/phoenix/#
+
+${ForecastingPage}    /forecasting
+${ForecastingPage_DebugTrue}    /forecasting?debug=true
+
+${ForecastingPage2}    /forecasting2
+${ForecastingPage2_DebugTrue}    /forecasting2?debug=true
+
+${username}     testregression@forecasting.com
+${Pass}         P@ssw0rd
+
+*** Keywords ***
+
+*** Test Cases ***
+Forecasting_TC_00_Create Pre-requisite for Forecasting UI
+    Log To Console    ${\n}Cleaning up previously created user
+    Clear All Users Created For Forecasting UI Tests
+    Create Pre-requisite users to test Forecasting
+    Sleep    5s
+
+    Login To Adhaven UI    username=${username}    password=${Pass}
+    Goto Forecasting URL
+
+    [Tags]    PHOENIX_SANITY    Forecasting_Failures   
+    ...       For-47    For-46     For-80 
+    # ...     For-57  For-58    For-59
+    ...       For-60    #  For-69
+    # ...       For-73    For-74
+    # ...       For-77
+
+#-------------------------------------------------------------------------------------------
+# Tests for Forecasting Page
+#-------------------------------------------------------------------------------------------
+Forecasting_TC_01.1_Verify Create hidden forecasting page FOR-79
+    Comment    Check URL - https://qa-campaigns.4info.com/phoenix/#/forecasting
+    Goto Forecasting URL
+    Wait Until Page Contains Element    //h1[contains(.,'FORECASTING')]    timeout=60s
+    Capture Page Screenshot     filename=Forecasting_TC_01.2.1.png
+
+    Comment    Check URL - https://qa-campaigns.4info.com/phoenix/#/forecasting?debug=true
+
+    Goto Forecasting URL In Debug Mode
+    Wait Until Page Contains Element    //h1[contains(.,'FORECASTING')]    timeout=60s
+    Capture Page Screenshot     filename=Forecasting_For-79_TC_01.2.2.png
+    [Tags]    For-80    Forecasting_Failures      
+
+#-------------------------------------------------------------------------------------------
+# Line Item (Ad Group)
+
+Forecasting_TC_LineItem_01_Verify all elements for Line Item (Ad Group) are present as expected
+    [Documentation]    Duration and Goal should be present
+    Check Header and Footer objects are present
+    Check Line Item (Ad Group) elements are present
+    [Tags]      Forecasting_Failures 
+
+#-------------------------------------------------------------------------------------------
+# Household Segment
+
+Forecasting_TC_HouseholdSegment_01_Verify all elements for Household Segment are present as expected
+    [Documentation]    Data Provider, Segment Size and Household F-cap should present.
+    Goto Forecasting URL
+    Check Household Segment elements are present
+    [Tags]      
+
+#-------------------------------------------------------------------------------------------
+# Creative
+
+Forecasting_TC_Creative_01_Verify all elements for Creative are present if creative type is Banner
+    [Documentation]    Creative Type, Checkboxes for size, Rich Media Type, Secure Log should present.
+    Check Creative elements are present     CreativeType=Banner
+    [Tags]    
+
+
+Forecasting_TC_Creative_02_Verify Checkbox 120x20 gets selected after clicked
+    [Documentation]    Creative Type, Secure Log should present.
+    Focus    ${Checkbox_120x20}
+    Click Element    ${Checkbox_120x20}//parent::div
+    Sleep    2s
+    Capture Page Screenshot     filename=Forecasting_TC_Creative_02.png
+    [Tags]    
+
+
+Forecasting_TC_Creative_03_Verify all elements for Creative are present if creative type is Video
+    [Documentation]    Creative Type, Secure Log should present.
+    Check Creative elements are present    CreativeType=Video
+    [Tags]    
+
+
+Forecasting_TC_Creative_04_Verify all elements for Creative are present if creative type is Native
+    [Documentation]    Creative Type, Secure Log should present.
+    Check Creative elements are present    CreativeType=Native
+    [Tags]       EXCLUDE    # Reason : Option Native is not available now in Creative Type
+
+
+Forecasting_TC_Creative_05_Verify all elements for Creative are present if creative type is Unknown
+    [Documentation]    Creative Type, Secure Log should present.
+    Check Creative elements are present    CreativeType=Unknown
+    [Tags]       EXCLUDE    # Reason : Option Unknown is not available now in Creative Type
+
+
+Forecasting_TC_Creative_06_Verify Secure Log is selected as 'Yes' by default
+    [Documentation]    Creative Type, Checkboxes for size, Rich Media Type, Secure Log should present.
+    ${yesvalue}=    Get Selected List Label       ${Select_SecureLog}
+    Should Be Equal As Strings    ${yesvalue}      YES
+    [Tags]       
+
+
+Forecasting_TC_Creative_07_Verify Secure Log is selected as 'No'
+    [Documentation]    Creative Type, Checkboxes for size, Rich Media Type, Secure Log should present.
+    Focus    ${Select_SecureLog}
+    Select From List    ${Select_SecureLog}    NO
+    Sleep    3s
+    ${novalue}=    Get Selected List Label       ${Select_SecureLog}
+    Should Be Equal As Strings    ${novalue}      NO
+    [Tags]    
+
+
+#-------------------------------------------------------------------------------------------
+# Technographic
+
+Forecasting_TC_Technographic_01_Verify Technographic elements are present
+    Element Should Be Visible    ${Label_Technographic}
+    Element Should Be Visible    ${Checkbox_DeviceOS_Label}
+    Element Should Be Visible    ${Checkbox_DeviceOS}
+    Element Should Be Visible    ${Checkbox_DeviceType_Label}
+    Element Should Be Visible    ${Checkbox_DeviceType}
+    [Tags]    
+
+#-------------------------------------------------------------------------------------------
+# Inventory
+
+Forecasting_TC_Inventory_01_Verify all elements for Inventory are present as expected for traffic type not selected
+    [Documentation]    When Traffic Type is not selected, elements Traffic, Clusters,${Space}
+    ...    Available Clusters, Include button, Exclude button, Type to search should present.
+    Check Inventory elements when Traffic Type is not selected
+    [Tags]    
+
+
+Forecasting_TC_Inventory_02.1_Verify all elements for Inventory are present as expected for traffic type selected
+    [Documentation]    When Traffic Type is selected, elements Traffic, Mobile Web, Mobile App, Desktop,${Space}
+    ...    Clusters,${Space}
+    ...    Available Clusters, Include button, Exclude button, Type to search should present.
+    Check Inventory elements when Traffic Type is selected
+    [Tags]    
+
+
+Forecasting_TC_Inventory_02.2_Verify Traffic Type checkbox Mobile Web is selected
+    [Documentation]    When Traffic Type is selected, elements Traffic, Mobile Web, Mobile App, Desktop,${Space}
+    ...    Clusters,${Space}
+    ...    Available Clusters, Include button, Exclude button, Type to search should present.
+    Sleep    3s
+    Verify Checkbox Mobile Web is checked when clicked on Mobile Web
+    [Tags]    
+
+
+Forecasting_TC_Inventory_02.3_Verify Traffic Type checkbox App is selected
+    [Documentation]    When Traffic Type is selected, elements Traffic, Mobile Web, Mobile App, Desktop,${Space}
+    ...    Clusters,${Space}
+    ...    Available Clusters, Include button, Exclude button, Type to search should present.
+    Sleep    3s
+    Verify Checkbox App is checked when clicked on App
+    [Tags]    
+
+
+Forecasting_TC_Inventory_02.4_Verify Traffic Type checkbox Desktop is selected
+    [Documentation]    When Traffic Type is selected, elements Traffic, Mobile Web, Mobile App, Desktop,${Space}
+    ...    Clusters,${Space}
+    ...    Available Clusters, Include button, Exclude button, Type to search should present.
+    Sleep    3s
+    Verify Checkbox Desktop is checked when clicked on Desktop
+    [Tags]    
+
+#-------------------------------------------------------------------------------------------
+Forecasting_TC_Inventory_03.1_Verify all elements are visible for Inventory are present as expected for Clusters is selected
+    [Documentation]    When Traffic Type is selected, elements Traffic, Mobile Web, Mobile App, Desktop,${Space}
+    ...    Clusters,${Space}
+    ...    Available Clusters, Include button, Exclude button, Type to search should present.
+    Sleep    3s
+    Check Inventory elements are visible when Clusters is selected
+    [Tags]    
+
+
+Forecasting_TC_Inventory_03.2_Verify all elements are visible for Inventory are present as expected for Clusters is not selected
+    [Documentation]    When Traffic Type is selected, elements Traffic, Mobile Web, Mobile App, Desktop,${Space}
+    ...    Clusters,${Space}
+    ...    Available Clusters, Include button, Exclude button, Type to search should present.
+    Sleep    3s
+    Check Inventory elements are visible when Clusters is not selected
+    [Tags]    
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-80  & Dev Task : FOR-79
+
+Forecasting_TC_FOR-79_01_Verify that Channel Partner is moved to top.
+    [Documentation]    Verify that Channel Partner is moved to top in forecasting page
+    Goto Forecasting URL In Debug Mode
+    ${HorizontalPositionOfChannelPartner}    Get Horizontal Position    ${Select_CHANNELPARTNERS}
+    Log    ${HorizontalPositionOfChannelPartner}
+    Should Be Equal As Integers    ${HorizontalPositionOfChannelPartner}    35
+    ${VerticalPositionOfChannelPartner}    Get Vertical Position    ${Select_CHANNELPARTNERS}
+    Log    ${VerticalPositionOfChannelPartner}
+    Should Be Equal As Integers    ${VerticalPositionOfChannelPartner}    313
+    [Tags]     For-80    
+
+
+Forecasting_TC_FOR-79_02.1_Verify that for Group 4INFO, and channel partner 4Info, budget is not required (mandatory asterick mark is not present).
+    [Documentation]    If user has selected channel partner as 4Info, then budget field is visible but it's not mandatory.
+    ...                i.e. asterick mark is not present in front of budget label
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting URL In Debug Mode
+    Set Channel Partner at UI page    ChannelPartner=4INFO
+    Check Budget Field Is Present in Forecasting2 Page
+    Check Required Asterick Mark is not Present for Budget
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_02.1.png
+    [Tags]    For-80      Forecasting_Failures  
+
+
+Forecasting_TC_FOR-79_02.2_Verify that for Group 4INFO without budget value, forecasting can run as expected
+    [Documentation]    If user has selected channel partner as 4Info, and if budget value is not passed, then forecasting will run as expected and an old result populates
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting URL
+    Clear Element Text    ${Input_Budget}
+    Sleep    10s
+    Run Forecast
+    Empty budget field, returns old results
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_02.2.png
+    [Tags]    For-80          # EXCLUDE   # Taking longer time to execute
+
+
+Forecasting_TC_FOR-79_02.3_Verify that for Group 4INFO with budget value, new results are returned
+    [Documentation]    If user has selected channel partner as 4Info, and if budget value is not passed, then forecasting will run as expected and an new result populates
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting URL In Debug Mode
+    Input Text    ${Input_Budget}    500000
+    Sleep    5s
+    Run Forecast
+    Confirm Action
+    With Budget, new results are returned
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_02.3.png
+    [Tags]    For-80    
+
+
+Forecasting_TC_FOR-79_03.1_Verify that for Group ATT, and channel partner ATT, budget is required (mandatory asterick mark is present).
+    [Documentation]    If user has selected channel partner as 4Info, then budget field is visible but it's not mandatory.
+    ...                i.e. asterick mark is not present in front of budget label
+    Select Group in Select Dropdown    GroupName=ATT
+    Goto Forecasting URL In Debug Mode
+    Check Budget Field Is Present in Forecasting2 Page
+    Check Required Asterick Mark is Present for Budget
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-79_03.1.png
+    [Tags]    For-80    Forecasting_Failures
+
+
+Forecasting_TC_FOR-79_03.2_Verify that for Group ATT without budget value, an error populates
+    [Documentation]    Verify when Channel Partner is selected as ATT And Budget is not mentioned, an error message populates as Minimum required budget should be $10000
+    Select Group in Select Dropdown    GroupName=ATT
+    Goto Forecasting URL In Debug Mode
+    Click Element    ${Input_Budget}
+    Sleep    2s
+    Clear Element Text    ${Input_Budget}
+    Sleep    5s
+    Press Key    ${Input_Budget}    TAB
+    Sleep    7s
+    Click Element    ${ErrorMessageImage}
+    Sleep    3s
+    Page Should Contain    Minimum required budget should be $10,000
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_03.2.png
+    [Tags]    For-80      Forecasting_Failures
+
+
+Forecasting_TC_FOR-79_03.3_Verify that for Group ATT, With Budget new results are returned
+    [Documentation]    Verify that for Budget when Channel Partner is selected as ATT, new results are returned.
+    Select Group in Select Dropdown     GroupName=ATT
+    Sleep    5s
+    Goto Forecasting URL In Debug Mode
+    Input Text    ${Input_Budget}    100000
+    Sleep    3s
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+    With Budget, new results are returned
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_03.3.png
+    [Tags]    For-80       Forecasting_Failures   
+
+
+Forecasting_TC_FOR-79_04.1_Verify that for Group Datamyx, and channel partner Datamyx, budget is required (mandatory asterick mark is present).
+    [Documentation]    If user has selected channel partner as Datamyx, then budget field is visible but it's not mandatory.
+    ...                i.e. asterick mark is not present in front of budget label
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Goto Forecasting URL In Debug Mode
+    Sleep    30s
+    Check Budget Field Is Present in Forecasting2 Page
+    Check Required Asterick Mark is Present for Budget
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_04.1.png
+    [Tags]    For-80    
+
+
+Forecasting_TC_FOR-79_04.2_Verify that for Group Datamyx without budget value, an error populates
+    [Documentation]    Verify when Channel Partner is selected as Datamyx And Budget is not mentioned, an error message populates as Minimum required budget should be $10000
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Goto Forecasting URL In Debug Mode
+    Click Element    ${Input_Budget}
+    Sleep    2s
+    Clear Element Text    ${Input_Budget}
+    Sleep    3s
+    Press Key    ${Input_Budget}    TAB
+    Sleep    4s
+    Mouse Over    ${ErrorMessageImage}
+    Sleep    3s
+    Page Should Contain    Minimum required budget should be $10,000
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_04.2.png
+    [Tags]    For-80        Forecasting_Failures
+
+
+Forecasting_TC_FOR-79_04.3_Verify that for Group Datamyx, With Budget new results are returned
+    [Documentation]    Verify that for Budget when Channel Partner is selected as Datamyx, new results are returned.
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Sleep    5s
+    Goto Forecasting URL In Debug Mode
+    Input Text    ${Input_Budget}    100000
+    Sleep    3s
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+    With Budget, new results are returned
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_04.3.png
+    [Tags]    For-80      Forecasting_Failures
+
+
+Forecasting_TC_FOR-79_05.1_Verify that for Group Catalina, Budget field is hidden
+    [Documentation]    Verify that for Channel Partner Catalina, Budget field is hidden
+    Select Group in Select Dropdown    GroupName=CATALINA
+    Goto Forecasting URL In Debug Mode
+    Check Budget Field Is Not Present in Forecasting2 Page
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_05.1.png
+    [Tags]    For-80    
+
+
+Forecasting_TC_FOR-79_05.2_Verify that for Group Catalina, Without Budget field, Forecast gives expected old result
+    [Documentation]    Verify that for Channel Partner Catalina, without Budget field, Forecast gives expected old result
+    Select Group in Select Dropdown    GroupName=CATALINA
+    Goto Forecasting URL
+    Run Forecast
+    # Confirm Action
+    Sleep    10s
+    Empty budget field, returns old results
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_05.2.png
+    [Tags]    For-80    
+
+
+Forecasting_TC_FOR-79_06.1_Verify that for Group Catalina Self Service, Budget field is hidden
+    [Documentation]    Verify that for Channel Partner Catalina Self Service, Budget field is hidden
+    Select Group in Select Dropdown    GroupName=Catalina Self Service
+    Goto Forecasting URL In Debug Mode
+    Check Budget Field Is Not Present in Forecasting2 Page
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_06.1.png
+    [Tags]    For-80    
+
+
+Forecasting_TC_FOR-79_06.2_Verify that for Group Catalina Self Service, Without Budget field, Forecast gives expected old result
+    [Documentation]    Verify that for Channel Partner Catalina Self Service, without Budget field, Forecast gives expected old result
+    Select Group in Select Dropdown    GroupName=Catalina Self Service
+    Goto Forecasting URL
+    Run Forecast
+    # Confirm Action
+    Sleep    10s
+    Empty budget field, returns old results
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_06.2.png
+    [Tags]    For-80    
+
+
+Forecasting_TC_FOR-79_07.1_Verify that for Group 4INFO with budget value, additional results before new results in debug mode
+    [Documentation]    If user has selected channel partner as 4Info, and if budget value is passed, additional results before new results in debug mode
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting URL In Debug Mode
+    Input Text    ${Input_Budget}    500000
+    Sleep    3s
+    Run Forecast
+    Confirm Action
+    Sleep    10s
+    With Budget, new results are returned
+    With budget value, additional results before new results in debug mode
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_07.1.png
+    [Tags]    For-80    
+
+
+Forecasting_TC_FOR-79_07.2_Verify that for Group ATT with budget value, additional results before new results in debug mode
+    [Documentation]    If user has selected channel partner as ATT, and if budget value is passed, additional results before new results in debug mode
+    Select Group in Select Dropdown    GroupName=ATT
+    Goto Forecasting URL In Debug Mode
+    Input Text    ${Input_Budget}    500000
+    Sleep    3s
+    Run Forecast
+    Confirm Action
+    Sleep    10s
+
+    With budget value, additional results before new results in debug mode
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_07.2.png
+    [Tags]    For-80      Forecasting_Failures
+
+
+Forecasting_TC_FOR-79_07.3_Verify that for Group Datamyx with budget value, additional results before new results in debug mode
+    [Documentation]    If user has selected channel partner as Datamyx, and if budget value is passed, additional results before new results in debug mode
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Goto Forecasting URL In Debug Mode
+    Input Text    ${Input_Budget}    500000
+    Sleep    3s
+    Run Forecast
+    Confirm Action
+    Sleep    10s
+
+    With budget value, additional results before new results in debug mode
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_07.3.png
+    [Tags]    For-80       Forecasting_Failures
+
+#---- ---------------------------------------------------------------------------------------
+# QA Task : FOR-46  & Dev Task : FOR-38
+
+Forecasting_TC_FOR-79_01.1_Verify Avg CPM for 4INFO when selected Creative type = Banner, Device Type = Tablet and Traffic Type = App
+    [Documentation]    Verify that in Debug mode for forecasting gives average CPM value
+    ...    matches with database when selected  Creative type = Banner,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner 4INFO
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting URL In Debug Mode
+
+    Set Test Variable    ${ChannelPartner}      4INFO
+    Set Test Variable    ${CreativeType}        Banner
+    Set Test Variable    ${TrafficType}         App
+    Set Test Variable    ${DeviceType}          Tablet
+
+    Set Test Variable    ${DB_BannerSizes}    ('120x20', '300x250')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    10000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=120x20
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=300x250
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    30s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_BannerSizes=${DB_BannerSizes}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-80    
+
+
+Forecasting_TC_FOR-79_02.1_Verify Avg CPM for ATT when selected Creative type = Banner, Device Type = Phone and Traffic Type = Mobile Web
+    [Documentation]    Verify that in Debug mode for forecasting gives average CPM value
+    ...    matches with database when selected  Creative type = Banner,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner ATT
+    Select Group in Select Dropdown    GroupName=ATT
+    Goto Forecasting URL In Debug Mode
+
+    Set Test Variable    ${ChannelPartner}      ATT
+    Set Test Variable    ${CreativeType}        Banner
+    Set Test Variable    ${TrafficType}         Mobile Web
+    Set Test Variable    ${DeviceType}          Phone
+
+    Set Test Variable    ${DB_BannerSizes}    ('216x36', '320x50', '160x600')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    25000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=216x36
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=320x50
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=160x600
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    120s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_BannerSizes=${DB_BannerSizes}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-80       Forecasting_Failures
+
+
+Forecasting_TC_FOR-79_03.1_Verify Avg CPM for Datamyx when selected Creative type = Banner, Device Type = Tablet and Traffic Type = App
+    [Documentation]    Verify that in Debug mode for forecasting gives average CPM value
+    ...    matches with database when selected  Creative type = Banner,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner Datamyx
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Goto Forecasting URL In Debug Mode
+
+    Set Test Variable    ${ChannelPartner}      Datamyx
+    Set Test Variable    ${CreativeType}        Banner
+    Set Test Variable    ${TrafficType}         App
+    Set Test Variable    ${DeviceType}          Tablet
+
+    Set Test Variable    ${DB_BannerSizes}    ('728x90', '168x28', '468x60')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    50000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=728x90
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=168x28
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=468x60
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_BannerSizes=${DB_BannerSizes}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-80       Forecasting_Failures
+
+
+Forecasting_TC_FOR-79_04.1_Verify Avg CPM for 4INFO when selected Creative type = Video, Device Type = Tablet and Traffic Type = App
+    [Documentation]    Verify that in Debug mode for forecasting gives average CPM value
+    ...    matches with database when selected  Creative type = Video,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner 4INFO
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting URL In Debug Mode
+    Sleep    60s
+
+    Set Test Variable    ${ChannelPartner}      4INFO
+    Set Test Variable    ${CreativeType}        Video
+    Set Test Variable    ${TrafficType}         Mobile Web
+    Set Test Variable    ${DeviceType}          Tablet
+
+    # Set Test Variable    ${DB_BannerSizes}    ('120x20', '300x250')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    10000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    30s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-80    Forecasting_Failures
+
+
+Forecasting_TC_FOR-79_04.2_Verify Avg CPM for ATT when selected Creative type = Video, Device Type = Tablet and Traffic Type = App
+    [Documentation]    Verify that in Debug mode for forecasting gives average CPM value
+    ...    matches with database when selected  Creative type = Video,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner ATT
+    Select Group in Select Dropdown    GroupName=ATT
+    Goto Forecasting URL In Debug Mode
+    Sleep    60s
+
+    Set Test Variable    ${ChannelPartner}      ATT
+    Set Test Variable    ${CreativeType}        Video
+    Set Test Variable    ${TrafficType}         App
+    Set Test Variable    ${DeviceType}          Tablet
+
+    # Set Test Variable    ${DB_BannerSizes}    ('120x20', '300x250')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    10000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    30s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-80    
+
+
+Forecasting_TC_FOR-79_04.3_Verify Avg CPM for Datamyx when selected Creative type = Video, Device Type = Tablet and Traffic Type = App
+    [Documentation]    Verify that in Debug mode for forecasting gives average CPM value
+    ...    matches with database when selected  Creative type = Video,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner Datamyx
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Goto Forecasting URL In Debug Mode
+    Sleep    60s
+
+    Set Test Variable    ${ChannelPartner}      Datamyx
+    Set Test Variable    ${CreativeType}        Video
+    Set Test Variable    ${TrafficType}         App
+    Set Test Variable    ${DeviceType}          Tablet
+
+    # Set Test Variable    ${DB_BannerSizes}    ('120x20', '300x250')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    10000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    30s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-80    
+
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-69  & Dev Task : FOR-68
+
+Forecasting_TC_FOR-79_01.1_Verify Run forecasting for channel partner 4INFO with adding budget at forecasting page with debug mode and Creative size select 968x1024 gives Forecasting Data Not Available message
+    [Documentation]    Verify Run forecasting for channel partner 4INFO with adding budget at debug mode in forecasting page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    Goto Forecasting URL In Debug Mode
+
+    Set Test Variable    ${CreativeType}        Banner
+
+    Set Channel Partner at UI page    ChannelPartner=4INFO
+
+    Input Text    ${Input_Budget}    50000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=968x1024
+
+    Run Forecast
+    Confirm Action
+    Sleep    40s
+
+    Element Should Be Visible    ${NoDataAvailableErrorMessage}
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_01.1.png
+    [Tags]    For-80        Forecasting_Failures  
+
+
+Forecasting_TC_FOR-79_01.2_Verify Run forecasting for channel partner 4INFO without adding budget in forecasting page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    [Documentation]    Verify Run forecasting for channel partner 4INFO without adding budget in forecasting page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    Goto Forecasting URL In Debug Mode
+
+    Set Test Variable    ${CreativeType}        Banner
+
+    # Set Channel Partner at UI page    ChannelPartner=4INFO
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=968x1024
+
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+
+    Element Should Be Visible    ${NoDataAvailableErrorMessage}
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_01.2.png
+    [Tags]    For-80
+
+
+Forecasting_TC_FOR-79_01.3_Verify Run forecasting for channel partner 4INFO without adding budget at debug mode in forecasting page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    [Documentation]    Verify Run forecasting for channel partner 4INFO without adding budget at debug mode in forecasting page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    # Reload Page
+    # Sleep    60s
+    Goto Forecasting URL
+    Sleep    60s
+
+    Set Test Variable    ${CreativeType}        Banner
+
+    # Set Channel Partner at UI page    ChannelPartner=4INFO
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=968x1024
+
+    Run Forecast
+    ${Errorm}=    Get Alert Message
+    # Confirm Action
+    Should Be Equal    ${Errorm}    Graph Data Not Available
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_01.3.png
+    [Tags]    For-80    Forecasting_Failures
+
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-60  & Dev Task : FOR-56
+
+Forecasting_TC_FOR-79_01.1_Verify Run forecasting for 4INFO user channel partner Catalina without adding budget at debug mode in forecasting page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    [Documentation]    Verify Run forecasting for 4INFO user channel partner Catalina without adding budget at debug mode in forecasting page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    # Reload Page
+    # Sleep    60s
+    Goto Forecasting URL In Debug Mode
+    Sleep    60s
+    Set Channel Partner at UI page    ChannelPartner=Catalina
+    Set Test Variable    ${CreativeType}        Banner
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=968x1024
+
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+    Element Should Be Visible    ${NoDataAvailableErrorMessage}
+
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_01.1.png
+    [Tags]    For-80       Forecasting_Failures
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-57  & Dev Task : FOR-53
+
+Forecasting_TC_FOR-79_01.1_Verify After Run forecasting Partner CPM should have $ sign
+    [Documentation]    Verify After Run forecasting PartnerCPM should have $ sign
+    Log To Console    ${\n}Going to forecasting page in debug mode
+    Goto Forecasting URL In Debug Mode
+    Sleep    60s
+
+    Input Text    ${Input_Budget}    500000
+    Sleep    3s
+
+    Log To Console    ${\n}running forecast
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+
+    Log To Console    ${\n}Confirm Partner CPM
+    ${PartnerCPM_UI_Value} =    Get Text    ${PartnerCPM_UI}
+    Log    ${PartnerCPM_UI_Value}
+    Should Match Regexp    ${PartnerCPM_UI_Value}    $
+    [Tags]    For-80
+
+#-------------------------------------------------------------------------------------------
+
+# QA Task : FOR-73  & Dev Task : FOR-72
+
+Forecasting_TC_FOR-79_01.1_Verify After Run forecasting Clearing Price should have $ sign
+    [Documentation]    Verify After Run forecasting Clearing Price should have $ sign
+    Log To Console    ${\n}Confirm Clearing Price
+    ${ClearingPrice_UI_Value} =    Get Text    ${ClearingPrice_UI}
+    Log    ${ClearingPrice_UI_Value}
+    Should Match Regexp    ${ClearingPrice_UI_Value}    $
+    [Tags]    For-80
+
+
+Forecasting_TC_FOR-79_01.2_Verify After Run forecasting Calculated Budget should have $ sign
+    [Documentation]    Verify After Run forecasting Calculated Budget should have $ sign
+    Log To Console    ${\n}Confirm Calculated Budget
+    ${CalculatedBudget_UI_Value} =    Get Text    ${CalculatedBudget_UI}
+    Log    ${CalculatedBudget_UI_Value}
+    Should Match Regexp    ${CalculatedBudget_UI_Value}    $
+    [Tags]    For-80
+
+
+Forecasting_TC_FOR-79_01.3_Verify After Run forecasting Budget in table tblBudgetDebugMode should have $ sign
+    [Documentation]    Verify After Run forecasting Budget in table tblBudgetDebugMode should have $ sign
+    Log To Console    ${\n}Confirm Budget in table tblBudgetDebugMode
+    Capture Page Screenshot    filename=DollarSign.png
+    ${Budget_tblBudgetDebugMode_UI_Value} =    Get Text    ${Budget_tblBudgetDebugMode_UI}
+    Log    ${Budget_tblBudgetDebugMode_UI_Value}
+    Should Match Regexp    ${Budget_tblBudgetDebugMode_UI_Value}    $
+    [Tags]    For-80
+
+
+Forecasting_TC_FOR-79_01.4_Verify After Run forecasting Budget in table tblBudget should have $ sign
+    [Documentation]    Verify After Run forecasting Budget in table tblBudget should have $ sign
+    Log To Console    ${\n}Confirm Budget in table tblBudget
+    ${Budget_tblBudget_UI_Value} =    Get Text    ${Budget_tblBudget_UI}
+    Log    ${Budget_tblBudget_UI_Value}
+    Should Match Regexp    ${Budget_tblBudget_UI_Value}    $
+    [Tags]    For-80
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-74, Dev Task : FOR-70
+Forecasting_TC_FOR-79_01.1_Verify Stopping Logic
+    [Documentation]    Verify forecasting page in debug mode,
+    ...    if (partnerCPM <= AverageCPM): display row else: hide row
+
+    Goto Forecasting URL In Debug Mode
+    Sleep    20s
+
+    Input Text    ${Input_Budget}    500000
+    Sleep    3s
+
+    Log To Console    ${\n}running forecast...
+    Run Forecast
+    Confirm Action
+    Sleep    30s
+
+    Focus    ${UI_AverageCPM}
+    Sleep    5s
+    ${AvgCpm1}    Get Text    ${UI_AverageCPM}
+    ${AvgCpm}    Remove String    ${AvgCpm1}    ** Average Cpm is =${Space}
+    Log    ${AvgCpm}
+
+    Capture Page Screenshot     filename=Forecasting_TC_FOR-79_01.1.png
+
+    # Get all rows from table
+    ${AllRowsCount}    Get Matching Xpath Count    ${All_Rows_tblBudgetDebugMode}
+    Log    ${AllRowsCount}
+
+    Set Test Variable    ${partnerCPMUI}    ${All_Rows_tblBudgetDebugMode}[${AllRowsCount}]/td[4]
+    Log    ${partnerCPMUI}
+
+    ${PartnerCPMValue1}    Get Text    ${partnerCPMUI}
+    Log    ${PartnerCPMValue1}
+    ${PartnerCPM}    Remove String    ${PartnerCPMValue1}    $${Space}
+    Log    ${PartnerCPM}
+
+    Run Keyword If    ${PartnerCPM} <= ${AvgCpm}    Set Test Variable    ${Status}    TRUE
+    Run Keyword If    ${PartnerCPM} > ${AvgCpm}     Set Test Variable    ${Status}    FALSE
+
+    Should Be Equal    ${Status}    TRUE
+
+    [Tags]    For-80
+
+#-------------------------------------------------------------------------------------------
+# 1. "forecast_datapartner_reach" is set to 8 for all datasource
+
+Forecasting_TC_FOR-79_01.1_Verify table forecast_datapartner_reach has value 0.8 for all datasourses
+    [Documentation]    Verify table forecast_datapartner_reach has value 0.8 for all datasourses
+    Log To Console    ${\n} Verify table forecast_datapartner_reach has value 0.8 for all datasourses
+    Validate all datasources have value 0.8 for forecast_datapartner_reach table in DB
+    [Tags]    For-80
+
+
+# 2. "forecast_channel_cpm" is set to 4.75 for Banner 4INFO datasource
+
+Forecasting_TC_FOR-79_02.1_Verify table forecast_channel_cpm has value 4.75 for all rows for 4INFO datasource and creative type as Banner
+    [Documentation]    Verify table forecast_channel_cpm has value 4.75 for all rows for 4INFO datasource and creative type as Banner
+    Log To Console    ${\n} Verify table forecast_channel_cpm has value 4.75 for all rows for 4INFO datasource and creative type as Banner
+    Verify DB values for cpm value for each row for particular datasourse
+    ...    datasource_name=4INFO
+    ...    creative_type=banner
+    ...    Expected_CPM=4.75
+    [Tags]    For-80
+
+
+# 3. "forecast_channel_cpm" is set to 10.5 for Video for 4INFO datasource
+
+Forecasting_TC_FOR-79_02.1_Verify table forecast_channel_cpm has value 10.5 for all rows for 4INFO datasource and creative type as Video
+    [Documentation]    Verify table forecast_channel_cpm has value 10.5 for all rows for 4INFO datasource and creative type as Video
+    Log To Console    ${\n} Verify table forecast_channel_cpm has value 10.5 for all rows for 4INFO datasource and creative type as Video
+    Verify DB values for cpm value for each row for particular datasourse
+    ...    datasource_name=4INFO
+    ...    creative_type=video
+    ...    Expected_CPM=10.5
+    [Tags]    For-80
+
+
+#-------------------------------------------------------------------------------------------
+# Tests for Forecasting2 Page
+#-------------------------------------------------------------------------------------------
+
+Forecasting2_TC_01.1_Verify Create hidden forecasting2 page FOR-35
+    Comment    Check URL - https://qa-campaigns.4info.com/phoenix/#/forecasting2
+    Goto Forecasting2 URL
+    Wait Until Page Contains Element    //h1[contains(.,'FORECASTING2')]    timeout=60s
+    Capture Page Screenshot     filename=Forecasting_TC_01.2.1.png
+
+    Comment    Check URL - https://qa-campaigns.4info.com/phoenix/#/forecasting2?debug=true
+
+    Goto Forecasting2 URL In Debug Mode
+    Wait Until Page Contains Element    //h1[contains(.,'FORECASTING2')]    timeout=60s
+    Capture Page Screenshot     filename=Forecasting_TC_01.2.2.png
+    [Tags]    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-47  & Dev Task : FOR-37
+
+Forecasting2_TC_FOR-37_01_Verify that Channel Partner is moved to top.
+    [Documentation]    Verify that Channel Partner is moved to top in forecasting2 page
+    Goto Forecasting2 URL In Debug Mode
+    ${HorizontalPositionOfChannelPartner}    Get Horizontal Position    ${Select_CHANNELPARTNERS}
+    Log    ${HorizontalPositionOfChannelPartner}
+    Should Be Equal As Integers    ${HorizontalPositionOfChannelPartner}    35
+    ${VerticalPositionOfChannelPartner}    Get Vertical Position    ${Select_CHANNELPARTNERS}
+    Log    ${VerticalPositionOfChannelPartner}
+    Should Be Equal As Integers    ${VerticalPositionOfChannelPartner}    313
+    [Tags]     For-47    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+Forecasting2_TC_FOR-37_02.1_Verify that for Group 4INFO, and channel partner 4Info, budget is not required (mandatory asterick mark is not present).
+    [Documentation]    If user has selected channel partner as 4Info, then budget field is visible but it's not mandatory.
+    ...                i.e. asterick mark is not present in front of budget label
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting2 URL In Debug Mode
+    Set Channel Partner at UI page    ChannelPartner=4INFO
+    Check Budget Field Is Present in Forecasting2 Page
+    Check Required Asterick Mark is not Present for Budget
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_02.1.png
+    [Tags]    For-47        Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-37_02.2_Verify that for Group 4INFO without budget value, forecasting can run as expected
+    [Documentation]    If user has selected channel partner as 4Info, and if budget value is not passed, then forecasting will run as expected and an old result populates
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting2 URL
+    Clear Element Text    ${Input_Budget}
+    Sleep    10s
+    Run Forecast
+    Empty budget field, returns old results
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_02.2.png
+    [Tags]    For-47    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-37_02.3_Verify that for Group 4INFO with budget value, new results are returned
+    [Documentation]    If user has selected channel partner as 4Info, and if budget value is not passed, then forecasting will run as expected and an new result populates
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting2 URL In Debug Mode
+    Input Text    ${Input_Budget}    500000
+    Sleep    5s
+    Run Forecast
+    Confirm Action
+    With Budget, new results are returned
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_02.3.png
+    [Tags]    For-47    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-37_03.1_Verify that for Group ATT, and channel partner ATT, budget is required (mandatory asterick mark is present).
+    [Documentation]    If user has selected channel partner as 4Info, then budget field is visible but it's not mandatory.
+    ...                i.e. asterick mark is not present in front of budget label
+    Select Group in Select Dropdown    GroupName=ATT
+    Goto Forecasting2 URL In Debug Mode
+    Check Budget Field Is Present in Forecasting2 Page
+    Check Required Asterick Mark is Present for Budget
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_03.1.png
+    [Tags]    For-47        Exclude    # Reason : all these tests are included in Forecasting page now.    #  For-58
+
+
+
+Forecasting2_TC_FOR-37_03.2_Verify that for Group ATT without budget value, an error populates
+    [Documentation]    Verify when Channel Partner is selected as ATT And Budget is not mentioned, an error message populates as Minimum required budget should be $10000
+    Select Group in Select Dropdown    GroupName=ATT
+    Goto Forecasting2 URL In Debug Mode
+    Click Element    ${Input_Budget}
+    Sleep    2s
+    Clear Element Text    ${Input_Budget}
+    Sleep    5s
+    Press Key    ${Input_Budget}    TAB
+    Sleep    7s
+    Click Element    ${ErrorMessageImage}
+    Sleep    3s
+    Page Should Contain    Minimum required budget should be $10,000
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_03.2.png
+    [Tags]    For-47        Exclude    # Reason : all these tests are included in Forecasting page now.     #  For-58
+
+
+
+Forecasting2_TC_FOR-37_03.3_Verify that for Group ATT, With Budget new results are returned
+    [Documentation]    Verify that for Budget when Channel Partner is selected as ATT, new results are returned.
+    Select Group in Select Dropdown     GroupName=ATT
+    Sleep    5s
+    Goto Forecasting2 URL In Debug Mode
+    Input Text    ${Input_Budget}    100000
+    Sleep    3s
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+    With Budget, new results are returned
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_03.3.png
+    [Tags]    For-47        Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-37_04.1_Verify that for Group Datamyx, and channel partner Datamyx, budget is required (mandatory asterick mark is present).
+    [Documentation]    If user has selected channel partner as Datamyx, then budget field is visible but it's not mandatory.
+    ...                i.e. asterick mark is not present in front of budget label
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Goto Forecasting2 URL In Debug Mode
+    Sleep    30s
+    Check Budget Field Is Present in Forecasting2 Page
+    Check Required Asterick Mark is Present for Budget
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_04.1.png
+    [Tags]    For-47    Exclude    # Reason : all these tests are included in Forecasting page now.  #  For-58
+
+
+
+Forecasting2_TC_FOR-37_04.2_Verify that for Group Datamyx without budget value, an error populates
+    [Documentation]    Verify when Channel Partner is selected as Datamyx And Budget is not mentioned, an error message populates as Minimum required budget should be $10000
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Goto Forecasting2 URL In Debug Mode
+    Click Element    ${Input_Budget}
+    Sleep    2s
+    Clear Element Text    ${Input_Budget}
+    Sleep    3s
+    Press Key    ${Input_Budget}    TAB
+    Sleep    4s
+    Mouse Over    ${ErrorMessageImage}
+    Sleep    3s
+    Page Should Contain    Minimum required budget should be $10,000
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_04.2.png
+    [Tags]    For-47        Exclude    # Reason : all these tests are included in Forecasting page now.    #  For-58
+
+
+
+Forecasting2_TC_FOR-37_04.3_Verify that for Group Datamyx, With Budget new results are returned
+    [Documentation]    Verify that for Budget when Channel Partner is selected as Datamyx, new results are returned.
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Sleep    5s
+    Goto Forecasting2 URL In Debug Mode
+    Input Text    ${Input_Budget}    100000
+    Sleep    3s
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+    With Budget, new results are returned
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_04.3.png
+    [Tags]    For-47        Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-37_05.1_Verify that for Group Catalina, Budget field is hidden
+    [Documentation]    Verify that for Channel Partner Catalina, Budget field is hidden
+    Select Group in Select Dropdown    GroupName=CATALINA
+    Goto Forecasting2 URL In Debug Mode
+    Check Budget Field Is Not Present in Forecasting2 Page
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_05.1.png
+    [Tags]    For-47     Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-37_05.2_Verify that for Group Catalina, Without Budget field, Forecast gives expected old result
+    [Documentation]    Verify that for Channel Partner Catalina, without Budget field, Forecast gives expected old result
+    Select Group in Select Dropdown    GroupName=CATALINA
+    Goto Forecasting2 URL
+    Run Forecast
+    # Confirm Action
+    Sleep    10s
+    Empty budget field, returns old results
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_05.2.png
+    [Tags]    For-47    Exclude    # Reason : all these tests are included in Forecasting page now.  #  For-59
+
+
+
+Forecasting2_TC_FOR-37_06.1_Verify that for Group Catalina Self Service, Budget field is hidden
+    [Documentation]    Verify that for Channel Partner Catalina Self Service, Budget field is hidden
+    Select Group in Select Dropdown    GroupName=Catalina Self Service
+    Goto Forecasting2 URL In Debug Mode
+    Check Budget Field Is Not Present in Forecasting2 Page
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_06.1.png
+    [Tags]    For-47    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-37_06.2_Verify that for Group Catalina Self Service, Without Budget field, Forecast gives expected old result
+    [Documentation]    Verify that for Channel Partner Catalina Self Service, without Budget field, Forecast gives expected old result
+    Select Group in Select Dropdown    GroupName=Catalina Self Service
+    Goto Forecasting2 URL
+    Run Forecast
+    # Confirm Action
+    Sleep    10s
+    Empty budget field, returns old results
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_06.2.png
+    [Tags]    For-47    Exclude    # Reason : all these tests are included in Forecasting page now.  #  For-59
+
+
+
+
+Forecasting2_TC_FOR-37_07.1_Verify that for Group 4INFO with budget value, additional results before new results in debug mode
+    [Documentation]    If user has selected channel partner as 4Info, and if budget value is passed, additional results before new results in debug mode
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting2 URL In Debug Mode
+    Input Text    ${Input_Budget}    500000
+    Sleep    3s
+    Run Forecast
+    Confirm Action
+    Sleep    10s
+    With Budget, new results are returned
+    With budget value, additional results before new results in debug mode
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_07.1.png
+    [Tags]    For-47    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-37_07.2_Verify that for Group ATT with budget value, additional results before new results in debug mode
+    [Documentation]    If user has selected channel partner as ATT, and if budget value is passed, additional results before new results in debug mode
+    Select Group in Select Dropdown    GroupName=ATT
+    Goto Forecasting2 URL In Debug Mode
+    Input Text    ${Input_Budget}    500000
+    Sleep    3s
+    Run Forecast
+    Confirm Action
+    Sleep    10s
+
+    With budget value, additional results before new results in debug mode
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_07.2.png
+    [Tags]    For-47        Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-37_07.3_Verify that for Group Datamyx with budget value, additional results before new results in debug mode
+    [Documentation]    If user has selected channel partner as Datamyx, and if budget value is passed, additional results before new results in debug mode
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Goto Forecasting2 URL In Debug Mode
+    Input Text    ${Input_Budget}    500000
+    Sleep    3s
+    Run Forecast
+    Confirm Action
+    Sleep    10s
+
+    With budget value, additional results before new results in debug mode
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-37_07.3.png
+    [Tags]    For-47    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-46  & Dev Task : FOR-38
+
+
+Forecasting2_TC_FOR-38_01.1_Verify Avg CPM for 4INFO when selected Creative type = Banner, Device Type = Tablet and Traffic Type = App
+    [Documentation]    Verify that in Debug mode for forecasting2 gives average CPM value
+    ...    matches with database when selected  Creative type = Banner,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner 4INFO
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting2 URL In Debug Mode
+
+    Set Test Variable    ${ChannelPartner}      4INFO
+    Set Test Variable    ${CreativeType}        Banner
+    Set Test Variable    ${TrafficType}         App
+    Set Test Variable    ${DeviceType}          Tablet
+
+    Set Test Variable    ${DB_BannerSizes}    ('120x20', '300x250')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    10000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=120x20
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=300x250
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    30s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_BannerSizes=${DB_BannerSizes}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-46    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-38_02.1_Verify Avg CPM for ATT when selected Creative type = Banner, Device Type = Phone and Traffic Type = Mobile Web
+    [Documentation]    Verify that in Debug mode for forecasting2 gives average CPM value
+    ...    matches with database when selected  Creative type = Banner,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner ATT
+    Select Group in Select Dropdown    GroupName=ATT
+    Goto Forecasting2 URL In Debug Mode
+
+    Set Test Variable    ${ChannelPartner}      ATT
+    Set Test Variable    ${CreativeType}        Banner
+    Set Test Variable    ${TrafficType}         Mobile Web
+    Set Test Variable    ${DeviceType}          Phone
+
+    Set Test Variable    ${DB_BannerSizes}    ('216x36', '320x50', '160x600')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    25000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=216x36
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=320x50
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=160x600
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    120s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_BannerSizes=${DB_BannerSizes}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-46    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-38_03.1_Verify Avg CPM for Datamyx when selected Creative type = Banner, Device Type = Tablet and Traffic Type = App
+    [Documentation]    Verify that in Debug mode for forecasting2 gives average CPM value
+    ...    matches with database when selected  Creative type = Banner,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner Datamyx
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Goto Forecasting2 URL In Debug Mode
+
+    Set Test Variable    ${ChannelPartner}      Datamyx
+    Set Test Variable    ${CreativeType}        Banner
+    Set Test Variable    ${TrafficType}         App
+    Set Test Variable    ${DeviceType}          Tablet
+
+    Set Test Variable    ${DB_BannerSizes}    ('728x90', '168x28', '468x60')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    50000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=728x90
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=168x28
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=468x60
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_BannerSizes=${DB_BannerSizes}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-46    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+Forecasting2_TC_FOR-38_04.1_Verify Avg CPM for 4INFO when selected Creative type = Video, Device Type = Tablet and Traffic Type = App
+    [Documentation]    Verify that in Debug mode for forecasting2 gives average CPM value
+    ...    matches with database when selected  Creative type = Video,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner 4INFO
+    Select Group in Select Dropdown    GroupName=4INFO
+    Goto Forecasting2 URL In Debug Mode
+    Sleep    60s
+
+    Set Test Variable    ${ChannelPartner}      4INFO
+    Set Test Variable    ${CreativeType}        Video
+    Set Test Variable    ${TrafficType}         Mobile Web
+    Set Test Variable    ${DeviceType}          Tablet
+
+    # Set Test Variable    ${DB_BannerSizes}    ('120x20', '300x250')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    10000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    30s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-46        Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-38_04.2_Verify Avg CPM for ATT when selected Creative type = Video, Device Type = Tablet and Traffic Type = App
+    [Documentation]    Verify that in Debug mode for forecasting2 gives average CPM value
+    ...    matches with database when selected  Creative type = Video,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner ATT
+    Select Group in Select Dropdown    GroupName=ATT
+    Goto Forecasting2 URL In Debug Mode
+    Sleep    60s
+
+    Set Test Variable    ${ChannelPartner}      ATT
+    Set Test Variable    ${CreativeType}        Video
+    Set Test Variable    ${TrafficType}         App
+    Set Test Variable    ${DeviceType}          Tablet
+
+    # Set Test Variable    ${DB_BannerSizes}    ('120x20', '300x250')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    10000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    30s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-46    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-38_04.3_Verify Avg CPM for Datamyx when selected Creative type = Video, Device Type = Tablet and Traffic Type = App
+    [Documentation]    Verify that in Debug mode for forecasting2 gives average CPM value
+    ...    matches with database when selected  Creative type = Video,
+    ...    Device Type = Tablet and Traffic Type = App for channel partner Datamyx
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Goto Forecasting2 URL In Debug Mode
+    Sleep    60s
+
+    Set Test Variable    ${ChannelPartner}      Datamyx
+    Set Test Variable    ${CreativeType}        Video
+    Set Test Variable    ${TrafficType}         App
+    Set Test Variable    ${DeviceType}          Tablet
+
+    # Set Test Variable    ${DB_BannerSizes}    ('120x20', '300x250')
+    Set Test Variable    ${DB_TrafficTypes}    ('${TrafficType}')
+    Set Test Variable    ${DB_DeviceTypes}    ('${DeviceType}')
+
+    Set Channel Partner at UI page    ChannelPartner=${ChannelPartner}
+    Input Text    ${Input_Budget}    10000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Select Device Type in forecasting2 page      DeviceType=${DeviceType}
+
+    Select Traffic Type in forecasting2 page     TrafficType=${TrafficType}
+
+    Run Forecast
+    Confirm Action
+    Sleep    30s
+    Get HH Ids and fcRequests in Response
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Get UI Average CPM For Selected Options
+
+    Run Keyword If    ${HH_IdsInResponse} > 0 and ${fcRequests_InResponse} > 0
+    ...    Validate DB CPM value with UI CPM Value
+    ...    ChannelPartner=${ChannelPartner}
+    ...    CreativeType=${CreativeType}
+    ...    DB_TrafficTypes=${DB_TrafficTypes}
+    ...    DB_DeviceTypes=${DB_DeviceTypes}
+    [Tags]    For-46    FOR-45    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-69  & Dev Task : FOR-68
+
+
+Forecasting2_TC_FOR-68_01.1_Verify Run forecasting for channel partner 4INFO with adding budget at forecasting2 page with debug mode and Creative size select 968x1024 gives Forecasting Data Not Available message
+    [Documentation]    Verify Run forecasting for channel partner 4INFO with adding budget at debug mode in forecasting2 page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    Goto Forecasting2 URL In Debug Mode
+
+    Set Test Variable    ${CreativeType}        Banner
+
+    Set Channel Partner at UI page    ChannelPartner=4INFO
+
+    Input Text    ${Input_Budget}    50000
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=968x1024
+
+    Run Forecast
+    Confirm Action
+    Sleep    40s
+
+    Element Should Be Visible    ${NoDataAvailableErrorMessage}
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-68_01.1.png
+    [Tags]    For-69    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+
+Forecasting2_TC_FOR-68_01.2_Verify Run forecasting for channel partner 4INFO without adding budget in forecasting2 page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    [Documentation]    Verify Run forecasting for channel partner 4INFO without adding budget in forecasting2 page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    Goto Forecasting2 URL In Debug Mode
+
+    Set Test Variable    ${CreativeType}        Banner
+
+    # Set Channel Partner at UI page    ChannelPartner=4INFO
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=968x1024
+
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+
+    Element Should Be Visible    ${NoDataAvailableErrorMessage}
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-68_01.2.png
+    [Tags]    For-69    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+
+Forecasting2_TC_FOR-68_01.3_Verify Run forecasting for channel partner 4INFO without adding budget at debug mode in forecasting2 page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    [Documentation]    Verify Run forecasting for channel partner 4INFO without adding budget at debug mode in forecasting2 page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    # Reload Page
+    # Sleep    60s
+    Goto Forecasting2 URL
+    Sleep    60s
+
+    Set Test Variable    ${CreativeType}        Banner
+
+    # Set Channel Partner at UI page    ChannelPartner=4INFO
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=968x1024
+
+    Run Forecast
+    ${Errorm}=    Get Alert Message
+    # Confirm Action
+    Should Be Equal    ${Errorm}    Graph Data Not Available
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-68_01.3.png
+    [Tags]    For-69    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-60  & Dev Task : FOR-56
+
+
+Forecasting2_TC_FOR-56_01.1_Verify Run forecasting for 4INFO user channel partner Catalina without adding budget at debug mode in forecasting2 page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    [Documentation]    Verify Run forecasting for 4INFO user channel partner Catalina without adding budget at debug mode in forecasting2 page and Creative size select 968x1024 gives Forecasting Data Not Available message
+    # Reload Page
+    # Sleep    60s
+    Goto Forecasting2 URL In Debug Mode
+    Sleep    60s
+    Set Channel Partner at UI page    ChannelPartner=Catalina
+    Set Test Variable    ${CreativeType}        Banner
+
+    Select Creative Type in forecasting2 page
+    ...    CreativeType=${CreativeType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Select Banner Size at UI    BannerSize=968x1024
+
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+    Element Should Be Visible    ${NoDataAvailableErrorMessage}
+
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-56_01.1.png
+    [Tags]    For-60    Exclude    # Reason : all these tests are included in Forecasting page now.
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-57  & Dev Task : FOR-53
+
+
+Forecasting2_TC_FOR-57_01.1_Verify After Run forecasting Partner CPM should have $ sign
+    [Documentation]    Verify After Run forecasting PartnerCPM should have $ sign
+    Log To Console    ${\n}Going to forecasting2 page in debug mode
+    Goto Forecasting2 URL In Debug Mode
+    Sleep    60s
+
+    Input Text    ${Input_Budget}    500000
+    Sleep    3s
+
+    Log To Console    ${\n}running forecast
+    Run Forecast
+    Confirm Action
+    Sleep    60s
+
+    Log To Console    ${\n}Confirm Partner CPM
+    ${PartnerCPM_UI_Value} =    Get Text    ${PartnerCPM_UI}
+    Log    ${PartnerCPM_UI_Value}
+    Should Match Regexp    ${PartnerCPM_UI_Value}    $
+    [Tags]   Exclude    # Reason : all these tests are included in Forecasting page now.    # For-57    For-73    
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-73  & Dev Task : FOR-72
+
+
+Forecasting2_TC_FOR-72_01.1_Verify After Run forecasting Clearing Price should have $ sign
+    [Documentation]    Verify After Run forecasting Clearing Price should have $ sign
+    Log To Console    ${\n}Confirm Clearing Price
+    ${ClearingPrice_UI_Value} =    Get Text    ${ClearingPrice_UI}
+    Log    ${ClearingPrice_UI_Value}
+    Should Match Regexp    ${ClearingPrice_UI_Value}    $
+    [Tags]    Exclude    # Reason : all these tests are included in Forecasting page now.   # For-73
+
+
+
+Forecasting2_TC_FOR-72_01.2_Verify After Run forecasting Calculated Budget should have $ sign
+    [Documentation]    Verify After Run forecasting Calculated Budget should have $ sign
+    Log To Console    ${\n}Confirm Calculated Budget
+    ${CalculatedBudget_UI_Value} =    Get Text    ${CalculatedBudget_UI}
+    Log    ${CalculatedBudget_UI_Value}
+    Should Match Regexp    ${CalculatedBudget_UI_Value}    $
+    [Tags]    Exclude    # Reason : all these tests are included in Forecasting page now.  #  For-73
+
+
+
+Forecasting2_TC_FOR-72_01.3_Verify After Run forecasting Budget in table tblBudgetDebugMode should have $ sign
+    [Documentation]    Verify After Run forecasting Budget in table tblBudgetDebugMode should have $ sign
+    Log To Console    ${\n}Confirm Budget in table tblBudgetDebugMode
+    Capture Page Screenshot    filename=DollarSign.png
+    ${Budget_tblBudgetDebugMode_UI_Value} =    Get Text    ${Budget_tblBudgetDebugMode_UI}
+    Log    ${Budget_tblBudgetDebugMode_UI_Value}
+    Should Match Regexp    ${Budget_tblBudgetDebugMode_UI_Value}    $
+    [Tags]    Exclude    # Reason : all these tests are included in Forecasting page now.  #  For-73
+
+
+
+Forecasting2_TC_FOR-72_01.4_Verify After Run forecasting Budget in table tblBudget should have $ sign
+    [Documentation]    Verify After Run forecasting Budget in table tblBudget should have $ sign
+    Log To Console    ${\n}Confirm Budget in table tblBudget
+    ${Budget_tblBudget_UI_Value} =    Get Text    ${Budget_tblBudget_UI}
+    Log    ${Budget_tblBudget_UI_Value}
+    Should Match Regexp    ${Budget_tblBudget_UI_Value}    $
+    [Tags]    Exclude    # Reason : all these tests are included in Forecasting page now.  #  For-73
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-74, Dev Task : FOR-70
+
+
+Forecasting2_TC_FOR-70_01.1_Verify Stopping Logic
+    [Documentation]    Verify forecasting2 page in debug mode,
+    ...    if (partnerCPM <= AverageCPM): display row else: hide row
+
+    Goto Forecasting2 URL In Debug Mode
+    Sleep    20s
+
+    Input Text    ${Input_Budget}    500000
+    Sleep    3s
+
+    Log To Console    ${\n}running forecast...
+    Run Forecast
+    Confirm Action
+    Sleep    30s
+
+    Focus    ${UI_AverageCPM}
+    Sleep    5s
+    ${AvgCpm1}    Get Text    ${UI_AverageCPM}
+    ${AvgCpm}    Remove String    ${AvgCpm1}    ** Average Cpm is =${Space}
+    Log    ${AvgCpm}
+
+    Capture Page Screenshot     filename=Forecasting2_TC_FOR-70_01.1.png
+
+    # Get all rows from table
+    ${AllRowsCount}    Get Matching Xpath Count    ${All_Rows_tblBudgetDebugMode}
+    Log    ${AllRowsCount}
+
+    Set Test Variable    ${partnerCPMUI}    ${All_Rows_tblBudgetDebugMode}[${AllRowsCount}]/td[4]
+    Log    ${partnerCPMUI}
+
+    ${PartnerCPMValue1}    Get Text    ${partnerCPMUI}
+    Log    ${PartnerCPMValue1}
+    ${PartnerCPM}    Remove String    ${PartnerCPMValue1}    $${Space}
+    Log    ${PartnerCPM}
+
+    Run Keyword If    ${PartnerCPM} <= ${AvgCpm}    Set Test Variable    ${Status}    TRUE
+    Run Keyword If    ${PartnerCPM} > ${AvgCpm}     Set Test Variable    ${Status}    FALSE
+
+    Should Be Equal    ${Status}    TRUE
+
+    [Tags]    Exclude    # Reason : all these tests are included in Forecasting page now.  #  For-74
+
+#-------------------------------------------------------------------------------------------
+# QA Task : FOR-77, Dev Task : FOR-71
+
+# Add below tests for forecasting2 in debug mode for 4INFO
+
+# 1. "forecast_datapartner_reach" is set to 8 for all datasource
+
+Forecasting2_TC_FOR-71_01.1_Verify table forecast_datapartner_reach has value 0.8 for all datasourses
+    [Documentation]    Verify table forecast_datapartner_reach has value 0.8 for all datasourses
+    Log To Console    ${\n} Verify table forecast_datapartner_reach has value 0.8 for all datasourses
+    Validate all datasources have value 0.8 for forecast_datapartner_reach table in DB
+    [Tags]    Exclude    # Reason : all these tests are included in Forecasting page now.  #  For-77
+
+# 2. "forecast_channel_cpm" is set to 4.75 for Banner 4INFO datasource
+
+Forecasting2_TC_FOR-71_02.1_Verify table forecast_channel_cpm has value 4.75 for all rows for 4INFO datasource and creative type as Banner
+    [Documentation]    Verify table forecast_channel_cpm has value 4.75 for all rows for 4INFO datasource and creative type as Banner
+    Log To Console    ${\n} Verify table forecast_channel_cpm has value 4.75 for all rows for 4INFO datasource and creative type as Banner
+    Verify DB values for cpm value for each row for particular datasourse
+    ...    datasource_name=4INFO
+    ...    creative_type=banner
+    ...    Expected_CPM=4.75
+    [Tags]    Exclude    # Reason : all these tests are included in Forecasting page now.  #  For-77
+
+
+# 3. "forecast_channel_cpm" is set to 10.5 for Video for 4INFO datasource
+
+
+Forecasting2_TC_FOR-71_02.1_Verify table forecast_channel_cpm has value 10.5 for all rows for 4INFO datasource and creative type as Video
+    [Documentation]    Verify table forecast_channel_cpm has value 10.5 for all rows for 4INFO datasource and creative type as Video
+    Log To Console    ${\n} Verify table forecast_channel_cpm has value 10.5 for all rows for 4INFO datasource and creative type as Video
+    Verify DB values for cpm value for each row for particular datasourse
+    ...    datasource_name=4INFO
+    ...    creative_type=video
+    ...    Expected_CPM=10.5
+    [Tags]    Exclude    # Reason : all these tests are included in Forecasting page now.  #  For-77
+
+#-------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

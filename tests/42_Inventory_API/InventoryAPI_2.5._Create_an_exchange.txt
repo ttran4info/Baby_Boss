@@ -1,0 +1,332 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY    INVENTRY2.5    BATCH20    OffshoreQA
+
+# https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-2.5.Createanexchange
+# 2.5. Create an exchange
+# Method: POST
+# URL: 192.168.99.100:8380/inventory-api/exchange/exchange
+# DESC: This will be used to get new exchange created
+
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.5_TC_01.1_Create an exchange (valid Data, Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should process successfully
+    ...                 with response code 200.
+    [setup]     Delete Exchange Newly created    ExchangeName=Online
+    ...         spec=1
+    ...         protocol=1
+    ...         respType=1
+    Create an exchange
+    ...     name="Online"
+    ...     spec=1
+    ...     protocol=1
+    ...     respType=1
+    ...     reason_code=200
+    ...     success=true
+    [Tags]
+
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.5_TC_02.1_Create an exchange (Duplicate Name, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    # Create an exchange
+    # ...     name="Mobile Web"
+    # ...     spec=1
+    # ...     protocol=1
+    # ...     respType=1
+    # ...     reason_code=200
+    # ...     success=true
+
+    Create an exchange
+    ...     name="Online"
+    ...     spec=1
+    ...     protocol=1
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Json Value Should Equal    ${body}    /errors/0/reason_code     "700-506"
+    Json Value Should Equal    ${body}    /errors/0/reason_desc     "Exchange name exists."
+    [Tags]
+
+
+InventoryAPI_2.5_TC_02.2_Create an exchange (blank Name, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name=""
+    ...     spec=1
+    ...     protocol=1
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_desc":"Name cannot be null.","field":"name"}
+    [Tags]
+
+
+InventoryAPI_2.5_TC_02.3_Create an exchange (null Name, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name=null
+    ...     spec=1
+    ...     protocol=1
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_desc":"Name cannot be null.","field":"name"}
+    [Tags]
+
+
+InventoryAPI_2.5_TC_02.4_Create an exchange (special characters in Name, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="@#$%"
+    ...     spec=1
+    ...     protocol=1
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Json Value Should Equal    ${body}    /errors/0/field           "name"
+    Json Value Should Equal    ${body}    /errors/0/reason_desc     "Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed."
+    [Tags]
+
+
+InventoryAPI_2.5_TC_02.5_Create an exchange (double spaces in Name, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Test ${Space}"
+    ...     spec=1
+    ...     protocol=1
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Json Value Should Equal    ${body}    /errors/0/field           "name"
+    Json Value Should Equal    ${body}    /errors/0/reason_desc     "Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed."
+    [Tags]
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.5_TC_03.1_Create an exchange (null spec, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=null
+    ...     protocol=1
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_desc":"Spec cannot be null.","field":"spec"}
+    [Tags]
+
+
+InventoryAPI_2.5_TC_03.2_Create an exchange (blank spec, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=""
+    ...     protocol=1
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_desc":"Spec cannot be null.","field":"spec"}
+    [Tags]
+
+
+InventoryAPI_2.5_TC_03.3_Create an exchange (special characters in spec, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec="@#$%"
+    ...     protocol=1
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "400-001"
+    Json Value Should Equal    ${body}    /reason_desc              "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_2.5_TC_03.4_Create an exchange (999 spec, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=999
+    ...     protocol=1
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_code":"700-507","reason_desc":"Invalid spec id","field":"spec"}
+    [Tags]
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.5_TC_04.1_Create an exchange (null protocol, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=1
+    ...     protocol=null
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_desc":"Protocol cannot be null.","field":"protocol"}
+    [Tags]
+
+
+InventoryAPI_2.5_TC_04.2_Create an exchange (blank protocol, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=1
+    ...     protocol=""
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_desc":"Protocol cannot be null.","field":"protocol"}
+    [Tags]
+
+
+InventoryAPI_2.5_TC_04.3_Create an exchange (special characters in protocol, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=1
+    ...     protocol="@#$%"
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "400-001"
+    Json Value Should Equal    ${body}    /reason_desc              "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_2.5_TC_04.4_Create an exchange (999 in protocol, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=1
+    ...     protocol=999
+    ...     respType=1
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_code":"700-509","reason_desc":"Invalid protocol id","field":"protocol"}
+    [Tags]
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.5_TC_05.1_Create an exchange (null respType, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=1
+    ...     protocol=1
+    ...     respType=null
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_code":"700-508","reason_desc":"Invalid respType id","field":"respType"}
+    [Tags]
+
+
+InventoryAPI_2.5_TC_05.2_Create an exchange (blank respType, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=1
+    ...     protocol=1
+    ...     respType=""
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_code":"700-508","reason_desc":"Invalid respType id","field":"respType"}
+    [Tags]
+
+
+InventoryAPI_2.5_TC_05.3_Create an exchange (special characters in respType, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=1
+    ...     protocol=1
+    ...     respType="@#$%"
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "400-001"
+    Json Value Should Equal    ${body}    /reason_desc              "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_2.5_TC_05.4_Create an exchange (999 in respType, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Create an exchange
+    ...                 Expected:       API should not process successfully
+    ...                 with response code 400.
+    Create an exchange
+    ...     name="Mobile Web"
+    ...     spec=1
+    ...     protocol=1
+    ...     respType=999
+    ...     reason_code=400
+    ...     success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Should Match Regexp        ${body}    {"reason_code":"700-508","reason_desc":"Invalid respType id","field":"respType"}
+    [Tags]
+#-----------------------------------------------------------------------------------------------------------------------

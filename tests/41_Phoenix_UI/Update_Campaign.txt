@@ -1,0 +1,206 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags         	PHOENIX    UI_Update_Campaign       BATCH22    PHOENIX_3
+Suite Setup         Run Keyword          Clean-up_generated_data
+Suite Teardown      Run Keywords         Close All Browsers    Clean-up_generated_data
+
+*** Variables ***
+${QA_AD_HOPS_USER}          inarvekar@4info.com
+${QA_AD_HOPS_PWD}           P@ssw0rd
+${QA_TEST_ADVERTISER}       00_QATEST_advertiser_update_campaign
+${CAMPAIGN_NAME_UI}         00_QATEST_campaign
+# ${START_DATE}               2018/01/01						#${REGRESSION_START_DATE}   The date format is incorrect
+${END_DATE}                 2020/12/12						#${REGRESSION_END_DATE}		The date format is incorrect
+${START_DATE_TIME}          12:00 AM
+${END_DATE_TIME}            11:59 PM
+${CHILD_ADGROUP}            adGroup
+@{SINGLE_ACCESS}            QA
+${STORE_VISIT_LIST_ERROR}    Max limit. We only support up to 12 store chains for store visits.
+${CAMPAIGN_NAME_ERROR_MSG}   Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed.
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2020
+${START_DATE_TIME_PARENT}       02/02/2019
+${END_DATE_TIME_PARENT}         11/11/2020
+${START_DATE_CHILD}             03/03/2019 01:00
+${END_DATE_CHILD}               04/04/2019 07:59
+${parent_name}              00_QATEST_parent
+${child_name}               00_QATEST_child
+${Home_page}                https://qa-campaigns.4info.com/phoenix/#/advertisersList
+${Campaign_page_summery}        https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+${CAMPAIGN_EDIT_LINK}     https://qa-campaigns.4info.com/phoenix/#/campaignsEdit/
+*** Keywords ***
+
+
+Clean-up_generated_data
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+
+Change Text Value
+    [Arguments]     ${field}=
+    ...             ${value}=
+    Focus           ${field}
+    Sleep   4s
+    Input Text      ${field}        ${value}
+    Press key       ${field}               \\13
+    Save The Campaign
+    Sleep   5s
+    Wait Until Page Contains        CAMPAIGN SUMMARY       timeout=20s
+
+Verify Text Value
+    [Arguments]     ${field}=
+    ...             ${value}=
+    ...             ${prev_value}=
+    ...             ${Campaign_name_changed}=${CAMPAIGN_SEARCH_QA}
+    Click Element                   ${Campaign_name_changed}
+    Wait Until Page Contains        CAMPAIGN NAME
+    ${response}                     Get Value        ${field}
+    Should Be Equal As Strings      ${response}               ${value}
+    Change Text Value               ${field}        ${prev_value}
+
+
+
+*** Test Cases ***
+UI_Create_Campaign_TC_00.01_Generate_data_for_Tests
+    Create Advertiser   uri=/pac-api/partner/advertiser     data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}
+    ...                                         campaign_start_date_time=${START_DATE} 00:00
+    ...                                         campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_channelId=44
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Login To Adhaven UI                         username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Wait Until Page Contains                    ADVERTISERS
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains                    CAMPAIGN SUMMARY
+    Sleep    2s
+    [Tags]     PHOENIX_SANITY
+
+
+TC_01 Update Campaign(Name)
+    Set Test Variable               ${New_Name_variable}        xpath=.//a[contains(.,'00_QATEST_campaign_CHANGE')]
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep   2s
+    Change Text Value               ${CAMPAIGN_NAME}        ${CAMPAIGN_NAME_UI}_CHANGE
+    Sleep    5s
+    Verify Text Value               ${CAMPAIGN_NAME}          ${CAMPAIGN_NAME_UI}_CHANGE     prev_value=${CAMPAIGN_NAME_UI}      Campaign_name_changed=${New_Name_variable}
+    [Tags]
+
+
+
+TC_02 Update Time Zone
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep   2s
+    Select From List               ${CAMPAIGN_TIME_ZONE}        Alaska Time
+    Save The Campaign
+    Wait Until Page Contains                    CAMPAIGN SUMMARY
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    ${response}         Get Selected List Label         ${CAMPAIGN_TIME_ZONE}
+    Should Be Equal As Strings      ${response}               Alaska Time
+    [Tags]
+
+TC_03 Update EXTERNAL CAMPAIGN ID
+   Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep   2s
+    Change Text Value                xpath=//input[@name="externalId"]          BVIExternalID1
+    Sleep    5s
+    Verify Text Value               xpath=//input[@name="externalId"]          BVIExternalID1     prev_value=BVIExternalID
+    [Tags]
+
+
+TC_04 Update Campaign(Start Date)
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep   2s
+    Change Text Value              ${CAMPAIGN_START_DATE}        02/02/2019
+    Sleep    5s
+    Verify Text Value               ${CAMPAIGN_START_DATE}          02/02/2019     prev_value=01/01/2019
+    [Tags]
+
+
+TC_05 Update Campaign(End Date)
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep   2s
+    Change Text Value              ${CAMPAIGN_END_DATE}        11/11/2019
+    Sleep    5s
+    Verify Text Value               ${CAMPAIGN_END_DATE}          11/11/2019     prev_value=12/12/2019
+    [Tags]
+
+TC_06 Update Campaign(Start Time)
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep   2s
+    Select From List               ${CAMPAIGN_START_DATE_TIME}        7:00 PM
+    Save The Campaign
+    Wait Until Page Contains                    CAMPAIGN SUMMARY
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    ${response}         Get Selected List Label         ${CAMPAIGN_START_DATE_TIME}
+    Should Be Equal As Strings      ${response}               7:00 PM
+    Go Back
+    Wait Until Page Contains        CAMPAIGN SUMMARY
+    [Tags]
+
+TC_07 Update Campaign(End Time)
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep   2s
+    Select From List               ${CAMPAIGN_END_DATE_TIME}        7:59 PM
+    Save The Campaign
+    Wait Until Page Contains                    CAMPAIGN SUMMARY
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    ${response}         Get Selected List Label         ${CAMPAIGN_END_DATE_TIME}
+    Should Be Equal As Strings      ${response}               7:59 PM
+    Go Back
+    Wait Until Page Contains        CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_08 Update Campaign(4Info IO)
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep   2s
+    Change Text Value              ${CAMPAIGN_4INFO_IO}       555
+    Sleep    5s
+    Verify Text Value               ${CAMPAIGN_4INFO_IO}          555     prev_value=333
+    [Tags]
+
+
+
+TC_09 Update Campaign(Control group size)
+   Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep   2s
+    Select From List               ${CAMPAIGN_CONTROL_GROUP_SIZE}        15%
+    Save The Campaign
+    Wait Until Page Contains                    CAMPAIGN SUMMARY
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    ${response}         Get Selected List Label         ${CAMPAIGN_CONTROL_GROUP_SIZE}
+    Should Be Equal As Strings      ${response}               15%
+    Go Back
+    Wait Until Page Contains        CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_10 Update Campaign(Sales channel)
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep   2s
+    Select From List               ${CAMPAIGN_SALES_CHANNEL}        NBCU
+    Save The Campaign
+    Wait Until Page Contains                    CAMPAIGN SUMMARY
+    Go To                           ${CAMPAIGN_EDIT_LINK}${Campaign_Id}
+    Wait Until Page Contains        CAMPAIGN NAME      timeout=20s
+    Sleep    5s
+    ${response}         Get Selected List Label         ${CAMPAIGN_SALES_CHANNEL}
+    Should Be Equal As Strings      ${response}               NBCU
+    Go Back
+    Wait Until Page Contains        CAMPAIGN SUMMARY
+    [Tags]

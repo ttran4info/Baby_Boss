@@ -1,0 +1,252 @@
+*** Settings ***
+Resource      InventoryAPI_imports.txt
+Force Tags    INVENTORY     INVENTORY2.2     BATCH20     OffshoreQA    
+
+
+# Wiki Page : https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-2.2.AddInventoryTypetoExchange
+# Example   : http://192.168.99.100:8380/inventory-api/exchange/inventory-type/375
+# API Name  : 2.2. Add Inventory Type to Exchange
+# Method    : POST
+# URL       : 192.168.99.100:8380/inventory-api/exchange/inventory-type/{exchangeId}
+# DESC      : Add Inventory Type to Exchange
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+
+*** Test Cases ***
+#-------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.2_TC_01.1_Add Inventory Type to Exchange (valid exchange id with site type "Online" and URL, Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange,
+    ...                 Expected:       API should process successfully with response code 200.
+    Set Test Variable    ${exchangeId}      619
+    Set Test Variable    ${siteType}        Online
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 success=true
+    [Tags]
+
+
+InventoryAPI_2.2_TC_01.2_Add Inventory Type to Exchange (valid exchange id with site type "Mobile Web" and URL, Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange,
+    ...                 Expected:       API should process successfully with response code 200.
+    Set Test Variable    ${exchangeId}      619
+    Set Test Variable    ${siteType}        Mobile Web
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 success=true
+    [Tags]    InventoryAPI_2.2_TC_01.2
+
+
+InventoryAPI_2.2_TC_01.3_Add Inventory Type to Exchange (valid exchange id with site type "Mobile App" and URL, Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange,
+    ...                 Expected:       API should process successfully with response code 200.
+    Set Test Variable    ${exchangeId}      619
+    Set Test Variable    ${siteType}        Mobile App
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 success=true
+    [Tags]
+#-------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.2_TC_02.0_Add Inventory Type to Exchange (Not Publisher, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange,
+    ...                 Expected:       API should process successfully with response code 200.
+    Set Test Variable    ${exchangeId}      452
+    Set Test Variable    ${siteType}        Online
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-501"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid exchange id."
+    [Tags]
+
+
+InventoryAPI_2.2_TC_02.1_Add Inventory Type to Exchange (Exchange ID missing, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange for exchange id missing,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable    ${exchangeId}      ${Empty}
+    Set Test Variable    ${siteType}        Online
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 url=inventory-api/exchange/inventory-type
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_2.2_TC_02.2_Add Inventory Type to Exchange (Exchange ID null, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange for exchange id null,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable    ${exchangeId}      null
+    Set Test Variable    ${siteType}        Online
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 url=inventory-api/exchange/inventory-type/${exchangeId}
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_2.2_TC_02.3_Add Inventory Type to Exchange (Exchange ID blank, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange for exchange id blank,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable    ${exchangeId}      ""
+    Set Test Variable    ${siteType}        Online
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 url=inventory-api/exchange/inventory-type/${exchangeId}
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_2.2_TC_02.4_Add Inventory Type to Exchange (Exchange ID alphabets and special characters, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange for exchange id alphabets and special characters,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable    ${exchangeId}      fsa@#$
+    Set Test Variable    ${siteType}        Online
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 url=inventory-api/exchange/inventory-type/${exchangeId}
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal     ${body}         /reason_code            "400-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_2.2_TC_02.5_Add Inventory Type to Exchange (Exchange ID negative value, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange for exchange id negative value,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable    ${exchangeId}      -369
+    Set Test Variable    ${siteType}        Online
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 url=inventory-api/exchange/inventory-type/${exchangeId}
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-501"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid exchange id."
+    [Tags]
+
+
+InventoryAPI_2.2_TC_02.6_Add Inventory Type to Exchange (Exchange ID Invalid, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange for exchange id Invalid,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable    ${exchangeId}      999
+    Set Test Variable    ${siteType}        Online
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal     ${body}         /reason_code            "700-501"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid exchange id."
+    [Tags]
+
+
+#-------------------------------------------------------------------------------------------------------------------
+
+InventoryAPI_2.2_TC_03.1_Add Inventory Type to Exchange (Exchange ID and site type existing, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange for Exchange ID and site type existing,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable    ${exchangeId}      375
+    Set Test Variable    ${siteType}        Online
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Json Value Should Equal    ${body}    /errors/0/reason_code     "700-504"
+    Json Value Should Equal    ${body}    /errors/0/field           "siteType"
+    Json Value Should Equal    ${body}    /errors/0/reason_desc     "Site type for the exchange already exists"
+    [Tags]
+
+
+InventoryAPI_2.2_TC_03.2_Add Inventory Type to Exchange (Site Type missing, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange for Site Type missing,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable    ${exchangeId}      369
+    Set Test Variable    ${siteType}        ${Empty}
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Json Value Should Equal    ${body}    /errors/0/reason_code     "700-503"
+    Json Value Should Equal    ${body}    /errors/0/field           "siteType"
+    Json Value Should Equal    ${body}    /errors/0/reason_desc     "Missing site type"
+    [Tags]
+
+
+InventoryAPI_2.2_TC_03.3_Add Inventory Type to Exchange (Site Type null, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange for Site Type null,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable    ${exchangeId}      369
+    Set Test Variable    ${siteType}        null
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType=${siteType}
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Json Value Should Equal    ${body}    /errors/0/reason_code     "700-503"
+    Json Value Should Equal    ${body}    /errors/0/field           "siteType"
+    Json Value Should Equal    ${body}    /errors/0/reason_desc     "Missing site type"
+    [Tags]
+
+
+InventoryAPI_2.2_TC_03.4_Add Inventory Type to Exchange (Site Type invalid, Don't Accept)
+    [Documentation]     Input:          Use API to Add Inventory Type to Exchange for Site Type invalid,
+    ...                 Expected:       API should not process successfully with response code 400.
+    Set Test Variable    ${exchangeId}      369
+    Set Test Variable    ${siteType}        WebOnline
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 reason_code=400
+    ...                                 success=false
+    Json Value Should Equal    ${body}    /reason_code              "700-702"
+    Json Value Should Equal    ${body}    /reason_desc              "Validation Failure"
+    Json Value Should Equal    ${body}    /errors/0/reason_code     "700-502"
+    Json Value Should Equal    ${body}    /errors/0/field           "siteType"
+    Json Value Should Equal    ${body}    /errors/0/reason_desc     "Invalid site type"
+    [Tags]
+
+#-------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,259 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.2.2		BATCH20
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+#https://wiki.4info.com/pages/viewpage.action?title=Inventory+API+documentation&spaceKey=Software#InventoryAPIdocumentation-1.1.1Getallclusters(Devdone)
+#API Name: 1.2.2 Get list of filters for a cluster
+#Method: GET
+#URL: /inventory-api/cluster/cluster/{clusterId}/filters?page={page_number}&size={page_size}
+#Page number starting from 1. If missing, default: 1
+#If missing, default: 10
+#rhino.clusters
+#rhino.cluster_placement
+#rhino.groups_cluster
+
+*** Variables ***
+ ${groupId}			1
+ ${max_filter}		10
+ ${cluster_name}	Regression_cluster_122
+*** Keywords ***
+
+*** Test Cases ***
+TC_00 Generate Data
+	[Documentation]		Create Cluster: ${cluster_name} with random filter of size:  ${max_filter}
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	Generate Filter		max=${max_filter}		#${filters} is generated
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}		valid_filter=${max_filter}
+	[Tags]
+
+
+TC_01 Get list of filters for a cluster (Normal Cluster, page1, size 5)
+	[Documentation]		Get list of filters for a cluster start page 1, with size of 5
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		5
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	Json Value Should Equal 		${body}				/count						${max_filter}
+	[Tags]
+
+#No test to be done since this is elastic
+#TC_02 Get list of filters for a cluster (Normal Cluster VS database)
+
+TC_03 Get list of filters for a cluster (Count Validation)
+	[Documentation]		Get list of filters for a cluster start page 1, with size of 5, validate value return for filter size
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		5
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	Json Value Should Equal 		${body}				/count						${max_filter}
+
+TC_04 Get list of filters for a cluster (Invalid cluster id 9999)
+	[Documentation]		Get list of filters, using invalid cluster id. Expecting error
+	Set Test Variable	${clusterId}		9999
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		10
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"700-401"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid cluster id."
+	[Tags]
+
+
+TC_05 Get list of filters for a cluster (Invalid cluster id 0)
+	[Documentation]		Get list of filters, using invalid cluster id. Expecting error
+	Set Test Variable	${clusterId}		0
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		10
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"700-401"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid cluster id."
+	[Tags]
+
+TC_06 Get list of filters for a cluster (Invalid cluster id -1)
+	[Documentation]		Get list of filters, using invalid cluster id. Expecting error
+	Set Test Variable	${clusterId}		-1
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		10
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"700-401"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid cluster id."
+	[Tags]
+
+
+TC_07 Get list of filters for a cluster (Invalid cluster id abc)
+	[Documentation]		Get list of filters, using invalid cluster id. Expecting error
+	Set Test Variable	${clusterId}		abc
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		10
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"400-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid Request."
+	[Tags]
+
+
+TC_08 Get list of filters for a cluster (Invalid cluster id null)
+	[Documentation]		Get list of filters, using null cluster id. Expecting error
+	Set Test Variable	${clusterId}		null
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		10
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"400-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid Request."
+	[Tags]
+
+
+TC_09 Get list of filters for a cluster (Invalid cluster id missing)
+	[Documentation]		Get Cluster filter without any cluster id. Expecting error
+	Set Test Variable	${clusterId}		0
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		10
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"400-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid Request."
+	[Tags]
+
+#It's decided that UI is handling pageingnation issue
+TC_10 Get list of filters for a cluster (Valid cluster, Invalid Page 99, size 30)
+	[Documentation]		Get Cluster filter using page that is out of bound for available list of filters.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		99
+	Set Test Variable	${page_size}		30
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${cluster_id}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"700-604"
+	Json Value Should Equal		${body}		/reason_desc					"Page number out of bound."
+	[Tags]
+
+
+TC_11 Get list of filters for a cluster (Valid cluster, Invalid Page 0)
+	[Documentation]		Get Cluster filter using invalid page.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		0
+	Set Test Variable	${page_size}		10
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"700-602"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid page number."
+	[Tags]
+
+
+TC_12 Get list of filters for a cluster (Valid cluster, Invalid Page abc)
+	[Documentation]		Get Cluster filter using invalid page.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		abc
+	Set Test Variable	${page_size}		10
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"400-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid Request."
+	[Tags]
+
+
+TC_13 Get list of filters for a cluster (Valid cluster, Last Page)
+	[Documentation]		Get Cluster filter, using large page size, should work fine
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		100
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	#Json Value Should Equal		${body}		/reason_code					unknown
+	#Json Value Should Equal		${body}		/reason_desc					unknown
+	[Tags]
+
+
+TC_14 Get list of filters for a cluster (Valid cluster, missing Page, default to 1)
+	[Documentation]		Get Cluster filter without specififying page. should default to 1
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		missing
+	Set Test Variable	${page_size}		10
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	[Tags]
+
+
+TC_15 Get list of filters for a cluster (Valid cluster, null Page)
+	[Documentation]		Get Cluster filter, null page should give error.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		null
+	Set Test Variable	${page_size}		10
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"400-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid Request."
+	[Tags]
+
+TC_152 Get list of filters for a cluster (Valid cluster, 1 Page,but zero filters)
+	[Documentation]		Create a cluster with 0 filter, then get the info on the filter, expect a list of 0
+	Set Test Variable 		${cluster_name}			${cluster_name}_152
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	#Generate Filter		max=${max_filter}		#${filters} is generated
+	#Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}		valid_filter=${max_filter}
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		5
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${cluster_id}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	Json Value Should Equal 		${body}				/filters					[]
+	Json Value Should Equal 		${body}				/count						0
+	[Tags]		#Known_Bug		CM-725
+
+TC_16 Get list of filters for a cluster (Valid cluster, Invalid size -1)
+	[Documentation]		Get Cluster filter, invalid page size should return error.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		-1
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"700-601"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid page size."
+	[Tags]
+
+
+TC_17 Get list of filters for a cluster (Valid cluster, Invalid size null)
+	[Documentation]		Get Cluster filter, invalid page size should yield error.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		9
+	Set Test Variable	${page_size}		null
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"400-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid Request."
+	[Tags]
+
+
+TC_18 Get list of filters for a cluster (Valid cluster, Ultra small size 1)
+	[Documentation]		Get Cluster filter, small page size should work
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		1
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	[Tags]
+
+
+TC_19 Get list of filters for a cluster (Valid cluster, Ultra large size 99)
+	[Documentation]		Get Cluster filter, large page size should work
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		99
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	[Tags]
+
+
+TC_20 Get list of filters for a cluster (Valid cluster, missing size default to 10)
+	[Documentation]		Get Cluster filter, if page size is missing it will default to 10
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${page_number}		1
+	Set Test Variable	${page_size}		missing
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	[Tags]

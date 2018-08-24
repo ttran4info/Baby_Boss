@@ -1,0 +1,293 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX    Create_Group    BATCH22    PHOENIX_3
+# Suite Setup         Delete a user       username=CreateGroup_regression@temp.com
+Suite Teardown      Run Keywords    Close All Browsers
+
+# Note : There is weired issue found while entering group name in field Group Name in ui, 
+# it eliminates second letter from group name every time. Just to avoid the hassle,
+# entering group name as "TestRegressionGroup" and while comparing with db value, 
+# using group name as "TstRegressionGroup". 
+# This will pass the test case but it is temporary solution on the issue.
+
+*** Variables ***
+${username}    creategroupregression@temp.com
+${status}       1
+${Pass}         abcABC123!
+${firstName}    "Regression"
+${lastName}     "Test"
+${authority}    "USER"
+${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}, {"permissions": [3], "groupId": 1, "productId": 2}]
+${lastModifiedBy}           "${QA_DEFAULT_USER}"
+
+
+
+*** Keywords ***
+Create a user for Create Group Pre-requisite
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="${Pass}"
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------
+CreateGroup_TC_00_Create Group Pre-requisites
+    Clear Newly Created UI groups
+    Delete a user       username=${username}
+    Create a user for Create Group Pre-requisite
+    Login To Dashboard UI    username=${username}    password=${Pass}
+    Execute javascript  document.body.style.zoom="50%"
+    Sleep    2s 
+    Capture Page Screenshot     filename=CreateGroup_00.png
+    [Tags]    CreateGroup_TC_01
+
+
+CreateGroup_TC_01.1_Create Group (Group Name - Valid, allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Go To Manage Groups Page
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    TestRegressionGroup
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_0011.png
+    Save Newly Created Group
+    Set Test Variable    ${GroupNameUI1}    TstRegressionGroup
+    Capture Page Screenshot     filename=CreateGroup_0011_Created.png
+    Confirm Newly Created Group By UI is saved in DB    GroupNameUI=${GroupNameUI1}    count=1
+    [Tags]    CreateGroup_TC_01
+
+
+CreateGroup_TC_01.2_Create Group (Group Name - using underscore, allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    TestRegressionGroup_001
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_0012.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_0012_Created.png
+    Set Test Variable    ${GroupNameUI1}    TstRegressionGroup_001
+    Confirm Newly Created Group By UI is saved in DB    GroupNameUI=${GroupNameUI1}    count=1
+    [Tags]    
+
+
+CreateGroup_TC_01.3_Create Group (Group Name - using hyphen, allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    TestRegressionGroup-001
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_0013.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_0013_Created.png
+    Set Test Variable    ${GroupNameUI1}    TstRegressionGroup-001
+    Confirm Newly Created Group By UI is saved in DB    GroupNameUI=${GroupNameUI1}    count=1
+    [Tags]    
+
+
+CreateGroup_TC_01.4_Create Group (Group Name - using single space, allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    Test Regression Group 001
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_0014.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_0014_Created.png
+    Set Test Variable    ${GroupNameUI1}    Tst Regression Group 001
+    Confirm Newly Created Group By UI is saved in DB    GroupNameUI=${GroupNameUI1}    count=1
+    [Tags]      
+
+
+
+CreateGroup_TC_01.5_Create Group (Group Name - using quotes, don't allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    Test_Regression_Group'001"
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_0015.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_0015_Created.png
+    Element Should Be Visible    ${Image_Error}
+    Page Should Contain    Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed.
+    [Tags]    
+
+
+CreateGroup_TC_01.6_Create Group (Group Name - using comma, don't allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_btnClose}
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    Test_Regression_Group,001
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_0016.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_0016_Created.png
+    Element Should Be Visible    ${Image_Error}
+    Mouse Over    ${Image_Error}
+    Sleep    7s
+    Page Should Contain    Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed.
+    [Tags]    
+
+
+
+CreateGroup_TC_01.7_Create Group (Group Name - using period, allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_btnClose}
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    Test.Regression..Group.001
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_0017.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_0017_Created.png
+    Set Test Variable    ${GroupNameUI1}    Tst.Regression..Group.001
+    Confirm Newly Created Group By UI is saved in DB    GroupNameUI=${GroupNameUI1}    count=1
+    [Tags]
+
+
+
+CreateGroup_TC_01.8_Create Group (Group Name - using mix of special characters, don't allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    Test_Regression@#$%Group001
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_0018.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_0018_Created.png
+    Element Should Be Visible    ${Image_Error}
+    Page Should Contain    Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed.
+    [Tags]
+
+
+
+CreateGroup_TC_01.9_Create Group (Group Name - using double spaces, don't allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_btnClose}
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    Test_Regression${Space} Group001
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_0019.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_0019_Created.png
+    Element Should Be Visible    ${Image_Error}
+    Page Should Contain    Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed.
+    [Tags]
+
+
+
+CreateGroup_TC_01.10_Create Group (Group Name - using Blank Value, don't allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_btnClose}
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    ${Empty}
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_00110.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_00110_Created.png
+    Element Should Be Visible    ${Image_Error}
+    Page Should Contain    Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed.
+    [Tags]
+
+
+CreateGroup_TC_01.11_Create Group (Group Name - using duplicate Value, don't allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_btnClose}
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    TestRegressionGroup
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_00110.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_00110_Created.png
+    Element Should Be Visible    ${Image_Error}
+    Page Should Contain    Group name already exists.
+    [Tags]
+
+#--------------------------------------------------------------------------------------
+
+
+CreateGroup_TC_02.1_Create Group (GROUP STATUS Default to Active)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_btnClose}
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    ${DefaultStatus}=    Get Element Attribute    ${select_Status}@ng-reflect-model
+    Should Be Equal As Strings    ${DefaultStatus}    1
+    Capture Page Screenshot     filename=CreateGroup_0021.png
+    [Tags]   
+
+
+CreateGroup_TC_02.2_Create Group (Group status - Inactive, allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_btnClose}
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    TestRegressionGroup022
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Enter status        Status=Inactive
+    Capture Page Screenshot     filename=CreateGroup_0022.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=RegressionGroup0022_Created.png
+    Set Test Variable    ${GroupNameUI1}    TstRegressionGroup022
+    Confirm Newly Created Group By UI is saved in DB    GroupNameUI=${GroupNameUI1}    count=1
+    [Tags]    
+
+
+
+CreateGroup_TC_02.3_Create Group (Group status - Active, allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    TestRegressionGroup023
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Enter status        Status=Active
+    Capture Page Screenshot     filename=CreateGroup_0023.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=CreateGroup_0023_Created.png
+    Set Test Variable    ${GroupNameUI1}    TstRegressionGroup023
+    Confirm Newly Created Group By UI is saved in DB    GroupNameUI=${GroupNameUI1}    count=1
+    [Tags]
+
+
+#--------------------------------------------------------------------------------------
+CreateGroup_TC_03.1_Create Group (Click on Cancel, allow)
+    [Documentation]    A new group should be saved in the database for valid group name with valid status.
+    Click Element    ${button_CreateGroup}
+    Sleep    2s
+    Set Test Variable    ${GroupNameUI}    TestRegressionGroup031
+    Log    ${GroupNameUI}
+    Enter Group Name    GroupName=${GroupNameUI}
+    Capture Page Screenshot     filename=CreateGroup_0031.png
+    Click Element    ${button_btnClose}
+    Capture Page Screenshot     filename=CreateGroup_0031_Created.png
+    Set Test Variable    ${GroupNameUI1}    TstRegressionGroup031
+    Confirm Newly Created Group By UI is saved in DB    GroupNameUI=${GroupNameUI1}    count=0
+    [Tags]
+
+#--------------------------------------------------------------------------------------

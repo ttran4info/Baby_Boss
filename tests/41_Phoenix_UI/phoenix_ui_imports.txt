@@ -1,0 +1,21 @@
+*** Settings ***
+Library     Selenium2Library
+Library     Collections
+Library     OperatingSystem
+Library     BuiltIn
+Resource    phoenix_ui.txt
+Resource    phoenix.txt
+Resource    um_api.txt
+Resource    pac_api.txt
+Resource    inventory_api.txt
+Resource    creative_api.txt
+Resource    adhaven_general.txt
+Resource    ui_Clusters.txt
+Resource    ui_Forecasting.txt
+Resource    ui_users.txt
+Resource    ui_Audiences.txt
+Resource	ui_groups.txt
+Resource    ui_Common.txt
+Resource    ACE_api.txt
+
+

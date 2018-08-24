@@ -1,0 +1,149 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             Selenium2Library
+Force Tags          PHOENIX    AUDIENCES1.3    OffshoreQA    PHOENIX_3
+# Suite Setup         Preconditions for Audiences Convert to Latlong
+# Suite Teardown      Post Conditions for Audiences Convert to Latlong
+
+
+*** Variables ***
+${LOGIN_NAME_TEXTBOX}               xpath=.//*[@id='username']
+${LOGIN_PASSWORD_TEXTBOX}           xpath=.//*[@id='password']
+${LOGIN_BUTTON}                     xpath=.//*[@id='login']
+${LINK_CONVERT_TO_LATLONG}          xpath=.//*[@id='linkConvertLatLon']
+${Closebtn_PopUpWindow}             xpath=.//*[@id='btnClose']
+${Label_ConvertAddressToLatLong}    xpath=html/body/ngb-modal-window/div/div/ng-component/form/div[2]/h1
+${Label_PoiDataFile}                xpath=html/body/ngb-modal-window/div/div/ng-component/form/div[2]/div/div[1]
+${btn_Browse}                       xpath=.//*[@id='poiDataFile']/input
+${Label_EmailAddress}               xpath=html/body/ngb-modal-window/div/div/ng-component/form/div[2]/div/div[3]
+${Input_EmailAddress}               xpath=.//*[@id='email']
+${btn_Submit}                       xpath=.//*[@id='btnConvertSubmit']
+${file_Xlsx}                        ../test_datafiles/data_test_banners/ACE_Geofence
+
+
+*** Keywords ***
+# Code to login and come at Audience Creator page
+Open Audience Creator Page with Valid Login Credentials
+    [Arguments]     ${username}=${QA_DEFAULT_USER}
+    ...             ${password}=${QA_DEFAULT_PASSWORD}
+    ...             ${url}=${LOGIN_URL}    #http://qa-dswarm-01:28082/phoenix/#/login
+    ...             ${browser}=Chrome
+    ...             ${waitTime}=20s
+    Log    ${QA_DEFAULT_USER}
+    Log    ${LOGIN_NAME_TEXTBOX}
+    Close All Browsers
+    Open Browser    url=${url}    browser=${browser}
+    Sleep    ${waitTime}
+    Wait Until Page Contains Element    ${LOGIN_NAME_TEXTBOX}
+    Maximize Browser Window
+    Input Text      ${LOGIN_NAME_TEXTBOX}        ${QA_DEFAULT_USER}
+    Input Text      ${LOGIN_PASSWORD_TEXTBOX}    ${password}
+    Click Button    ${LOGIN_BUTTON}
+    Sleep    ${waitTime}
+    Wait Until Page Contains Element      link=Audience Creator
+    Click Link    link=Audience Creator
+    Sleep    3s
+
+
+
+Preconditions for Audiences Convert to Latlong
+    [Documentation]    Open UI, Login with Valid Credentials and click on Audience Creator
+    Open Audience Creator Page with Valid Login Credentials
+
+
+
+Post Conditions for Audiences Convert to Latlong
+    [Documentation]    Close UI
+    Close Browser
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------------------------------
+Audiences_1.3_TC_01.1_Check link for Convert address to Lat/long (Validate link and pop up window objects, Accept)
+    [Documentation]     After successful login to UI and landing to page Audience Creator, validate
+    ...                 Link for "Convert address to Lat/long" is present at the page.
+    ...                 If link present at page, then click it.
+    ...                 Expected : Pop up window for CONVERT ADDRESS TO LAT/LONG should be displayed.
+    ...                 And objects on pop up window should be as below :
+    ...                 - "Close" : at right corner small link
+    ...                 - "CONVERT ADDRESS TO LAT/LONG" : Label
+    ...                 - "POI DATA FILE" : Label
+    ...                 - "Choose file" : Button
+    ...                 - "EMAIL ADDRESS" : Label
+    ...                 - "No file chosen" : Label
+    ...                 - "OK" : button
+    [Setup]         Preconditions for Audiences Convert to Latlong
+    Wait Until Page Contains Element      ${LINK_CONVERT_TO_LATLONG}
+    ${Elem_Link}    Get WebElement    ${LINK_CONVERT_TO_LATLONG}
+    Click Link    ${Elem_Link}
+    Element Should Be Visible    ${Closebtn_PopUpWindow}
+    Element Should Be Visible    ${Label_ConvertAddressToLatLong}
+    Element Should Be Visible    ${Label_PoiDataFile}
+    Element Should Be Visible    ${btn_Browse}
+    Element Should Be Visible    ${Label_EmailAddress}
+    Element Should Be Visible    ${Input_EmailAddress}
+    Element Should Be Visible    ${btn_Submit}
+    [Tags]
+
+
+Audiences_1.3_TC_01.2_Upload valid file with valid email address to Convert Address to Lat/Long (Accept)
+    # [Documentation]     Input : POI Data file in .xlsx format, email address
+    # ...                 Output : The uploaded file can be found at  upload location as mentioned in the
+    # ...                 properties file ( /usr/java/jboss/standalone/data/reports/custom-geofence/ )
+    # ...                 which is later pushed to S3
+    choose file   ${btn_Browse}   /home/vkatkar/Desktop/Ace-SampleFiles/SampleGeocodingFileNEW_123456.xlsx
+    Input Text    ${Input_EmailAddress}    ${QA_DEFAULT_USER}
+    Click Button    ${btn_Submit}
+    Element Should Be Visible    ${LINK_CONVERT_TO_LATLONG}
+    [Tags]
+#--------------------------------------------------------------------------------------------------------------
+
+Audiences_1.3_TC_02.1_Upload valid file with invalid email address to Convert Address to Lat/Long (Don't Accept)
+    # [Documentation]     Input : POI Data file in .xlsx format, email address
+    # ...                 Output : Error message
+    Set Test Variable    ${email_address}    abcd$%@.com
+    choose file   ${btn_Browse}   /home/vkatkar/Desktop/Ace-SampleFiles/SampleGeocodingFileNEW_123456.xlsx
+    Input Text    ${Input_EmailAddress}    ${email_address}
+    Press [Special] Key(s) | //xpath | TAB
+    Click Element   xpath=./html/body/ngb-modal-window/div/div/ng-component/form/div[2]/div/errorcontainer/div/div/img
+    Click Button    ${btn_Submit}
+    Element Should Be Visible    ${LINK_CONVERT_TO_LATLONG}
+    [Teardown]      Post Conditions for Audiences Convert to Latlong
+    [Tags]
+
+#--------------------------------------------------------------------------------------------------------------
+
+Audiences_1.3_TC_03.1_Confirm Convert Address to Lat/Long link is visible for Internal User
+    # [Documentation]     Input : POI Data file in .xlsx format, email address
+    # ...                 Output : Error message
+    Open Audience Creator Page with Valid Login Credentials
+    ...    username=${QA_DEFAULT_USER}
+    ...    password=${QA_DEFAULT_PASSWORD}
+    Element Should Not Be Visible    ${LINK_CONVERT_TO_LATLONG}
+    [Teardown]      Post Conditions for Audiences Convert to Latlong
+    [Tags]    Known_bug    CM-1996
+
+
+Audiences_1.3_TC_03.2_Confirm Convert Address to Lat/Long link is not visible for Catalina User
+    # [Documentation]     Input : POI Data file in .xlsx format, email address
+    # ...                 Output : Error message
+    Close All Browsers
+    Open Audience Creator Page with Valid Login Credentials
+    ...    username=${QA_CATALINA_USER}
+    ...    password=${QA_DEFAULT_PASSWORD}
+    Element Should Not Be Visible    ${LINK_CONVERT_TO_LATLONG}
+    [Teardown]      Post Conditions for Audiences Convert to Latlong
+    [Tags]    Known_bug    CM-1996
+
+
+Audiences_1.3_TC_03.3_Confirm Convert Address to Lat/Long link is not visible for Undertone User
+    # [Documentation]     Input : POI Data file in .xlsx format, email address
+    # ...                 Output : Error message
+    Open Audience Creator Page with Valid Login Credentials
+    ...    username=test@undertone.com
+    ...    password=1234info
+    ...    waitTime=30s
+    Element Should Not Be Visible    ${LINK_CONVERT_TO_LATLONG}
+    [Teardown]      Post Conditions for Audiences Convert to Latlong
+    [Tags]    Known_bug    CM-1996
+
+#--------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,531 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags         	PHOENIX			Phoenix_child      BATCH22    PHOENIX_4
+Suite Setup         Run Keyword          Clean-up_generated_data
+Suite Teardown      Run Keywords         Close All Browsers		Clean-up_generated_data
+
+*** Variables ***
+${QA_TEST_ADVERTISER}       00_QATEST_advertiser_CHILD
+${CAMPAIGN_NAME_UI}         00_QATEST_campaign_CHILD
+${START_DATE_TIME}          12:00 AM
+${END_DATE_TIME}            11:59 PM
+${CHILD_ADGROUP}            adGroup
+${parent_name}  			00_QATEST_parent_CHILD
+${child_name} 				00_QATEST_child
+${START_DATE}                   12/07/2018
+${END_DATE_TIME_CAMPAIGN}       12/07/2019
+${START_DATE_TIME_PARENT}       12/12/2018
+${END_DATE_TIME_PARENT}         12/01/2019
+${START_DATE_CHILD}             03/03/2019
+${END_DATE_CHILD}               04/04/2019
+${DOMAIN_ERROR_ICON_MSG}        Required to enter a top level domain such as "example.com")
+
+${Home_page}                https://qa-campaigns.4info.com/phoenix/#/advertisersList
+${Campaign_page_summery}        https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+
+
+*** Keywords ***
+
+Clean-up_generated_data
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+
+
+*** Test Cases ***
+TC_00.01_Generate_data_for_Tests
+    Create Advertiser    				uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API     	campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    Create Parent Adgroup via API     	parent_name=${parent_name}           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    Log    Advertiser_id=${advertiser_id}
+    Log    Campaign_id=${Campaign_Id}
+    Set Suite Variable              ${Campaign_Id}          ${Campaign_Id}
+    ${Parent_id}=       Get JSON Value      ${body}       /parent/id
+    Set Suite Variable    ${Parent_id}          ${Parent_id}
+    Log    parent_id=${Parent_id}
+    Login To Adhaven UI                         username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Wait Until Page Contains                    ADVERTISERS
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains                    CAMPAIGN SUMMARY
+    Sleep    2s
+    [Tags]
+
+TC_01.01_Create Child adGroup(without targeting)
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0101      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+TC_01.02_Create Child adGroup(with inventory targeting - IAB Targeting)
+    ${INC_IAB_CONTENTS}    Set Variable       Automotive    Family    Dating         #include list
+    @{INC_IAB_CONTENT_LIST}=    Convert To List    ${INC_IAB_CONTENTS}
+    ${EXC_IAB_CONTENTS}    Set Variable       Music    News    Sports         #Exclude list
+    @{EXC_IAB_CONTENT_LIST}=    Convert To List    ${EXC_IAB_CONTENTS}
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0102      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting IAB Content Category     INC_IAB_CONTENT_LIST=@{INC_IAB_CONTENT_LIST}       EXC_IAB_CONTENT_LIST=@{EXC_IAB_CONTENT_LIST}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+TC_01.03_Create Child adGroup(with inventory targeting - Traffic type)
+    # ${TRAFFIC_CONTENTS}    Set Variable       Automotive    Family    Dating         #include list
+    # @{TRAFFIC_CONTENT_LIST}=    Convert To List    ${TRAFFIC_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0103      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Traffic Type Category
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+TC_01.04_Create Child adGroup(with inventory targeting - Clusters Targeting)
+    ${INC_CLUSTERS_CONTENTS}    Set Variable       fox    Solitaire    weather         #include list
+    @{INC_CLUSTERS_CONTENT_LIST}=    Convert To List    ${INC_CLUSTERS_CONTENTS}
+    ${EXC_CLUSTERS_CONTENTS}    Set Variable       cnn    AOL ONLINE            #Exclude list
+    @{EXC_CLUSTERS_CONTENT_LIST}=    Convert To List    ${EXC_CLUSTERS_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0104      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Clusters Category     INC_CLUSTERS_CONTENT_LIST=@{INC_CLUSTERS_CONTENT_LIST}       EXC_CLUSTERS_CONTENT_LIST=@{EXC_CLUSTERS_CONTENT_LIST}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+
+TC_01.05_Create Child adGroup(with inventory targeting - Country Targeting)
+    ${COUNTRY_CONTENTS}    Set Variable       US    CANADA    Brazil         #include list
+    @{COUNTRY_CONTENT_LIST}=    Convert To List    ${COUNTRY_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0105      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Country Category     COUNTRY_LIST=@{COUNTRY_CONTENT_LIST}
+    Sleep   5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+
+TC_01.06_Create Child adGroup(with inventory targeting - Request state)
+    ${INC_REQUEST_STATE_CONTENTS}    Set Variable       Alaska    Georgia    Iowa         #include list
+    @{INC_REQUEST_STATE_CONTENT_LIST}=    Convert To List    ${INC_REQUEST_STATE_CONTENTS}
+    ${EXC_REQUEST_STATE_CONTENTS}    Set Variable       Nevada    New York     Texas      #Exclude list
+    @{EXC_REQUEST_STATE_CONTENT_LIST}=    Convert To List    ${EXC_REQUEST_STATE_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0106      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Request state Category     INC_REQUEST_STATE_CONTENT_LIST=@{INC_REQUEST_STATE_CONTENT_LIST}       EXC_REQUEST_STATE_CONTENT_LIST=@{EXC_REQUEST_STATE_CONTENT_LIST}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+TC_01.07_Create Child adGroup(with inventory targeting - Request DMA)
+    ${INC_REQUEST_DMA_CONTENTS}    Set Variable       Marquette, MI (553)    Milwaukee, WI (617)    Helena, MT (766)     #include list
+    @{INC_REQUEST_DMA_CONTENT_LIST}=    Convert To List    ${INC_REQUEST_DMA_CONTENTS}
+    ${EXC_REQUEST_DMA_CONTENTS}    Set Variable       Memphis, TN (640)     Erie, PA (516)     Knoxville, TN (557)  #Exclude list
+    @{EXC_REQUEST_DMA_CONTENT_LIST}=    Convert To List    ${EXC_REQUEST_DMA_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0107      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Request DMA Category     INC_REQUEST_DMA_CONTENT_LIST=@{INC_REQUEST_DMA_CONTENT_LIST}       EXC_REQUEST_DMA_CONTENT_LIST=@{EXC_REQUEST_DMA_CONTENT_LIST}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+TC_01.08_Create Child adGroup(with inventory targeting - Request ZipCode)
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0108      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Click Element       ${TARGETING_REQUEST_ZIP_CODE}
+    Input Text          ${REQUEST_ZIP_CODE_TEXTBOX}             416216
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+TC_01.09_Create Child adGroup(with inventory targeting - Household state)
+    ${INC_HH_STATE_CONTENTS}    Set Variable       Ohio    Rhode Island    Wyoming    Canada - AB  #include list
+    @{INC_HH_STATE_CONTENT_LIST}=    Convert To List    ${INC_HH_STATE_CONTENTS}
+    ${EXC_HH_STATE_CONTENTS}    Set Variable       Canada - BC     Colorado     Florida  #Exclude list
+    @{EXC_HH_STATE_CONTENT_LIST}=    Convert To List    ${EXC_HH_STATE_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0109      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Household state Category     INC_HH_STATE_CONTENT_LIST=@{INC_HH_STATE_CONTENT_LIST}       EXC_HH_STATE_CONTENT_LIST=@{EXC_HH_STATE_CONTENT_LIST}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+
+TC_01.10_Create Child adGroup(with inventory targeting - Household DMA)
+    ${INC_HH_DMA_CONTENTS}         Set Variable       Abilene-Sweetwater, TX (662)    Alpena, MI (583)    Binghamton, NY (502)      #include list
+    @{INC_HH_DMA_CONTENT_LIST}=    Convert To List    ${INC_HH_DMA_CONTENTS}
+    ${EXC_HH_DMA_CONTENTS}         Set Variable       Albany, GA (525)     Atlanta, GA (524)      #Exclude list
+    @{EXC_HH_DMA_CONTENT_LIST}=    Convert To List    ${EXC_HH_DMA_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0110      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Household DMA Category     INC_HH_DMA_CONTENT_LIST=@{INC_HH_DMA_CONTENT_LIST}       EXC_HH_DMA_CONTENT_LIST=@{EXC_HH_DMA_CONTENT_LIST}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+TC_01.11_Create Child adGroup(with inventory targeting - HouseHold ZipCode)
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0111      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Click Element       ${TARGETING_HOUSEHOLD_ZIP_CODE}
+    Input Text          ${HOUSEHOLD_ZIP_CODE_TEXTBOX}             416216
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+TC_01.12_Create Child adGroup(with inventory targeting - Device OS CM-2228)
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0112      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Click Element       ${TARGETING_DEVICE_OS}
+    Sleep  3s
+    Select Device and OS        device_OS=iPhone OS          device_version=7.0
+    Select Device and OS        device_OS=Windows Phone OS          device_version=8.10
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    Sleep    10s
+    Click Element       //a[contains(text(),"00_QATEST_child0112")]
+    Sleep   5s
+    ${value}        Get Selected List Label             xpath=(//select[@name="targetDeviceOSVersion"])[1]
+    Log  ${value}
+    Should Be Equal As Strings    ${value}              7.0
+    # Get Selected List Label             ${DEVICE_OS_WINDOWS}
+    ${value}=        Get Selected List Label             xpath=(//select[@name="targetDeviceOSVersion"])[3]
+    Log  ${value}
+    Should Be Equal As Strings    ${value}              8.10
+    [Tags]
+
+
+
+
+TC_01.13_Create Child adGroup(with inventory targeting - Device Type Targeting)
+    ${DEVICE_TYPE_CONTENTS}    Set Variable       phone    other            #include list
+    @{DEVICE_TYPE_CONTENT_LIST}=    Convert To List    ${DEVICE_TYPE_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0113      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Device Type Category     DEVICE_TYPE=@{DEVICE_TYPE_CONTENT_LIST}
+    Sleep   5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+############################################
+#Additional Targetting TC
+#########################################
+
+TC_01.14_Create Child adGroup(with inventory Additional targeting - Days of the week)
+    ${DAYS_OF_THE_WEEK}    Set Variable       Saturday    Tuesday        Monday     #include list
+    @{DAYS_OF_THE_WEEK_LIST}=    Convert To List    ${DAYS_OF_THE_WEEK}
+    Set Test Variable     ${SET_TIME_ZONE}          GMT
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0114      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Days Of The Week Category     DAYS=@{DAYS_OF_THE_WEEK_LIST}      Time_Zone=${SET_TIME_ZONE}
+    Sleep   5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+TC_01.15_Create Child adGroup(with inventory Additional targeting - Carrier)
+    ${CARRIER}    Set Variable       AT&T    Verizon        Sprint     #include list
+    @{CARRIER_LIST}=    Convert To List    ${CARRIER}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0115      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Carrier Category     Carrier=@{CARRIER_LIST}
+    Sleep   5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+TC_01.16_Create Child adGroup(with inventory Additional targeting - Language)
+    ${LANGUAGE}    Set Variable       English    Spanish  #include list
+    @{LANGUAGE_LIST}=    Convert To List    ${LANGUAGE}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0116      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Language Category     Language=@{LANGUAGE_LIST}
+    Sleep   5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+TC_01.17_Create Child adGroup(with Additional targeting - Exchange)
+    ${INC_EXCHANGE_CONTENTS}    Set Variable       4INFO Exchange    Inneractive    OpenX      #include list
+    @{INC_EXCHANGE_CONTENT_LIST}=    Convert To List    ${INC_EXCHANGE_CONTENTS}
+    ${EXC_EXCHANGE_CONTENTS}    Set Variable       Online     MoPub      #Exclude list
+    @{EXC_EXCHANGE_CONTENT_LIST}=    Convert To List    ${EXC_EXCHANGE_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0117      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Exchange Category     INC_EXCHANGE_CONTENT_LIST=@{INC_EXCHANGE_CONTENT_LIST}       EXC_EXCHANGE_CONTENT_LIST=@{EXC_EXCHANGE_CONTENT_LIST}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+
+TC_01.18_Create Child adGroup(with Additional targeting - Location Targeting)
+    ${LOCATION_CONTENTS}    Set Variable       Undetermined     Home            #include list
+    @{LOCATION_CONTENT_LIST}=    Convert To List    ${LOCATION_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0118      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Location Category     LOCATION=@{LOCATION_CONTENT_LIST}
+    Sleep   5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+TC_01.19_Create Child adGroup(with Additional targeting - DEVICE MFC Targeting)
+    ${DEV_MFC_CONTENTS}    Set Variable       Apple     LG            #include list
+    @{DEV_MFC_CONTENT_LIST}=    Convert To List    ${DEV_MFC_CONTENTS}
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0119      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Device MFC Category     DEV_MFC=@{DEV_MFC_CONTENT_LIST}
+    Sleep   5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+TC_01.20_Create Child adGroup(with Additional targeting - Private marketplaces Targeting)
+    ${PRIVATE_EXCHANGE}    Set Variable       OpenX              #include list
+    ${PRIVATE_DEAL_IDS}    Set Variable       12313            #include list
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0120      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Private marketplaces Category     EXHANGE=${PRIVATE_EXCHANGE}          DEAL_ID=${PRIVATE_DEAL_IDS}
+    Sleep   5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+TC_01.21_Create Child adGroup(with Additional targeting - Time of the day Targeting)
+    ${TOTD_TIME_ZONE}    Set Variable       GMT              #include list
+    ${TOTD_TIME_FROM}    Set Variable       1:00 AM           #include list
+    ${TOTD_TIME_TO}    Set Variable         7:00 PM         #include list
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0121      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Add Targeting Time of the day Category     time_zone=${TOTD_TIME_ZONE}          from=${TOTD_TIME_FROM}     to=${TOTD_TIME_TO}
+    Sleep   5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+
+TC_01.22_Create Child adGroup(Validations Checking)
+
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=qindra# $#$     Child_CPM=asdd     Child_Advertiser_Domain=12312      Child_Start_date_date=12/12/2014       Child_End_date_date=12/12/2015
+    Element Should Be Visible               ${CPM_ERROR_ICON}
+    Mouse Over               ${CPM_ERROR_ICON}
+    Page Should Contain      CPM can only be max 2 digits before decimal
+    Element Should Be Visible               ${DOMAIN_ERROR_ICON}
+    Mouse Over               ${DOMAIN_ERROR_ICON}
+    Page Should Contain     ${DOMAIN_ERROR_ICON_MSG}
+    Sleep  2s
+    Add General information for ChildAdGroup     Child_AdGroup_Name=qindra# $#$   Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+
+
+
+TC_01.23_Create Child Adgroup(CM-2101 Update Parent grp, child should aquire changes.)
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}_Conversion_track"}
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    Create Parent Adgroup via API       parent_name=${parent_name}           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59     parent_is_conversion_tracked=true
+    Log    Advertiser_id=${advertiser_id}
+    Log    Campaign_id=${Campaign_Id}
+    ${Parent_id}=       Get JSON Value      ${body}       /parent/id
+    Set Suite Variable    ${parent_id}          ${Parent_id}
+    Log    parent_id=${Parent_id}
+
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Open Campaign summery page    Advertiser_name=${QA_TEST_ADVERTISER}_Conversion_track       Campaign_name=${CAMPAIGN_NAME_UI}
+    Click Element     ${ADV_EXPAND_DROPDOWN_BUTTON}
+    Wait Until Element Is Visible       ${CAMPAIGN_SEARCH_QA}
+    Click Element        ${CAMPAIGN_SEARCH_QA}
+    Sleep     5s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=00_QATEST_child0101      Child_Start_date_date=${START_DATE_CHILD}       Child_End_date_date=${END_DATE_CHILD}
+    Click Button      ${CHILD_SAVE_BUTTON}
+    Sleep   10s
+    [Tags]
+
+TC_01.24_Create_ Child Adgroup(CM-2218 DB verification for live exchanges)
+
+    Set Test Variable                       ${ParentName}    00_QATEST_Parent0124
+    Set Test Variable                       ${parentXpath}    xpath=.//span[text()='${ParentName}']
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Exchange
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+
+
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT name FROM rhino.partner where status=1 and type_id=5;
+    Log Many    @{query_results}
+    ${count}=           Get Length  ${query_results}
+    ${Available_Exchanges} =  Create List
+    :FOR   ${i}  IN RANGE    0     ${count}
+    \       ${output} =    Convert To String   ${queryResults[${i}]}
+    \       ${output}=     Remove String Using Regexp           ${output}      \\('|',\\)
+    \       Log     ${output}
+     \      Page Should Contain             ${output}
+    \       Append To List          ${Available_Exchanges}       ${output}
+    Log Many    ${Available_Exchanges}
+    Sort List   ${Available_Exchanges}
+    Log Many    ${Available_Exchanges}
+    [Teardown]    Disconnect From Database
+    [Tags]
+
+
+TC_01.25_Create_ Child Adgroup(CM-2218 DB verification for live exchanges status=3 should not show)
+
+    Set Test Variable                       ${ParentName}    00_QATEST_Parent0124
+    Set Test Variable                       ${parentXpath}    xpath=.//span[text()='${ParentName}']
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Exchange
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+
+
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT name FROM rhino.partner where status=3 and type_id=5;
+    Log Many    @{query_results}
+    ${count}=           Get Length  ${query_results}
+    ${Available_Exchanges} =  Create List
+    :FOR   ${i}  IN RANGE    0     ${count}
+    \       ${output} =    Convert To String   ${queryResults[${i}]}
+    \       ${output}=     Remove String Using Regexp           ${output}      \\('|',\\)
+    \       Log     ${output}
+     \      Page Should Not Contain             ${output}
+    \       Append To List          ${Available_Exchanges}       ${output}
+    Log Many    ${Available_Exchanges}
+    Sort List   ${Available_Exchanges}
+    Log Many    ${Available_Exchanges}
+    [Teardown]    Disconnect From Database
+    [Tags]

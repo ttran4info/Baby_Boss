@@ -1,0 +1,177 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             OperatingSystem
+Library             DatabaseLibrary
+Force Tags          PHOENIX         Phoenix_CLONE_CHILD      BATCH22    PHOENIX_3
+Suite Setup         Run Keyword          Clean Up Campaign, Advertiser and Cretives
+Suite Teardown      Run Keywords         Close All Browsers     Clean Up Campaign, Advertiser and Cretives
+
+*** Variables ***
+${QA_TEST_ADVERTISER}           00_QATEST_TEST_advertiser_CLONE
+${CAMPAIGN_NAME_UI}             00_QATEST_TEST_campaign
+${CREATIVE_NAME}                REGRESSION_CREATIVE_41_CLONE
+${CHILD_NAME}                   00_QATEST_TEST_CHILD_CLONE
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  00_QATEST_TEST_parent
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+${CLONE_START_DATE}             03/03/2019
+${CLONE_END_DATE}               10/10/2019
+${Check}                        1
+${Uncheck}                      0
+
+${CAMPAIGN_SUMMARY_PAGE}        https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+
+*** Keywords ***
+
+Clean Up Campaign, Advertiser and Cretives
+	Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+Verify Page Elements After Create Creative
+    Page Should Contain             Manage Creatives Template
+    Page Should Contain             Add new creative template
+    Page Should Contain             Contact 4INFO
+    Page Should Contain Button      btnCreateTpl
+
+Clone Child Ad Group
+    [Arguments]             ${ADV_NAME}=${QA_TEST_ADVERTISER}
+    ...                     ${Campaign_Name}=${CAMPAIGN_NAME_UI}
+    ...                     ${Parent_Name}=${parent_name}
+    ...                     ${StartDate}=${CLONE_START_DATE}
+    ...                     ${EndDate}=${CLONE_END_DATE}
+    ...                     ${Clone_child_btn_number}=1
+    Click Button                xpath=((.//td[contains(normalize-space(.), '+ Ad')])[${Clone_child_btn_number}]/child::button)[1]
+    Wait Until Page Contains    Clone Ad Group
+    Wait Until Page Contains    ADVERTISER
+    Wait Until Page Contains    CAMPAIGN
+    Sleep   3s
+    Select From List            ${ADV_SELECT_INPUT}                     ${ADV_NAME}
+    Sleep   3s
+    Select From List            ${CAMPAIGN_SELECT_INPUT}                ${Campaign_Name}
+    Sleep   3s
+    Select From List            ${PARENT_SELECT_INPUT}                  ${Parent_Name}
+    Sleep   3s
+    Input Text                  ${START_DATE_INPUT}                     ${StartDate}
+    Sleep   3S
+    Input Text                  ${END_DATE_INPUT}                       ${EndDate}
+    Sleep    5s
+    Click Button                ${CLONE_CHILD_BUTTON}
+    Sleep    3s
+    Click Button                ${CLONE_OK_BUTTON}
+    Sleep    15s
+    Page Should Contain         ${CHILD_NAME} clone
+
+
+*** Test Cases ***
+TC_00_Generate Data for Test Suite
+    Log To Console       "Creating test Data"
+
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+    Create Child Adgroup via API                child_name=${CHILD_NAME}            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Deal_targetting            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}    child_targetDeal={"dealIds":"1212","auctionOverride":2,"bidFloor":null,"exchange":369}
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Go To                                       ${CAMPAIGN_SUMMARY_PAGE}${Campaign_Id}
+    Log To Console       Data Generated
+    Sleep  5s
+    [Tags]      clonedatetest
+
+TC_01_Clone_Child_Adgroup(Normal Way)
+    Sleep   2s
+    Go To                                       ${CAMPAIGN_SUMMARY_PAGE}${Campaign_Id}
+    Wait Until Page Contains     CAMPAIGN SUMMARY
+    Wait Until Page Contains     Manage creative templates
+    Clone Child Ad Group
+    Capture Page Screenshot With Timestamp
+
+    [Tags]
+
+TC_02_Clone_Child_Adgroup(Deal_Targetting)
+
+    Sleep   10s
+    Go To                                       ${CAMPAIGN_SUMMARY_PAGE}${Campaign_Id}
+    Wait Until Page Contains                    CAMPAIGN SUMMARY      timeout=20s
+    Wait Until Page Contains                    Manage creative templates
+    Clone Child Ad Group                        Clone_child_btn_number=3
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_03_Clone_Child_Adgroup(start Date out of range)
+    Sleep   10s
+    Go To                                       ${CAMPAIGN_SUMMARY_PAGE}${Campaign_Id}
+    Wait Until Page Contains                    CAMPAIGN SUMMARY      timeout=20s
+    Wait Until Page Contains                    Manage creative templates
+
+    Click Button                xpath=((.//td[contains(normalize-space(.), '+ Ad')])[1]/child::button)[1]
+    Wait Until Page Contains    Clone Ad Group
+    Wait Until Page Contains    ADVERTISER
+    Wait Until Page Contains    CAMPAIGN
+    Sleep   3s
+    Select From List            ${ADV_SELECT_INPUT}                     ${QA_TEST_ADVERTISER}
+    Sleep   3s
+    Select From List            ${CAMPAIGN_SELECT_INPUT}                ${CAMPAIGN_NAME_UI}
+    Sleep   3s
+    Select From List            ${PARENT_SELECT_INPUT}                  ${parent_name}
+    Sleep   3s
+    Input Text                  ${START_DATE_INPUT}                     05/21/2011
+    Sleep   3S
+    Input Text                  ${END_DATE_INPUT}                       ${CLONE_END_DATE}
+    Sleep    5s
+    Click Button                ${CLONE_CHILD_BUTTON}
+    Sleep    3s
+    Elements Should Be Visible      xpath=.//select[contains(normalize-space(.), 'Eastern TimeCentral TimeMountain TimePacific TimeAlaska TimeHawaii TimeGMT')]/following::img
+    Mouse Over      xpath=.//select[contains(normalize-space(.), 'Eastern TimeCentral TimeMountain TimePacific TimeAlaska TimeHawaii TimeGMT')]/following::img
+    Capture Page Screenshot With Timestamp
+    Page Should Contain     Child adGroup start date has to be within today's date and within parent adGroup date Range (02/02/2019 00:00 - 11/11/2019 12:59 GMT)
+    [Tags]
+
+TC_04_Clone_Child_Adgroup(end Date out of range)
+    Sleep   10s
+    Go To                                       ${CAMPAIGN_SUMMARY_PAGE}${Campaign_Id}
+    Wait Until Page Contains                    CAMPAIGN SUMMARY      timeout=20s
+    Wait Until Page Contains                    Manage creative templates
+
+    Click Button                xpath=((.//td[contains(normalize-space(.), '+ Ad')])[1]/child::button)[1]
+    Wait Until Page Contains    Clone Ad Group
+    Wait Until Page Contains    ADVERTISER
+    Wait Until Page Contains    CAMPAIGN
+    Sleep   3s
+    Select From List            ${ADV_SELECT_INPUT}                     ${QA_TEST_ADVERTISER}
+    Sleep   3s
+    Select From List            ${CAMPAIGN_SELECT_INPUT}                ${CAMPAIGN_NAME_UI}
+    Sleep   3s
+    Select From List            ${PARENT_SELECT_INPUT}                  ${parent_name}
+    Sleep   3s
+    Input Text                  ${START_DATE_INPUT}                     ${CLONE_START_DATE}
+    Sleep   3S
+    Input Text                  ${END_DATE_INPUT}                       05/11/2045
+    Sleep    5s
+    Click Button                ${CLONE_CHILD_BUTTON}
+    Sleep    3s
+    Elements Should Be Visible      xpath=.//select[contains(normalize-space(.), 'Eastern TimeCentral TimeMountain TimePacific TimeAlaska TimeHawaii TimeGMT')]/following::img
+    Mouse Over      xpath=.//select[contains(normalize-space(.), 'Eastern TimeCentral TimeMountain TimePacific TimeAlaska TimeHawaii TimeGMT')]/following::img
+    Sleep    15s
+    Capture Page Screenshot With Timestamp
+    Page Should Contain     Child adGroup end date has to be within today's date and within parent adGroup date Range (02/02/2019 00:00 - 11/11/2019 12:59 GMT)
+    [Tags]
+
+Clone in differnt parent adGroup
+    [Tags]      EXCLUDE
+
+
+clone in different campaign campaign
+    [Tags]      EXCLUDE
+
+
+Clone in different advertiser
+    [Tags]      EXCLUDE

@@ -1,0 +1,48 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY    INVENTORY2.3.3    BATCH20    OffshoreQA    
+
+# https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-2.3.3Getlistofexchangepartnerresponsetype
+# 2.3.3 Get list of exchange partner response type
+# Method: GET
+# URL: 192.168.99.100:8380/inventory-api/exchange/exchange-response-type
+# DESC:  This will be used to get new exchange created
+
+
+
+*** Variables ***
+
+
+
+*** Keywords ***
+
+
+
+
+*** Test Cases ***
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.3.3_TC_01.1_Get list of exchange partner response type (valid URL, Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of exchange partner response type
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Get list of exchange partner response type
+    ...         reason_code=200
+    ...         success=true
+    Should Match Regexp      ${body}       {"id":1,"name":"MARKUP HTML"}
+    Should Match Regexp      ${body}       {"id":2,"name":"WIN_NOTICE HTML"}
+    Should Match Regexp      ${body}       {"id":3,"name":"MARKUP XML"}
+    [Tags]
+
+
+InventoryAPI_2.3.3_TC_01.2_Get list of exchange partner response type (invalid URL, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of exchange partner response type
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Get list of exchange partner response type
+    ...         url=inventory-api/exchange/exchangeresponsetype
+    ...         reason_code=400
+    ...         success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+#-----------------------------------------------------------------------------------------------------------------------

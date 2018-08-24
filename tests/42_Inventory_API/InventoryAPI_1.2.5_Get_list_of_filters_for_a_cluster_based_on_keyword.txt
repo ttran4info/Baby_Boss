@@ -1,0 +1,38 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.2.5		BATCH20	  
+
+
+# Wiki Page :  https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-1.4.1Getdetailofaclusterhistorychange
+# Example   : http://192.168.99.100:8380/inventory-api/cluster/cluster/23/filters?page=1&size=5
+# API Name  : 1.2.5 Get list of filters for a cluster, based on keyword
+# Method: POST
+# URL: /inventory-api/cluster/cluster/{clusterId}/filters?page={page_number}&size={page_size}
+# DESC: Get list of filters for a cluster, based on keyword
+# rhino.cluster
+# rhino.cluster_placement
+# rhino.groups_cluster
+
+*** Variables ***
+
+
+
+*** Keywords ***
+Get list of filters for a cluster based on keyword using Inventory API
+    [Arguments]     ${clusterId}
+    ...             ${page_number}
+    ...             ${page_size}
+    ...				${response_code}=200
+	...				${success}=true
+    Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}/
+    Set Test Variable 	${uri}		/inventory-api/cluster/cluster/${clusterId}/filters?page=${page_number}&size=${page_size}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    ${resp}=    RequestsLibrary.Get Request     docker     ${uri}       headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    #Run Keyword If  '${response_code}'=='400'	Should Match Regexp		    ${body}    "success":false
+    #Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		${clusterId}
+    #Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/dt		${timestamp}
+
+
+*** Test Cases ***

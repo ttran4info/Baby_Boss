@@ -1,0 +1,145 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.8.1		BATCH20     OffShoreQA
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+
+# https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-1.8.1Cloneacluster
+# API Name: 1.8.1 Clone A cluster
+# Method: Post
+# URL: /inventory-api/cluster/cluster/{oldClusterId}/clone?username={username}&groupId={groupId}
+
+
+*** Variables ***
+ ${groupId}         1
+ ${max_filter}      10
+ ${cluster_name}    Regression_cluster_181
+ ${new_cluster_name}    Regression_cluster_181_clone
+ ${invalid_cluster_id}
+
+*** Keywords ***
+
+*** Test Cases ***
+INVENTORY_API_1.8.1_TC_00 Generate Data
+    [Documentation]     Creating Setup data for testing further test cases
+    ...                 [Input]     Creating cluster with cluster name,username and group ID
+    ...                 [Output]    Cluster should be created and gives us a response 200 (OK)
+    Create Cluster      cluster_name=${cluster_name}                username=${QA_DEFAULT_USER}         groupId=${groupId}
+    Generate Filter     max=${max_filter}       #${filters} is generated
+    Add Filter To Cluster       cluster_id=${cluster_id}        username=${QA_DEFAULT_USER}         data=${filters}     valid_filter=${max_filter}
+    [Tags]
+
+
+INVENTORY_API_1.8.1_TC_01 Clone a cluster(User - Admin valid)
+    [Documentation]     Creating Setup data for testing further test cases
+    ...                 [Input]     Cloning the exsisting Cluster using clone API by passing old cluster ID and new cluster name
+    ...                 [Output]    Cluster should be created and gives us a response 200 (OK)
+    Get Cluster Id      cluster_name=${cluster_name}
+    Create cluster using clone API      ${new_cluster_name}    ${cluster_id}       username=${QA_DEFAULT_USER}         groupId=${groupId}
+    [Tags]
+
+
+INVENTORY_API_1.8.1_TC_02 Clone a cluster(User - Catalina)
+    [Documentation]     Creating Setup data for testing further test cases
+    ...                 [Input]     Cloning the exsisting Cluster using clone API by passing user as Catalina
+    ...                 [Output]    Cluster should be created and gives us a response 200 (OK)
+    Get Cluster Id          cluster_name=${cluster_name}
+    Set Test Variable       ${new_cluster_name}     Regression_cluster_181_clone_02
+    Set Test Variable       ${user_name}            ${QA_CATALINA_USER}
+    Set Test Variable       ${groupId}              15
+    Create cluster using clone API      ${new_cluster_name}    ${cluster_id}       username=${user_name}         groupId=${groupId}
+    [Tags]
+
+
+INVENTORY_API_1.8.1_TC_03 Clone a cluster(User - Mixed Catalina, QA)
+    [Documentation]     Creating Setup data for testing further test cases
+    ...                 [Input]     Cloning the exsisting Cluster using clone API by passing user as Mixed user
+    ...                 [Output]    Cluster should not be created and gives us a response 400 (Bad request)
+    Get Cluster Id          cluster_name=${cluster_name}
+    Set Test Variable       ${new_cluster_name}     Regression_cluster_181_clone_03
+    Set Test Variable       ${user_name}            ${QA_CATALINA_AND_QA_USER}
+    Create cluster using clone API      ${new_cluster_name}    ${cluster_id}       username=${user_name}         groupId=${groupId}      expected_status_code=400
+    Json Value Should Equal     ${body}         /reason_code            "800-006"
+    Json Value Should Equal     ${body}         /reason_desc            "User and group are not matching."
+    [Tags]
+
+
+INVENTORY_API_1.8.1_TC_04 Clone a cluster(User - Blank Username)
+    [Documentation]     Creating Setup data for testing further test cases
+    ...                 [Input]     Cloning the exsisting Cluster using clone API by passing blank username
+    ...                 [Output]    Cluster should not be created and gives us a response 400 (Bad request)
+    Get Cluster Id          cluster_name=${cluster_name}
+    Set Test Variable       ${new_cluster_name}     Regression_cluster_181_clone_04
+    Create cluster using clone API      ${new_cluster_name}    ${cluster_id}       username=${EMPTY}         groupId=${groupId}      expected_status_code=400
+    Json Value Should Equal     ${body}    /reason_code     "700-001"
+    Json Value Should Equal     ${body}    /reason_desc     "Username is not found."
+    [Tags]
+
+
+INVENTORY_API_1.8.1_TC_05 Clone a cluster(User - Username does not exist)
+    [Documentation]     Creating Setup data for testing further test cases
+    ...                 [Input]     Cloning the exsisting Cluster using clone API by passing username is doesn't exist
+    ...                 [Output]    Cluster should not be created and gives us a response 400 (Bad request)
+    Get Cluster Id          cluster_name=${cluster_name}
+    Set Test Variable       ${new_cluster_name}     Regression_cluster_181_clone_05
+    Set Test Variable       ${user_name}            bogus@4info.com
+    Set Test Variable       ${groupId}              15
+    Create cluster using clone API      ${new_cluster_name}    ${cluster_id}       username=${user_name}         groupId=${groupId}      expected_status_code=400
+    Json Value Should Equal     ${body}         /reason_code            "700-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Username is not found."
+    [Tags]
+
+
+INVENTORY_API_1.8.1_TC_06 Clone a cluster(Missing cluster name)
+    [Documentation]     Creating Setup data for testing further test cases
+    ...                 [Input]     Cloning the exsisting Cluster using clone API without cluster name
+    ...                 [Output]    Cluster should not be created and gives us a response 400 (Bad request)
+    Get Cluster Id          cluster_name=${cluster_name}
+    Set Test Variable       ${cluster_name}         MISSING
+    Set Test Variable       ${user_name}            bogus@4info.com
+    Set Test Variable       ${groupId}              1
+    Create cluster using clone API      ${cluster_name}        ${cluster_id}       username=${user_name}           groupId=${groupId}      expected_status_code=400
+    Json Value Should Equal     ${body}         /reason_code            "700-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Username is not found."
+    [Tags]
+
+
+INVENTORY_API_1.8.1_TC_07 Clone a cluster(Blank cluster name)
+    [Documentation]     Creating Setup data for testing further test cases
+    ...                 [Input]     Cloning the exsisting Cluster using clone API with passing blank cluster name
+    ...                 [Output]    Cluster should not be created and gives us a response 400 (Bad request)
+    Get Cluster Id          cluster_name=${cluster_name}
+    Set Test Variable       ${cluster_name}         ${EMPTY}
+    Set Test Variable       ${user_name}            bogus@4info.com
+    Set Test Variable       ${groupId}              1
+    Create cluster using clone API          ${cluster_name}     ${cluster_id}       username=${user_name}           groupId=${groupId}      expected_status_code=400
+    Json Value Should Equal     ${body}         /reason_code            "700-001"
+    Json Value Should Equal     ${body}         /reason_desc            "Username is not found."
+    [Tags]
+
+
+INVENTORY_API_1.8.1_TC_08 Clone a cluster(name exist)
+    [Documentation]     Creating Setup data for testing further test cases
+    ...                 [Input]     Cloning the exsisting Cluster using clone API with existing name
+    ...                 [Output]    Cluster should not be created and gives us a response 400 (Bad request) and return reason code as "cluster name exist"
+    Get Cluster Id          cluster_name=${cluster_name}
+    Set Test Variable       ${new_cluster_name}     Regression_cluster_181
+    Set Test Variable       ${user_name}            ${QA_DEFAULT_USER}
+    Create cluster using clone API      ${new_cluster_name}    ${cluster_id}       username=${user_name}         groupId=${groupId}      expected_status_code=400
+    Json Value Should Equal     ${body}         /reason_code            "700-404"
+    Json Value Should Equal     ${body}         /reason_desc            "Cluster name exists."
+    [Tags]
+
+
+INVENTORY_API_1.8.1_TC_09 Clone a cluster(unmatching group id)
+    [Documentation]     Creating Setup data for testing further test cases
+    ...                 [Input]     Cloning the exsisting Cluster using clone API with invalid group id
+    ...                 [Output]    Cluster should not be created and gives us a response 400 (Bad request) and return reason code as "User and group are not matching."
+    Get Cluster Id          cluster_name=${cluster_name}
+    Set Test Variable       ${new_cluster_name}     Regression_cluster_181
+    Set Test Variable       ${groupId}              999
+    Set Test Variable       ${user_name}            ${QA_DEFAULT_USER}
+    Create cluster using clone API      ${new_cluster_name}    ${cluster_id}       username=${user_name}         groupId=${groupId}      expected_status_code=400
+    Json Value Should Equal     ${body}         /reason_code            "800-002"
+    Json Value Should Equal     ${body}         /reason_desc            "Group id is not found."
+    [Tags]

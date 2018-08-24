@@ -1,0 +1,142 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX    Common_Scenarios    BATCH22    PHOENIX_3
+Suite Teardown      Run Keywords    Close All Browsers    Clear All Users Created For Common Scenarios UI Tests
+
+*** Variables ***
+${username}     commonscenarios@multigroup.com
+${Pass}         P@ssw0rd
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------
+Common_Scenarios_CM-2248_TC_0.0_Create Prerequisite user to Test
+    [Documentation]    New user creation for testing of scenarios.
+    Clear All Users Created For Common Scenarios UI Tests
+    Create Pre-requisite users to test Common Scenarios
+    [Tags]    CM-2248
+
+#--------------------------------------------------------------------------------------
+Common_Scenarios_CM-2248_TC_1.1_Verify that in CM2 UI, switching group as ATT is taking user to dashboard home page.
+    [Documentation]    Verify that switching group is taking user to dashboard home page.
+    Login To Adhaven UI    username=${username}    password=${Pass}
+    Select Group in Select Dropdown    GroupName=ATT
+    Sleep    60s
+    Capture Page Screenshot    filename=Common_Scenarios_CM-2248_TC_1.1.png
+    Location Should Be    ${DashboardLoginURL}
+    [Teardown]    Close All Browsers
+    [Tags]   # CM-2248
+
+
+Common_Scenarios_CM-2248_TC_1.2_Verify that in CM2 UI, switching group as 4INFO is taking user to dashboard home page.
+    [Documentation]    Verify that switching group is taking user to dashboard home page.
+    Login To Adhaven UI    username=${username}    password=${Pass}
+    Select Group in Select Dropdown    GroupName=4INFO
+    Sleep    60s
+    Capture Page Screenshot    filename=Common_Scenarios_CM-2248_TC_1.2.png
+    Location Should Be    ${DashboardLoginURL}
+    [Teardown]    Close All Browsers
+    [Tags]   # CM-2248
+
+
+Common_Scenarios_CM-2248_TC_1.3_Verify that in CM2 UI, switching group as Catalina is taking user to dashboard home page.
+    [Documentation]    Verify that switching group is taking user to dashboard home page.
+    Login To Adhaven UI    username=${username}    password=${Pass}
+    Select Group in Select Dropdown    GroupName=CATALINA
+    Sleep    60s
+    Capture Page Screenshot    filename=Common_Scenarios_CM-2248_TC_1.3.png
+    Location Should Be    ${DashboardLoginURL}
+    [Teardown]    Close All Browsers
+    [Tags]   # CM-2248
+
+
+Common_Scenarios_CM-2248_TC_1.4_Verify that in CM2 UI, switching group as Catalina Self Service is taking user to dashboard home page.
+    [Documentation]    Verify that switching group is taking user to dashboard home page.
+    Login To Adhaven UI    username=${username}    password=${Pass}
+    Select Group in Select Dropdown    GroupName=Catalina Self Service
+    Sleep    60s
+    Capture Page Screenshot    filename=Common_Scenarios_CM-2248_TC_1.4.png
+    Location Should Be    ${DashboardLoginURL}
+    [Teardown]    Close All Browsers
+    [Tags]   # CM-2248
+
+
+Common_Scenarios_CM-2248_TC_1.5_Verify that in CM2 UI, switching group as Datamyx is taking user to dashboard home page.
+    [Documentation]    Verify that switching group is taking user to dashboard home page.
+    Login To Adhaven UI    username=${username}    password=${Pass}
+    Select Group in Select Dropdown    GroupName=Datamyx
+    Sleep    60s
+    Capture Page Screenshot    filename=Common_Scenarios_CM-2248_TC_1.5.png
+    Location Should Be    ${DashboardLoginURL}
+    [Teardown]    Close All Browsers
+    [Tags]   # CM-2248
+
+#--------------------------------------------------------------------------------------
+
+Common Scenarios_CM-2337_TC_1.1_Manage Groups should be displayed to 4INFO admin user in Dashboard UI settings menu
+    [Documentation]    Manage Groups should be displayed to 4INFO admin user in Dashboard UI settings menu
+    Login To Dashboard UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Check options for Admin user present in Settings Menu
+    [Teardown]    Close All Browsers
+    [Tags]    CM-2337
+
+
+Common Scenarios_CM-2337_TC_1.2_Manage Groups should be displayed to 4INFO admin user in Campaign Manager UI settings menu
+    [Documentation]    Manage Groups should be displayed to 4INFO admin user in Campaign Manager UI settings menu
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Check options for Admin user present in Settings Menu
+    [Teardown]    Close All Browsers
+    [Tags]    CM-2337
+
+
+Common Scenarios_CM-2337_TC_2.1_Manage Groups should not displayed to 4INFO Readonly user in Dashboard UI settings menu
+    [Documentation]    Manage Groups should not displayed to 4INFO Readonly user in Dashboard UI settings menu
+    Login To Dashboard UI    username=${QA_QA_USER}    password=${QA_DEFAULT_PASSWORD}
+    Check options for non Admin user present in Settings Menu
+    [Teardown]    Close All Browsers
+    [Tags]    CM-2337
+
+
+Common Scenarios_CM-2337_TC_2.2_Manage Groups should not displayed to 4INFO Readonly user in Campaign Manager UI settings menu
+    [Documentation]    Manage Groups should not displayed to 4INFO Readonly user in Campaign Manager UI settings menu
+    Login To Adhaven UI    username=${QA_QA_USER}    password=${QA_DEFAULT_PASSWORD}
+    Check options for non Admin user present in Settings Menu
+    [Teardown]    Close All Browsers
+    [Tags]    CM-2337
+
+
+
+Common Scenarios_CM-2337_TC_3.1_Manage Groups should not displayed to Non 4INFO admin user in Dashboard UI settings menu
+    [Documentation]    Manage Groups should not displayed to Non 4INFO admin user in Dashboard UI settings menu
+    Login To Dashboard UI    username=${QA_CATALINA_AND_QA_USER3}    password=${QA_DEFAULT_PASSWORD}
+    Check options for non Admin user present in Settings Menu
+    [Teardown]    Close All Browsers
+    [Tags]    CM-2337
+
+
+Common Scenarios_CM-2337_TC_3.2_Manage Groups should not displayed to Non 4INFO admin user in Campaign Manager UI settings menu
+    [Documentation]    Manage Groups should not displayed to Non 4INFO admin user in Campaign Manager UI settings menu
+    Login To Adhaven UI    username=${QA_CATALINA_AND_QA_USER3}    password=${QA_DEFAULT_PASSWORD}
+    Check options for non Admin user present in Settings Menu
+    [Teardown]    Close All Browsers
+    [Tags]    CM-2337
+
+
+Common Scenarios_CM-2337_TC_4.1_Manage Groups should not displayed to Non 4INFO Readonly user in Dashboard UI settings menu
+    [Documentation]    Manage Groups should not displayed to Non 4INFO Readonly user in Dashboard UI settings menu
+    Login To Dashboard UI    username=${QA_UNDERTONE_USER}    password=${QA_DEFAULT_PASSWORD}
+    Check options for non Admin user present in Settings Menu
+    [Teardown]    Close All Browsers
+    [Tags]    CM-2337
+
+
+Common Scenarios_CM-2337_TC_4.2_Manage Groups should not displayed to Non 4INFO Readonly user in Campaign Manager UI settings menu
+    [Documentation]    Manage Groups should not displayed to Non 4INFO Readonly user in Campaign Manager UI settings menu
+    Login To Adhaven UI    username=${QA_UNDERTONE_USER}    password=${QA_DEFAULT_PASSWORD}
+    Check options for non Admin user present in Settings Menu
+    [Teardown]    Close All Browsers
+    [Tags]    CM-2337
+#--------------------------------------------------------------------------------------

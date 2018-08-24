@@ -1,0 +1,434 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY    INVENTORY3.1    BATCH20    OffshoreQA
+
+# https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-3.1.Getlistofplacementsforgivenexchangeandinventorytype
+# API Name: 3.1. Get list of placements for given exchange and inventory type
+# Method: GET
+# URL: 192.168.99.100:8380/inventory-api/placement/placements?partnerId={partnerId}&siteType={siteType}&groupId={groupId}
+# DESC: Get list of placements for given exchange and inventory type
+
+
+
+*** Variables ***
+
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_3.1_TC_01.1_Get list of placements for given exchange and inventory type (valid URL, Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Get list of placements for given exchange and inventory type
+    ...         reason_code=200
+    ...         success=true
+    [Tags]    known_bug    CM-1933    Exclude    # NonUI
+
+
+InventoryAPI_3.1_TC_01.2_Get list of placements for given exchange and inventory type (Invalid URL, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placementsAVCDRT23$?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_3.1_TC_02.1_Get list of placements for given exchange and inventory type (Missing Partner Id, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placementsAVCDRT23$?siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_3.1_TC_02.2_Get list of placements for given exchange and inventory type (Invalid Partner Id, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    9999
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-501"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid exchange id."
+    [Tags]    # Known_bug     CM-1768
+
+
+InventoryAPI_3.1_TC_02.3_Get list of placements for given exchange and inventory type (Partner Id negative value, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    -375
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-501"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid exchange id."
+    [Tags]    # Known_bug     CM-1768
+
+
+InventoryAPI_3.1_TC_02.4_Get list of placements for given exchange and inventory type (Partner Id unwanted characters, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    qwert!@#
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_3.1_TC_02.5_Get list of placements for given exchange and inventory type (Partner Id null, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    null
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_3.1_TC_02.6_Get list of placements for given exchange and inventory type (Partner Id blank, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    ""
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_3.1_TC_03.1_Get list of placements for given exchange and inventory type (Missing Site Type, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_3.1_TC_03.2_Get list of placements for given exchange and inventory type (Invalid Site Type, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     999
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-502"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid site type"
+    [Tags]
+
+
+InventoryAPI_3.1_TC_03.3_Get list of placements for given exchange and inventory type (Site Type special characters, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     sd@#$
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_3.1_TC_03.4_Get list of placements for given exchange and inventory type (Site Type null, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     null
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-502"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid site type"
+    [Tags]
+
+
+InventoryAPI_3.1_TC_03.5_Get list of placements for given exchange and inventory type (Site Type blank, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     ""
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-502"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid site type"
+    [Tags]
+
+
+InventoryAPI_3.1_TC_03.6_Get list of placements for given exchange and inventory type (Site Type web, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     web
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=200
+    ...    success=true
+    [Tags]
+
+
+InventoryAPI_3.1_TC_03.7_Get list of placements for given exchange and inventory type (Site Type online, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     online
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=200
+    ...    success=true
+    [Tags]
+
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_3.1_TC_04.1_Get list of placements for given exchange and inventory type (Missing group id, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placementsAVCDRT23$?partnerId=${partnerId}&siteType=${siteType}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_3.1_TC_04.2_Get list of placements for given exchange and inventory type (group id null, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      null
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "600-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid group id."
+    [Tags]
+
+
+InventoryAPI_3.1_TC_04.3_Get list of placements for given exchange and inventory type (group id blank, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      ""
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "600-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid group id."
+    [Tags]
+
+
+InventoryAPI_3.1_TC_04.4_Get list of placements for given exchange and inventory type (group id invalid value, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      9999
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "800-002"
+    Json Value Should Equal    ${body}    /reason_desc    "Group id is not found."
+    [Tags]
+
+
+InventoryAPI_3.1_TC_04.5_Get list of placements for given exchange and inventory type (group id negative, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      -1
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "800-002"
+    Json Value Should Equal    ${body}    /reason_desc    "Group id is not found."
+    [Tags]
+
+
+InventoryAPI_3.1_TC_04.6_Get list of placements for given exchange and inventory type (group id special characters, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of placements for given exchange and inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${partnerId}    375
+    Set Test Variable    ${siteType}     sdk
+    Set Test Variable    ${groupId}      @!@$@#
+    Get list of placements for given exchange and inventory type
+    ...    partnerId=${partnerId}
+    ...    siteType=${siteType}
+    ...    groupId=${groupId}
+    ...    url=inventory-api/placement/placements?partnerId=${partnerId}&siteType=${siteType}&groupId=${groupId}
+    ...    reason_code=400
+    ...    success=false
+    Json Value Should Equal    ${body}    /reason_code    "600-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid group id."
+    [Tags]
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------

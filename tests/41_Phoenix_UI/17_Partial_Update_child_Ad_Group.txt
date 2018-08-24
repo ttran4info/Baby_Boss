@@ -1,0 +1,220 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             OperatingSystem
+Library             DatabaseLibrary
+Force Tags          PHOENIX              Phoenix_Partial_update_child      BATCH22
+Suite Setup         Run Keyword          Clean-up_generated_data
+Suite Teardown      Run Keywords         Close All Browsers         Clean-up_generated_data
+
+#WIKI LINK  : https://wiki.4info.com/display/Software/cm2+UI+test+matrix
+#TASK ID    : https://jira.adhaven.com/browse/CM-2020
+#UI LINK    : https://qa-campaigns.4info.com/phoenix/#/campaignSummary/{Campaign Id}
+
+*** Variables ***
+${QA_TEST_ADVERTISER}           00_QATEST_ADV_PARTIAL_CHILD
+${CAMPAIGN_NAME_UI}             00_QATEST_CAMPAIGN_PARTIAL_CHILD
+${CREATIVE_NAME}                REGRESSION_CREATIVE_PARTIAL_CHILD
+${CHILD_NAME}                   00_QATEST_CHILD_PARTIAL_CHILD
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  00_QATEST_PARENT_CHILD
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+${Check}                        1
+${Uncheck}                      0
+${Refresh_URL}                  https://qa-campaigns.4info.com/phoenix/#/campaignSummary
+${Start_date_error}             Child adGroup start date has to be within today's date and within parent adGroup date Range (02/02/2019 00:00 - 11/11/2019 12:59 GMT)
+${End_date_error}               Child adGroup end date has to be within today's date and within parent adGroup date Range (02/02/2019 00:00 - 11/11/2019 12:59 GMT)
+${CPM_error}                    CPM can only be max 2 digits before and after decimal
+${IMPS_error}                   Impression Goal must be an Integer greater than Zero and length is up to 10 chars
+
+
+*** Keywords ***
+
+Clean-up_generated_data
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+    
+
+*** Test Cases ***
+TC_00_Generate Data for Test Suite
+    [Documentation]         input:  Creating Data for test suites
+    ...                     output : data should be created errorfree
+
+    Log To Console       "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}        child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+
+
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Log To Console              Page loading..
+    Go To                       ${Refresh_URL}/${campaign_id}
+    Wait until Element Is Visible                       ${PARTIAL_UPDATE_CHILD_STARTDATE}
+
+    [Tags]
+
+TC_01.01_Partial Update Child(Start Date)
+    [Documentation]         input :Change the start date
+    ...                     ouput : Start Date should be changed successfully
+    Input Text                  ${PARTIAL_UPDATE_CHILD_STARTDATE}               03/04/2019
+    Press key                   ${PARTIAL_UPDATE_CHILD_STARTDATE}               \\13
+    Sleep    1s
+    Go To                       ${Refresh_URL}/${campaign_id}
+    Wait until Element Is Visible                       ${PARTIAL_UPDATE_CHILD_STARTDATE}
+    ${response}    Get Value    ${PARTIAL_UPDATE_CHILD_STARTDATE}
+    Should Be Equal As Strings    ${response}    03/04/2019
+    Input Text                  ${PARTIAL_UPDATE_CHILD_STARTDATE}               03/03/2019
+    Press key                   ${PARTIAL_UPDATE_CHILD_STARTDATE}               \\13
+    Sleep   2s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+TC_01.02_Partial Update Child(End Date)
+    [Documentation]         input :Change the end date
+    ...                     ouput : Start Date should be changed successfully
+    Input Text                  ${PARTIAL_UPDATE_CHILD_ENDDATE}               09/09/2019
+    Press key                   ${PARTIAL_UPDATE_CHILD_ENDDATE}               \\13
+    Sleep    1s
+    Go To                       ${Refresh_URL}/${campaign_id}
+    Wait until Element Is Visible                       ${PARTIAL_UPDATE_CHILD_ENDDATE}
+    ${response}    Get Value    ${PARTIAL_UPDATE_CHILD_ENDDATE}
+    Should Be Equal As Strings    ${response}    09/09/2019
+    Input Text                  ${PARTIAL_UPDATE_CHILD_ENDDATE}               10/10/2019
+    Press key                   ${PARTIAL_UPDATE_CHILD_ENDDATE}               \\13
+    Sleep   2s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+
+
+TC_01.03_Partial Update Child(Start Date out of parent range)
+    [Documentation]         input :Change the start date out of the parent date range
+    ...                     ouput : Start Date should not be changed
+    Sleep   5s
+    Input Text                  ${PARTIAL_UPDATE_CHILD_STARTDATE}               03/03/1990
+    Press key                   ${PARTIAL_UPDATE_CHILD_STARTDATE}               \\13
+    Sleep    2s
+    Page Should Contain         ${Start_date_error}
+    Go To                       ${Refresh_URL}/${campaign_id}
+    Sleep   5s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+
+
+
+
+
+
+TC_01.04_Partial Update Child(End Date out of parent range)
+    [Documentation]         input :Change the end date out of the parent date range
+    ...                     ouput : End Date should not be changed
+    Sleep   5s
+    Input Text                  ${PARTIAL_UPDATE_CHILD_STARTDATE}               03/03/2019
+    Press key                   ${PARTIAL_UPDATE_CHILD_ENDDATE}               \\13
+    Sleep   2s
+    Input Text                  ${PARTIAL_UPDATE_CHILD_ENDDATE}                 09/09/2040
+    Press key                   ${PARTIAL_UPDATE_CHILD_ENDDATE}               \\13
+    Sleep    3s
+    Page Should Contain         ${End_date_error}
+    Go To                       ${Refresh_URL}/${campaign_id}
+    Sleep   5s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+
+TC_01.05_Partial Update Child(CPM Valid)
+    [Documentation]         input :Change the CPM in current value
+    ...                     ouput :CPM should be changed successfully
+    Input Text                  ${PARTIAL_UPDATE_CHILD_CPM}               10
+    Press key                   ${PARTIAL_UPDATE_CHILD_CPM}               \\13
+    Sleep    1s
+    Go To                       ${Refresh_URL}/${campaign_id}
+    Wait until Element Is Visible                       ${PARTIAL_UPDATE_CHILD_CPM}
+    ${response}    Get Value    ${PARTIAL_UPDATE_CHILD_CPM}
+    Should Be Equal As Strings    ${response}    10.00
+    Input Text                  ${PARTIAL_UPDATE_CHILD_CPM}               1
+    Press key                   ${PARTIAL_UPDATE_CHILD_CPM}               \\13
+    Sleep   2s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+TC_01.06_Partial Update Child(CPM 99)
+    [Documentation]         input :Change the CPM in current value
+    ...                     ouput :CPM should be changed successfully
+    Input Text                  ${PARTIAL_UPDATE_CHILD_CPM}               99
+    Press key                   ${PARTIAL_UPDATE_CHILD_CPM}               \\13
+    Sleep    1s
+    Go To                       ${Refresh_URL}/${campaign_id}
+    Wait until Element Is Visible                       ${PARTIAL_UPDATE_CHILD_CPM}
+    ${response}    Get Value    ${PARTIAL_UPDATE_CHILD_CPM}
+    Should Be Equal As Strings    ${response}    99.00
+    Input Text                  ${PARTIAL_UPDATE_CHILD_CPM}               1
+    Press key                   ${PARTIAL_UPDATE_CHILD_CPM}               \\13
+    Sleep   2s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+
+TC_01.07_Partial Update Child(CPM 101)
+    [Documentation]         input :Change the CPM more than 100
+    ...                     ouput :CPM should not be changed successfully
+    Input Text                  ${PARTIAL_UPDATE_CHILD_CPM}               101
+    Press key                   ${PARTIAL_UPDATE_CHILD_CPM}               \\13
+    Sleep    1s
+    Page Should Contain         ${CPM_error}
+
+    Go To                       ${Refresh_URL}/${campaign_id}
+    Sleep   2s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+
+TC_01.08_Partial Update Child(IMPS Goal Valid)
+    [Documentation]         input :Change the Impression goal in current value
+    ...                     ouput :Impression goal should be changed successfully
+    Input Text                  ${PARTIAL_UPDATE_CHILD_IMPS_GOAL}               100
+    Press key                   ${PARTIAL_UPDATE_CHILD_IMPS_GOAL}               \\13
+    Sleep    1s
+    Go To                       ${Refresh_URL}/${campaign_id}
+    Wait until Element Is Visible                       ${PARTIAL_UPDATE_CHILD_IMPS_GOAL}
+    ${response}    Get Value    ${PARTIAL_UPDATE_CHILD_IMPS_GOAL}
+    Should Be Equal As Strings    ${response}    100
+    Input Text                  ${PARTIAL_UPDATE_CHILD_IMPS_GOAL}               1
+    Press key                   ${PARTIAL_UPDATE_CHILD_IMPS_GOAL}               \\13
+    Sleep   2s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+
+
+TC_01.07_Partial Update Child(Imps goal invalid)
+    [Documentation]         input :Change the impression goal in current value
+    ...                     ouput :impression goal should not be changed
+    Input Text                  ${PARTIAL_UPDATE_CHILD_IMPS_GOAL}               99999999999
+    Press key                   ${PARTIAL_UPDATE_CHILD_IMPS_GOAL}               \\13
+    Sleep    1s
+    Page Should Contain         ${IMPS_error}
+
+    Go To                       ${Refresh_URL}/${campaign_id}
+    Sleep   2s
+    Capture Page Screenshot With Timestamp
+    [Tags]

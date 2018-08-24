@@ -1,0 +1,95 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX    CLUSTERCREATION    BATCH22    PHOENIX_2    OffshoreQA
+Suite Setup         Run Keyword    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+Suite Teardown      Run Keywords    Close All Browsers
+
+*** Variables ***
+
+*** Keywords ***
+
+
+*** Test Cases ***
+
+CLUSTERCREATION_TC_01_Create Cluster with APP Bundle id Valid
+    [Documentation]    Create Cluster with App Bundle id that is valid.
+    Run Suite Set up for cluster creation
+    Click Clusters Tab
+    Sleep    5s
+    Create Cluster On UI    clustername=APPBundleCluster    data=11158    count=1
+    [Tags]    PHOENIX_SANITY
+
+
+CLUSTERCREATION_TC_02_Create Cluster with Valid Site Domain URL MW
+    [Documentation]		Create Cluster with Site Domain URL that exist in db.
+    Click Clusters Tab
+    Create Cluster On UI    clustername=July4    data=Yahoo.com    count=1
+    [Tags]
+
+
+CLUSTERCREATION_TC_03_Create Cluster with Valid Site Domain URL Online
+    [Documentation] 	Create Cluster with Site Domain URL fro Online that exist in db.
+    Click Clusters Tab
+    Create Cluster On UI    clustername=OnlineCluster    data=qatest.com    count=1
+    [Tags]
+
+
+CLUSTERCREATION_TC_04_Create Cluster with Existing Cluster Name Should Fail
+    [Documentation]		Trying to create Cluster with existing Cluster will give error to user.
+    Click Clusters Tab
+    Create Cluster On UI    clustername=July277    data=Yahoo.com    count=1
+    Create Cluster On UI Negative    clustername=July277    data=Yahoo.com
+    Page Should Contain    Cluster name exists.
+    [Tags]
+
+
+CLUSTERCREATION_TC_05_Create Cluster with special characters in $#%@ Cluster Name Should Fail
+    [Documentation]		Trying to create Cluster wiht some Special charater will give invalid Cluster name.
+    Click Clusters Tab
+    Create Cluster On UI Negative    clustername=@#$%277    data=Yahoo.com
+    Get Alert Message     Reason Desc :Invalid Cluster Name.
+    [Tags]
+
+
+CLUSTERCREATION_TC_06_Create Cluster with Where Cluster Name with (_ -Aa09) should work
+    [Documentation]		_ - Aa 09 allowed in Cluster name
+    Click Clusters Tab
+    Create Cluster On UI    clustername=HP_Test-works9    data=Yahoo.com    count=1
+    [Tags]
+
+
+CLUSTERCREATION_TC_07_Create Cluster without Filters
+    [Documentation]		User should not be able to create Cluster without filters.
+    Click Clusters Tab
+    Create Cluster On UI Negative    clustername=Save Disabled    data=${Empty}
+    Element Should Be Disabled    ${CLUSTER_SAVE_BUTTON}
+    [Tags]
+
+
+CLUSTERCREATION_TC_08_Create Cluster without Cluster name
+    [Documentation]		User should not be able to create Cluster without Cluster name
+    Click Clusters Tab
+    Create Cluster On UI Negative    clustername=${Empty}    data=No filters
+    Element Should Be Disabled    ${CLUSTER_SAVE_BUTTON}
+    [Tags]
+
+
+CLUSTERCREATION_TC_09_Create Cluster with App Bundle id that does not exist in db (Placement association will not happen)
+    [Documentation]		User should be able to create Cluster with App bundle id that does not exist in db
+    Click Clusters Tab
+    Create Cluster On UI    clustername=APPBundleCluster1    data=100001    count=1
+    [Tags]
+
+
+CLUSTERCREATION_TC_10_Create Cluster with Domain URL that does not exist in db (Placement association will not happen)
+    [Documentation]		User should be able to create Cluster with Site Doamin URL that does not exist in db
+    Click Clusters Tab
+    Create Cluster On UI    clustername=domain404    data=iam404.com    count=1
+    [Tags]
+
+
+#TC_11_Create Cluster with 100 filters
+#TC_12_Create Cluster with 1000 filters
+#TC_13_Create Cluster with 10000 filters
+
+

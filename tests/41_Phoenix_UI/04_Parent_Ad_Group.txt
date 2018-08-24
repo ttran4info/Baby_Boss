@@ -1,0 +1,3642 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             OperatingSystem
+Force Tags          PHOENIX         Phoenix_Parent                BATCH22    PHOENIX_1
+Suite Setup         Run Keyword          Clean Up Advertiser Phoenix 04
+Suite Teardown      Run Keywords         Close All Browsers     Clean Up Advertiser Phoenix 04
+
+
+*** Variables ***
+${QA_TEST_ADVERTISER}       00_QATEST_advertiser_phoenix_04
+${CAMPAIGN_NAME_UI}         00_QATEST_campaign
+${PARENT_NAME}              00_QATEST_parent
+${START_DATE_TIME}          12:00 AM
+${END_DATE_TIME}            11:59 PM
+${parent_name}              00_QATEST_parent
+# ${START_DATE}               ${REGRESSION_START_DATE}
+${END_DATE_TIME_CAMPAIGN}       ${REGRESSION_END_DATE}
+${END_DATE_TIME_PARENT}         ${REGRESSION_END_DATE}
+${DOMAIN_ERROR_ICON_MSG}        Required to enter a top level domain such as "example.com")
+${NAME_ERROR}                   Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed.
+${Check}                        1
+${Uncheck}                      0
+${Home_page}                    https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+${group_id_6_username}              cat6@catalina.com
+${group_id_6_password}              P@ssw0rd
+${group_id_14_username}             cat@cat.com
+${group_id_15_username}             regression@catalina.com
+${group_id_17_username}             qa@datamyx.com
+${group_id_18_username}             regression_undertone@undertone.com
+${parent_EditPage}                  https://qa-campaigns.4info.com/phoenix/#/parentAdGroupAdd/
+${EXTERNAL_ID_text}                 xpath=//div[contains(text(),"EXTERNAL ID")]
+${AuditTrail_page}                  https://qa-campaigns.4info.com/phoenix/#/auditTrail/
+${Parent_Edit_Page}                 https://qa-campaigns.4info.com/phoenix/#/parentAdGroupEdit/
+${Add_Parent_Page}                  https://qa-campaigns.4info.com/phoenix/#/parentAdGroupAdd/
+${Clone_parent_Adgroup_button}      xpath=(//button[@ng-reflect-message="Clone parent ad group"])[1]
+
+*** Keywords ***
+
+Clean Up Advertiser Phoenix 04
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP6
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP14
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP1
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP15
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP17
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP19
+    Cleanup Advertiser From DB          advertiser_name=QA_PAC_Clone_issue_UI
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+
+
+Wait until Advertiser Element To Load
+    Wait Until Page Contains     ADVERTISERS                timeout=20s
+    Wait Until Page Contains     Create Advertiser          timeout=20s
+    Wait Until Page Contains     Search advertisers         timeout=20s
+
+
+Wait until Parent Element To Load
+    Wait Until Page Contains    PARENT AD GROUP             timeout=20s
+    Wait Until Page Contains    General information         timeout=20s
+
+
+Get Today's Date
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 1 day
+    Set Suite Variable    ${todaysDate}   ${mm}/${dd}/${yyyy}
+    Set Suite Variable       ${START_DATE}      ${todaysDate}
+    Log To Console          ${todaysDate}
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 3 day
+    Set Suite Variable    ${START_DATE_TIME_PARENT}   ${mm}/${dd}/${yyyy}
+
+
+Login To Adhaven UI For Group 17
+    [Arguments]     ${username}=${QA_DEFAULT_USER}      ${password}=${QA_DEFAULT_PASSWORD}
+    Open Browser       ${LOGIN_URL}    ${Browser}
+    Maximize Browser Window
+    Sleep    10s
+    Wait Until Element Is Visible    ${LOGIN_NAME_TEXTBOX}    timeout=40s
+    Input Text         ${LOGIN_NAME_TEXTBOX}                ${username}
+    Input Text         ${LOGIN_PASSWORD_TEXTBOX}        ${password}
+    Click Button       ${LOGIN_BUTTON}
+    Wait Until Page Contains    Campaigns       timeout=20s
+    Wait Until Page Contains    Clusters        timeout=20s
+    Wait Until Page Contains    Forecasting     timeout=20s
+    Wait Until Page Contains    ADVERTISERS     timeout=20s
+
+
+Remove all households for a Parent Adgroup
+    [Arguments]     ${AdvertiserName}
+    ...             ${ParentAdgroupName}
+    Click Link     Campaigns
+    ${AdvertiserXpath}    xpath=.//a[contains(text(),'${AdvertiserName}')]//preceding-sibling::span[@class='icon-col']
+    Click Link    ${AdvertiserXpath}
+
+
+
+Get Result Loop
+    [Arguments]         ${count}=${count}
+    ...                 ${query_results}=@{query_results}
+    ...                 ${Available_Segments}=${Available_Segments}
+    :For   ${i}  IN RANGE    0     ${count}
+    \       ${output} =    Convert To String   ${queryResults[${i}]}
+    \       ${output}=     Remove String Using Regexp           ${output}      \\('|',\\)
+    \       Log     ${output}
+    \       Append To List          ${Available_Segments}       ${output}
+
+
+Data Compare Loop
+    [Arguments]       ${xpathSubHH}=${xpathSubHH}
+    ...               ${HHSegmentsCnt}=${HHSegmentsCnt}
+    ...               ${Available_Segments}=${Available_Segments}
+    :For     ${i}    IN RANGE    1    ${HHSegmentsCnt} + 1
+    \     ${name1}=    Get Text    xpath=(${xpathSubHH})[${i}]
+    \     ${name1}=     Remove String Using Regexp           ${name1}          \\s\\(HH.+
+    \     Should Contain Match    ${Available_Segments}              ${name1}
+
+Save The Parent ad group with bottom button
+    Click Button        ${PARENT_BOTTOM_SAVE_BUTTON}
+
+Run_keyword_n_times_and_stop_if_success
+    [Arguments]  ${keyword}  ${number_tries}
+    :FOR  ${index}  IN RANGE  ${number_tries}
+    \  ${result}  ${error_message} =  Run Keyword And Ignore Error  ${keyword}
+    \  Pass Execution If  '${result}' == 'PASS'  keyword execution was successful
+    Fail  ${error_message}
+
+
+
+
+
+*** Test Cases ***
+Phoenix_CreateParentAdgroup_TC_00_Generate_data_for_Tests
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}"}
+    Get Today's Date
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}    campaign_start_date_time=${START_DATE} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    Log                                 Advertiser_id=${advertiser_id}
+    Log                                 Campaign_id=${Campaign_Id}
+    Set Suite Variable                 ${campaign_Id}          ${Campaign_Id}
+    Login To Adhaven UI                 username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    [Teardown]      Run Keyword If Test Failed       Run_keyword_n_times_and_stop_if_success     keyword=Login To Adhaven UI    number_tries=3
+    [Tags]        # CM-2008
+
+
+Phoenix_CreateParentAdgroup_TC_01_Create Parent adGroup(Normal)
+    Go To                                                       ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                               ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                                ${PARENT_ADD_BUTTON}
+    Sleep    3s
+    Add General information for ParentAdGroup                   Parent_AdGroup_Name=00_QATEST_Parent0101
+    ...                                                         Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                                         Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                                 householdShowingTimeLimit=${Check}
+    ...                                                         householdShowingPerDay=40
+    ...                                                         householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element                                               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+    Wait Until Page Contains                                    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain Button                                  manageCreativeTemp
+    Page Should Contain                                         00_QATEST_Parent0101
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_02_Create_Parent_Adgroup(Error Check - Name)
+    Set Test Variable                                               ${Parent_name}           00_@#$@#$2
+    Go To                                                           ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                                   ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                                    ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup                       Parent_AdGroup_Name=${Parent_name}
+    ...                                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                                             Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                                     householdShowingTimeLimit=${Check}
+    ...                                                             householdShowingPerDay=100
+    ...                                                             householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element                                                   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+    Sleep    5s
+    Element Should Be Visible                                       ${PARENT_NAME_ERROR_ICON}
+    Mouse Over                                                      ${PARENT_NAME_ERROR_ICON}
+    Page Should Contain                                             ${NAME_ERROR}
+    Sleep    1s
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_03_Create_Parent_Adgroup(Error Check - External ID)
+    Set Test Variable                       ${ExternalId}           00_@#$@#$2
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+
+    Click Button                            ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0103
+    ...                                             Parent_External_id=${ExternalId}
+    ...                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                             Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}
+    ...                                             householdShowingPerDay=100
+    ...                                             householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element                                   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group with bottom button
+    Sleep    10s
+    # Scroll To Element                               Element=${PARENT_EXTERNAL_ID_TEXTBOX}
+    # Element Should Be Visible                       ${PARENT_NAME_ERROR_ICON}           #CM-2231
+    # Mouse Over                                      ${PARENT_NAME_ERROR_ICON}
+    # Page Should Contain                             External ID must begin with BVT
+    # Page Should Contain                             External ID must be at least 11 characters
+    # Page Should Contain                             External ID must contain only letters and numbers
+    Wait Until Page Contains                                    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain Button                                  manageCreativeTemp
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_04_Create_Parent_Adgroup(Error Check - Impression Goal IO)
+    Set Test Variable                                   ${CAMPAIGN_NAME_UI}             00_QATEST_campaignEXT
+    # Create a new campaign for PAC1.6.10      campaign_name=${CAMPAIGN_NAME_UI}
+    Log                                                 Advertiser_id=${advertiser_id}
+    Log                                                 Campaign_id=${Campaign_Id}
+    Go To                                               ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                       ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                        ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup           Parent_AdGroup_Name=00_QATEST_Parent0104
+    ...                                                 Parent_External_id=1231231
+    ...                                                 Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                                 Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                         householdShowingTimeLimit=${Check}
+    ...                                                 householdShowingPerDay=50
+    ...                                                 householdNotMoreThanDuration=2
+    Add Measurement and performance parametes           exposureFileRecipient1=NCS
+    ...                                                 exposureFileRecipient2=None
+    Add Targeting to parent ad group                    datapartner=None
+    Click Element                                       ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+    Sleep   5s
+    Element Should Be Visible                           ${PARENT_EXTERNAL_ID_ERROR}
+    Mouse Over                                          ${PARENT_EXTERNAL_ID_ERROR}
+    Page Should Contain                                 External ID must begin with BVT
+    Page Should Contain                                 External ID must be at least 11 characters
+    Sleep    1s
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_05_Create_Parent_Adgroup(Timezone - Default Selected)
+    Go To                                               ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                       ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                        ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Page Should Contain List                            timezone
+    ${selected}=     Get Selected List Label            ${PARENT_TIMEZONE_SELECT}
+    Log                                                 ${selected}
+    Should Be Equal     '${Selected}'                   'GMT'
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_06_Create_Parent_Adgroup(Start Date - Inherited)
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 1 day
+    Set Suite Variable                                  ${START_DATE_PARENT_TEMP}   ${mm}/${dd}/${yyyy}
+    Go To                                               ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                       ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                        ${PARENT_ADD_BUTTON}
+    Sleep   7s
+    ${start_data_UI}=      Get value                    ${PARENT_START_DATE_TEXTBOX}
+    ${end_data_UI}=        Get value                    ${PARENT_END_DATE_TEXTBOX}
+    Should Be Equal        '${start_data_UI}'           '${START_DATE_PARENT_TEMP}'
+    Should Be Equal        '${end_data_UI}'             '${END_DATE_TIME_CAMPAIGN}'
+    Capture Page Screenshot With Timestamp
+    [Teardown]   Run Keyword If Test Failed             Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_07_Create_Parent_Adgroup(Start Time - 12:00 AM)
+    Go To                                               ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                       ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                        ${PARENT_ADD_BUTTON}
+    Sleep   7s
+    ${selected_startDate}=                              Get Selected List Label     ${PARENT_START_TIME_SELECT}
+    ${selected_endDate}=                                Get Selected List Label     ${PARENT_END_TIME_SELECT}
+    Should Be Equal           '${selected_startDate}'     '1:00 AM'
+    Should Be Equal           '${selected_endDate}'       '11:59 PM'
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_08_Create_Parent_Adgroup(End Date - Inherited)
+    Go To                                               ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                       ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                        ${PARENT_ADD_BUTTON}
+    Sleep   7s
+    ${end_data_UI}=      Get value                      ${PARENT_END_DATE_TEXTBOX}
+    Should Be Equal             '${end_data_UI}'        '${END_DATE_TIME_PARENT}'
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_09_Create_Parent_Adgroup(End time - 11:59)
+    Go To                                               ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                       ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                        ${PARENT_ADD_BUTTON}
+    Sleep   7s
+    ${selected_endDate}=       Get Selected List Label     ${PARENT_END_TIME_SELECT}
+    Should Be Equal           '${selected_endDate}'       '11:59 PM'
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_10_Create_Parent_Adgroup(House Hold Frequency Cap - perday)
+    Go To                                               ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                       ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                    ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0110
+    ...                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                             Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}
+    ...                                             householdShowingPerDay=100
+    ...                                             householdNotMoreThanDuration=10
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element                                   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0110
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_11_Create_Parent_Adgroup(House Hold Frequency Cap - duration default 50, acceptable value 10)
+    Go To                                                       ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                               ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup                   Parent_AdGroup_Name=00_QATEST_Parent0111
+    ...                                                         Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                                         Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                                 householdNotMoreThanDuration=10
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element                                               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0110
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_12_Create_Parent_Adgroup(House Hold Frequency Cap - unselected duration default to 50)
+    Go To                                                       ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                               ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                                ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    ${ParentHHFCPerDuration}=      Get value                    ${PARENT_HH_FC_PER_DURATION_TEXTBOX}
+    Should Be Equal                                             '${ParentHHFCPerDuration}'     '50'
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_13_Create_Parent_Adgroup(House Hold Frequency Cap - Over limit 101)
+    Go To                                                       ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                               ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                                ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0113
+    ...                                                         Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                                         Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                                 householdShowingTimeLimit=200
+    ...                                                         householdShowingPerDay=1
+    ...                                                         householdNotMoreThanDuration=30
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element                                               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+    Wait Until Page Contains                                    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain                                         CAMPAIGN SUMMARY
+    Page Should Contain Button                                  manageCreativeTemp
+    Page Should Contain                                         00_QATEST_Parent0113
+    Click Element                                               xpath=.//span[contains(., '00_QATEST_Parent0113')]
+    Sleep   2s
+    ${ParentHHFCPerDay}=      Get value          ${PARENT_HH_FC_PER_DAY_TEXTBOX}
+    Should Be Equal           '${ParentHHFCPerDay}'     '200'
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_14_Create_Parent_Adgroup(Device Frequency Cap - perday)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0114      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=200     householdShowingPerDay=1    householdNotMoreThanDuration=30
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0114
+    Click Element       xpath=.//span[contains(., '00_QATEST_Parent0114')]
+    Sleep   2s
+    ${ParentHHFCPerDay2}=      Get value          ${PARENT_HH_FC_PER_DAY2_TEXTBOX}
+    Should Be Equal           '${ParentHHFCPerDay2}'     '1'
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_15_Create_Parent_Adgroup(Device Frequency Cap - duration)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0115      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=200     householdShowingPerDay=1    householdNotMoreThanDuration=80
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0115
+    Click Element       xpath=.//span[contains(., '00_QATEST_Parent0115')]
+    Sleep   2s
+    ${ParentHHFCPerDuration}=      Get value          ${PARENT_HH_FC_PER_DURATION_TEXTBOX}
+    Should Be Equal           '${ParentHHFCPerDuration}'     '80'
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_16_Create_Parent_Adgroup(HH Frequency Cap - perday)
+
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                            ${PARENT_ADD_BUTTON}
+    Wait Until Page Contains    General information
+    Wait Until Page Contains    Frequency
+    Wait Until Page Contains    Measurement and performance
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0116      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     deviceShowingTimeLimit=200     deviceShowingPerDay=1    deviceNotMoreThanDuration=30      householdNotMoreThanDuration=10
+    # Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    # Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain Button          ${WITHOUT_HH_YES_BUTTON}
+    Run Keyword If   '${status}'=='1'    Click Button         ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain         CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0116
+    Click Element       xpath=.//span[contains(., '00_QATEST_Parent0116')]
+    Sleep   2s
+    ${DeviceHHFCPerDay}=      Get value          ${PARENT_DEVICE_FC_PER_DAY_TEXTBOX}
+    Should Be Equal           '${DeviceHHFCPerDay}'     '200'
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]      EXCLUDE      #TC repeated
+
+
+Phoenix_CreateParentAdgroup_TC_17_Create_Parent_Adgroup(IP Frequency Cap - duration)
+    # Get Today's Date
+    # Login To Adhaven UI                 username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    # Go To           https://qa-campaigns.4info.com/phoenix/#/campaignSummary/2914
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0117      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30      householdNotMoreThanDuration=10
+
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains        CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain             CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain             00_QATEST_Parent0117
+    Click Element       xpath=.//span[contains(., '00_QATEST_Parent0117')]
+    Sleep   2s
+    ${IpHHFCPerDuration}=      Get value          ${PARENT_IP_FC_PER_DURATION_TEXTBOX}
+    Should Be Equal           '${IpHHFCPerDuration}'     '30'
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_18_Create_Parent_Adgroup(Measurement and Performance - viewability optimization selected and viewbale impression)
+    Go To                                   ${Home_page}${campaign_Id}
+
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0118      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30      householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}     viewbleImpressionPercentage=90
+    Add Sales Lift Measurements
+    Select Datapartner
+
+    # Add Targeting to parent ad group
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0118
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_19_Create_Parent_Adgroup(Measurement and Performance - viewability optimization with Measurement and viewable rates)
+    Go To                                   ${Home_page}${campaign_Id}
+
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0119      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30      householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    customerRequirement=Measurable and Viewable Rates      measarableGoal=50         viewbleGoal=56
+    # Add Targeting to parent ad group
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0119
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_20_Create_Parent_Adgroup(Measurement and Performance - viewability optimization with Custom)
+
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0120      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    customerRequirement=Custom      measarableGoal=50         viewbleGoal=56       viewableImpression=12
+
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0120
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_21_Create_Parent_Adgroup(Measurement and Performance - optimization Extrapolate to unmeasurable impressions)
+    # Get Today's Date
+    # Login To Adhaven UI                 username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    # Go To           https://qa-campaigns.4info.com/phoenix/#/campaignSummary/2914
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0121      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    extrapolateCheckbox=${Check}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0121
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_22.1_Create_Parent_Adgroup(Measurement and Performance - optimization CTR)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0122      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=CTR Optimization
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0122
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_22.2_Create_Parent_Adgroup(Measurement and Performance - optimization CTR 0.01)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0122      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=CTR Optimization     viewableImpression=0.01
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0122
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.01_Create_Parent_Adgroup(Measurement and Performance - optimization CTR Goal Normal Range 30)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012301      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=CTR Optimization
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0123
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.02_Create_Parent_Adgroup(Measurement and Performance - optimization CTR Goal Normal Range 0.01)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012302      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=CTR Optimization     optimization_Goal=0.01
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0123
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.03_Create_Parent_Adgroup(Measurement and Performance - optimization CTR Goal Normal Range 100)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012303      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=CTR Optimization     optimization_Goal=100
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0123
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.04_Create_Parent_Adgroup(Measurement and Performance - optimization CTR Goal out of Range 101)
+    Go To                                           ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                   ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                    ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012304
+    ...                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                             Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                   ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=CTR Optimization    optimization_Goal=101
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+    ${status}    Run Keyword And Return Status      Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+    Sleep     5s
+
+    Scroll To Element                               Element=${PARENT_CtrVcrOptimization_Goal}
+    Mouse Over                                      xpath=.//select[contains(normalize-space(.), 'CTR OptimizationVCR Optimization')]/following::img
+    Page Should Contain                             The CTR/VCR optimization goal must be between 0.01 and 100.
+
+
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.05_Create_Parent_Adgroup(Measurement and Performance - optimization CTR Goal out of Range -2)
+    Go To                                           ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                   ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                    ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012305
+    ...                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                             Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                   ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=CTR Optimization    optimization_Goal=-2
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+    Scroll To Element                               Element=${PARENT_CtrVcrOptimization_Goal}
+    ${status}    Run Keyword And Return Status      Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+    Sleep     5s
+    Mouse Over                                      xpath=.//select[contains(normalize-space(.), 'CTR OptimizationVCR Optimization')]/following::img
+    Page Should Contain                             The CTR/VCR optimization goal must be between 0.01 and 100.
+
+
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.06_Create_Parent_Adgroup(Measurement and Performance - optimization CTR Goal invalid)
+    Go To                                           ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                   ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                    ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012306
+    ...                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                             Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                   ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=CTR Optimization    optimization_Goal=10-
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+    Scroll To Element                               Element=${PARENT_CtrVcrOptimization_Goal}
+    ${status}    Run Keyword And Return Status      Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+    Sleep     5s
+    Mouse Over                                      xpath=.//select[contains(normalize-space(.), 'CTR OptimizationVCR Optimization')]/following::img
+    Page Should Contain                             The CTR/VCR optimization goal must be between 0.01 and 100.
+
+
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]         Known_bug  CM-2372
+
+
+Phoenix_CreateParentAdgroup_TC_23.07_Create_Parent_Adgroup(Measurement and Performance - optimization VCR Goal Normal Range 30)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012307      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=VCR Optimization
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0123
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.08_Create_Parent_Adgroup(Measurement and Performance - optimization VCR Goal Normal Range 0.01)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012308      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=VCR Optimization    optimization_Goal=0.01
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0123
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.09_Create_Parent_Adgroup(Measurement and Performance - optimization VCR Goal Normal Range 100)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012309      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=VCR Optimization    optimization_Goal=0.01
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0123
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.10_Create_Parent_Adgroup(Measurement and Performance - optimization VCR Goal out of Range 101)
+    Go To                                           ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                   ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                    ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012310
+    ...                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                             Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                   ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=VCR Optimization    optimization_Goal=101
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+    Scroll To Element                               Element=${PARENT_CtrVcrOptimization_Goal}
+    ${status}    Run Keyword And Return Status      Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains Element                xpath=.//p[contains(normalize-space(.), 'Goal %.')]/following::img        timeout=20s
+    Mouse Over                                      xpath=.//p[contains(normalize-space(.), 'Goal %.')]/following::img
+    Page Should Contain                             The CTR/VCR optimization goal must be between 0.01 and 100.
+
+
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.11_Create_Parent_Adgroup(Measurement and Performance - optimization VCR Goal out of Range -2)
+    Go To                                           ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                   ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                    ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012311
+    ...                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                             Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                   ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=VCR Optimization    optimization_Goal=-2
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+    Scroll To Element                               Element=${PARENT_CtrVcrOptimization_Goal}
+    ${status}    Run Keyword And Return Status      Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains Element                xpath=.//p[contains(normalize-space(.), 'Goal %.')]/following::img        timeout=20s
+    Mouse Over                                      xpath=.//p[contains(normalize-space(.), 'Goal %.')]/following::img
+    Page Should Contain                             The CTR/VCR optimization goal must be between 0.01 and 100.
+
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_23.12_Create_Parent_Adgroup(Measurement and Performance - optimization VCR Goal invalid)
+    Go To                                           ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                   ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                                    ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012312
+    ...                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                             Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                   ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=VCR Optimization    optimization_Goal=10-
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+    Scroll To Element                               Element=${PARENT_CtrVcrOptimization_Goal}
+    ${status}    Run Keyword And Return Status      Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains Element                xpath=.//p[contains(normalize-space(.), 'Goal %.')]/following::img        timeout=20s
+    Mouse Over                                      xpath=.//p[contains(normalize-space(.), 'Goal %.')]/following::img
+    Page Should Contain                             The CTR/VCR optimization goal must be between 0.01 and 100.
+
+
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]         Known_bug  CM-2372
+
+
+Phoenix_CreateParentAdgroup_TC_24_Create_Parent_Adgroup(Measurement and Performance - digital conversion )
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0124      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes        digitalConversion=${Check}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0124
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_25_Create_Parent_Adgroup(Sales lift measurement - Exposure Receipient 1)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0125      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes       exposureFileRecipient1=ATT
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0125
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_Phoenix_CreateParentAdgroup_TC_26_Create_Parent_Adgroup(Sales lift measurement - Exposure Receipient 2)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0126      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes       exposureFileRecipient2=Datalogix
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0126
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_27_Create_Parent_Adgroup(Targeting - Household segment)
+    ${INC_HH_CONTENTS}    Set Variable       ATT    Datamyx    NCS         #include list
+    @{INC_HH_CONTENT_LIST}=    Convert To List    ${INC_HH_CONTENTS}
+    ${EXC_HH_CONTENTS}    Set Variable       Undertone    NBI          #Exclude list
+    @{EXC_HH_CONTENT_LIST}=    Convert To List    ${EXC_HH_CONTENTS}
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0127      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group               householdSegment=${Check}        HouseHoldSegmentInc=@{INC_HH_CONTENT_LIST}     HouseHoldSegmentExc=@{EXC_HH_CONTENT_LIST}
+    # Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0127
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_28_Create_Parent_Adgroup(Targeting - Device ID segment)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0128      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Select From List    ${PARENT_TARGETING_DATA_PARTNER_SELECTION}          ATT
+    Click Element       ${PARENT_TARGETING_DEVICE_ID_SEGMENT_CHECKBOX}
+    Click Button        ${PARENT_TARGETING_DEVICE_ID_SEGMENT_ADD_BUTTON}
+    Sleep   3s
+    Click Element      ${PARENT_DEVICE_DOWN_ARROW}
+    Sleep               4s
+    Click Element      //md-checkbox[@ng-reflect-name="4Info_Weis_Markets_Segment_1194"]/label
+    Click Button        ${TARGETING_INCLUDE_BUTTON}
+    # Click Element      //md-checkbox[@ng-reflect-name="Location Append"]/label
+    # Click Button        ${TARGETING_EXCLUDE_BUTTON}
+    Click Button        ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+    # Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0128
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_29_Create_Parent_Adgroup(Targeting - Device geofence segment)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0129      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Select From List    ${PARENT_TARGETING_DATA_PARTNER_SELECTION}          ATT
+    Click Element       ${PARENT_TARGETING_DEVICE_GEO_SEGMENT_CHECKBOX}
+    Select From List    ${PARENT_TARGETING_DEVICE_GEO_SEGMENT_SELECTION}    Load QA
+    # Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0129
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_30_Create_Parent_Adgroup(Targeting - Device geofence segment Exclude)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0130      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Select From List    ${PARENT_TARGETING_DATA_PARTNER_SELECTION}          ATT
+    Click Element       ${PARENT_TARGETING_DEVICE_GEO_SEGMENT_CHECKBOX}
+    Select From List    ${PARENT_TARGETING_DEVICE_GEO_SEGMENT_SELECTION}    Load QA
+    Click Element       ${PARENT_TARGETING_DEVICE_GEO_SEGMENT_EXLCUDE_CHECKBOX}
+    # Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0130
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+
+Phoenix_CreateParentAdgroup_TC_30.1_Create_Parent_Adgroup(Targeting - Device Segment newly created is visible and can be added to parent adgroup)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0130      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Select From List    ${PARENT_TARGETING_DATA_PARTNER_SELECTION}          ATT
+    Click Element       ${PARENT_TARGETING_DEVICE_GEO_SEGMENT_CHECKBOX}
+    Sleep    5s
+    Select From List    ${PARENT_TARGETING_DEVICE_GEO_SEGMENT_SELECTION}    Alcon Walmart 5mi geo
+    Click Element       ${PARENT_TARGETING_DEVICE_GEO_SEGMENT_EXLCUDE_CHECKBOX}
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0130
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_31.1_Create_Parent_Adgroup(Validate Text Color of Parent Adgroup link is blue when added households)
+    ${INC_HH_CONTENTS}    Set Variable       ATT    Datamyx             #include list
+    @{INC_HH_CONTENT_LIST}=    Convert To List    ${INC_HH_CONTENTS}
+    ${EXC_HH_CONTENTS}    Set Variable       Undertone    Acxiom          #Exclude list
+    @{EXC_HH_CONTENT_LIST}=    Convert To List    ${EXC_HH_CONTENTS}
+    Set Test Variable    ${ParentName}    00_QATEST_Parent0311
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=${ParentName}
+    ...      Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...      Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group    householdSegment=${Check}        HouseHoldSegmentInc=@{INC_HH_CONTENT_LIST}     HouseHoldSegmentExc=@{EXC_HH_CONTENT_LIST}
+    # Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     ${ParentName}
+    ${Attributes}=    Get Element Attribute    xpath=.//span[text()='${ParentName}']@class
+    Should Match    withHh    ${Attributes}
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     # Known_bug    CM-2008
+
+
+Phoenix_CreateParentAdgroup_TC_31.2_Create_Parent_Adgroup(Validate Text Color of Parent Adgroup link is red when parent adgroup created without any households)
+    ${INC_HH_CONTENTS}    Set Variable       ATT    Datamyx             #include list
+    @{INC_HH_CONTENT_LIST}=    Convert To List    ${INC_HH_CONTENTS}
+    ${EXC_HH_CONTENTS}    Set Variable       Undertone    Walmart          #Exclude list
+    @{EXC_HH_CONTENT_LIST}=    Convert To List    ${EXC_HH_CONTENTS}
+    Set Test Variable    ${ParentName}    00_QATEST_Parent0312
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=${ParentName}
+    ...      Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...      Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Select from List    xpath=.//*[@id="datapartner"]    Datamyx
+    Sleep   3s
+    # Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     ${ParentName}
+    ${Attributes}=    Get Element Attribute    xpath=.//span[text()='${ParentName}']@class
+    Should Match    noHh    ${Attributes}
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     # Known_bug    CM-2008
+
+
+Phoenix_CreateParentAdgroup_TC_31.3_Create_Parent_Adgroup(Validate Text Color of Parent Adgroup link is red when removed existing households)
+    ${INC_HH_CONTENTS}    Set Variable       ATT    Datamyx             #include list
+    @{INC_HH_CONTENT_LIST}=    Convert To List    ${INC_HH_CONTENTS}
+    ${EXC_HH_CONTENTS}    Set Variable       Undertone    Acxiom          #Exclude list
+    @{EXC_HH_CONTENT_LIST}=    Convert To List    ${EXC_HH_CONTENTS}
+    Set Test Variable    ${ParentName}    00_QATEST_Parent0313
+    Set Test Variable    ${parentXpath}    xpath=.//span[text()='${ParentName}']
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=${ParentName}
+    ...      Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...      Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group    householdSegment=${Check}        HouseHoldSegmentInc=@{INC_HH_CONTENT_LIST}     HouseHoldSegmentExc=@{EXC_HH_CONTENT_LIST}
+    # Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     ${ParentName}
+    ${Attributes}=    Get Element Attribute    ${parentXpath}@class
+    Should Match    withHh    ${Attributes}
+    Capture Page Screenshot With Timestamp
+
+    Click Element    ${parentXpath}//parent::a
+    Sleep    3s
+    # Set Test Variable    ${HouseholdSegmentCheckbox}    xpath=.//input[@id='householdSegment']//parent::div[@class='checkboxDiv']
+    Click Element    ${HouseholdSegmentCheckbox}
+    Sleep   3s
+    Capture Page Screenshot With Timestamp
+    # Checkbox Should Not Be Selected    ${HouseholdSegmentCheckbox}
+    # Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     ${ParentName}
+
+    ${Attributes}=    Get Element Attribute    ${parentXpath}@class
+    Should Match    noHh    ${Attributes}
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     #  Known_bug    CM-2008
+
+#--------------------------------------------------------------------------------------------
+
+Phoenix_CreateParentAdgroup_TC_32.1_Saving parent ad group without HH targeting should give alert about missing HH targeting)
+    ${INC_HH_CONTENTS}    Set Variable       ATT    Datamyx             #include list
+    @{INC_HH_CONTENT_LIST}=    Convert To List    ${INC_HH_CONTENTS}
+    ${EXC_HH_CONTENTS}    Set Variable       Undertone    Walmart          #Exclude list
+    @{EXC_HH_CONTENT_LIST}=    Convert To List    ${EXC_HH_CONTENTS}
+    Set Test Variable    ${ParentName}    00_QATEST_Parent0321
+    Set Test Variable    ${parentXpath}    xpath=.//span[text()='${ParentName}']
+    Go To                                                       ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible                               ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=60s
+    Click Button                                                ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup                   Parent_AdGroup_Name=${ParentName}
+    ...                                                         Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                                         Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Click Element                                               xpath=.//input[@id='hhFcOverallChecked']//parent::div
+    Sleep    2s
+    Add Measurement and performance parametes
+    Select from List                                            ${PARENT_TARGETING_DATA_PARTNER_SELECTION}     Datamyx
+    Sleep   3s
+    Save The Parent ad group
+    Set Test Variable                                           ${ButtonYes}        xpath=.//button[@id='btnDeleteOk']
+    Wait Until Element Is Visible                               ${ButtonYes}        timeout=60s
+    Element Should Be Visible                                   ${ButtonYes}
+    Set Test Variable                                           ${cancelLInk}       xpath=.//a[@id='cancel'][text()='Cancel ']
+    Element Should Be Visible                                   ${cancelLInk}
+    Page Should Contain     Are you sure you want to save this Ad Group without any household or device targeting?
+    Capture Page Screenshot With Timestamp
+    Click Element                                               ${ButtonYes}
+    Sleep      5s
+    [Teardown]          Run Keyword If Test Failed              ${Home_page}${campaign_Id}
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_32.2_Parent ad group datasource names (PRIZM, ConneXions, P$YCLE, DLX House Hold, Speedeon-Spire, Speedeon and TruSignal) should not be visible
+    ${INC_HH_CONTENTS}    Set Variable       ATT    Datamyx             #include list
+    @{INC_HH_CONTENT_LIST}=    Convert To List    ${INC_HH_CONTENTS}
+    ${EXC_HH_CONTENTS}    Set Variable       Undertone    Walmart          #Exclude list
+    @{EXC_HH_CONTENT_LIST}=    Convert To List    ${EXC_HH_CONTENTS}
+    Set Test Variable    ${ParentName}    00_QATEST_Parent0322
+    Set Test Variable    ${parentXpath}    xpath=.//span[text()='${ParentName}']
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=${ParentName}
+    ...      Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...      Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Focus    ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Click Element    ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element    ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Sleep    15s
+    Element Should Not Be Visible    ${datasource_ConneXions}
+    Element Should Not Be Visible    ${datasource_DLXHouseHold}
+    Element Should Not Be Visible    ${datasource_PRIZM}
+    Element Should Not Be Visible    ${datasource_Speedeon}
+    Element Should Not Be Visible    ${datasource_SpeedeonSpire}
+    Element Should Not Be Visible    ${datasource_TruSignal}
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    Known_bug    CM-2051
+
+
+Phoenix_CreateParentAdgroup_TC_32.3_Parent ad group Available HOUSEHOLD SEGMENT matches with DB enabled=1
+    [Documentation]    First get all the records from target_datasource_segments where enabled=1 and then find out ${Space}
+    ...                corresponding households. And compare them with UI elements, ${Space}
+    ...                Expected : Both should match
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT distinct d.datasource_name FROM rhino.target_datasource_segments ds join rhino.target_datasource d on ds.datasource_id = d.id where ds.enabled = 1 order by datasource_name,segment_name;
+    Log Many    @{query_results}
+    ${count}=           Get Length  ${query_results}
+    ${Available_Segments} =  Create List
+    :FOR   ${i}  IN RANGE    0     ${count}
+    \       ${output} =    Convert To String   ${queryResults[${i}]}
+    \       ${output}=     Remove String Using Regexp           ${output}      \\('|',\\)
+    \       Log     ${output}
+    \       Append To List          ${Available_Segments}       ${output}
+    Log Many    ${Available_Segments}
+    Sort List   ${Available_Segments}
+    Log Many    ${Available_Segments}
+    Disconnect From Database
+
+
+    Set Test Variable    ${ParentName}    00_QATEST_Parent0322
+    Set Test Variable    ${parentXpath}    xpath=.//span[text()='${ParentName}']
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   5s
+
+    Click Element    ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element    ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Sleep    15s
+    Capture Page Screenshot With Timestamp
+    ${xpathHH}=             Set Variable                   //ul[@id="available-segments-ul"]/li/div[@class="datasourceName"]
+    ${HHSegmentsCnt}=    Get Matching Xpath Count     ${xpathHH}
+    Log     ${HHSegmentsCnt}
+    :For        ${i}    IN RANGE    1    ${HHSegmentsCnt} + 1
+     \    ${name}=    Get Text    xpath=(${xpathHH})[${i}]
+     \    Should Contain Match    ${Available_Segments}              ${name}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    TeststCM-20511   CM-2051
+
+
+# SELECT distinct d.datasource_name, ds.segment_name
+# FROM rhino.target_datasource_segments ds
+# join rhino.target_datasource d
+# on ds.datasource_id = d.id
+# where ds.enabled = 1;
+
+
+Phoenix_CreateParentAdgroup_TC_32.3_Parent ad group Available HOUSEHOLD SEGMENT matches with DB enabled=1 Checking subSegments
+    [Documentation]    First get all the records from target_datasource_segments where enabled=1 and then find out ${Space}
+    ...                corresponding households. And compare them with UI elements, ${Space}
+    ...                Expected : Both should match
+    # Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    # @{query_results}     Query      SELECT distinct ds.segment_name FROM rhino.target_datasource_segments ds join rhino.target_datasource d on ds.datasource_id = d.id where ds.enabled = 1 and d.datasource_name='4INFO';
+    # Log Many    @{query_results}
+    # ${count}=           Get Length  ${query_results}
+    # ${Available_Segments} =  Create List
+    # :FOR   ${i}  IN RANGE    0     ${count}
+    # \       ${output} =    Convert To String   ${queryResults[${i}]}
+    # \       ${output}=     Remove String Using Regexp           ${output}      \\('|',\\)
+    # \       Log     ${output}
+    # \       Append To List          ${Available_Segments}       ${output}
+    # Log Many    ${Available_Segments}
+    # Sort List   ${Available_Segments}
+    # Log Many    ${Available_Segments}
+    # Disconnect From Database
+
+
+    Set Test Variable    ${ParentName}     00_QATEST_Parent0322
+    Set Test Variable    ${parentXpath}    xpath=.//span[text()='${ParentName}']
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   5s
+
+    Click Element    ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element    ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Sleep    15s
+
+
+    ${xpathHH}=             Set Variable            //ul[@id="available-segments-ul"]/li/div[@class="datasourceName"]
+    ${HHSegmentsCnt}=    Get Matching Xpath Count     ${xpathHH}
+    Log     ${HHSegmentsCnt}
+    :For        ${i}    IN RANGE    1    5
+     \    ${name}=    Get Text    xpath=(${xpathHH})[${i}]
+     \      Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    \       @{query_results}     Query      SELECT distinct ds.segment_name FROM rhino.target_datasource_segments ds join rhino.target_datasource d on ds.datasource_id = d.id where ds.enabled = 1 and d.datasource_name='${name}';
+    \       Log Many    @{query_results}
+    \       ${count}=           Get Length  ${query_results}
+    \       ${Available_Segments} =  Create List
+    \       ${Available_Segments} =  Create List
+    \       Disconnect From Database
+    \       Get Result Loop      count=${count}     query_results=@{query_results}     Available_Segments=${Available_Segments}
+    \       Log Many    ${Available_Segments}
+    \       Sort List   ${Available_Segments}
+    \       Log Many    ${Available_Segments}
+    \       Click Element       xpath=//div[contains(text(),"${name}")]/ancestor::li/span
+    \       ${xpathSubHH}=             Set Variable                   //div[@class="segmentName"]
+    \       ${HHSegmentsCnt}=    Get Matching Xpath Count     ${xpathSubHH}
+    \       Data Compare Loop       xpathSubHH=${xpathSubHH}         HHSegmentsCnt=${HHSegmentsCnt}    Available_Segments=${Available_Segments}
+    \       Click Element       xpath=//div[contains(text(),"${name}")]/ancestor::li/span
+
+
+
+
+
+
+
+
+
+
+
+    # Capture Page Screenshot With Timestamp
+
+    # ${xpathHH}=             Set Variable                   //ul[@id="available-segments-ul"]/li/div[@class="datasourceName"]
+    # ${HHSegmentsCnt}=    Get Matching Xpath Count     ${xpathHH}
+    # Log     ${HHSegmentsCnt}
+    # :For        ${i}    IN RANGE    1    ${HHSegmentsCnt} + 1
+    #  \    ${name}=    Get Text    xpath=(${xpathHH})[${i}]
+    #  \    Should Contain Match    ${Available_Segments}              ${name}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    TeststCM-2051q
+
+#--------------------------------------------------------------------------------------------
+Phoenix_CreateParentAdgroup_TC_33.1_verify HH and CPM format for Household Segment(CM-2063)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    # Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0331      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Click Element       ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element       ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Wait Until Page Contains                    AVAILABLE SEGMENTS
+    Wait Until Page Contains                    4INFO
+    Sleep   8s
+    Input Text                                  ${FILTER_TEXTBOX}           4INFO
+    Sleep   2s
+    Click Element                               ${PARENT_HH_DOWN_ARROW}
+    ${xpathHH}=    Set Variable                   //ul[@id="available-segments-ul"]/li/ul/li/div
+    ${count}=    Get Matching Xpath Count    ${xpathHH}
+    ${names}=    Create List
+    :FOR    ${i}    IN RANGE    1    ${count} + 1
+    \    ${name}=    Get Text    xpath=(${xpathHH})[${i}]
+    \    Should Match Regexp        ${name}         HH:\\s\\d.+\\)\\s\\(CPM:\\s\\$\\d.+.\\d+\\)
+    Input Text          ${FILTER_TEXTBOX}           4INFO
+    Click Element       //md-checkbox[@ng-reflect-name="4INFO"]     #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    Sleep   2s
+    ${xpathHHInclude}=    Set Variable                   //div[@class="selectedItem"]/div
+    ${count}=    Get Matching Xpath Count    ${xpathHHInclude}
+    ${names}=    Create List
+    :FOR    ${i}    IN RANGE    1    ${count} + 1
+    \    ${name}=    Get Text    xpath=(${xpathHHInclude})[${i}]
+    \    Should Match Regexp        ${name}         HH:\\s\\d.+\\)\\s\\(CPM:\\s\\$\\d.+.\\d+\\)
+    Click Element                   ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+    Sleep   4s
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]      CPMTEST
+
+
+Phoenix_CreateParentAdgroup_TC_33.2_verify DS and CPM format for Device Segment(CM-2063)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    # Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent0332      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Click Element       ${PARENT_TARGETING_DEVICE_ID_SEGMENT_CHECKBOX}
+    Click Element       ${PARENT_TARGETING_DEVICE_ID_SEGMENT_ADD_BUTTON}
+    Wait Until Page Contains                    AVAILABLE SEGMENTS
+    Wait Until Page Contains                    4INFO Device Segments
+    Sleep   5s
+    Click Element                               ${PARENT_HH_DOWN_ARROW}
+    ${xpathDS}=    Set Variable                   //ul[@id="available-segments-ul"]/li/ul/li/div
+    ${count}=    Get Matching Xpath Count    ${xpathDS}
+    ${names}=    Create List
+    :FOR    ${i}    IN RANGE    1    ${count} + 1
+    \    ${name}=    Get Text    xpath=(${xpathDS})[${i}]
+    \    Should Match Regexp        ${name}         DS:\\s\\d.+\\)\\s\\(CPM:\\s\\$\\d.+.\\d+\\)
+
+    Click Element       //md-checkbox[@ng-reflect-name="4INFO Device Segments"]     #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    Sleep   2s
+    ${xpathDSInclude}=    Set Variable                   //div[@class="selectedItem"]/div
+    ${count}=    Get Matching Xpath Count    ${xpathDSInclude}
+    ${names}=    Create List
+    :FOR    ${i}    IN RANGE    1    ${count} + 1
+    \    ${name}=    Get Text    xpath=(${xpathDSInclude})[${i}]
+    \    Should Match Regexp        ${name}         DS:\\s\\d.+\\)\\s\\(CPM:\\s\\$\\d.+.\\d+\\)
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CPMTEST
+
+
+Phoenix_CreateParentAdgroup_TC_34.1_Verify ExternalId For Group id 6
+    Close All Browsers
+    Get Today's Date
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_GRP6"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59    campaign_access_control=6
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Login To Adhaven UI    username=${group_id_6_username}    password=1234info
+    Wait until Advertiser Element To Load
+    Go To                                       ${parent_EditPage}${campaign_id}
+    Wait until Parent Element To Load
+    Sleep   3s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+Phoenix_CreateParentAdgroup_TC_34.2_Verify ExternalId For Group id 14
+    Close All Browsers
+    Get Today's Date
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_GRP14"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59    campaign_access_control=14
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Login To Adhaven UI    username=${group_id_14_username}    password=1234info
+    Wait until Advertiser Element To Load
+    Go To                                       ${parent_EditPage}${campaign_id}
+    Wait until Parent Element To Load
+    Sleep   3s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+
+
+Phoenix_CreateParentAdgroup_TC_34.3_Verify ExternalId For Group id 15
+    Close All Browsers
+    Get Today's Date
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_GRP15"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59    campaign_access_control=15
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Login To Adhaven UI    username=${group_id_15_username}    password=${group_id_6_password}
+    Wait until Advertiser Element To Load
+    Go To                                       ${parent_EditPage}${campaign_id}
+    Wait until Parent Element To Load
+    Sleep   3s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+
+Phoenix_CreateParentAdgroup_TC_34.4_Verify ExternalId For Group id 17
+    Close All Browsers
+    Get Today's Date
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_GRP17"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59    campaign_access_control=17
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Login To Adhaven UI For Group 17    username=${group_id_17_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To                                       ${parent_EditPage}${campaign_id}
+    Wait until Parent Element To Load
+    Sleep   3s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]      qweqwe
+
+
+Phoenix_CreateParentAdgroup_TC_34.5_Verify ExternalId For Group id 1
+    Close All Browsers
+    Get Today's Date
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_GRP1"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${campaign_id}=                             Get JSON Value                             ${body}          /campaign/id
+    Set Suite Variable                          ${campaign_id}                              ${campaign_id}
+    Login To Adhaven UI For Group 17    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To                                       ${parent_EditPage}${campaign_id}
+    Wait until Parent Element To Load
+    Sleep   3s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Not Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_35.6_Clone_the_parent_adGroup
+    [Setup]          Cleanup Advertiser From DB          advertiser_name=QA_PAC_Clone_issue_UI
+    Get Start Date
+    Log To Console      Creating Campaign
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "QA_PAC_Clone_issue_UI"}
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_Parent_clone_UI1      campaign_advertiser_id=${advertiser_id}       campaign_start_date_time=${todaysDate}
+    Set Test Variable                   ${campaignId_Clone}             ${campaignId}
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_Parent_clone_UI2       campaign_advertiser_id=${advertiser_id}       campaign_start_date_time=${todaysDate}
+    Set Test Variable                   ${campaign_Id}                  ${campaignId}
+    Log To Console      Creating Parent Ad group
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_Parent_UI
+    ...                                 parent_campaign_id=${campaignId}
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 response_code=200
+    ${parent_id}        Get JSON Value          ${body}     /parent/id
+    Set Suite Variable      ${Parent_id}       ${parent_id}
+    Set Suite Variable      ${body1}       ${body}
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 2 day
+    Set Test Variable   ${start_date}           ${mm}/${dd}/${yyyy} 04:30
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 10 day
+    Set Test Variable   ${end_date}           ${mm}/${dd}/${yyyy} 04:30
+    Log To Console      Creating Childs
+    : FOR    ${INDEX}    IN RANGE    1    2
+    \    Log To Console   Creating${Space}Child_ad${Space}and${Space}Creative${Space}${INDEX}
+    \    Create Child Adgroup via API                child_name=PAC_regression_child_Parent_Clone${INDEX}_TC    child_parent_campaign_id=${parent_id}     child_start_date_time=${start_date}      child_end_date_time=${end_date}
+    \    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    \    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+    \    Generate JSON For Creative Native           campaign_id=${campaignId}     adName="NATIVE_AD_CONE_NATIVE_${INDEX}"
+    \    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    \    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    \    Create ad for Native                       adName="NATIVE_AD_CONE_NATIVE_${INDEX}"      adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Click Button                Clone_parent_Adgroup_button
+    Sleep    5s
+    Fill Clone Parent Adgroup Details on popup windonw
+    # Sleep    20s
+    # Go To                                       ${Add_Parent_Page}${campaignId}
+    Wait until Parent Element To Load
+    Capture Page Screenshot With Timestamp
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]        EXCLUDE    #TC are present in Clone_parent_Adgroup.txt file
+
+#--------------------------------------------------------------------------------------------
+Phoenix_CreateParentAdgroup_TC_36.01_Create Parent adGroup(Validate newly added Device segment (112) is available for targeting)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep    3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent3601      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add HouseHold Frequency Cap                     householdShowingTimeLimit=${Check}     householdShowingPerDay=40    householdNotMoreThanDuration=2
+    Add Measurement and performance parametes
+    Click Element               ${PARENT_TARGETING_DEVICE_ID_SEGMENT_CHECKBOX}
+    Click Element               ${PARENT_TARGETING_DEVICE_ID_SEGMENT_ADD_BUTTON}
+    Sleep   10s
+    # Input Text          ${FILTER_TEXTBOX}           NCS Score
+    Sleep               5s
+    Click Element       ${PARENT_DEVICE_DOWN_ARROW}
+    Sleep       7s
+    Click Element       //md-checkbox[@ng-reflect-name="4Info_Weis_Markets_Segment_1194"]     #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    Click Button        ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+    Sleep   2s
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains        CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain             CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent3601
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+#--------------------------------------------------------------------------------------------
+
+
+Phoenix_CreateParentAdgroup_TC_37.01_Create Parent adGroup(Score cut from parentAdGroupEdit should be editable CM-2247)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                            ${PARENT_ADD_BUTTON}
+    Sleep    3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent3701      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add Measurement and performance parametes
+    Focus                                   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Wait Until Page Contains    EDIT HOUSEHOLD SEGMENT                     timeout=20s
+    Wait Until Page Contains    AVAILABLE SEGMENTS                         timeout=20s
+    Input Text          ${FILTER_TEXTBOX}           NCS Score
+    Sleep               5s
+    Click Element       ${PARENT_DEVICE_DOWN_ARROW}
+    Sleep               10s
+    Click Element       xpath=(//md-checkbox[@ng-reflect-name])[2]      #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    Input Text          xpath=//div[@class="scorecutDiv"]/input               30
+    Click Button        ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+    Select From List    ${PARENT_TARGETING_DATA_PARTNER_SELECTION}           Walmart
+    Sleep   2s
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_37.02.01_Create Parent adGroup(Score cut from parentAdGroupEdit should be editable CM-2247)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                            ${PARENT_ADD_BUTTON}
+    Sleep    3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent3701      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add Measurement and performance parametes
+    Focus                                   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Wait Until Page Contains    EDIT HOUSEHOLD SEGMENT                     timeout=20s
+    Wait Until Page Contains    AVAILABLE SEGMENTS                         timeout=20s
+    Input Text          ${FILTER_TEXTBOX}           NCS Score
+    Sleep               5s
+    Click Element       ${PARENT_DEVICE_DOWN_ARROW}
+    Sleep               10s
+    Click Element       xpath=(//md-checkbox[@ng-reflect-name])[2]      #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button        ${TARGETING_EXCLUDE_BUTTON}       #BUG logged for having id for this element
+    Input Text          xpath=//div[@class="scorecutDiv"]/input               30
+    Click Button        ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+    Select From List    ${PARENT_TARGETING_DATA_PARTNER_SELECTION}           Walmart
+    Sleep   2s
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+Phoenix_CreateParentAdgroup_TC_37.02.02_Create Parent adGroup(Score cut from parentAdGroupEdit should be editable CM-2247)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                            ${PARENT_ADD_BUTTON}
+    Sleep    3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent370202      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add Measurement and performance parametes
+    Focus                                   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Wait Until Page Contains                EDIT HOUSEHOLD SEGMENT                     timeout=20s
+    Wait Until Page Contains                AVAILABLE SEGMENTS                         timeout=20s
+    Input Text                              ${FILTER_TEXTBOX}           NCS Score
+    Sleep                                   5s
+    Click Element                           ${PARENT_DEVICE_DOWN_ARROW}
+    Sleep                                   10s
+    Click Element                           xpath=(//md-checkbox[@ng-reflect-name])[2]      #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button                            ${TARGETING_EXCLUDE_BUTTON}       #BUG logged for having id for this element
+    Input Text                              xpath=//div[@class="scorecutDiv"]/input               30
+    Click Button                            ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+    Select From List                        ${PARENT_TARGETING_DATA_PARTNER_SELECTION}           Walmart
+    Sleep   2s
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Sleep    5s
+    Click Link                              00_QATEST_Parent370202
+    Wait Until Page Contains                Targeting                               timeout=20s
+    Wait Until Page Contains                INTERSECTION                            timeout=20s
+    Wait Until Page Contains                NCS Score                               timeout=20s
+    Click Link                              Edit
+    Sleep                                   5s
+    Input Text                              xpath=//div[@class="scorecutDiv"]/input                55
+    Click Button                            ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Sleep    5s
+    Go To                                   ${AuditTrail_page}${campaign_Id}
+    Wait Until Page Contains                AUDIT TRAIL                             timeout=20s
+    Wait Until Page Contains                Search audit trails                     timeout=20s
+    Page Should Contain                     30
+    Page Should Contain                     55
+
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]         TASK-CM-2247
+
+
+
+Phoenix_CreateParentAdgroup_TC_37.03_Create Parent adGroup(Score cut from parentAdGroupEdit should be in audit trail CM-2253)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                            ${PARENT_ADD_BUTTON}
+    Sleep    3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent3702      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add Measurement and performance parametes
+    Focus                                   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Wait Until Page Contains                EDIT HOUSEHOLD SEGMENT                     timeout=20s
+    Wait Until Page Contains                AVAILABLE SEGMENTS                         timeout=20s
+    Input Text                              ${FILTER_TEXTBOX}           NCS Score
+    Sleep                                   5s
+    Click Element                           ${PARENT_DEVICE_DOWN_ARROW}
+    Sleep                                   10s
+    Click Element                           xpath=(//md-checkbox[@ng-reflect-name])[2]      #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button                            ${TARGETING_EXCLUDE_BUTTON}       #BUG logged for having id for this element
+    Input Text                              xpath=//div[@class="scorecutDiv"]/input               30
+    Click Button                            ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+    Select From List                        ${PARENT_TARGETING_DATA_PARTNER_SELECTION}           Walmart
+    Sleep   2s
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Sleep    5s
+    Click Link                              00_QATEST_Parent3702
+    Wait Until Page Contains                Targeting                               timeout=20s
+    Wait Until Page Contains                INTERSECTION                            timeout=20s
+    Wait Until Page Contains                NCS Score                               timeout=20s
+    Input Text                              xpath=//input[@name="score"]                55
+
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Sleep    5s
+    Go To                                   ${AuditTrail_page}${campaign_Id}
+    Wait Until Page Contains                AUDIT TRAIL                             timeout=20s
+    Wait Until Page Contains                Search audit trails                     timeout=20s
+    Page Should Contain                     30
+    Page Should Contain                     55
+
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_38.01_Create Parent adGroup(Verify HH formulas CM-2262)
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 4 day
+    Set Suite Variable    ${START_DATE_TIME_PARENT_1}   ${mm}/${dd}/${yyyy}
+    Create Parent Adgroup via API           parent_name=${PARENT_NAME}3801
+    ...                                     parent_start_date_time=${START_DATE_TIME_PARENT_1} 00:00
+    ...                                     parent_end_date_time=${END_DATE_TIME_PARENT} 00:59
+    ...                                     parent_campaign_id=${campaign_Id}
+    ...                                     parent_targeting_hh_segment={"group":[{"id":4445,"score":-1,"exclude":false},{"id":4416,"score":-1,"exclude":true}]},{"group":[{"id":4615,"score":14,"exclude":false},{"id":4316,"score":45,"exclude":false},{"id":3694,"score":12,"exclude":true}]}
+    ...                                     parent_targeting_device_segment={"group":[{"id":105,"exclude":false},{"id":106,"exclude":true}]}
+    ${Parent_id38}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id38}                               ${Parent_id38}
+    Sleep    5s
+    Go To                                   https://qa-campaigns.4info.com/phoenix/#/parentAdGroupEdit/${parent_id38}
+    Wait Until Page Contains    Targeting                   timeout=20s
+    Wait Until Page Contains    INTERSECTION                timeout=20s
+    Wait Until Page Contains    OR                          timeout=20s
+    Sleep   5s
+    Input Text                              xpath=(//input[@name="score"] )[1]                55
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element    ${WITHOUT_HH_YES_BUTTON}
+
+    Sleep    5s
+    Go To                                   ${AuditTrail_page}${campaign_Id}
+    Sleep    5s
+    ${formula}      Get Text                xpath=//table[@id="tblAuditTrail"]/tbody/tr[1]/td[6]
+
+    Should Match Regexp                     ${formula}              4445\\*!4416\\|4615\\@55\\*4316@45\\*!3694@12
+    # Sleep    5s
+    # Should Match Regexp                     ${formula}              4445\\*!4416
+    # Should match Regexp                     ${formula}              4615@55
+    # Should match Regexp                     ${formula}              4316@45
+    # Should match Regexp                     ${formula}              !3694@12
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+Phoenix_CreateParentAdgroup_TC_38.02_Create Parent adGroup(Verify DS formulas CM-2262)
+    [Documentation]         This Test case varifies the farmulas in Audit trail
+    ...                     This test case need to run with above test case
+    Go To                                   https://qa-campaigns.4info.com/phoenix/#/parentAdGroupEdit/${parent_id38}
+    Wait Until Page Contains    Targeting                   timeout=20s
+    Wait Until Page Contains    INTERSECTION                timeout=20s
+    Wait Until Page Contains    OR                          timeout=20s
+    Sleep   5s
+    Click Element               xpath=(//button[contains(.,'+ Add union')])[2]
+    Sleep   10s
+    # Input Text          ${FILTER_TEXTBOX}           NCS Score
+    Sleep               5s
+    Click Element       ${PARENT_DEVICE_DOWN_ARROW}
+    Sleep       7s
+
+    Click Element       //md-checkbox[@ng-reflect-name="4Info_BJs_Wholesale_Club_Segment_1137"]     #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Element       //md-checkbox[@ng-reflect-name="4Info_Weis_Markets_Segment_1194"]     #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    Click Element       //md-checkbox[@ng-reflect-name="4Info_Walmart_Segment_1153"]         #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button        ${TARGETING_EXCLUDE_BUTTON}
+    Sleep   2s
+    Click Button        ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element     s${WITHOUT_HH_YES_BUTTON}
+
+    Sleep  8s
+    Go To                                   ${AuditTrail_page}${campaign_Id}
+    Sleep    6s
+    ${formula}      Get Text                xpath=//table[@id="tblAuditTrail"]/tbody/tr[1]/td[6]
+    Should Match Regexp                     ${formula}              105\\*!106\\|\\!110\\*111\\*106
+    Should Match Regexp                     ${formula}              105\\*\\!106
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+#---------------------------------------------------------------------------------------------------------
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_01_Check Measurable goal is not displayed when checkbox for CTRVCROptimization is unchecked
+    [Documentation]    To validate when checkbox is unchecked, field measurable goal is hidden. Not displayed on screen
+    Go To    ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    Click Button    ${PARENT_ADD_BUTTON}
+
+    Add General information for ParentAdGroup
+    ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2273_01
+    ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Focus   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Page Should Not Contain    ${PARENT_CtrVcrOptimization_Goal}
+    Element Should Not Be Visible    ${PARENT_CtrVcrOptimization_Goal}
+
+    Capture Page Screenshot With Timestamp
+    Sleep    3s
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2273-phoenix
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_02_Check Measurable goal is displayed when checkbox for CTRVCROptimization is checked
+    [Documentation]    To validate when checkbox is unchecked, field measurable goal is hidden. Not displayed on screen
+    Go To    ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    Click Button    ${PARENT_ADD_BUTTON}
+
+    Add General information for ParentAdGroup
+    ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2273_02
+    ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Focus   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Click Element    ${PARENT_CtrVcrOptimization_CHECKBOX}
+    Sleep    5s
+
+    Element Should Be Visible     ${PARENT_CtrVcrOptimization_Goal}
+
+    Capture Page Screenshot With Timestamp
+    Sleep    3s
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2273-phoenix
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_03.1.1_Check Measurable goal value 1 is saved successfully for CTR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      00_QATEST_Parent_CM_2273_0311
+    Set Test Variable    ${optimization}    CTR Optimization
+    Set Test Variable    ${optimization_db}    1
+    Set Test Variable    ${goal}            1
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}    Run Keyword And Return Status    Page Should Contain    Yes
+    Run Keyword If    '${status}' == 'True'    Click Element    ${WITHOUT_HH_YES_BUTTON}
+
+    Log    ${goal}
+    ${goal}=    Evaluate    ${goal} * 0.01
+
+    Confirm DB Value is correct for goal in Database for optimization
+    ...    ParentName=${ParentName}
+    ...    ctr_Optimization=${optimization_db}
+    ...    goal=${goal}
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2273-phoenix
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_03.1.2_Check Measurable goal value 1 is saved successfully for VCR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      00_QATEST_Parent_CM_2273_0321
+    Set Test Variable    ${optimization}    VCR Optimization
+    Set Test Variable    ${optimization_db}    2
+    Set Test Variable    ${goal}            1
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    ${status}    Run Keyword And Return Status    Page Should Contain    Yes
+    Run Keyword If    '${status}' == 'True'    Click Element    ${WITHOUT_HH_YES_BUTTON}
+
+    Log    ${goal}
+    ${goal}=    Evaluate    ${goal} * 0.01
+
+    Confirm DB Value is correct for goal in Database for optimization
+    ...    ParentName=${ParentName}
+    ...    ctr_Optimization=${optimization_db}
+    ...    goal=${goal}
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2273-phoenix
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_03.2.1_Check Measurable goal value null is saved successfully for CTR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      00_QATEST_Parent_CM_2273_0312
+    Set Test Variable    ${optimization}    CTR Optimization
+    Set Test Variable    ${optimization_db}    1
+    Set Test Variable    ${goal}            ${Empty}
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    ${status}    Run Keyword And Return Status    Page Should Contain    Yes
+    Run Keyword If    '${status}' == 'True'    Click Element    ${WITHOUT_HH_YES_BUTTON}
+
+    Set Test Variable    ${goal}    1
+
+    Confirm DB Value is correct for goal in Database for optimization
+    ...    ParentName=${ParentName}
+    ...    ctr_Optimization=${optimization_db}
+    ...    goal=${goal}
+    ...    isNullFlag=true
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2273-phoenix
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_03.2.2_Check Measurable goal value null is saved successfully for VCR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      00_QATEST_Parent_CM_2273_0322
+    Set Test Variable    ${optimization}    VCR Optimization
+    Set Test Variable    ${optimization_db}    2
+    Set Test Variable    ${goal}            ${Empty}
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    ${status}    Run Keyword And Return Status    Page Should Contain    Yes
+    Run Keyword If    '${status}' == 'True'    Click Element    ${WITHOUT_HH_YES_BUTTON}
+
+    Set Test Variable    ${goal}    1
+
+    Confirm DB Value is correct for goal in Database for optimization
+    ...    ParentName=${ParentName}
+    ...    ctr_Optimization=${optimization_db}
+    ...    goal=${goal}
+    ...    isNullFlag=true
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2273-phoenix
+
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_04.1_Check Measurable goal value 101 gives an error for CTR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      00_QATEST_Parent_CM_2273_041
+    Set Test Variable    ${optimization}    CTR Optimization
+    Set Test Variable    ${goal}            101
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 1 and 100.
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2273-phoenix
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_04.2_Check Measurable goal value 101 gives an error for VCR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      00_QATEST_Parent_CM_2273_042
+    Set Test Variable    ${optimization}    VCR Optimization
+    Set Test Variable    ${goal}            101
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 1 and 100.
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2273-phoenix
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_05.1_Check Measurable goal value -5 gives an error for CTR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      00_QATEST_Parent_CM_2273_051
+    Set Test Variable    ${optimization}    CTR Optimization
+    Set Test Variable    ${goal}            -5
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 1 and 100.
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2273-phoenix
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_05.2_Check Measurable goal value -5 gives an error for VCR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      00_QATEST_Parent_CM_2273_052
+    Set Test Variable    ${optimization}    VCR Optimization
+    Set Test Variable    ${goal}            -5
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 1 and 100.
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2273-phoenix
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_06.1_Check Measurable goal value 0 gives an error for CTR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      00_QATEST_Parent_CM_2273_061
+    Set Test Variable    ${optimization}    CTR Optimization
+    Set Test Variable    ${goal}            0
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 1 and 100.
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2273-phoenix
+
+
+Phoenix_CreateParentAdgroup_CM-2273_TC_06.2_Check Measurable goal value 0 gives an error for VCR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      00_QATEST_Parent_CM_2273_062
+    Set Test Variable    ${optimization}    VCR Optimization
+    Set Test Variable    ${goal}            0
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 1 and 100.
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2273-phoenix
+
+
+
+
+#---------------------------------------------------------------------------------------------------------
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_01.1.1_ HH frequency daily for HOUSEHOLD FREQUENCY CAP should not accept negative values
+    [Documentation]    Expected : HH frequency daily for Household frequency cap should accept minimum value as zero
+    Go To    ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    Click Button    ${PARENT_ADD_BUTTON}
+
+    Add General information for ParentAdGroup
+    ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_HH_FC_PER_DAY_TEXTBOX}    # //*[@id="hhFcDaily"]
+    ...     Value=-1
+
+    Check Desired Error Populates
+    ...     message=Value should be positive integer
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_01.1.2_ HH frequency daily for HOUSEHOLD FREQUENCY CAP should not accept alphabet values
+    [Documentation]    Expected : HH frequency daily for Household frequency cap should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_HH_FC_PER_DAY_TEXTBOX}    # //*[@id="hhFcDaily"]
+    ...     Value=asdfg
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_01.1.3_ HH frequency daily for HOUSEHOLD FREQUENCY CAP should not accept null values
+    [Documentation]    Expected : HH frequency daily for Household frequency cap should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_HH_FC_PER_DAY_TEXTBOX}    # //*[@id="hhFcDaily"]
+    ...     Value=${Empty}
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_01.2.1_HH frequency times per days for HOUSEHOLD FREQUENCY CAP should not accept negative values
+    [Documentation]    Expected : HH frequency times per days for Household frequency cap should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_HH_FC_PER_DAY2_TEXTBOX}    # //*[@id="hhFcDays"]
+    ...     Value=-1
+
+    Check Desired Error Populates
+    ...     message=Value should be positive integer
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_01.2.2_HH frequency times per days for HOUSEHOLD FREQUENCY CAP should not accept alphabet values
+    [Documentation]    Expected : HH frequency times per days Household frequency cap should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_HH_FC_PER_DAY2_TEXTBOX}    # //*[@id="hhFcDays"]
+    ...     Value=asdfg
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_01.2.3_HH frequency times per days for HOUSEHOLD FREQUENCY CAP should not accept null values
+    [Documentation]    Expected : HH frequency times per days for Household frequency cap should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_HH_FC_PER_DAY2_TEXTBOX}    # //*[@id="hhFcDays"]
+    ...     Value=${Empty}
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_01.3.1_HH frequency overall for HOUSEHOLD FREQUENCY CAP should not accept negative values
+    [Documentation]    Expected : HH frequency overall for Household frequency cap should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_HH_FC_PER_DURATION_TEXTBOX}    # //*[@id="hhFcOverall"]
+    ...     Value=-1
+
+    Check Desired Error Populates
+    ...     message=Value should be positive integer
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_01.3.2_HH frequency overall for HOUSEHOLD FREQUENCY CAP should not accept alphabet values
+    [Documentation]    Expected : HH frequency overall Household frequency cap should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_HH_FC_PER_DURATION_TEXTBOX}    # //*[@id="hhFcOverall"]
+    ...     Value=asdfg
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_01.3.3_HH frequency overall for HOUSEHOLD FREQUENCY CAP should not accept null values
+    [Documentation]    Expected : HH frequency overall for Household frequency cap should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_HH_FC_PER_DURATION_TEXTBOX}    # //*[@id="hhFcOverall"]
+    ...     Value=${Empty}
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+#---------------------------------------------------------------------------------------------------------
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_02.1.1_Daily Frequency for DEVICE FREQUENCY CAP should not accept negative values
+    [Documentation]    Expected : Daily frequency for DEVICE frequency cap should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_DEVICE_FC_PER_DAY_TEXTBOX}    # //*[@id="deviceFcDaily"]
+    ...     Value=-1
+
+    Check Desired Error Populates
+    ...     message=Value should be positive integer
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_02.1.2_Daily frequency daily for Device FREQUENCY CAP should not accept alphabet values
+    [Documentation]    Expected : Daily frequency for Device frequency cap should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_DEVICE_FC_PER_DAY_TEXTBOX}    # //*[@id="deviceFcDaily"]
+    ...     Value=asdfg
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_02.1.3_Daily frequency for DEVICE FREQUENCY CAP should not accept null values
+    [Documentation]    Expected : Daily frequency for DEVICE frequency cap should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_DEVICE_FC_PER_DAY_TEXTBOX}    # //*[@id="deviceFcDaily"]
+    ...     Value=${Empty}
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_02.2.1_Days frequency times per days for DEVICE FREQUENCY CAP should not accept negative values
+    [Documentation]    Expected : Days frequency times per days for DEVICE frequency cap should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_DEVICE_FC_PER_DAY2_TEXTBOX}    # //*[@id="deviceFcDays"]
+    ...     Value=-1
+
+    Check Desired Error Populates
+    ...     message=Value should be positive integer
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_02.2.2_Days frequency times per days for Device FREQUENCY CAP should not accept alphabet values
+    [Documentation]    Expected : Days frequency times per days DEVICE frequency cap should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_DEVICE_FC_PER_DAY2_TEXTBOX}    # //*[@id="deviceFcDays"]
+    ...     Value=asdfg
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_02.2.3_Days frequency times per days for HOUSEHOLD FREQUENCY CAP should not accept null values
+    [Documentation]    Expected : Days frequency times per days for DEVICE frequency cap should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_DEVICE_FC_PER_DAY2_TEXTBOX}    # //*[@id="deviceFcDays"]
+    ...     Value=${Empty}
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_02.3.1_Overall frequency for DEVICE FREQUENCY CAP should not accept negative values
+    [Documentation]    Expected : Overall frequency for DEVICE frequency cap should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_DEVICE_FC_PER_DURATION_TEXTBOX}    # //*[@id="deviceFcOverall"]
+    ...     Value=-1
+
+    Check Desired Error Populates
+    ...     message=Value should be positive integer
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_02.3.2_Overall frequency for DEVICE FREQUENCY CAP should not accept alphabet values
+    [Documentation]    Expected : Overall frequency for DEVICE frequency cap should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_DEVICE_FC_PER_DURATION_TEXTBOX}    # //*[@id="deviceFcOverall"]
+    ...     Value=asdfg
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_02.3.3_Overall frequency for DEVICE FREQUENCY CAP should not accept null values
+    [Documentation]    Expected : Overall frequency for DEVICE frequency cap should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_DEVICE_FC_PER_DURATION_TEXTBOX}    # //*[@id="deviceFcOverall"]
+    ...     Value=${Empty}
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+#---------------------------------------------------------------------------------------------------------
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_03.1.1_Daily Frequency for IP FREQUENCY CAP should not accept negative values
+    [Documentation]    Expected : Daily frequency for IP frequency cap should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_IP_FC_PER_DAY_TEXTBOX}    # //*[@id="ipFcDaily"]
+    ...     Value=-1
+
+    Check Desired Error Populates
+    ...     message=Value should be positive integer
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_03.1.2_Daily frequency daily for IP FREQUENCY CAP should not accept alphabet values
+    [Documentation]    Expected : Daily frequency for IP frequency cap should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_IP_FC_PER_DAY_TEXTBOX}    # //*[@id="ipFcDaily"]
+    ...     Value=asdfg
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_03.1.3_Daily frequency for IP FREQUENCY CAP should not accept null values
+    [Documentation]    Expected : Daily frequency for IP frequency cap should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_IP_FC_PER_DAY_TEXTBOX}    # //*[@id="ipFcDaily"]
+    ...     Value=${Empty}
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_03.2.1_Days frequency times per days for IP FREQUENCY CAP should not accept negative values
+    [Documentation]    Expected : Days frequency times per days for IP frequency cap should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_IP_FC_PER_DAY2_TEXTBOX}    # //*[@id="ipFcDays"]
+    ...     Value=-1
+
+    Check Desired Error Populates
+    ...     message=Value should be positive integer
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_03.2.2_Days frequency times per days for IP FREQUENCY CAP should not accept alphabet values
+    [Documentation]    Expected : Days frequency times per days IP frequency cap should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_IP_FC_PER_DAY2_TEXTBOX}    # //*[@id="ipFcDays"]
+    ...     Value=asdfg
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_03.2.3_Days frequency times per days for IP FREQUENCY CAP should not accept null values
+    [Documentation]    Expected : Days frequency times per days for IP frequency cap should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_IP_FC_PER_DAY2_TEXTBOX}    # //*[@id="ipFcDays"]
+    ...     Value=${Empty}
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_03.3.1_Overall frequency for IP FREQUENCY CAP should not accept negative values
+    [Documentation]    Expected : Overall frequency for IP frequency cap should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_IP_FC_PER_DURATION_TEXTBOX}    # //*[@id="ipFcOverall"]
+    ...     Value=-1
+
+    Check Desired Error Populates
+    ...     message=Value should be positive integer
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_03.3.2_Overall frequency for IP FREQUENCY CAP should not accept alphabet values
+    [Documentation]    Expected : Overall frequency for IP frequency cap should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_IP_FC_PER_DURATION_TEXTBOX}    # //*[@id="ipFcOverall"]
+    ...     Value=asdfg
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_03.3.3_Overall frequency for IP FREQUENCY CAP should not accept null values
+    [Documentation]    Expected : Overall frequency for IP frequency cap should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_IP_FC_PER_DURATION_TEXTBOX}    # //*[@id="ipFcOverall"]
+    ...     Value=${Empty}
+
+    Check Desired Error Populates
+    ...     message=Required Field
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+#---------------------------------------------------------------------------------------------------------
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.1.1_VI Percentage for Viewable Impressions should not accept negative values
+    [Documentation]    Expected : VI Percentage for Viewable Impressions should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Viewable Impressions
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}    # //*[@id="viPercentage"]
+    ...     Value=-1
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.1.2_VI Percentage for Viewable Impressions should not accept alphabet values
+    [Documentation]    Expected : VI Percentage for Viewable Impressions should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Viewable Impressions
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}    # //*[@id="viPercentage"]
+    ...     Value=asdfg
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.1.3_VI Percentage for Viewable Impressions should not accept null values
+    [Documentation]    Expected : VI Percentage for Viewable Impressions should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Viewable Impressions
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}    # //*[@id="viPercentage"]
+    ...     Value=${Empty}
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.2.1_Viewability Optimization for Measurable Rates should not accept negative values
+    [Documentation]    Expected : Viewability Optimization for Measurable Rates should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Measurable and Viewable Rates
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}    # //*[@id="measurableGoal"]
+    ...     Value=-1
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.2.2_Viewability Optimization for Measurable Rates should not accept alphabet values
+    [Documentation]    Expected : Viewability Optimization for Measurable Rates should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Measurable and Viewable Rates
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_MEASURABLE_GOAL_TEXTBOX}    # //*[@id="measurableGoal"]
+    ...     Value=asdfg
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.2.3_Viewability Optimization for Measurable Rates should not accept null values
+    [Documentation]    Expected : Viewability Optimization for Measurable Rates should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Measurable and Viewable Rates
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_MEASURABLE_GOAL_TEXTBOX}    # //*[@id="measurableGoal"]
+    ...     Value=${Empty}
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.3.1_Viewability Optimization for Viewable Rates should not accept negative values
+    [Documentation]    Expected : Viewability Optimization for Viewable Rates should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Measurable and Viewable Rates
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}    # //*[@id="viewableGoal"]
+    ...     Value=-1
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.3.2_Viewability Optimization for Viewable Rates should not accept alphabet values
+    [Documentation]    Expected : Viewability Optimization for Viewable Rates should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Measurable and Viewable Rates
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}    # //*[@id="viewableGoal"]
+    ...     Value=asdfg
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.3.3_Viewability Optimization for Viewable Rates should not accept null values
+    [Documentation]    Expected : Viewability Optimization for Viewable Rates should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Measurable and Viewable Rates
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}    # //*[@id="viewableGoal"]
+    ...     Value=${Empty}
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.4.1_Measurable Goal for Custom should not accept negative values
+    [Documentation]    Expected : Measurable Goal for Custom should accept minimum value as zero
+    Set Suite Variable    ${error_message_xpath_Viewability}    //h2[contains(.,'Measurement and performance')]//parent::div//following-sibling::div//following-sibling::div//errorcontainer//div//div//following-sibling::span//following-sibling::span//ul//li
+
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Custom
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_MEASURABLE_GOAL_TEXTBOX}    # //*[@id="measurableGoal"]
+    ...     Value=-1
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+    ...     xpath=${error_message_xpath_Viewability}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.4.2_Measurable Goal for Custom should not accept alphabet values
+    [Documentation]    Expected : Measurable Goal for Custom should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Custom
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_MEASURABLE_GOAL_TEXTBOX}    # //*[@id="measurableGoal"]
+    ...     Value=asdfg
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+    ...     xpath=${error_message_xpath_Viewability}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.4.3_Measurable Goal for Custom should not accept null values
+    [Documentation]    Expected : Measurable Goal for Custom should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Custom
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_MEASURABLE_GOAL_TEXTBOX}    # //*[@id="measurableGoal"]
+    ...     Value=${Empty}
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+    ...     xpath=${error_message_xpath_Viewability}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.5.1_Viewable Goal for Custom should not accept negative values
+    [Documentation]    Expected : Viewable Goal for Custom should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Custom
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}    # //*[@id="viewableGoal"]
+    ...     Value=-1
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+    ...     xpath=${error_message_xpath_Viewability}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.5.2_Viewable Goal for Custom should not accept alphabet values
+    [Documentation]    Expected : Viewable Goal for Custom should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Custom
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}    # //*[@id="viewableGoal"]
+    ...     Value=asdfg
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+    ...     xpath=${error_message_xpath_Viewability}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.5.3_Viewable Goal for Custom should not accept null values
+    [Documentation]    Expected : Viewable Goal for Custom should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Custom
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}    # //*[@id="viewableGoal"]
+    ...     Value=${Empty}
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+    ...     xpath=${error_message_xpath_Viewability}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.6.1_VI Percentage for Custom should not accept negative values
+    [Documentation]    Expected : VI Percentage for Custom should accept minimum value as zero
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Custom
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}    # //*[@id="viPercentages"]
+    ...     Value=-1
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+    ...     xpath=${error_message_xpath_Viewability}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]     CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.6.2_VI Percentage for Custom should not accept alphabet values
+    [Documentation]    Expected : VI Percentage for Custom should not accept alphabet values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Custom
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}    # //*[@id="viPercentage"]
+    ...     Value=asdfg
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+    ...     xpath=${error_message_xpath_Viewability}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+
+Phoenix_CreateParentAdgroup_CM-2310_TC_04.6.3_VI Percentage for Custom should not accept null values
+    [Documentation]    Expected : VI Percentage for Custom should not accept null values
+    # Go To    ${Home_page}${campaign_Id}
+    # Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    # Click Button    ${PARENT_ADD_BUTTON}
+
+    # Add General information for ParentAdGroup
+    # ...    Parent_AdGroup_Name=00_QATEST_Parent_CM_2310_01
+    # ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    # ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Select From List    ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Custom
+    Sleep    1s
+
+    Set Element The Desired Value
+    ...     xpath=${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}    # //*[@id="viPercentage"]
+    ...     Value=${Empty}
+
+    Add Measurement and performance parametes
+    Add Targeting to parent ad group
+    Click Element               ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Save The Parent ad group
+
+    Capture Page Screenshot With Timestamp
+
+    Check Desired Error Populates
+    ...     message=The Viewability Percentages must be between 1 and 100.
+    ...     xpath=${error_message_xpath_Viewability}
+
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]    CM-2310
+
+#---------------------------------------------------------------------------------------------------------
+# ADDITIONALLY ADDED TESTS ARE HERE
+
+Phoenix_CreateParentAdgroup_TC_CM-2365_Create_Parent_Adgroup(ELIGIBILTY FLAG ENABLE)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button         ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent012302      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    optimization=CTR Optimization     eligibility=1
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY     timeout=20s
+    Page Should Contain     CAMPAIGN SUMMARY
+    Page Should Contain Button      manageCreativeTemp
+    Page Should Contain     00_QATEST_Parent0123
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]

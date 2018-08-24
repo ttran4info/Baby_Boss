@@ -1,0 +1,453 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.6.1		BATCH20	    OffshoreQA
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+
+# https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-1.6.1Addfilterstoacluster
+# API Name: 1.6.1 Add filters to a cluster
+# Method: PUT
+# URL: inventory-api/cluster/cluster/{clusterId}/add?username={username}
+# DESC: Add filters to a cluster
+# rhino.cluster
+# rhino.cluster_placement
+# rhino.groups_cluster
+
+
+*** Variables ***
+# Need to revisit code for Compare API response with Elastic search result
+# Need to code for db comparison for "hits":
+
+ ${groupId}			1
+ ${max_filter}		10
+ ${cluster_name}	Regression_cluster_161
+
+
+*** Keywords ***
+
+*** Test Cases ***
+
+TC_00 Generate Data
+	[Documentation]		Create Cluster: ${cluster_name} with random filter of size:  ${max_filter}
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	Generate Filter		max=${max_filter}		#${filters} is generated
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}		valid_filter=${max_filter}
+	[Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.6.1_TC_01.1_Add filters to a cluster(Valid cluster id and valid user details, valid)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Add filters to a cluster using Inventory API 1.6.1        clusterId=${cluster_id}
+	...                                                 username=${QA_DEFAULT_USER}
+	...                                                 filter="abc.com", "pqr.com"
+    ...                                                 response_code=200
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.6.1_TC_02.1_Add filters to a cluster(Valid cluster id and invalid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters with Valid cluster id and invalid user details,
+    ...   		        Expected:       API should process successfully and provide response code as 200.
+    Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+    Add filters to a cluster using Inventory API 1.6.1        clusterId=${cluster_id}
+    ...                                                 username=sssss@4info.com
+    ...                                                 filter="abc.com", "pqr.com"
+    ...                                                 response_code=400
+    # response_code is 400 hence get reason code and reason description
+    Json Value Should Equal		${body}			/reason_code			"700-001"
+    Json Value Should Equal		${body}			/reason_desc			"Username is not found."
+    [Tags]    #CM-563
+
+
+InventoryAPI_1.6.1_TC_02.Add filters from a cluster(Valid cluster id and Missing user details, invalid)
+    [Documentation]		Input:          Use Inventory API to Add filters to a cluster with valid cluster id and missing user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/${cluster_id}/add
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    [Tags]
+
+
+InventoryAPI_1.6.1_TC_02.3_Add filters from a cluster(Valid cluster id and Incomplete uri, invalid)
+    [Documentation]		Input:          Use Inventory API to Add filters to a cluster with valid cluster id and Incomplete uri,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/${cluster_id}/add?
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"600-021"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid username."
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.6.1_TC_03.1_Add filters from a cluster(Invalid cluster id and valid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a invalid cluster with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/454654458/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-401"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid cluster id."
+    [Tags]
+
+InventoryAPI_1.6.1_TC_03.2_add filters from a cluster(Missing cluster id and valid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a missing cluster with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster//add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.1_TC_03.3_add filters from a cluster(null cluster id and valid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a null cluster with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/null/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+
+InventoryAPI_1.6.1_TC_03.4_add filters from a cluster(Invalid characters as a cluster id and valid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a Invalid characters as a cluster id with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/@#$%/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.1_TC_03.5_Add filters from a cluster(only alphabets as a cluster id and valid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters only alphabets as a cluster id with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/hfjfh/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+
+InventoryAPI_1.6.1_TC_03.6_Add filters from a cluster(cluster id contains multiple spaces and valid user details, invalid)
+	#new rule, spaces are removed automatically making this test case valid with correct cluster id
+    [Documentation]		Input:          Use Inventory API to add filters to cluster id contains multiple spaces with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/5${SPACE}${SPACE}1/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    200
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Json Value Should Equal		${body}    /success						true
+    Json Value Should Equal		${body}    /cluster/id		            51
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+
+InventoryAPI_1.6.1_TC_04.1_Add filters to a cluster(Add valid cluster id, username and missing filter, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data with missing filter,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Add filters to a cluster using Inventory API 1.6.1        clusterId=${cluster_id}
+	...                                                 username=${QA_DEFAULT_USER}
+	...                                                 filter=MISSING
+    ...                                                 response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.1_TC_04.2_Add filters to a cluster(Add valid cluster id, username and empty filter, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data and blank filter,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+    Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/${cluster_id}/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": }
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.1_TC_04.3_Add filters to a cluster(Add valid cluster id, username and null filter, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data and null filter,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/${cluster_id}/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters":null }
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-402"
+	Json Value Should Equal		${body}			/reason_desc			"filters cannot be null."
+    [Tags]
+
+
+InventoryAPI_1.6.1_TC_04.4_Add filters to a cluster(Add valid cluster id, username and null filter=invalid filter)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data and null filter,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/${cluster_id}/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters":[null] }
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    200
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Json Value Should Equal		${body}    /success		           		true
+    Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    Json Value Should Equal		${body}    /cluster/hits		        0
+    Json Value Should Equal		${body}    /invalid		            	1
+    Json Value Should Equal		${body}    /valid		            	0
+    [Tags]
+
+
+
+
+InventoryAPI_1.6.1_TC_04.5_Add filters to a cluster(Add valid cluster id, username and blank filter, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data and null filter,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/${cluster_id}/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters":"" }
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.1_TC_04.6_Add filters to a cluster(Add valid cluster id, username and blank filter, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data and null filter,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/${cluster_id}/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters":[""] }
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    200
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    #Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"700-401"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid filter."
+    [Tags]      #CM-712		Known_bug
+
+
+
+InventoryAPI_1.6.1_TC_04.7_Add filters to a cluster(Add valid cluster id, username and filter contain invalid characters, valid)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data and filter contain invalid characters,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Add filters to a cluster using Inventory API 1.6.1        clusterId=${cluster_id}
+	...                                                 username=${QA_DEFAULT_USER}
+	...                                                 filter="!@#"
+    ...                                                 response_code=200
+    # response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"400-001"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+	#currently all value are valid, this will probably be redefine at some point. Until then, we will allow it.
+
+
+InventoryAPI_1.6.1_TC_04.8_Add filters to a cluster(Add valid cluster id, username and filter contain invalid characters, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data and filter contain invalid characters,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/${cluster_id}/add?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters":"!@#" }
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${clusterId}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.1_TC_04.9_Add filters to a cluster(Add valid cluster id, username and filter contain invalid numbers, valid)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data and filter contain invalid numbers,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Add filters to a cluster using Inventory API 1.6.1        clusterId=${cluster_id}
+	...                                                 username=${QA_DEFAULT_USER}
+	...                                                 filter=123, 345
+    ...                                                 response_code=200
+    # response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"400-001"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    #Currently we are allow everything for filter, including integers.
+    [Tags]
+
+
+InventoryAPI_1.6.1_TC_04.10_Add filters from a cluster(Valid cluster id, username and filter contain two spaces, invalid)
+    [Documentation]		Input:          Use Inventory API to add filters to a cluster with valid data and filter contain Two spaces,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Add filters to a cluster using Inventory API 1.6.1        clusterId=${cluster_id}
+	...                                                 username=${QA_DEFAULT_USER}
+	...                                                 filter="SDF \ 8900"
+    ...                                                 response_code=200
+    # response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"400-001"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    #No restriction on the filter for now
+    [Tags]
+
+
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.6.1_TC_05.1_Check Cluster History with DB (valid cluster id and valid user details, valid)
+    [Documentation]		Input:          Check Inventory API adds correct record values in database.,
+    ...   		        Expected:       The record which is passed via API should get added in database successfully.
+    ...                                 The response code should be populated as 200.
+    Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+    Add filters to a cluster using Inventory API 1.6.1            clusterId=${cluster_id}
+    ...                                                     username=${QA_DEFAULT_USER}
+    ...                                                     filter="abc.com", "pqr.com", "mnb.com"
+    ...                                                     response_code=200
+    Get Cluster History for Inventory API 1.6.1 from DB     clusterId=${cluster_id}
+    Compare Cluster History for Inventory API 1.6.1 vs DB
+    [Tags]    Known_bug    CM-1767    Exclude    #NonUI
+
+#------------------------------------------------------------------------------------------------------------------------

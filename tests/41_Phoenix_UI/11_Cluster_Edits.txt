@@ -1,0 +1,103 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX    CLUSTEREDITS    HP2    BATCH22    PHOENIX_2    OffshoreQA
+Suite Setup         Run Keyword    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+Suite Teardown      Run Keywords    Close All Browsers
+
+*** Variables ***
+${clustername}    APPBundleCluster
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#------------------------------------------------------------------------------------------
+CLUSTEREDITS_TC_01.1_Edit Cluster name (Valid name, accept)
+    [Documentation]		Update Cluster name with new name allowed.
+    Create pre-requisite data for cluster edits
+    Edit Cluster Name    clusterName=${clustername}    NameToBeModified=5164455
+    Search Cluster    clusterName=5164455
+    Edit Cluster Name    clusterName=5164455    NameToBeModified=51644
+    Search Cluster    clusterName=51644
+    [Tags]
+
+
+CLUSTEREDITS_TC_01.2_Edit Cluster name (inValid name, don't accept)
+    [Documentation]		Update Cluster name with special character is not allowed.
+    Edit Cluster Name    clusterName=51644    NameToBeModified=@#$%
+    Get Alert Message     Invalid Cluster Name.
+
+    [Tags]
+
+#-------- ----------------------------------------------------------------------------------
+CLUSTEREDITS_TC_02.1_Add new Filters to existing Cluster (Verify Sites/app count)
+    [Documentation]    User is able to add new filters to existing clusters
+    Click Clusters Tab
+    # Set Test Variable    ${clustername}    APPBundleCluster01
+    # Create Cluster On UI    clustername=${clustername}    data=11158    count=1
+    # Sleep    9s
+    Set Test Variable    ${clusterName}    51644
+    Search Cluster    clusterName=${clusterName}
+    Set Test Variable    ${CLUSTERxPath}    xpath=.//a[contains(.,'${clusterName}')]
+    Click Element    ${CLUSTERxPath}
+    Sleep    5s
+    Add Sites and Apps in Cluster    filtername=cnn.com
+    Page Should Contain    1 was added to the cluster
+    [Tags]
+
+
+CLUSTEREDITS_TC_02.2_Add existing Filters to existing Cluster
+    [Documentation]    User is able to add new filters to existing clusters
+    Click Clusters Tab
+    Set Test Variable    ${clustername}    APPBundleCluster02
+    Create Cluster On UI    clustername=${clustername}    data=abc.com    count=1
+    Sleep    9s
+    Add Sites and Apps in Cluster    filtername=abc.com
+    Page Should Contain    1 was not added because it already exists in the cluster
+    [Tags]
+
+#-------- ----------------------------------------------------------------------------------
+CLUSTEREDITS_TC_03.1_Remove Existing Filters from existing Cluster
+    [Documentation]    User is able to remove filters from existing clusters
+    Click Clusters Tab
+    Set Test Variable    ${clustername}    APPBundleCluster03
+    Create Cluster On UI    clustername=${clustername}    data=abc.com    count=1
+    Sleep    9s
+    Add Sites and Apps in Cluster    filtername=pqr.com
+    Search Cluster    clusterName=${clustername}
+    Get cluster element xpath    clusterName=${clustername}
+    Click link    ${CLUSTER_REMOVE_SITES_APPS}
+    Sleep    5s
+    Click Element    xpath=.//input[id="abc.com"]
+    Sleep    2s
+    Click Element    ${Button_RemoveSiteApps}
+    Aleep    3s
+    Capture Page Screenshot With Timestamp
+    Page Should not Contain    abc.com
+    [Tags]    CLUSTEREDITS_TC_03.1
+
+
+#TC_06_Add Filters without placement mapping to existing Cluster (Verify Sites/app count does not update)
+#[Documentation]		User is able to add new filters (without placement mapping) to existing clusters
+	#Login To Adhaven UI				username=${QA_DEFAULT_USER}			password=${QA_DEFAULT_PASSWORD}
+	#Click Clusters Tab
+	#Click Link		1 qa.com
+	#Click Element	${CLUSTER_ADD_SITES_N_APPS_BUTTON}
+	#Input Text		${CLUSTER_ADD_FILTERS}	random text
+	#Capture Page Screenshot With Timestamp
+	#Click Element	${CLUSTER_ADD_SITES_APP}
+	#Capture Page Screenshot With Timestamp
+	#Page Should Contain		1 was added to the cluster
+	#Click Element			${CLUSTER_ADD_SITES_APP_OK}
+	#Page Should Contain		random text
+	#Close All Browsers
+	#[Tags]
+
+
+
+
+
+
+
+

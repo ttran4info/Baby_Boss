@@ -1,0 +1,239 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             OperatingSystem
+Library             DatabaseLibrary
+Force Tags          PHOENIX         Phoenix_MANGE_GRP         BATCH22
+Suite Setup         Run Keyword      CleanUp Created Group For 18 Manage Group
+Suite Teardown      Run Keywords     CleanUp Created Group For 18 Manage Group      #Close All Browsers
+
+#WIKI LINK  : https://wiki.4info.com/display/Software/cm2+UI+test+matrix
+#TASK ID    : https://jira.adhaven.com/browse/CM-2300
+#DEV TASK   : https://jira.adhaven.com/browse/CM-2282
+#UI LINK    : https://qa-customer.4info.com/dashboard/#/group
+
+*** Variables ***
+${QA_URL}                       https://qa-customer.4info.com/dashboard/#/home
+${QA_USER}                      admin@4info.net
+${QA_INVALID_USER}              abc@4info.com
+${QA_USER_PWD}                  P@ssw0rd
+${PAGINATION_PREV_BUTTON}       xpath=(//div[@class="grouplist-paging"]/a/i)[0]
+${PAGINATION_NEXT_BUTTON}       xpath=(//div[@class="grouplist-paging"]/a/i)[last()]
+${SORT_BY_NAME}                 xpath=(//a[@class="grouplist-reorder"]/i)[1]
+${SORT_BY_MODIFIED_BY}          xpath=(//a[@class="grouplist-reorder"]/i)[2]
+${SORT_BY_MODIFIED_DT}          xpath=(//a[@class="grouplist-reorder"]/i)[3]
+${GROUP_NAME_EDIT_LINK}         xpath=//a[contains(.,'${QA_TEST_GROUP}_01')]
+${QA_TEST_GROUP}                00_QA_TEST_GROUP_18
+${LAST_MDFD_BY}                 "saff@4info.com"
+
+${AUDIANCE_SOL_SETUP_BTN}           xpath=(//div[@id="tdGroupAction00_QA_TEST_GROUP_18_01"]/div/button)[1]
+${CAMPAIGN_MANAGER_SETUP_BTN}       xpath=(//div[@id="tdGroupAction00_QA_TEST_GROUP_18_01"]/div/button)[2]
+${CAMPAIGN_MANAGER_LINK}            https://qa-customer.4info.com/dashboard/#/campaignManagerSetup/
+${INPUT_DATASOURCE_BUTTON}          (//button[contains(text(),'Include')])
+
+*** Keywords ***
+
+
+
+*** Test Cases ***
+TC_01_Log In To Manage Groups And Verify All Elements Present
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${QA_TEST_GROUP}_01","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    ${GroupID}=                 Get JSON Value          ${body}             /group/id
+    Log   ${GroupID}
+    Set Suite Variable          ${GroupID}             ${GroupID}
+    Login To QA Env             username=${QA_USER}     password=${QA_USER_PWD}
+    Go To Manage Group Page
+    [Tags]      CM-2315
+
+TC_02_Verify All Groups
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT display_name, last_modified_by, modified_dt FROM rhino.groups order by group_name;
+    Log Many    @{query_results}
+    ${count}=           Get Length  ${query_results}
+    ${Available_groups} =  Create List
+    ${Available_modified_by} =  Create List
+    ${Available_modified_dt} =  Create List
+    :FOR   ${i}  IN RANGE    0      ${count}
+    \       ${All_group_names} =    Convert To String   ${queryResults[${i}][0]}
+    \       ${All_group_names} =     Remove String Using Regexp           ${All_group_names}      \\('|',\\)
+    \       Log     ${All_group_names}
+    \       Append To List          ${Available_groups}       ${All_group_names}
+    \       ${All_modified_names} =    Convert To String   ${queryResults[${i}][1]}
+    \       ${All_modified_names} =     Remove String Using Regexp           ${All_modified_names}      \\('|',\\)
+    \       Log     ${All_modified_names}
+    \       Append To List          ${Available_modified_by}       ${All_modified_names}
+    \       ${All_modified_dates} =    Convert To String   ${queryResults[${i}][2]}
+    \       ${All_modified_dates} =     Remove String Using Regexp           ${All_modified_dates}      \\('|',\\)
+    \       Log     ${All_modified_dates}
+    \       Append To List          ${Available_modified_dt}       ${All_modified_dates}
+    # Log Many    ${Available_groups}
+    # Sort List   ${Available_groups}
+    # Log Many    ${Available_groups}
+    # Log Many    ${Available_modified_by}
+    # Sort List   ${Available_modified_by}
+    # Log Many    ${Available_modified_by}
+    Disconnect From Database
+    :FOR   ${i}  IN RANGE    1     ${count}
+    \       ${page_number}=          Evaluate            (${i}/10)+1
+    \       Log     ${page_number}
+    \       Click Element            xpath=//div[@class="grouplist-paging"]/a/div[contains(text(),${page_number})]
+    \       ${group_name}=           Get From List     ${Available_groups}     ${i}
+    \       Page Should Contain      ${group_name}
+    \       ${modified_name}=           Get From List     ${Available_modified_by}     ${i}
+    \       Page Should Contain      ${modified_name}
+    \       ${modified_dt}=           Get From List     ${Available_modified_dt}     ${i}
+    \       Log   ${modified_dt}
+    \       Page Should Contain      ${modified_dt}
+    [Tags]
+
+TC_03_Groups Sort By Name
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT display_name, last_modified_by, modified_dt FROM rhino.groups order by group_name DESC;
+    Log Many    @{query_results}
+    ${count}=           Get Length  ${query_results}
+    ${Available_groups} =  Create List
+    ${Available_modified_by} =  Create List
+    ${Available_modified_dt} =  Create List
+    :FOR   ${i}  IN RANGE    0      ${count}
+    \       ${All_group_names} =    Convert To String   ${queryResults[${i}][0]}
+    \       ${All_group_names}=     Remove String Using Regexp           ${All_group_names}      \\('|',\\)
+    \       Log     ${All_group_names}
+    \       Append To List          ${Available_groups}       ${All_group_names}
+    \       ${All_modified_names} =    Convert To String   ${queryResults[${i}][1]}
+    \       ${All_modified_names}=     Remove String Using Regexp           ${All_modified_names}      \\('|',\\)
+    \       Log     ${All_modified_names}
+    \       Append To List          ${Available_modified_by}       ${All_modified_names}
+    \       ${All_modified_dates} =    Convert To String   ${queryResults[${i}][2]}
+    \       ${All_modified_dates}=     Remove String Using Regexp           ${All_modified_dates}      \\('|',\\)
+    \       Log     ${All_modified_dates}
+    \       Append To List          ${Available_modified_dt}       ${All_modified_dates}
+
+    Disconnect From Database
+    Sort By Name
+    :FOR   ${i}  IN RANGE    1     ${count}
+    \       ${page_number}=          Evaluate            (${i}/10)+1
+    \       Log     ${page_number}
+    \       Click Element            xpath=//div[@class="grouplist-paging"]/a/div[contains(text(),${page_number})]
+    \       ${group_name}=           Get From List     ${Available_groups}     ${i}
+    \       Page Should Contain      ${group_name}
+    \       ${modified_name}=           Get From List     ${Available_modified_by}     ${i}
+    \       Page Should Contain      ${modified_name}
+    \       ${modified_dt}=           Get From List     ${Available_modified_dt}     ${i}
+    \       Log   ${modified_dt}
+    \       Page Should Contain      ${modified_dt}
+    [Tags]
+
+TC_04_Group Sort By Modified By(ASC)
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT display_name, last_modified_by, modified_dt FROM rhino.groups order by last_modified_by ASC;
+    Log Many    @{query_results}
+    ${count}=           Get Length  ${query_results}
+    ${Available_modified_by} =  Create List
+    :FOR   ${i}  IN RANGE    0      ${count}
+    \       ${All_modified_names} =    Convert To String   ${queryResults[${i}][1]}
+    \       ${All_modified_names}=     Remove String Using Regexp           ${All_modified_names}      \\('|',\\)
+    \       Log     ${All_modified_names}
+    \       Append To List          ${Available_modified_by}       ${All_modified_names}
+    Disconnect From Database
+    Sort By Modified By ASC
+    :FOR   ${i}  IN RANGE    1     ${count}
+    \       ${page_number}=          Evaluate            (${i}/10)+1
+    \       Log     ${page_number}
+    \       Click Element            xpath=//div[@class="grouplist-paging"]/a/div[contains(text(),${page_number})]
+    \       ${modified_name}=           Get From List     ${Available_modified_by}     ${i}
+    \       Page Should Contain      ${modified_name}
+
+    [Tags]
+
+TC_05_Group Sort By Modified By(DESC)
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT display_name, last_modified_by, modified_dt FROM rhino.groups order by last_modified_by DESC;
+    Log Many    @{query_results}
+    ${count}=           Get Length  ${query_results}
+    ${Available_modified_by} =  Create List
+    :FOR   ${i}  IN RANGE    0      ${count}
+    \       ${All_modified_names} =    Convert To String   ${queryResults[${i}][1]}
+    \       ${All_modified_names}=     Remove String Using Regexp           ${All_modified_names}      \\('|',\\)
+    \       Log     ${All_modified_names}
+    \       Append To List          ${Available_modified_by}       ${All_modified_names}
+    Disconnect From Database
+    Sort By Modified By DESC
+    :FOR   ${i}  IN RANGE    1     ${count}
+    \       ${page_number}=          Evaluate            (${i}/10)+1
+    \       Log     ${page_number}
+    \       Click Element            xpath=//div[@class="grouplist-paging"]/a/div[contains(text(),${page_number})]
+    \       ${modified_name}=           Get From List     ${Available_modified_by}     ${i}
+    \       Page Should Contain      ${modified_name}
+
+    [Tags]
+
+TC_06_Group Sort By Modified Date ASC
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT display_name, last_modified_by, modified_dt FROM rhino.groups order by modified_dt ASC;
+
+    Log Many    @{query_results}
+    ${count}=           Get Length  ${query_results}
+    ${Available_modified_dt} =  Create List
+    :FOR   ${i}  IN RANGE    0      ${count}
+
+    \       ${All_modified_dates} =    Convert To String   ${queryResults[${i}][2]}
+    \       ${All_modified_dates}=     Remove String Using Regexp           ${All_modified_dates}      \\('|',\\)
+    \       Log     ${All_modified_dates}
+    \       Append To List          ${Available_modified_dt}       ${All_modified_dates}
+
+    Disconnect From Database
+    Log         ${Available_modified_dt}
+    Sort By Modified Date ASC
+    :FOR   ${i}  IN RANGE    1     ${count}
+    \       ${page_number}=          Evaluate            (${i}/10)+1
+    \       Log     ${page_number}
+    \       Click Element            xpath=//div[@class="grouplist-paging"]/a/div[contains(text(),${page_number})]
+    \       ${modified_dt}=           Get From List     ${Available_modified_dt}     ${i}
+    \       Log   ${modified_dt}
+    \       Page Should Contain      ${modified_dt}
+    [Tags]
+
+TC_07_Group Sort By Modified Date DESC
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT display_name, last_modified_by, modified_dt FROM rhino.groups order by modified_dt DESC;
+
+    Log Many    @{query_results}
+    ${count}=           Get Length  ${query_results}
+    ${Available_modified_dt} =  Create List
+    :FOR   ${i}  IN RANGE    0      ${count}
+
+    \       ${All_modified_dates} =    Convert To String   ${queryResults[${i}][2]}
+    \       ${All_modified_dates}=     Remove String Using Regexp           ${All_modified_dates}      \\('|',\\)
+    \       Log     ${All_modified_dates}
+    \       Append To List          ${Available_modified_dt}       ${All_modified_dates}
+
+    Disconnect From Database
+    Log         ${Available_modified_dt}
+    Sort By Modified Date DESC
+    :FOR   ${i}  IN RANGE    1     ${count}
+    \       ${page_number}=          Evaluate            (${i}/10)+1
+    \       Log     ${page_number}
+    \       Click Element            xpath=//div[@class="grouplist-paging"]/a/div[contains(text(),${page_number})]
+    \       ${modified_dt}=           Get From List     ${Available_modified_dt}     ${i}
+    \       Log   ${modified_dt}
+    \       Page Should Contain      ${modified_dt}
+    Close All Browsers
+    [Tags]
+
+TC_08_Should_Not_Accessable_For_Invalid_User And Group
+    Login To QA Env     username=${QA_INVALID_USER}          password=${QA_USER_PWD}
+
+    Select Group After Login        groupName=4INFO_ADMIN
+    Sleep    5s
+    Verify The Appearnce of Manage Group Button In Settings
+    Should Be Equal         ${isPresent}        False
+    Select Group After Login        groupName=4INFO
+    Sleep    5s
+    Verify The Appearnce of Manage Group Button In Settings
+    Should Be Equal         ${isPresent}        True
+    Close All Browsers
+    [Tags]
+
+
+

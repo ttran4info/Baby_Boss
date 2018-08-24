@@ -1,0 +1,242 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.4.2		BATCH20	    
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+
+# http://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-1.4.1Getdetailofaclusterhistorychange
+# API Name: 1.4.2 Get list of filters for a cluster history
+# Method: GET
+# URL: /inventory-api/cluster/history/{clusterId}/{timestamp(Long)}/filters?page={page_number}&size={page_size}
+# DESC: Get list of filters for a cluster history
+# rhino.cluster
+# rhino.cluster_placement
+# rhino.groups_cluster
+
+
+*** Variables ***
+ ${groupId}			1
+ ${max_filter}		10	
+ ${cluster_name}	Regression_cluster_142
+ ${page}			1
+ ${size}			10
+*** Keywords ***
+ 	
+*** Test Cases ***
+TC_00 Generate Data
+	[Documentation]		Create Cluster: ${cluster_name} with random filter of size:  ${max_filter}
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	Generate Filter		max=${max_filter}		#${filters} is generated		
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}		valid_filter=${max_filter}
+	Get Cluster Timestamp (DT)	cluster_id=${cluster_id}
+	Set Suite Variable		${cluster_id}			${cluster_id}
+	Set Suite Variable		${cluster_dt}			${cluster_dt}
+	Set Suite Variable		${filters}				${filters}
+	[Tags]	
+#------------------------------------------------------------------------------------------------------------------------
+TC_01_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp,page1, size 10)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp,page1, size 10)
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=200
+	Json Value Should Equal			${body}			/count			10
+
+TC_02_Get_list_of_filters_for_a_cluster_history (Invalid cluster id - 0)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster id - 0)
+	Set Test Variable		${cluster_id}		0
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"700-401"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid cluster id."
+	
+TC_03_Get_list_of_filters_for_a_cluster_history (Invalid cluster id - negative 10)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster id - negative 10)
+	Set Test Variable		${cluster_id}		-10
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"700-401"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid cluster id."
+
+TC_04_Get_list_of_filters_for_a_cluster_history (Invalid cluster id - abc)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster id - abc)
+	Set Test Variable		${cluster_id}		abc
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+TC_05_Get_list_of_filters_for_a_cluster_history (Invalid cluster id - null)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster id - null)
+	Set Test Variable		${cluster_id}		null
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+TC_06_Get_list_of_filters_for_a_cluster_history (Invalid cluster id - empty)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster id - empty)
+	Set Test Variable		${cluster_id}		${EMPTY}
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+TC_07_Get_list_of_filters_for_a_cluster_history (Invalid cluster id - missing)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster id - missing)
+	Set Test Variable		${cluster_id}		-10
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+
+TC_08_Get_list_of_filters_for_a_cluster_history (Invalid cluster timestamp - 99999999)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster timestamp - 99999999)
+	Set Test Variable		${cluster_dt}		99999999
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"700-410"
+	Json Value Should Equal			${body}			/reason_desc			"Timestamp is not found."
+	
+TC_09_Get_list_of_filters_for_a_cluster_history (Invalid cluster timestamp - negative 99999999)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster timestamp - negative 99999999)
+	Set Test Variable		${cluster_dt}		-99999999
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"700-410"
+	Json Value Should Equal			${body}			/reason_desc			"Timestamp is not found."
+
+TC_10_Get_list_of_filters_for_a_cluster_history (Invalid cluster timestamp - abc)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster timestamp - abc)
+	Set Test Variable		${cluster_dt}		abc
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+
+TC_11_Get_list_of_filters_for_a_cluster_history (Invalid cluster timestamp - null)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster timestamp - null)
+	Set Test Variable		${cluster_dt}		null
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+
+TC_12_Get_list_of_filters_for_a_cluster_history (Invalid cluster timestamp - empty)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster timestamp - empty)
+	Set Test Variable		${cluster_dt}		${EMPTY}
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+
+TC_13_Get_list_of_filters_for_a_cluster_history (Invalid cluster timestamp - missing)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Invalid cluster timestamp - missing)
+	Set Test Variable		${cluster_dt}		Missing
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+
+
+TC_14_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp, invalid page 0)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp, invalid page 0)
+	Set Test Variable		${page}		0
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"700-602"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid page number."
+
+TC_15_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp, invalid page negative 10)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp, invalid page negative 10)
+	Set Test Variable		${page}		10
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"700-604"
+	Json Value Should Equal			${body}			/reason_desc			"Page number out of bound."
+TC_16_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp, invalid ultra large page 1000)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp, invalid ultra large page 1000) 
+	Set Test Variable		${page}		10000
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"700-604"
+	Json Value Should Equal			${body}			/reason_desc			"Page number out of bound."
+TC_17_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp, invalid page abc)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp, invalid page abc)
+	Set Test Variable		${page}		abc
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+TC_18_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp, invalid page null)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp, invalid page null)
+	Set Test Variable		${page}		null
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+TC_19_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp, invalid page empty)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp, invalid page empty)
+	Set Test Variable		${page}		${EMPTY}
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=200
+	Json Value Should Equal			${body}			/count			10
+TC_20_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp, missing page default 1)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp, missing page default 1)
+	Set Test Variable		${page}		Missing
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=200
+	Json Value Should Equal			${body}			/count			10
+
+
+TC_21_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp,page 1, valid size limit 5 out of 10)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp,page 1, valid size limit 5 out of 10)
+	Set Test Variable		${size}		5
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=200
+	Json Value Should Equal			${body}			/count			10
+	${result_filter}=	Get Json Value		${body}			/filters
+	@{filter_list}=			String.Split String 				${result_filter}				,
+	${filter_size}=			Get Length							${filter_list}
+	Should Be Equal As Integers		${filter_size}					${size}
+TC_22_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp,page 1, valid ultra large size 1000)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp,page 1, valid ultra large size 1000)
+	Set Test Variable		${size}		1000
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=200
+	Json Value Should Equal			${body}			/count			10
+TC_23_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp,page 1, invalid size 0)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp,page 1, invalid size 0)
+	Set Test Variable		${size}		0
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"700-601"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid page size."
+TC_24_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp,page 1, invalid size negative 10)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp,page 1, invalid size negative 10)
+	Set Test Variable		${size}		-10
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"700-601"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid page size."
+TC_25_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp,page 1, invalid size abc)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp,page 1, invalid size abc)
+	Set Test Variable		${size}		abc
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+TC_26_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp,page 1, invalid size null)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp,page 1, invalid size null)
+	Set Test Variable		${size}		null
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=400
+	Json Value Should Equal			${body}			/reason_code			"400-001"
+	Json Value Should Equal			${body}			/reason_desc			"Invalid Request."
+TC_27_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp,page 1, invalid size empty)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp,page 1, invalid size empty)
+	Set Test Variable		${size}		${EMPTY}
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=${size}
+	INVENTORY API		uri=${uri}	 	expected_status_code=200
+	Json Value Should Equal			${body}			/count			10
+TC_28_Get_list_of_filters_for_a_cluster_history (Valid cluster id, valid timestamp,page 1, missing size default 10)
+	[Documentation]	Use API to get list of filter from specific timestamp using (Valid cluster id, valid timestamp,page 1, missing size default 10)
+	Set Test Variable		${size}		Missing
+	Set Test Variable		${uri}		/inventory-api/cluster/history/${cluster_id}/${cluster_dt}/filters?page=${page}&size=
+	INVENTORY API		uri=${uri}	 	expected_status_code=200
+	Json Value Should Equal			${body}			/count			10

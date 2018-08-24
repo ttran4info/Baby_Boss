@@ -1,0 +1,157 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             OperatingSystem
+Library             DatabaseLibrary
+Force Tags          PHOENIX         Phoenix_Partial_update_parent      BATCH22
+Suite Setup         Run Keyword          Clean Up Campaign, Advertiser
+Suite Teardown      Run Keywords         Close All Browsers     Clean Up Campaign, Advertiser
+
+#WIKI LINK  : https://wiki.4info.com/display/Software/cm2+UI+test+matrix
+#TASK ID    : https://jira.adhaven.com/browse/CM-2020
+#UI LINK    : https://qa-campaigns.4info.com/phoenix/#/campaignSummary/{Campaign Id}
+
+*** Variables ***
+${QA_TEST_ADVERTISER}           00_QATEST_advertiser_phoenix_05
+${CAMPAIGN_NAME_UI}             00_QATEST_campaign
+${CREATIVE_NAME}                REGRESSION_CREATIVE
+${CHILD_NAME}                   00_QATEST_CHILD
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  00_QATEST_parent
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+${Check}                        1
+${Uncheck}                      0
+${Refresh_URL}                  https://qa-campaigns.4info.com/phoenix/#/campaignSummary
+${Start_date_error}             Parent start date has to be within today's and within campaign date range(01/01/2019 00:00 - 12/12/2019 23:59 GMT)
+
+*** Keywords ***
+
+Clean Up Campaign, Advertiser
+    #Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+    #Delete New Advertiser via DB        name=${QA_TEST_ADVERTISER}%
+	Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+*** Test Cases ***
+TC_00_Generate Data for Test Suite
+    [Documentation]         input:  Creating Data for test suites
+    ...                     output : data should be created errorfree
+
+    Log To Console       "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Open Campaign summery page      Advertiser_name=${QA_TEST_ADVERTISER}       Campaign_name=${CAMPAIGN_NAME_UI}
+    Click Element                                       ${ADV_EXPAND_DROPDOWN_BUTTON}
+    Wait Until Element Is Visible                       ${CAMPAIGN_SEARCH_QA}          timeout=20s
+    Click Element                                       ${CAMPAIGN_SEARCH_QA}
+    Sleep   4s
+    [Tags]
+
+TC_01_Partial_Update_Start_Date
+    [Documentation]         input: Update the data with valid start date
+    ...                     output : partial update should be done successfully
+    Sleep   4s
+    Input Text              startDate           03/03/2019
+    Press key               startDate           \\13
+    Sleep    1s
+    Go To                   ${Refresh_URL}/${campaign_id}
+    ${response}    Get Value    startDate
+    Should Be Equal As Strings    ${response}    03/03/2019
+    [Tags]
+
+TC_02_Partial_Update_End_Date
+    [Documentation]         input: Update the data with valid end date
+    ...                     output : partial update should be done successfull
+    Sleep   4s
+    Input Text              endDate           10/10/2019
+    Press key               endDate           \\13
+    Sleep    1s
+    Go To                   ${Refresh_URL}/${campaign_id}
+    ${response}    Get Value    endDate
+    Should Be Equal As Strings    ${response}    10/10/2019
+    [Tags]
+
+TC_03_Partial_Update_Imps_goals
+    [Documentation]         input: Update the data with Impression goal
+    ...                     output : partial update should be done successfull
+    Sleep   4s
+    Input Text              impressionGoal           121212
+    Press key               impressionGoal           \\13
+    Sleep    1s
+    Go To                   ${Refresh_URL}/${campaign_id}
+    ${response}    Get Value    impressionGoal
+    Should Be Equal As Strings    ${response}    121,212
+    [Tags]
+
+TC_04_Partial_Update_HFC
+    [Documentation]         input: Update the data with house hold freq
+    ...                     output : partial update should be done successfull
+    Sleep   4s
+    Input Text              hfc           10 / 1
+    Press key               hfc           \\13
+    Sleep    1s
+    Go To                   ${Refresh_URL}/${campaign_id}
+    ${response}    Get Value    hfc
+    Should Be Equal As Strings    ${response}    10 / 1
+    [Tags]
+
+
+TC_05_Partial_Update_Start_Date(update Start Date out of the range if campaign)
+    [Documentation]         input: Update the data with start date which is not in the range of respective campaign
+    ...                     output : partial update should not be done and error message should show on UI
+    Sleep   4s
+    Input Text              startDate           03/03/2011
+    Press key               startDate           \\13
+    Sleep    2s
+    Page Should Contain         ${Start_date_error}
+    Input Text                  startDate           03/03/2019
+    # ${passed} =    Run Keyword And Return Status    Page Should Not Contain    ${Start_date_error}
+    # Run Keyword If    ${passed}    Another keyword
+
+    [Tags]
+
+TC_06_Partial_Update_End_Date(update End Date out of the range if campaign)
+    [Documentation]         input: Update the data with end date which is not in the range of respective campaign
+    ...                     output : partial update should not be done and error message should show on UI
+    Input Text              endDate           03/03/2040
+    Press key               endDate           \\13
+    Sleep    5s
+    Page Should Contain     Parent end date has to be within today's and within campaign date range(01/01/2019 00:00 - 12/12/2019 23:59 GMT)
+    Input Text              endDate           11/11/2019
+    [Tags]
+
+
+
+TC_07_Partial_Update_Imps_goals(update Impression Goal as invalid)
+    [Documentation]         input: Update the data with invalid Impression Goal
+    ...                     output : partial update should not be done and error message should show on UI
+    Sleep   4s
+    Input Text              impressionGoal           12121211111111
+    Press key               impressionGoal           \\13
+    Sleep    2s
+    Page Should Contain     Impression Goal must be an Integer greater than Zero and length is up to 10 chars
+    [Tags]
+
+
+
+TC_08_Partial_Update_HFC(invalid HFC)
+    [Documentation]         input: Update the data with invalid HFC
+    ...                     output : partial update should not be done and error message should show on UI
+    Sleep   4s
+    Input Text              hfc           100000000000000 / 10000000000
+    Press key               hfc           \\13
+    Sleep   2s
+    Go To                   ${Refresh_URL}/${campaign_id}
+    [Tags]    # known-bug      CM-2019

@@ -1,0 +1,65 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY    INVENTORY3.2    BATCH20    OffshoreQA        # Exclude reason - branch not merged yet.
+
+
+# https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-3.2.GetmasterlistofPlacementsTargetRTBoptions
+# 3.2. Get master list of Placements Target RTB options
+# Method: GET
+# URL: 192.168.99.100:8380/inventory-api/placement/bid-attributes
+# DESC: Get master list of Placements Target RTB options
+
+
+
+*** Variables ***
+
+
+
+*** Keywords ***
+
+
+
+
+*** Test Cases ***
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_3.2_TC_01.1_Get master list of Placements Target RTB options (valid URL, Accept)
+    [Documentation]     Input:          Use Inventory API to Get master list of Placements Target RTB options,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Get master list of Placements Target RTB options
+    ...         reason_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /options/0/id      6
+    Json Value Should Equal    ${body}    /options/0/name    "App Bundle ID (exchange agnostic)"
+    Json Value Should Equal    ${body}    /options/1/id      7
+    Json Value Should Equal    ${body}    /options/1/name    "App Store URL (exchange agnostic)"
+    Json Value Should Equal    ${body}    /options/2/id      9
+    Json Value Should Equal    ${body}    /options/2/name    "App Domain (exchange agnostic)"
+    Json Value Should Equal    ${body}    /options/3/id      8
+    Json Value Should Equal    ${body}    /options/3/name    "Site Domain (exchange agnostic)"
+    Json Value Should Equal    ${body}    /options/4/id      3
+    Json Value Should Equal    ${body}    /options/4/name    "App ID (exchange specific)"
+    Json Value Should Equal    ${body}    /options/5/id      2
+    Json Value Should Equal    ${body}    /options/5/name    "Site ID (exchange specific)"
+    Json Value Should Equal    ${body}    /options/6/id      4
+    Json Value Should Equal    ${body}    /options/6/name    "Publisher ID (exchange specific)"
+    Json Value Should Equal    ${body}    /options/7/id      5
+    Json Value Should Equal    ${body}    /options/7/name    "IAB/iTunes Content Category (exchange agnostic)"
+    [Tags]
+
+
+
+InventoryAPI_3.2_TC_01.2_Get master list of Placements Target RTB options (invalid URL, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get master list of Placements Target RTB options,
+    ...                 Expected:       API should not provide a valid list of exchange.
+    ...                                 The response code should be populated as 400.
+    Get master list of Placements Target RTB options
+    ...         url=inventory-api/placement/bidattributes
+    ...         reason_code=400
+    ...         success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+#-----------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,447 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             OperatingSystem
+Library             DatabaseLibrary
+Force Tags          PHOENIX         Phoenix_Ads_update      BATCH22    PHOENIX_3
+Suite Setup         Run Keyword          Clean Up Campaign, Advertiser and Cretives
+Suite Teardown      Run Keywords         Close All Browsers     Clean Up Campaign, Advertiser and Cretives
+
+*** Variables ***
+${testsRootFolder}              ${CURDIR}
+${QA_TEST_ADVERTISER}           00_QATEST_TEST_ADV_UPD_CHILD
+${CAMPAIGN_NAME_UI}             00_QATEST_campaign
+${CREATIVE_NAME}                REGRESSION_CREATIVE_UPD_CHILD
+${CHILD_NAME}                   00_QATEST_TEST_CHILD
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  00_QATEST_TEST_UPD_CHILD
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+${Check}                        1
+${Uncheck}                      0
+${CHILD_BANNER_3RD}             xpath=(.//button[contains(normalize-space(.), '+ Ad')])[1]
+${CHILD_BANNER_RICH}            xpath=(.//button[contains(normalize-space(.), '+ Ad')])[2]
+${CHILD_BANNER_STATIC}          xpath=(.//button[contains(normalize-space(.), '+ Ad')])[3]
+${CHILD_VIDEO_UPLOAD}           xpath=(.//button[contains(normalize-space(.), '+ Ad')])[5]
+${CHILD_VIDEO_VAST}             xpath=(.//button[contains(normalize-space(.), '+ Ad')])[6]
+${CHILD_VIDEO_WRAPPER}          xpath=(.//button[contains(normalize-space(.), '+ Ad')])[7]
+${CHILD_BANNER_NATIVE}          xpath=(.//button[contains(normalize-space(.), '+ Ad')])[4]
+${CREATE_AD_BUTTON}             btnCreateAd
+${CAMPAIGN_SUMMARY_PAGE}        https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+${CHILD_AD_EDIT_PAGE}           https://qa-campaigns.4info.com/phoenix/#/childAdGroupEdit/
+${NAME_ERROR_XPATH}             xpath=(.//div[contains(normalize-space(.), 'CHILD AD GROUP NAME')])[last()]/following::img
+*** Keywords ***
+
+Clean Up Campaign, Advertiser and Cretives
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+
+Verify Page Elements After Create Creative
+    Page Should Contain             Manage Creatives Template
+    Page Should Contain             Add new creative template
+    Page Should Contain             Contact 4INFO
+    Page Should Contain Button      btnCreateTpl
+
+Wait For Load the Child Adgroup page
+    Wait Until Page Contains    CHILD AD GROUP              timeout=15s
+    Wait Until Page Contains    Child ad group status       timeout=15s
+    Wait Until Page Contains    General information         timeout=15s
+Wait For Load the Campaign page
+    Wait Until Page Contains    CAMPAIGN SUMMARY            timeout=15s
+    Wait Until Page Contains    Collapse all groups         timeout=15s
+
+Save Child Adgroup
+    Click Button      ${CHILD_SAVE_BUTTON}
+
+Scroll Page To Location
+    [Arguments]    ${x_location}    ${y_location}
+    Execute JavaScript    window.scrollTo(${x_location},${y_location})
+
+
+*** Test Cases ***
+TC_00_Generate Data for Test Suite
+    Log To Console       "Creating test Data"
+    Log          ${testsRootFolder}
+    Set Suite Variable                          ${DataFiles}                               ${testsRootFolder}/../../test_datafiles/HydraFiles
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native
+    ...     child_parent_campaign_id=${parent_id}
+    ...     child_start_date_time=${START_DATE_TIME_CHILD}
+    ...     child_end_date_time=${END_DATE_TIME_CHILD}
+    ...     child_targetGeoStateExcluded=[7]
+    ...     child_targetGeoDMAExcluded=[542]
+    ...     child_targetHHStateExcluded=[11]
+    ...     child_targetHHDMAExcluded=[539]
+    ...     child_targetGeoCountry=[2]
+    ...     child_targetDeviceType=[2,3]
+    ...     child_targetDeviceOS=[2,3,4,5,7]
+    ...     child_targetTrafficType=[3,4]
+    ...     child_targetCategoryExcluded=[102]
+    ...     child_targetCluster=[23]
+    ...     child_targetClusterExcluded=[39]
+
+
+    ${ChildAdgroupId}     Get JSON Value          ${body}             /childId
+    Set Suite Variable       ${ChildAdgroupId}       ${ChildAdgroupId}
+
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Log To Console       Data Generated
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep  5s
+    [Tags]   SANITY_TC_up
+
+TC_01_Update_child_ad_group(Name Update)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Input Text          ${CHILD_NAME_TEXTBOX}           ${CHILD_NAME}_UPDATE
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+TC_02_Update_child_ad_group(Name Update)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Input Text          ${CHILD_NAME_TEXTBOX}           ${CHILD_NAME} @#$%
+    Save Child Adgroup
+    Sleep   4s
+    Mouse Over      ${NAME_ERROR_XPATH}
+    Page Should Contain     Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed.
+    Go To       ${CAMPAIGN_SUMMARY_PAGE}${Campaign_Id}
+    Wait For Load the Campaign page
+    [Tags]
+
+TC_03_Update_child_ad_group(cpm Update)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Input Text          ${CPM_TEXTBOX}           3
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+TC_04_Update_child_ad_group(Start date Update)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Input Text          ${CHILD_START_DATE}           03/03/2019
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+TC_05_Update_child_ad_group(End date Update)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Input Text          ${CHILD_END_DATE}           09/09/2019
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+TC_06_Update_child_ad_group(Start Time Update)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Select From List          ${CHILD_START_DATE_TIME}          5:00 AM
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+TC_07_Update_child_ad_group(End Time Update)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Select From List          ${CHILD_END_DATE_TIME}           5:59 PM
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+TC_08_Update_child_ad_group(impression Goal Update)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Input Text          ${IMPRESSION_CHILD_TEXTBOX}           123123
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+TC_09_Update_child_ad_group(Advertiser domain Update)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Input Text          ${ADVERTISER_DOMAIN}           4infoinc.com
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+TC_10_Update_child_ad_group(include Adchoice Icon Update)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Select From List           ${ADCHOICE_ICON_DROPDOWN}           Off
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+TC_11_Update_child_ad_group(IAB content Category Update)
+    ${INC_IAB_CONTENTS}    Set Variable          Family    Dating         #include list
+    @{INC_IAB_CONTENT_LIST}=    Convert To List    ${INC_IAB_CONTENTS}
+    ${EXC_IAB_CONTENTS}    Set Variable       Music    News    Sports         #Exclude list
+    @{EXC_IAB_CONTENT_LIST}=    Convert To List    ${EXC_IAB_CONTENTS}
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   2s
+    Mouse Over          xpath=//div[@class="selectedItem"]/span[contains(text(),"News")]
+    Sleep   2s
+    # Mouse Over      xpath=((.//div[contains(., 'News')])[last()]/child::span)[1]
+    # Sleep   2s
+    # Click Element   xpath=((.//div[contains(., 'News')])[last()]/child::span)[1]
+    Click Element       xpath=(.//span[@class="deleteIcon"])[1]
+    # Sleep   25s
+    # Mouse Over          xpath=//ul[@class="selected-ul"]/li/div/span[contains(text(),"Automotive")]
+    # Sleep   2s
+    # Mouse Over      xpath=((.//div[contains(., 'Automative')])[last()]/child::span)[1]
+    # Sleep   2s
+    # Click Element   xpath=((.//div[contains(., 'Automative')])[last()]/child::span)[1]
+    # Click Element       xpath=(.//span[@class="deleteIcon"])[1]
+    Click Element       ${TARGETING_IAB_CONTENT_CATEGORY}
+    Add Targeting IAB Content Category     INC_IAB_CONTENT_LIST=@{INC_IAB_CONTENT_LIST}       EXC_IAB_CONTENT_LIST=@{EXC_IAB_CONTENT_LIST}
+    Save Child Adgroup
+    Wait For Load the Campaign page              timeout=20s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_12_Update_child_ad_group(Traffic type Validations)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+
+    Click Element      ${TARGETING_TRAFFIC_TYPE}
+    Sleep   3s
+    Mouse Over              xpath=.//p[contains(normalize-space(.), 'Traffic type')]/following::img
+    Page Should Contain     Required Field
+    # Click Element      ${TARGETING_TRAFFIC_TYPE}
+    # Sleep   2s
+    # Click Element              ${TRAFFIC_TYPE_MOBILE_WEB}
+    # Click Element              ${TRAFFIC_TYPE_MOBILE_WEB}
+    # Save Child Adgroup
+    # Wait For Load the Campaign page
+    [Tags]
+
+
+TC_13_Update_child_ad_group(Traffic type Validations)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Sleep   3s
+    Click Element              ${TRAFFIC_TYPE_MOBILE_WEB}
+    Sleep  3s
+    Click Element              ${TRAFFIC_TYPE_MOBILE_APP}
+    Sleep  3s
+    Click Element              ${TRAFFIC_TYPE_MOBILE_APP}
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+
+TC_14_Update_child_ad_group(Clusters Update)
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_CLUSTERS
+    ...     child_parent_campaign_id=${parent_id}
+    ...     child_start_date_time=${START_DATE_TIME_CHILD}
+    ...     child_end_date_time=${END_DATE_TIME_CHILD}
+    ...     child_targetGeoStateExcluded=null
+    ...     child_targetGeoDMAExcluded=null
+    ...     child_targetHHStateExcluded=null
+    ...     child_targetHHDMAExcluded=null
+    ...     child_targetGeoCountry=null
+    ...     child_targetDeviceType=null
+    ...     child_targetDeviceOS=null
+    ...     child_targetCategoryExcluded=null
+    ...     child_targetCluster=null
+    ...     child_targetClusterExcluded=null
+    ${ChildAdgroupId_CLUSTER}     Get JSON Value          ${body}             /childId
+    Set Suite Variable       ${ChildAdgroupId_CLUSTER}       ${ChildAdgroupId_CLUSTER}
+    ${INC_CLUSTERS_CONTENTS}    Set Variable       fox    Solitaire    weather         #include list
+    @{INC_CLUSTERS_CONTENT_LIST}=    Convert To List    ${INC_CLUSTERS_CONTENTS}
+    ${EXC_CLUSTERS_CONTENTS}    Set Variable       cnn    4INFO           #Exclude list
+    @{EXC_CLUSTERS_CONTENT_LIST}=    Convert To List    ${EXC_CLUSTERS_CONTENTS}
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId_CLUSTER}
+    Wait For Load the Child Adgroup page
+    Sleep   2s
+    Scroll Page To Location    0    1500
+    Sleep   10s
+    Mouse Over          xpath=//div[@class="selectedItem"]/span[contains(text(),"AOL ONLINE")]
+    Sleep   2s
+    # Mouse Over      xpath=((.//div[contains(., 'News')])[last()]/child::span)[1]
+    # Sleep   2s
+    # Click Element   xpath=((.//div[contains(., 'News')])[last()]/child::span)[1]
+    Click Element       xpath=(.//span[@class="deleteIcon"])[1]
+    # Sleep   25s
+    # Mouse Over          xpath=//ul[@class="selected-ul"]/li/div/span[contains(text(),"Automotive")]
+    # Sleep   2s
+    # Mouse Over      xpath=((.//div[contains(., 'Automative')])[last()]/child::span)[1]
+    # Sleep   2s
+    # Click Element   xpath=((.//div[contains(., 'Automative')])[last()]/child::span)[1]
+    # Click Element       xpath=(.//span[@class="deleteIcon"])[1]
+    Click Element       ${TARGETING_CLUSTER}
+    Add Targeting Clusters Category     INC_CLUSTERS_CONTENT_LIST=@{INC_CLUSTERS_CONTENT_LIST}       EXC_CLUSTERS_CONTENT_LIST=@{EXC_CLUSTERS_CONTENT_LIST}
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+TC_15_Update_child_ad_group(Country Targeting)
+    Go To       ${CHILD_AD_EDIT_PAGE}${ChildAdgroupId}
+    Wait For Load the Child Adgroup page
+    Scroll Page To Location    0    1800
+    Sleep   4s
+    Click Element         ${COUNTRY_US}
+    Click Element         ${COUNTRY_CANADA}
+    Click Element         ${COUNTRY_GAUM}
+    Click Element         ${COUNTRY_PUERTO_RICO}
+    Click Element         ${COUNTRY_MEXICO}
+    Click Element         ${COUNTRY_BRAZIL}
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+
+TC_16_Update_child_ad_group(IAB content Category Update)
+    ${INC_REQUEST_STATE_CONTENTS}    Set Variable       Alaska    Georgia    Iowa         #include list
+    @{INC_REQUEST_STATE_CONTENT_LIST}=    Convert To List    ${INC_REQUEST_STATE_CONTENTS}
+    ${EXC_REQUEST_STATE_CONTENTS}    Set Variable       Nevada    New York     Texas      #Exclude list
+    @{EXC_REQUEST_STATE_CONTENT_LIST}=    Convert To List    ${EXC_REQUEST_STATE_CONTENTS}
+
+    Go To                                       ${CAMPAIGN_SUMMARY_PAGE}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=${CHILD_NAME}_REQUEST_STATE      Child_Start_date_date=${START_DATE_TIME_CHILD}       Child_End_date_date=${END_DATE_TIME_CHILD}
+    Add Targeting Request state Category     INC_REQUEST_STATE_CONTENT_LIST=@{INC_REQUEST_STATE_CONTENT_LIST}       EXC_REQUEST_STATE_CONTENT_LIST=@{EXC_REQUEST_STATE_CONTENT_LIST}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Click Element           xpath=//*[@class="childAdGroupName name-col"]/a[contains(text(),"${CHILD_NAME}_REQUEST_STATE")]
+    Wait For Load the Child Adgroup page
+    Scroll Page To Location    0    1850
+    Sleep   2s
+    Mouse Over          xpath=//div[@class="selectedItem"]/span[contains(text(),"Alaska")]
+    Sleep   2s
+    Click Element       xpath=(.//div[@class="col-4 sv-right-col"])[1]/div/ul/li/div/span[@class="deleteIcon"]
+    Mouse Over          xpath=//div[@class="selectedItem"]/span[contains(text(),"Georgia")]
+    Sleep   2s
+    Click Element       xpath=(.//div[@class="col-4 sv-right-col"])[1]/div/ul/li/div/span[@class="deleteIcon"]
+    Mouse Over          xpath=//div[@class="selectedItem"]/span[contains(text(),"Iowa")]
+    Sleep   2s
+    Click Element       xpath=(.//div[@class="col-4 sv-right-col"])[1]/div/ul/li/div/span[@class="deleteIcon"]
+    # Mouse Over          xpath=//div[@class="selectedItem"]/span[contains(text(),"Texas")]
+    # Sleep   2s
+    # Click Element       xpath=(.//div[@class="col-4 sv-right-col"])[2]/div/ul/li/div/span[@class="deleteIcon"]
+
+
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]
+
+
+
+
+TC_01.17_Update Child adGroup(with inventory targeting - Request DMA)
+    ${INC_REQUEST_DMA_CONTENTS}    Set Variable       Marquette, MI (553)    Milwaukee, WI (617)    Helena, MT (766)     #include list
+    @{INC_REQUEST_DMA_CONTENT_LIST}=    Convert To List    ${INC_REQUEST_DMA_CONTENTS}
+    ${EXC_REQUEST_DMA_CONTENTS}    Set Variable       Memphis, TN (640)     Erie, PA (516)     Knoxville, TN (557)  #Exclude list
+    @{EXC_REQUEST_DMA_CONTENT_LIST}=    Convert To List    ${EXC_REQUEST_DMA_CONTENTS}
+
+    Go To                                       ${CAMPAIGN_SUMMARY_PAGE}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=${CHILD_NAME}_REQUEST_DMA      Child_Start_date_date=${START_DATE_TIME_CHILD}       Child_End_date_date=${END_DATE_TIME_CHILD}
+    Add Targeting Request DMA Category     INC_REQUEST_DMA_CONTENT_LIST=@{INC_REQUEST_DMA_CONTENT_LIST}       EXC_REQUEST_DMA_CONTENT_LIST=@{EXC_REQUEST_DMA_CONTENT_LIST}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+
+
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Click Element           xpath=//*[@class="childAdGroupName name-col"]/a[contains(text(),"${CHILD_NAME}_REQUEST_DMA")]
+    Wait For Load the Child Adgroup page
+    Scroll Page To Location    0    1850
+    Sleep   4s
+    Mouse Over          xpath=//div[@class="selectedItem"]/span[contains(text(),"Marquette, MI (553)")]
+    Sleep   2s
+    Click Element       xpath=(.//div[@class="col-4 sv-right-col"])[1]/div/ul/li/div/span[@class="deleteIcon"]
+    Mouse Over          xpath=//div[@class="selectedItem"]/span[contains(text(),"Milwaukee, WI (617)")]
+    Sleep   2s
+    Click Element       xpath=(.//div[@class="col-4 sv-right-col"])[1]/div/ul/li/div/span[@class="deleteIcon"]
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]      EXCLUDE    #GETTING ElementNotInteractableException: Message: Element <span class="deleteIcon"> could not be scrolled into view
+
+
+
+TC_01.18_Update Child adGroup(with inventory targeting - Request ZipCode)
+    Go To                                       ${CAMPAIGN_SUMMARY_PAGE}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=${CHILD_NAME}_REQUEST_zip      Child_Start_date_date=${START_DATE_TIME_CHILD}       Child_End_date_date=${END_DATE_TIME_CHILD}
+    Click Element       ${TARGETING_REQUEST_ZIP_CODE}
+    Input Text          ${REQUEST_ZIP_CODE_TEXTBOX}             73301
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+    Sleep   5s
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Click Element           xpath=//*[@class="childAdGroupName name-col"]/a[contains(text(),"${CHILD_NAME}_REQUEST_zip")]
+    Wait For Load the Child Adgroup page
+    Sleep    5s
+    Scroll Page To Location    0    1900
+    Input Text          ${REQUEST_ZIP_CODE_TEXTBOX}             73302
+    Sleep    5s
+    Click Button        ${CHILD_SAVE_BUTTON}
+    [Tags]
+
+TC_01.19_Update Child adGroup(with inventory targeting - Household state)
+    ${INC_HH_STATE_CONTENTS}    Set Variable       Ohio        Canada - AB  #include list
+    @{INC_HH_STATE_CONTENT_LIST}=    Convert To List    ${INC_HH_STATE_CONTENTS}
+    ${EXC_HH_STATE_CONTENTS}    Set Variable         Colorado     Florida  #Exclude list
+    @{EXC_HH_STATE_CONTENT_LIST}=    Convert To List    ${EXC_HH_STATE_CONTENTS}
+
+    Go To                                       ${CAMPAIGN_SUMMARY_PAGE}${Campaign_Id}
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Sleep   3s
+    Click Button        ${ADD_CHILD_PLUS_BUTTON}${Parent_id}']
+    Sleep   5s
+    Add General information for ChildAdGroup      Child_AdGroup_Name=${CHILD_NAME}_HH_STATE      Child_Start_date_date=${START_DATE_TIME_CHILD}       Child_End_date_date=${END_DATE_TIME_CHILD}
+    Add Targeting Household state Category     INC_HH_STATE_CONTENT_LIST=@{INC_HH_STATE_CONTENT_LIST}       EXC_HH_STATE_CONTENT_LIST=@{EXC_HH_STATE_CONTENT_LIST}
+    Sleep    5s
+    Click Button      ${CHILD_SAVE_BUTTON}
+
+
+    Wait Until Page Contains         CAMPAIGN SUMMARY       timeout=15s
+    Click Element           xpath=//*[@class="childAdGroupName name-col"]/a[contains(text(),"${CHILD_NAME}_HH_STATE")]
+    Wait For Load the Child Adgroup page
+    Scroll Page To Location    0    1850
+    Sleep   4s
+    Mouse Over          xpath=//div[@class="selectedItem"]/span[contains(text(),"Ohio")]
+    Sleep   2s
+    Click Element       xpath=(.//div[@class="col-4 sv-right-col"])[1]/div/ul/li/div/span[@class="deleteIcon"]
+
+    Save Child Adgroup
+    Wait For Load the Campaign page
+    [Tags]

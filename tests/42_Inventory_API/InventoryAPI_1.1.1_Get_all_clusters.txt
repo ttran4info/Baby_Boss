@@ -1,0 +1,105 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.1.1		BATCH20
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+
+# https://wiki.4info.com/pages/viewpage.action?title=Inventory+API+documentation&spaceKey=Software#InventoryAPIdocumentation-1.1.1Getallclusters(Devdone)
+# API Name: 1.1.1 Get all clusters (Dev done)
+# Method: GET
+# URL: /inventory-api/cluster/clusters?groupId=${groupId}
+# DESC: Get all clusters by Group id.
+# rhino.clusters
+# rhino.cluster_placement
+# rhino.groups_cluster
+
+
+*** Variables ***
+ ${groupId}			1
+ ${max_filter}		10
+ ${cluster_name}	Regression_cluster_111
+
+*** Keywords ***
+
+*** Test Cases ***
+INVENTORY1.1.1_TC_01_Get all clusters by Group id (1- admin)
+	[Documentation]		First create cluster for group 1, then Make a Get call for all associated clusters for group id 1, check that the one we created is there
+	Set Test Variable	${groupId}			1
+	Set Test Variable	${cluster_name}		${cluster_name}_${groupId}
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/clusters?groupId=${groupId}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200		success=true
+	#Validating 1 cluster
+	Should Match Regexp		${body}				"name":"${cluster_name}","status":2,"statusDisplay":"${QA_DEFAULT_USER}",
+	[Tags]
+
+INVENTORY1.1.1_TC_02_Get all clusters by Group id (15- Catalina - no cluster)
+	[Documentation]		First create cluster for group 15, then Make a Get call for all associated clusters for group id 15, check that the one we created is there
+	Set Test Variable	${groupId}		15
+	Set Test Variable	${cluster_name}		${cluster_name}_${groupId}
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_CATALINA_USER}			groupId=${groupId}
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/clusters?groupId=${groupId}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	#Validating 1 cluster
+	Should Match Regexp		${body}				"name":"${cluster_name}","status":2,"statusDisplay":"${QA_CATALINA_USER}",
+	[Tags]
+
+INVENTORY1.1.1_TC_03_Get all clusters by Group id (16- QA)
+	[Documentation]		First create cluster for group 16, then Make a Get call for all associated clusters for group id 16, check that the one we created is there
+	Set Test Variable	${groupId}		16
+	Set Test Variable	${cluster_name}		${cluster_name}_${groupId}
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_CATALINA_AND_QA_USER}			groupId=${groupId}
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/clusters?groupId=${groupId}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	#Validating 1 cluster
+	Should Match Regexp		${body}				"name":"${cluster_name}","status":2,"statusDisplay":"${QA_CATALINA_AND_QA_USER}",
+	[Tags]
+
+INVENTORY1.1.1_TC_04_Get all clusters by Group id (group 1: api vs DB)
+	[Documentation]		Using API to get all cluster for group 1, compare the result against db query
+	Set Test Variable	${groupId}		1
+	Get All Cluster From Group ID Compare API vs DB		groupid=${groupid}
+	[Tags]
+
+INVENTORY1.1.1_TC_05_Get all clusters by Group id (group 15: api vs DB)
+	[Documentation]		Using API to get all cluster for group 15, compare the result against db query
+	Set Test Variable	${groupId}		15
+	Get All Cluster From Group ID Compare API vs DB		groupid=${groupid}
+	[Tags]
+
+INVENTORY1.1.1_TC_06_Get all clusters by Group id (Invalid group - 99, not allow)
+	[Documentation]		Make a Get call for all associated clusters for group id that is invalid, expecting error
+	Set Test Variable	${groupId}		99
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/clusters?groupId=${groupId}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"800-002"
+	Json Value Should Equal		${body}		/reason_desc					"Group id is not found."
+	[Tags]
+
+INVENTORY1.1.1_TC_07_Get all clusters by Group id (Missing group id in uri, not allow)
+	[Documentation]		Make a Get call for all associated clusters for group id that missing, expecting error
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/clusters?groupId=
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"600-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid group id."
+	[Tags]
+
+INVENTORY1.1.1_TC_08_Get all clusters by Group id (group id is null, not allow)
+	[Documentation]		Make a Get call for all associated clusters for group id that is null, expecting error
+	Set Test Variable	${groupId}		null
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/clusters?groupId=${groupId}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"600-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid group id."
+	[Tags]
+
+INVENTORY1.1.1_TC_09_Get all clusters by Group id (check parameter siteAppsCount)
+	[Documentation]		Create cluster with ${max_filter} filters, check that parameter  siteAppsCount return ${max_filter}
+	Set Test Variable		${cluster_name}			${cluster_name}_09
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	Generate Filter		max=${max_filter}		#${filters} is generated
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}		data=${filters}		valid_filter=${max_filter}
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/clusters?groupId=${groupId}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200		success=true
+	Should Match Regexp			${body}		"name":"${cluster_name}","status":2,"statusDisplay":"${QA_DEFAULT_USER}",.+"sitesAppsCount":${max_filter}.
+	[Tags]  EXCLUDE  known_bug

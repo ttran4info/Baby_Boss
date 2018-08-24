@@ -1,0 +1,243 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.4.3		BATCH20	    OffshoreQA   
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+
+# http://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-1.4.3Exporthistory
+# API Name: 1.4.3 Export history
+# Method: GET
+# URL: inventory-api/cluster/history/{clusterId}/{timestamp}/export
+# DESC: Get detail of a cluster history change
+# rhino.cluster
+# rhino.cluster_placement
+# rhino.groups_cluster
+
+*** Variables ***
+# Need to revisit code for Compare API response with Elastic search result
+ ${groupId}			1
+ ${max_filter}		10
+ ${cluster_name}	Regression_cluster_143
+
+*** Keywords ***
+
+### Need to implement here code for elastic search result for number of filters added: and details for filters
+
+
+
+*** Test Cases ***
+TC_00 Generate Data
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	Generate Filter		max=${max_filter}		#${filters} is generated
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}		valid_filter=${max_filter}
+	[Tags]
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.4.3_TC_01.1_Get Export history(cluster id valid, timestamp valid, accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for valid cluster id and valid timestamp,
+	...   		        Expected:       API should provide Cluster history change successfully.
+	...                                 The response code should be populated as 200.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=${cluster_id}
+	...                                         timestamp=${cluster_dt}
+    ...                                         response_code=200
+    #Get Inventory API 1.4.3 Export History from DB   clusterId=51
+    #Compare 1.4.3 Export History API result with Database
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.4.3_TC_02.1_Get Export history(cluster id valid, timestamp= does not match, Don't accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for valid cluster id and invalid timestamp,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=${cluster_id}
+	...                                         timestamp=${cluster_dt}1
+    ...                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-410"
+	Json Value Should Equal		${body}			/reason_desc			"Timestamp is not found."
+    [Tags]			#CM-633
+
+
+InventoryAPI_1.4.3_TC_02.2_Get Export history(cluster id is valid, timestamp=abcd, Don't accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for valid cluster id and timestamp as alphabets,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=${cluster_id}
+	...                                         timestamp=abc
+    ...                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.4.3_TC_02.3_Get Export history(cluster id is valid, timestamp=-negative, Don't accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for valid cluster id and timestamp as negative value,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=${cluster_id}
+	...                                         timestamp=-${cluster_dt}
+    ...                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-410"
+	Json Value Should Equal		${body}			/reason_desc			"Timestamp is not found."
+    [Tags]			#CM-633
+
+
+InventoryAPI_1.4.3_TC_02.4_Get Export history(cluster id is valid, timestamp=MISSING, Don't accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for valid cluster id and timestamp Missing,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=${cluster_id}
+	...                                         timestamp=${EMPTY}
+    ...                                         response_code=400
+
+#	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+#    Set Test Variable 	${uri}		/inventory-api/cluster/history/${clusterId}//export
+#    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+#    ${resp}=    RequestsLibrary.Get Request     docker     ${uri}       headers=${headers}
+#    Log    Response: '${resp.content}'
+#    Set Suite Variable       ${body}     ${resp.content}
+#    Set Test Variable           ${response_code}    400
+#    Run Keyword If  '${response_code}'=='400'	Should Match Regexp		    ${body}    "success":false
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.4.3_TC_02.5_Get Export history(cluster id is valid, timestamp=null, Don't accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for valid cluster id and timestamp as blank,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=${cluster_id}
+	...                                         timestamp=null
+    ...                                         response_code=400
+#	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}/
+#    Set Test Variable 	${uri}		/inventory-api/cluster/history/${clusterId}/""/export
+#    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+#    ${resp}=    RequestsLibrary.Get Request     docker     ${uri}       headers=${headers}
+#    Log    Response: '${resp.content}'
+#    Set Suite Variable       ${body}     ${resp.content}
+#   Set Test Variable           ${response_code}    400
+#    Run Keyword If  '${response_code}'=='400'	Should Match Regexp		    ${body}    "success":false
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.4.3_TC_03.1_Get Export history(cluster id =999 does not exist, timestamp=valid, Don't accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for invalid cluster id and valid timestamp,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=999
+	...                                         timestamp=${cluster_dt}
+    ...                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-401"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid cluster id."
+    [Tags]			#CM-633
+
+
+InventoryAPI_1.4.3_TC_03.2_Get Export history(cluster id =-51 (negative), timestamp=1497058102874, Don't accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for cluster id negative value and valid timestamp,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=-${cluster_id}
+	...                                         timestamp=${cluster_dt}
+    ...                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-401"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid cluster id."
+    [Tags]			#CM-633
+
+
+InventoryAPI_1.4.3_TC_03.3_Get Export history(cluster id =abcd, timestamp=1497058102874, Don't accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for cluster id as alphabets and valid timestamp,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=abcd
+	...                                         timestamp=${cluster_dt}
+    ...                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.4.3_TC_03.4_Get Export history(cluster id Empty, timestamp=1497058102874, Don't accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for Missing cluster id and valid timestamp,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=${EMPTY}
+	...                                         timestamp=${cluster_dt}
+    ...                                         response_code=400
+
+#	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}/
+#    Set Test Variable 	${uri}		/inventory-api/cluster/history//1497058102874/export
+#    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+#    ${resp}=    RequestsLibrary.Get Request     docker     ${uri}       headers=${headers}
+#    Log    Response: '${resp.content}'
+#    Set Suite Variable       ${body}     ${resp.content}
+#    Set Test Variable           ${response_code}    400
+#    Run Keyword If  '${response_code}'=='400'	Should Match Regexp		    ${body}    "success":false
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.4.3_TC_03.5_Get Export history(cluster id =null, timestamp=1497058102874, Don't accept)
+    [Documentation]		Input:          Use Inventory API - Export History 1.4.3 to get Details of a
+    ...                                 cluster Export history change for Blank cluster id and valid timestamp,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Timestamp (DT)		cluster_id=${cluster_id}
+	Get Inventory API 1.4.3 Export History      clusterId=null
+	...                                         timestamp=${cluster_dt}
+    ...                                         response_code=400
+
+#	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}/
+#    Set Test Variable 	${uri}		/inventory-api/cluster/history/""/1497058102874/export
+#    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+#    ${resp}=    RequestsLibrary.Get Request     docker     ${uri}       headers=${headers}
+#    Log    Response: '${resp.content}'
+#    Set Suite Variable       ${body}     ${resp.content}
+#    Set Test Variable           ${response_code}    400
+#    Run Keyword If  '${response_code}'=='400'	Should Match Regexp		    ${body}    "success":false
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+#------------------------------------------------------------------------------------------------------------------------

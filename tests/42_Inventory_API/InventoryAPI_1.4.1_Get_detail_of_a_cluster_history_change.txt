@@ -1,0 +1,131 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY    INVENTORY1.4.1    BATCH20    OffshoreQA
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+
+# http://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-1.4.1Getdetailofaclusterhistorychange
+# API Name: 1.4.1 Get detail of a cluster history change
+# Method: GET
+# URL: /inventory-api/cluster/history/{clusterId}/{timestamp_long}
+# DESC: Get detail of a cluster history change
+# rhino.cluster
+# rhino.cluster_placement
+# rhino.groups_cluster
+
+
+*** Variables ***
+ ${groupId}			1
+ ${max_filter}		10
+ ${cluster_name}	Regression_cluster_141
+*** Keywords ***
+
+
+
+*** Test Cases ***
+TC_00 Generate Data
+	[Documentation]		Create Cluster: ${cluster_name} with random filter of size:  ${max_filter}
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	Generate Filter		max=${max_filter}		#${filters} is generated
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}		valid_filter=${max_filter}
+	[Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.4.1_TC_01.1_Get Cluster History Change(cluster id = valid)
+    [Documentation]		Input:          Use Inventory API to get Details of a cluster history change,
+	...   		        Expected:       API should provide Cluster history change successfully.
+	...                                 The response code should be populated as 200.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable   ${clusterId}    ${cluster_id}
+	Get Cluster History for Inventory API 1.3.1 using API     clusterId=${cluster_id}			#${cluster_dt} is generated
+
+	#Set Test Variable   ${timestamp}    1496703879433
+	Get Cluster History using Inventory API     clusterId=${cluster_id}
+	...                                         timestamp=${cluster_dt}
+    ...                                         response_code=200
+    #Get Cluster History for Inventory API 1.4.1 from DB   clusterId
+    #Compare Cluster History for Inventory API 1.4.1 vs DB
+    [Tags]
+
+
+InventoryAPI_1.4.1_TC_01.2_Get Cluster History Change(cluster id =0, Invalid)
+    [Documentation]		Input:          Use Inventory API to get Details of a cluster history change,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Set Test Variable   ${clusterId}    0
+	Set Test Variable   ${timestamp}    544324234
+	Get Cluster History using Inventory API     clusterId=${clusterId}
+	...                                         timestamp=${timestamp}
+    ...                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-401"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid cluster id."
+    [Tags]
+
+
+InventoryAPI_1.4.1_TC_01.3_Get Cluster History Change(cluster id =-50, Invalid)
+    [Documentation]		Input:          Use Inventory API to get Details of a cluster history change,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Set Test Variable   ${clusterId}    -50
+	Set Test Variable   ${timestamp}    544324234
+	Get Cluster History using Inventory API     clusterId=${clusterId}
+	...                                         timestamp=${timestamp}
+    ...                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-401"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid cluster id."
+    [Tags]
+
+
+InventoryAPI_1.4.1_TC_01.4_Get Cluster History Change(cluster id ="abc", Invalid)
+    [Documentation]		Input:          Use Inventory API to get Details of a cluster history change,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Set Test Variable   ${clusterId}    "abc"
+	Set Test Variable   ${timestamp}    544324234
+	Get Cluster History using Inventory API     clusterId=${clusterId}
+	...                                         timestamp=${timestamp}
+    ...                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.4.1_TC_01.5_Get Cluster History Change(cluster id =*, Invalid)
+    [Documentation]		Input:          Use Inventory API to get Details of a cluster history change,
+	...   		        Expected:       API should not provide Cluster history change successfully.
+	...                                 The response code should be populated as 400.
+	Set Test Variable   ${clusterId}    *
+	Set Test Variable   ${timestamp}    544324234
+	Get Cluster History using Inventory API     clusterId=${clusterId}
+	...                                         timestamp=${timestamp}
+    ...                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.4.1_TC_02.1_Check Cluster History with DB (cluster id valid)
+    [Documentation]		Input:          Use Inventory API to get Details of a cluster history change,
+	...   		        Expected:       API should provide Cluster history change successfully.
+	...                                 The response code should be populated as 200.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable   ${clusterId}    ${cluster_id}
+	Get Cluster History for Inventory API 1.3.1 using API     clusterId=${cluster_id}			#${cluster_dt} is generated
+	#Set Test Variable   ${timestamp}    1496703879433
+	Get Cluster History using Inventory API     clusterId=${cluster_id}
+	...                                         timestamp=${cluster_dt}
+    ...                                         response_code=200
+
+    Get Cluster History for Inventory API 1.4.1 from DB	    clusterId=${cluster_id}
+    Compare Cluster History for Inventory API 1.4.1 vs DB
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+#InventoryAPI_1.4.1_TC_03.1_Check Cluster History with Elastic Search (cluster id =51, valid)
+#    Get Elastic Search History Change   clusterId=51
+#    [Tags]      InventoryAPI_1.4.1_TC_03.1
+#------------------------------------------------------------------------------------------------------------------------

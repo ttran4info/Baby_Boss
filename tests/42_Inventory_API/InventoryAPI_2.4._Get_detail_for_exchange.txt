@@ -1,0 +1,105 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY    INVENTORY2.4    BATCH20    OffshoreQA
+
+# https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-2.4.Getdetailforexchange
+# 2.4. Get detail for exchange
+# Method: GET
+# URL: 192.168.99.100:8380/inventory-api/exchange/exchange/{exchangeId}
+# DESC:  This will be used to get new exchange created
+
+
+
+*** Variables ***
+${exchangeId}    547
+
+
+*** Keywords ***
+
+
+
+
+*** Test Cases ***
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.4_TC_01.1_Get detail for exchange type (valid URL, Accept)
+    [Documentation]     Input:          Use Inventory API to Get detail for exchange
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Get detail for exchange
+    ...         exchangeId=547
+    ...         reason_code=200
+    ...         success=true
+    Json Value Should Equal    ${body}    /exchange/id          547
+    Json Value Should Equal    ${body}    /exchange/name        "4infostaging"
+    Json Value Should Equal    ${body}    /exchange/spec        5
+    Json Value Should Equal    ${body}    /exchange/protocol    1
+    Json Value Should Equal    ${body}    /exchange/respType    1
+    Json Value Should Equal    ${body}    /exchange/pid         "dc99d4d279cea598"
+    [Tags]
+
+
+InventoryAPI_2.4_TC_01.2_Get detail for exchange (invalid URL, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get detail for exchange
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Get detail for exchange
+    ...         url=inventory-api/exchange123456/exchange/${exchangeId}
+    ...         reason_code=400
+    ...         success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.4_TC_02.1_Get detail for exchange type (invalid exchange, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get detail for exchange
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 400.
+    Get detail for exchange
+    ...         exchangeId=9999
+    ...         reason_code=400
+    ...         success=false
+    Json Value Should Equal    ${body}    /reason_code     "700-501"
+    Json Value Should Equal    ${body}    /reason_desc     "Invalid exchange id."
+    [Tags]
+
+
+InventoryAPI_2.4_TC_02.2_Get detail for exchange type (null exchange, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get detail for exchange
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 400.
+    Get detail for exchange
+    ...         exchangeId=null
+    ...         reason_code=400
+    ...         success=false
+    Json Value Should Equal    ${body}    /reason_code     "400-001"
+    Json Value Should Equal    ${body}    /reason_desc     "Invalid Request."
+    [Tags]
+
+
+InventoryAPI_2.4_TC_02.3_Get detail for exchange type (blank exchange, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get detail for exchange
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 400.
+    Get detail for exchange
+    ...         exchangeId=${Empty}
+    ...         reason_code=400
+    ...         success=false
+    Json Value Should Equal    ${body}    /reason_code     "400-001"
+    Json Value Should Equal    ${body}    /reason_desc     "Invalid Request."
+    [Tags]
+
+
+
+InventoryAPI_2.4_TC_02.4_Get detail for exchange type (invalid characters exchange, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get detail for exchange
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 400.
+    Get detail for exchange
+    ...         exchangeId=@#$
+    ...         reason_code=400
+    ...         success=false
+    Json Value Should Equal    ${body}    /reason_code     "400-001"
+    Json Value Should Equal    ${body}    /reason_desc     "Invalid Request."
+    [Tags]
+
+#-----------------------------------------------------------------------------------------------------------------------

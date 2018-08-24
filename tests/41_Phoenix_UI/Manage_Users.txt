@@ -1,0 +1,461 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX    MANAGE_USERS    BATCH22    PHOENIX_3
+Suite Teardown      Close All Browsers
+
+
+#API wiki : https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.7.Getalluserslistacrossproducts
+
+
+*** Variables ***
+${Group1_AdminUser}         ${QA_DEFAULT_USER}
+${Group1_ReadOnlyUser}      ${QA_READONLY_USER}
+${Group15_ReadOnlyUser}     ${QA_CATALINA_USER}
+${Group1And15_AdminUser}    multiuser@4info.com
+
+
+
+
+*** Keywords ***
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------
+ManageUser_TC_01.1_Verify Manage Users option is visible for any user with Admin And 4Info user can see all the users.
+    [Documentation]    This test validates "Manage Users" page is available${Space}
+    ...    When click option "Manage Users" at right top drop down box for logged in user who has permission id = 3
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    10s
+    Element Should Be Visible    ${Header_setting-select}
+    Mouse Over    ${Header_setting-select}
+    Sleep    5s
+    Click Element    ${Manage_Users_Link}
+    Sleep    15s
+    Capture Page Screenshot     filename=ManageUser_TC_01.1.png
+    # Validate Manage Users Summary Page Elements are Present
+    [Tags]
+
+
+ManageUser_TC_01.2_Check sorting for username, First Name, Last Name, Status, Modifed By and Modified Date are displayed correctly
+    [Documentation]    Validate sorting for username, First Name, Last Name, Status, Modifed By and Modified Date are displayed correctly
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    10s
+    Element Should Be Visible    ${Header_setting-select}
+    Mouse Over    ${Header_setting-select}
+    Sleep    5s
+    Click Element    ${Manage_Users_Link}
+    Sleep    15s
+    Click Element    ${SortByuserName}
+    Sleep    5s
+    Capture Page Screenshot With Timestamp
+    Click Element    ${SortByFirstName}
+    Sleep    5s
+    Capture Page Screenshot With Timestamp
+    Click Element    ${SortByLastName}
+    Sleep    5s
+    Capture Page Screenshot With Timestamp
+    Click Element    ${SortByModifiedBy}
+    Sleep    5s
+    Capture Page Screenshot With Timestamp
+    Click Element    ${SortByModifiedDate}
+    Sleep    5s
+    Capture Page Screenshot With Timestamp
+
+
+ManageUser_TC_01.3_Check page elements are displayed correctly like header, footer, buttons etc.
+    [Documentation]    Validate sorting for username, First Name, Last Name, Status, Modifed By and Modified Date are displayed correctly
+    Check Header and Footer objects are present
+    [Teardown]    Close All Browsers
+    [Tags]
+
+#--------------------------------------------------------------------------------------
+ManageUser_TC_02.1_Check 4Info group 1 Admin user can see all the users along with his own record
+    [Documentation]    If Logged in user is a 4Info group user admin, display their own record
+    Set Test Variable    ${username}    ${QA_DEFAULT_USER}
+    Login To Adhaven UI    username=${username}    password=${QA_DEFAULT_PASSWORD}
+    Select From List    ${Header_setting-select}    Manage Users
+    Sleep    5s
+    Capture Page Screenshot With Timestamp
+    Get All Users from UI from Manage Users Summary Page
+    ...    username=${username}
+    ...    groupId=1
+    ...    MaxPageNumber=29
+    Get All Users From DB for Manage Users    username=${username}    groupId=1
+    Validate Own Record    recordPresent=Yes    UserName=${username}
+    [Teardown]    Close All Browsers
+    [Tags]    QA-Task-10.7    CM-2202
+
+
+ManageUser_TC_02.2.1_Check if non 4 info admin which has 4info group access, For 4Info Group, then that user don't see their own record
+    [Documentation]    If Logged in user is a Catalina group user with 4Info rights, and that user is checking for 4Info group 1 records then that user can see all records and that user don't see their own record
+    Set Test Variable    ${username}    ${Group1And15_AdminUser}
+    Login To Adhaven UI    username=${username}    password=${QA_DEFAULT_PASSWORD}
+    Select From List    ${Header_setting-select}    Manage Users
+    Sleep    5s
+    Click Element    ${GROUP_SELECT_DROPDOWN}/option[text()='4INFO']
+    Sleep    5s
+   Execute javascript  document.body.style.zoom="100%"
+    Sleep    10s
+    Element Should Be Visible    ${Header_setting-select}
+    Mouse Over    ${Header_setting-select}
+    Sleep    5s
+    Click Element    ${Manage_Users_Link}
+    Sleep    15s
+    Capture Page Screenshot With Timestamp
+    Get All Users from UI from Manage Users Summary Page
+    ...    username=multiuser@4info.com
+    ...    groupId=1
+    ...    MaxPageNumber=29
+    Get All Users From DB for Manage Users    username=${username}    groupId=1
+    Validate Own Record    recordPresent=No    UserName=${username}
+    [Teardown]    Close All Browsers
+    [Tags]    QA-Task-10.7     CM-2202
+
+
+ManageUser_TC_02.2.2_Check if non 4 info admin which has 4info group access, For Catalina Self Service Group, then that user don't see their own record
+    [Documentation]    If Logged in user is a Catalina group user with 4Info rights, and that user is checking for Catalina Self Service group 15 records then that user can see only records related to Catalina Self Service and that user don't see their own record
+    Set Test Variable    ${username}    ${Group1And15_AdminUser}
+    Login To Adhaven UI    username=${username}    password=${QA_DEFAULT_PASSWORD}
+    Select From List    ${Header_setting-select}    Manage Users
+    Sleep    5s
+    Click Element    //select[@id='userGroup-select']/option[text()='Catalina Self Service']
+    Sleep    5s
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    10s
+    Element Should Be Visible    ${Header_setting-select}
+    Mouse Over    ${Header_setting-select}
+    Sleep    5s
+    Click Element    ${Manage_Users_Link}
+    Sleep    15s
+    Capture Page Screenshot With Timestamp
+    Get All Users from UI from Manage Users Summary Page
+    ...    username=multiuser@4info.com
+    ...    groupId=15
+    ...    MaxPageNumber=3
+    Get All Users From DB for Manage Users    username=${username}    groupId=15
+    Validate Own Record    recordPresent=No    UserName=${username}
+    [Teardown]    Close All Browsers
+    [Tags]    QA-Task-10.7     CM-2202
+
+
+ManageUser_TC_02.3_Check if non 4info admin user who don't have access for 4info group, that user can see their own record
+    [Documentation]    If Logged in user is a Catalina group admin user who don't have access for 4info group,
+    ...                ${Space}that user can see their own record
+    Set Test Variable    ${username}    ${QA_CATALINA_USER3}
+    Login To Adhaven UI    username=${username}    password=${QA_DEFAULT_PASSWORD}
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    10s
+    Element Should Be Visible    ${Header_setting-select}
+    Mouse Over    ${Header_setting-select}
+    Sleep    5s
+    Click Element    ${Manage_Users_Link}
+    Sleep    15s
+    Capture Page Screenshot With Timestamp
+    Get All Users from UI from Manage Users Summary Page
+    ...    username=multiuser@4info.com
+    ...    groupId=15
+    ...    MaxPageNumber=3
+    Get All Users From DB for Manage Users    username=${username}    groupId=15
+    Validate Own Record    recordPresent=Yes    UserName=${username}
+    [Teardown]    Close All Browsers
+    [Tags]    QA-Task-10.7     CM-2202
+
+
+#--------------------------------------------------------------------------------------
+# QA Task : CM-2229    Dev Task : CM-2214
+
+ManageUser_CM-2214_TC_01.1_Verify Dashboard Manage User does not have latest code
+    [Documentation]    Validate duplicate records are not saved after creating a user from dashboard.
+    Delete a user       username=regression@temp23.com
+    Delete a user       username=regression@temp231.com
+    Set Test Variable    ${username}    regression@temp23.com
+    Set Test Variable    ${Pass}        P@ssw0rd
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="${Pass}"
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=[{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=200
+    ...                 success=true
+
+
+    Set Test Variable    ${username1}    regression@temp231.com
+    Set Test Variable    ${Pass}        P@ssw0rd
+
+    Create a user       userName="${username1}"
+    ...                 status=1
+    ...                 password="${Pass}"
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=[{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Login To Dashboard UI    username=${username}
+    ...    password=${Pass}
+
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    2s
+
+    ${Location}    Get Location
+    Log    ${Location}
+
+    Mouse Over    ${Header_setting-select}
+    Sleep    30s
+
+    Click Element    ${Header_setting-select}
+    Sleep    30s
+    Capture Page Screenshot    filename=ManageUser_CM-2214_TC_01.1_1.png
+
+
+    # Mouse Down On Link    ${Manage_Users_Link}
+    # Sleep    30s
+
+    Click Link    ${Manage_Users_Link}
+
+    Sleep    60s
+    Input Text    ${Search_Audience}    ${username1}
+    Sleep    5s
+    Click Link    ${username1}
+    Sleep    15s
+
+    Focus    ${ModifyUser_ManageUserLabel}
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Campaign Manager
+    ...                          Permission=ADMIN
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Audience-Solutions
+    ...                          Permission=WRITE
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Audience-Solutions
+    ...                          Permission=ADMIN
+
+    Capture Page Screenshot    filename=ManageUser_CM-2214_TC_01.1_2.png
+
+    Validate User Permissons Checked    Group=4INFO
+    ...                         UI_Type=Campaign Manager
+    ...                         Permission=ADMIN
+    ...                         checkedStatus=true
+
+    Validate User Permissons Checked    Group=4INFO
+    ...                         UI_Type=Audience-Solutions
+    ...                         Permission=WRITE
+    ...                         checkedStatus=true
+
+    Validate User Permissons Checked    Group=4INFO
+    ...                         UI_Type=Audience-Solutions
+    ...                         Permission=ADMIN
+    ...                         checkedStatus=true
+
+    Validate DB Records for user for read permission is not saved twice    username=${username1}
+    [Teardown]    Close All Browsers
+    [Tags]    CM-2229
+
+#--------------------------------------------------------------------------------------
+
+
+MANAGE_USERS_CM-2250_Pre-DMP label should be changed to Audience Solutions in Manage users
+    Login To Adhaven UI    username=abc@4info.com    password=1234info
+    Wait Until Page Contains    ADVERTISERS
+    Wait Until Page Contains    Search advertisers
+    Mouse Over          ${Header_setting-select}
+    Click Element       xpath=//a[contains(text(),"Manage Users")]
+    Sleep    7s
+    Input Text         ${LOGIN_NAME_TEXTBOX}                abc@4info.com
+    Input Text         ${LOGIN_PASSWORD_TEXTBOX}        1234info
+    Click Button       ${LOGIN_BUTTON}
+    Sleep    10s
+    Mouse Over          ${Header_setting-select}
+    Click Element       xpath=//a[contains(text(),"Manage Users")]
+    Sleep    3s
+    Click Element       xpath=.//a[contains(., '1har@4info.com')]
+    Wait Until Page Contains    ASSIGN GROUPS
+    Wait Until Page Contains    MANAGE PERMISSIONS
+    Wait Until Page Contains Element    xpath=(.//th[contains(normalize-space(.), 'Audience Solutions')])[1]
+    Wait Until Page Contains Element    xpath=(.//th[contains(normalize-space(.), 'Audience Solutions')])[2]
+    Wait Until Page Contains Element    xpath=(.//th[contains(normalize-space(.), 'Audience Solutions')])[last()]
+    Close All Browsers
+    [Tags]
+#--------------------------------------------------------------------------------------
+
+MANAGE_USERS_CM-2293_TC_01.1.1_Verify the groups are displayed in selection drop down for which user has permissions for single group
+    Delete a user       username=regression@temp2293.com
+
+    Set Test Variable    ${username}    regression@temp2293.com
+    Set Test Variable    ${Pass}        P@ssw0rd
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="${Pass}"
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=[{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Login To Dashboard UI    username=${username}    
+    ...    password=${Pass}
+
+    Execute javascript     document.body.style.zoom="50%"
+    sleep    3s
+
+    Mouse Over          ${Header_setting-select}
+    sleep    3s
+    Click Element       xpath=//a[contains(text(),"Manage Users")]
+    Sleep    7s
+
+    Mouse Over    ${GROUP_SELECT_DROPDOWN}
+    Sleep    2s 
+
+    Capture Page Screenshot    filename=CM-2293_TC_01.1.1.png
+       
+    Element Should Contain    ${GROUP_SELECT_DROPDOWN}    4INFO
+    [Tags]    CM-2293
+
+
+MANAGE_USERS_CM-2293_TC_01.1.2_Verify the groups are not displayed in selection drop down for which user has not permissions for single group
+    Set Test Variable    ${username}    regression@temp2293.com
+
+    Execute javascript     document.body.style.zoom="50%"
+    sleep    3s
+
+    Mouse Over          ${Header_setting-select}
+    sleep    3s
+    Click Element       xpath=//a[contains(text(),"Manage Users")]
+    Sleep    7s
+
+    Mouse Over    ${GROUP_SELECT_DROPDOWN}
+    Sleep    2s 
+
+    Capture Page Screenshot    filename=CM-2293_TC_01.1.2.png
+       
+    Element Should Not Contain    ${GROUP_SELECT_DROPDOWN}    CATALINA
+    [Tags]    CM-2293
+
+
+MANAGE_USERS_CM-2293_TC_01.2.1_Verify the groups are displayed in Manage User Page for which user has permissions for single group
+    Set Test Variable    ${username}    regression@temp2293.com
+
+    Execute javascript     document.body.style.zoom="50%"
+    sleep    5s
+
+    Mouse Over          ${Header_setting-select}
+    sleep    3s
+    Click Element       xpath=//a[contains(text(),"Manage Users")]
+    Sleep    7s
+
+    Input Text    ${searchUser}    ${username}
+    Sleep    2s
+
+    Click Link    ${username}
+    Sleep    2s
+
+    Focus    ${GroupsList}
+    Element Should Contain    ${GroupsList}    4INFO
+    
+    Capture Page Screenshot    filename=CM-2293_TC_01.2.1.png
+    [Tags]    CM-2293
+
+
+MANAGE_USERS_CM-2293_TC_01.2.2_Verify the groups are not displayed in Manage User Page for which user has not permissions for single group
+    Focus    ${GroupsList}
+    Element Should Not Contain    ${GroupsList}    CATALINA
+    
+    Capture Page Screenshot    filename=CM-2293_TC_01.2.2.png
+    [Tags]    CM-2293
+
+
+MANAGE_USERS_CM-2293_TC_02.1.1_Verify the groups are displayed in selection drop down for which user has permissions for multiple groups
+    # Delete a user       username=regression@temp2293.com
+
+    Set Test Variable    ${username}    ${Group1And15_AdminUser}
+    Set Test Variable    ${Pass}        P@ssw0rd
+
+    Login To Dashboard UI    username=${username}    
+    ...    password=${Pass}
+    
+    Execute javascript     document.body.style.zoom="50%"
+    sleep    3s
+
+    Mouse Over          ${Header_setting-select}
+    sleep    3s
+    Click Element       xpath=//a[contains(text(),"Manage Users")]
+    Sleep    7s
+
+    Mouse Over    ${GROUP_SELECT_DROPDOWN}
+    Sleep    2s 
+
+    Capture Page Screenshot    filename=CM-2293_TC_02.1.1.png
+       
+    Element Should Contain    ${GROUP_SELECT_DROPDOWN}    4INFO
+    Element Should Contain    ${GROUP_SELECT_DROPDOWN}    Catalina Self Service
+    Element Should Contain    ${GROUP_SELECT_DROPDOWN}    Undertone
+    [Tags]    CM-2293
+
+
+MANAGE_USERS_CM-2293_TC_02.1.2_Verify the groups are not displayed in selection drop down for which user has not permissions for multiple groups
+    Set Test Variable    ${username}    ${Group1And15_AdminUser}
+    
+    Execute javascript     document.body.style.zoom="50%"
+    sleep    3s
+
+    Mouse Over          ${Header_setting-select}
+    sleep    3s
+    Click Element       xpath=//a[contains(text(),"Manage Users")]
+    Sleep    7s
+
+    Mouse Over    ${GROUP_SELECT_DROPDOWN}
+    Sleep    2s 
+
+    Capture Page Screenshot    filename=CM-2293_TC_02.1.2.png
+       
+    Element Should Not Contain    ${GROUP_SELECT_DROPDOWN}    CATALINA
+    [Tags]    CM-2293
+
+
+MANAGE_USERS_CM-2293_TC_02.2.1_Verify the groups are displayed in Manage User Page for which user has permissions for multiple groups
+    Set Test Variable    ${username}    ${Group1And15_AdminUser}
+    
+    Execute javascript     document.body.style.zoom="50%"
+    sleep    3s
+
+    Mouse Over          ${Header_setting-select}
+    sleep    3s
+    Click Element       xpath=//a[contains(text(),"Manage Users")]
+    Sleep    7s
+
+    Input Text    ${searchUser}    ${username}
+    Sleep    2s
+
+    Click Link    ${username}
+    Sleep    2s
+
+    Focus    ${GroupsList}
+    Page Should Contain Element    ${GroupsList}[@ng-reflect-name='4INFO']    
+    Page Should Contain Element    ${GroupsList}[@ng-reflect-name='Catalina Self Service']     
+    Page Should Contain Element    ${GroupsList}[@ng-reflect-name='Undertone']     
+    
+    Capture Page Screenshot    filename=CM-2293_TC_02.2.1.png
+    [Tags]    CM-2293
+
+
+MANAGE_USERS_CM-2293_TC_02.2.2_Verify the groups are not displayed in Manage User Page for which user has not permissions for multiple groups
+
+    Focus    ${GroupsList}
+    Element Should Not Contain    ${GroupsList}    CATALINA
+    
+    Capture Page Screenshot    filename=CM-2293_TC_02.2.2.png
+    [Tags]    CM-2293
+
+#--------------------------------------------------------------------------------------

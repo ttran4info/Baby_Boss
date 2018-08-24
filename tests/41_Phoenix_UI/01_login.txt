@@ -1,0 +1,344 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags         	PHOENIX    PHOENIX_LOGIN    BATCH22   PHOENIX_1
+#Suite Setup    Run Keywords    Start UI     Adjust Screen Size
+Suite Teardown      Run Keyword     Close All Browsers
+
+
+# Test case PHOENIX_LOGIN_TC_06 needs logic to be implemented to validate
+#     contact 4info click event after that window for email opens
+
+
+*** Variables ***
+${FORGOT_PASSWORD_PAGE_URL}         https://qa-campaigns.4info.com/phoenix/#/forgotPassword
+${INVALID_USERNAME_ERROR_POPUP}     xpath=(.//div[contains(normalize-space(.), 'EMAIL ADDRESS')])[last()]/following::img
+*** Keywords ***
+Login Catalina User
+    [Arguments]    ${username}=${QA_CATALINA_USER}
+    ...            ${password}=${QA_DEFAULT_PASSWORD}
+    ...            ${LOGIN_URL}=https://qa-customer.4info.com/dashboard/#/home
+    Open Browser       ${LOGIN_URL}    ${Browser}
+    Delete All Cookies
+    Maximize Browser Window
+    Sleep    10s
+    Wait Until Element Is Visible    ${LOGIN_NAME_TEXTBOX}    timeout=40s
+    Input Text         ${LOGIN_NAME_TEXTBOX}                ${username}
+    Input Text         ${LOGIN_PASSWORD_TEXTBOX}        ${password}
+    Click Button       ${LOGIN_BUTTON}
+    Sleep    5s
+    Wait Until Page Contains Element    ${Dashboard_AudienceSolutions}    timeout=20s
+    Wait Until Page Contains Element    ${Dashboard_CampaignManager}      timeout=20s
+    Wait Until Page Contains Element    ${Dashboard_Insights&Analytics}   timeout=20s
+
+
+*** Test Cases ***
+PHOENIX_LOGIN_TC_01_UI_Login (Admin_User_Can_Login)
+    [Documentation]    Login as ${QA_DEFAULT_USER},
+    ...                check that advertiser page loaded for this user
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Capture Page Screenshot With Timestamp
+    Close All Browsers
+    [Tags]	     PHOENIX_SANITY
+
+
+PHOENIX_LOGIN_TC_02_UI_Login (Catalina_User_Can_Login)
+    [Documentation]    Login as ${QA_CATALINA_USER},
+    ...                check that advertiser page loaded for this user
+    Login Catalina User
+    Capture Page Screenshot With Timestamp
+    Close All Browsers
+    [Tags]
+
+
+PHOENIX_LOGIN_TC_03_UI_Login (QA_User_Can_Login)
+    [Documentation]    Login as ${QA_QA_USER},
+    ...                check that advertiser page loaded for this user
+    Login To Adhaven UI    username=${QA_QA_USER}    password=${QA_DEFAULT_PASSWORD}
+    Capture Page Screenshot With Timestamp
+    Close All Browsers
+    [Tags]
+
+
+PHOENIX_LOGIN_TC_04_UI_Login (Invalid credential)
+    [Documentation]    Login using invalid credential,
+    ...                check to see a prompt to indicate invalid credential.
+    Set Test Variable    ${username}    Noname
+    Set Test Variable    ${password}    Badpassword
+    Open Browser         ${LOGIN_URL}    ${BROWSER}
+    Maximize Browser Window
+    Sleep    10s
+    Wait Until Page Contains Element    ${LOGIN_NAME_TEXTBOX}        timeout=20s
+    Input Text    ${LOGIN_NAME_TEXTBOX}    ${username}
+    Input Text    ${LOGIN_PASSWORD_TEXTBOX}    ${password}
+    Sleep   1s
+    Click Button       ${LOGIN_BUTTON}
+    Sleep   10s
+    Capture Page Screenshot With Timestamp
+    #Title Should Be     I don't know what to check for
+    Click Element    ${ErrorMessage_LoginPage}
+    Capture Page Screenshot With Timestamp
+    Page Should Contain    Bad client credentials
+    Close All Browsers
+    [Tags]   # Known_Bug    CM-391
+
+
+PHOENIX_LOGIN_TC_05_UI_Login (Lost Password Link)
+    [Documentation]    Click on the Lost password link,
+    ...                should open up another page which help password recovery.
+    Open Browser    ${LOGIN_URL}    ${BROWSER}
+    Maximize Browser Window
+    Sleep   20s
+    Element Should Be Visible    ${LOGIN_FORGOT_PASSWORD_LINK}
+    Click Element    ${LOGIN_FORGOT_PASSWORD_LINK}
+    Sleep 	10s
+    #Capture Page Screenshot With Timestamp
+    #Title Should Be    	I don't know what to check for
+    Element Should Be Visible    ${Password_Reset_Label}            timeout=20s
+    ${PasswordResetLabel}    Get Text    ${Password_Reset_Label}
+    Should Be Equal As Strings    ${PasswordResetLabel}    PASSWORD RESET
+    Capture Page Screenshot With Timestamp
+    Close All Browsers
+    [Tags]  #  Known_Bug    CM-392
+
+
+PHOENIX_LOGIN_TC_06_Login (Contact 4info link)
+    Open Browser    ${LOGIN_URL}    ${BROWSER}
+    Maximize Browser Window
+    Sleep   20s
+    Element Should Be Visible    ${Footer_Link_ContactInfo}         timeout=20s
+    Click Element    ${Footer_Link_ContactInfo}
+    Sleep   10s
+    Capture Page Screenshot With Timestamp
+    # Page Should Contain    Something for validation
+    # Code to validate email window opens after clicking on Contact Info
+    Close All Browsers
+    [Tags]        #Known_Bug	CM-807
+
+
+PHOENIX_LOGIN_TC_07_UI_Login (show password before entering)
+    [Documentation]    Enable show password so that it can be seen
+    ...                 as it is when entered into the text box.
+    Set Test Variable    ${username}    Noname
+    Set Test Variable    ${password}    Badpassword
+    Open Browser       ${LOGIN_URL}    ${BROWSER}
+    Maximize Browser Window
+    Sleep   20s
+    Wait Until Element Is Visible    ${LOGIN_NAME_TEXTBOX}      timeout=20s
+    Select Checkbox    ${LOGIN_SHOW_PASSWORD_CHECKBOX}
+    Input Text    ${LOGIN_PASSWORD_TEXTBOX}    ${password}
+    Input Text    ${LOGIN_NAME_TEXTBOX}    ${username}
+    Capture Page Screenshot With Timestamp
+    Textfield Value Should Be    ${LOGIN_PASSWORD_TEXTBOX}    ${password}
+    Capture Page Screenshot With Timestamp
+    Close All Browsers
+    [Tags]
+
+
+PHOENIX_LOGIN_TC_08_UI_Login (show password after entering)
+    [Documentation]    Enable show password so that it can be seen
+    ...                 as it is when entered into the text box.
+    Set Test Variable    ${username}    Noname
+    Set Test Variable    ${password}    Badpassword
+    Open Browser       ${LOGIN_URL}    ${BROWSER}
+    Maximize Browser Window
+    Sleep   20s
+    Wait Until Element Is Visible    ${LOGIN_NAME_TEXTBOX}          timeout=20s
+    Input Text    ${LOGIN_PASSWORD_TEXTBOX}    ${password}
+    Input Text    ${LOGIN_NAME_TEXTBOX}    ${username}
+    Capture Page Screenshot With Timestamp
+    Select Checkbox    ${LOGIN_SHOW_PASSWORD_CHECKBOX}
+    Textfield Value Should Be    ${LOGIN_PASSWORD_TEXTBOX}    ${password}
+    Close All Browsers
+    [Tags]
+
+
+PHOENIX_LOGIN_TC_09_UI_Login (Click Enter = Login button)
+    [Documentation]    Login by entering username/password follow by enter key
+    ...                 (enter key should be the same as clicking on login)
+    Open Browser       ${LOGIN_URL}    ${BROWSER}
+    Maximize Browser Window
+    Sleep   20s
+    Select Checkbox	${LOGIN_SHOW_PASSWORD_CHECKBOX}
+    Input Text         ${LOGIN_NAME_TEXTBOX}    			${QA_DEFAULT_USER}
+    Input Text         ${LOGIN_PASSWORD_TEXTBOX}   		${QA_DEFAULT_PASSWORD}
+    Press Key			 ${LOGIN_PASSWORD_TEXTBOX}			\\13
+    Sleep			5s
+    Wait Until Page Contains Element		link=Campaigns                timeout=20s
+    Wait Until Page Contains Element		link=Clusters                 timeout=20s
+    Wait Until Page Contains Element		link=Audience Creator         timeout=20s
+    Wait Until Page Contains Element        link=Forecasting              timeout=20s
+    Capture Page Screenshot With Timestamp
+    Close All Browsers
+    [Tags]     # CM-951    Known_bug
+
+#-------------------------------------------------------------------------------------
+PHOENIX_LOGIN_TC_010.1_UI_Login (Logout should redirect to Dashboard login page)
+    [Documentation]    Logout should redirect to Dashboard login page
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Sleep    80s
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    2s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.1_1.png
+    Logout From CM2.0
+    Sleep    60s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.1_2.png
+    Location Should Be    ${DashboardLoginURL}
+    Close All Browsers
+    [Tags]
+
+
+PHOENIX_LOGIN_TC_010.2_UI_Login (Check LoggedInGuard for admin page)
+    [Documentation]    Login to CM2 UI and log out in one browser, in another session,
+    ...                ${Space} try to access direct url for page admin
+    ...                ${Space} It should redirect to Dashboard Login page.
+    Log To Console    ${\n}Login with user ${QA_DEFAULT_USER}
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Sleep    60s
+    Log To Console    100% zoom
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    2s
+
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.2_1.png
+    Logout From CM2.0
+    Sleep    60s
+    Go To    ${admin_PageURL}
+    Sleep    60s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.2_2.png
+    Location Should Be    ${DashboardLoginURL}
+    Close All Browsers
+    [Tags]    qweasd
+
+
+PHOENIX_LOGIN_TC_010.3_UI_Login (Check LoggedInGuard for advertisersList page)
+    [Documentation]    Login to CM2 UI and log out in one browser, in another session,
+    ...                ${Space} try to access direct url for page admin
+    ...                ${Space} It should redirect to Dashboard advertisersList page.
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}      password=${QA_DEFAULT_PASSWORD}
+    Wait Until Page Contains    admin@4info.net             timeout=60s
+    Wait Until Page Contains    WELCOME                     timeout=60s
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    2s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.3_1.png
+    Logout From CM2.0
+    Wait Until Page Contains    SIGN IN                         timeout=25s
+    Wait Until Page Contains    EMAIL                           timeout=25s
+    Wait Until Page Contains    PASSWORD                        timeout=25s
+    Wait Until Page Contains    Forgot password?                timeout=25s
+    Wait Until Page Contains    Sign in                         timeout=25s
+
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.3_2.png
+    Go To    ${advertisersList_PageURL}
+    Sleep    60s
+    Location Should Be          https://qa-campaigns.4info.com/phoenix/#/login
+    Close All Browsers
+    [Tags]
+
+
+PHOENIX_LOGIN_TC_010.4_UI_Login (Check LoggedInGuard for clustersList page)
+    [Documentation]    Login to CM2 UI and log out in one browser, in another session,
+    ...                ${Space} try to access direct url for page admin
+    ...                ${Space} It should redirect to Dashboard clustersList page.
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Sleep    60s
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    2s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.4_1.png
+    Logout From CM2.0
+    Sleep    60s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.4_2.png
+    Go To    ${clustersList_PageURL}
+    Sleep    60s
+    Location Should Be    ${DashboardLoginURL}
+    Close All Browsers
+    [Tags]
+
+
+PHOENIX_LOGIN_TC_010.5_UI_Login (Check LoggedInGuard for audienceList page)
+    [Documentation]    Login to CM2 UI and log out in one browser, in another session,
+    ...                ${Space} try to access direct url for page admin
+    ...                ${Space} It should redirect to Dashboard audienceList page.
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Sleep    60s
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    2s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.5_1.png
+    Logout From CM2.0
+    Sleep    60s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.5_2.png
+    Go To    ${audienceList_PageURL}
+    Sleep    60s
+    Location Should Be    ${DashboardLoginURL}
+    Close All Browsers
+    [Tags]
+
+
+PHOENIX_LOGIN_TC_010.6_UI_Login (Check LoggedInGuard for error page)
+    [Documentation]    Login to CM2 UI and log out in one browser, in another session,
+    ...                ${Space} try to access direct url for page admin
+    ...                ${Space} It should redirect to Dashboard error page.
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Sleep    60s
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    2s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.6_1.png
+    Logout From CM2.0
+    Sleep    60s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.6_2.png
+    Go To    ${error_PageURL}
+    Sleep    60s
+    Location Should Be    ${DashboardLoginURL}
+    Close All Browsers
+    [Tags]
+
+
+PHOENIX_LOGIN_TC_010.7_UI_Login (Check LoggedInGuard for redirectTo page)
+    [Documentation]    Login to CM2 UI and log out in one browser, in another session,
+    ...                ${Space} try to access direct url for page admin
+    ...                ${Space} It should redirect to Dashboard redirectTo page.
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Sleep    60s
+    Execute javascript  document.body.style.zoom="100%"
+    Sleep    2s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.7_1.png
+    Logout From CM2.0
+    Sleep    60s
+    Capture Page Screenshot    filename=PHOENIX_LOGIN_TC_010.7_2.png
+    Go To    ${redirectTo_PageURL}
+    Sleep    60s
+    Location Should Be    ${DashboardLoginURL}
+    Close All Browsers
+    [Tags]
+#-------------------------------------------------------------------------------------
+
+PHOENIX_LOGIN_TC_011.1_Forgot Password (invalid username)
+    Open Browser       ${FORGOT_PASSWORD_PAGE_URL}    ${Browser}
+    Delete All Cookies
+    Maximize Browser Window
+    Wait Until Page Contains    PASSWORD RESET                  timeout=20s
+    Wait Until Page Contains    EMAIL ADDRESS                   timeout=20s
+    Wait Until Page Contains    Set new password                timeout=20s
+    Input Text                  ${LOGIN_NAME_TEXTBOX}           indrajit.narvekar@4info.com
+    Click Button                ${LOGIN_BUTTON}
+    Sleep     5s
+    Mouse Over                  ${INVALID_USERNAME_ERROR_POPUP}
+    Page Should Contain         Bad client credentials
+    Close All Browsers
+    [Tags]
+
+PHOENIX_LOGIN_TC_011.2_Forgot Password (valid username)
+    Open Browser       ${FORGOT_PASSWORD_PAGE_URL}    ${Browser}
+    Delete All Cookies
+    Maximize Browser Window
+    Wait Until Page Contains    PASSWORD RESET                  timeout=20s
+    Wait Until Page Contains    EMAIL ADDRESS                   timeout=20s
+    Wait Until Page Contains    Set new password                timeout=20s
+    Input Text                  ${LOGIN_NAME_TEXTBOX}           inarvekar@4info.com
+    Click Button                ${LOGIN_BUTTON}
+    Sleep    10s
+    Page Should Contain     PASSWORD RESET
+    ${response}         Get Text            xpath=//div[@class="mail-sent"]
+    Log    ${response}
+    Should Match Regexp          ${response}        A password reset email has been sent to i\\*+@4info.com
+    Should Match Regexp          ${response}        Please check your spam folder.
+    Close All Browsers
+    [Tags]

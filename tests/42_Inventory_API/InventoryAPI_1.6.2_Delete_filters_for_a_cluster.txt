@@ -1,0 +1,373 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.6.2		BATCH20	    OffshoreQA
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+
+# https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-1.6.2Deletefiltersforacluster
+# API Name: 1.6.2 Delete filters for a cluster
+# Method: PUT
+# URL: inventory-api/cluster/cluster/{clusterId}/add?username={username}
+# DESC: detele filters will create new cluster history and new filter history
+# rhino.cluster
+# rhino.cluster_placement
+# rhino.groups_cluster
+
+
+*** Variables ***
+# Need to revisit code for Compare API response with Elastic search result.
+
+
+*** Variables ***
+# Need to revisit code for Compare API response with Elastic search result
+# Need to code for db comparison for "hits":
+ ${groupId}			1
+ ${max_filter}		10
+ ${cluster_name}	Regression_cluster_162
+
+*** Keywords ***
+
+*** Test Cases ***
+TC_00 Generate Data
+    [Documentation]		Create Cluster: ${cluster_name} with random filter of size:  ${max_filter}
+    Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+    Generate Filter		max=${max_filter}		#${filters} is generated
+    Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}		valid_filter=${max_filter}
+    [Tags]    
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.6.2_TC_01.1_Remove filters from a cluster(Valid cluster id and valid user details, valid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid data,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Set Test Variable	${filters_content}				"abc.com", "pqr.com"
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${filters}		{"filters":[${filters_content}]}
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}		valid_filter=2
+	Delete filters to a cluster using Inventory API 1.6.2           clusterId=${cluster_id}
+	...                                                             username=${QA_DEFAULT_USER}
+	...                                                             filter=${filters_content}
+    ...                                                             response_code=200
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.6.2_TC_02.1_Remove filters from a cluster(Valid cluster id and invalid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid data,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Set Test Variable	${filters_content}				"abc2.com", "pqr2.com"
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${filters}		{"filters":[${filters_content}]}
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}		valid_filter=2
+	Delete filters to a cluster using Inventory API 1.6.2       clusterId=${cluster_id}
+	...                                                         username=sssss@4info.com
+	...                                                         filter=${filters_content}
+    ...                                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-001"
+	Json Value Should Equal		${body}			/reason_desc			"Username is not found."
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_02.2_Remove filters from a cluster(Valid cluster id and Missing user details, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid cluster id and missing user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/${cluster_id}/delete
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${cluster_id}
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_02.3_Remove filters from a cluster(Valid cluster id and Incomplete uri, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid cluster id and Incomplete uri,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/${cluster_id}/delete?
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${cluster_id}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"600-021"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid username."
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.6.2_TC_03.1_Remove filters from a cluster(Invalid cluster id and valid user details, response: 700-401 invalid cluster id)
+    [Documentation]		Input:          Use Inventory API to delete filters to a invalid cluster with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/454654458/delete?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${cluster_id}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-401"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid cluster id."
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_03.2_Remove filters from a cluster(Missing cluster id and valid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a missing cluster with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster//delete?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${cluster_id}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_03.3_Remove filters from a cluster(null cluster id and valid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a null cluster with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/null/delete?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${cluster_id}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_03.4_Remove filters from a cluster(Invalid characters as a cluster id and valid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a Invalid characters as a cluster id with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/@#$%/delete?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${cluster_id}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_03.5_Remove filters from a cluster(only alphabets as a cluster id and valid user details, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters only alphabets as a cluster id with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/hfjfh/delete?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    400
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'   Should Match Regexp		    ${body}    "success":false
+    Run Keyword If  '${response_code}'=='200'	Json Value Should Equal		${body}    /cluster/id		            ${cluster_id}
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_03.6_Remove filters from a cluster(cluster id contains multiple spaces and valid user details, invalid)
+	#new rule, spaces are removed automatically making this test case valid with correct cluster id
+    [Documentation]		Input:          Use Inventory API to delete filters to cluster id contains multiple spaces with valid user details,
+	...   		        Expected:       API should process successfully and provide response code as 200.
+	Create Session   docker    https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    Set Test Variable 	${uri}		inventory-api/cluster/cluster/5${SPACE}1${SPACE}/delete?username=${QA_DEFAULT_USER}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable		${data}		{"filters": ["abc.com", "xyz.com"]}
+    Log				${data}
+    ${resp}=    RequestsLibrary.PUT Request     docker     ${uri}     data=${data}   headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log    ${body}
+    Set Test Variable   ${response_code}    200
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Json Value Should Equal		${body}    /success						true
+    Json Value Should Equal		${body}    /cluster/id		            51
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.6.2_TC_04.1_Remove filters from a cluster(Valid cluster id, username and missing filter, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid data with missing filter,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Set Test Variable	${filters_content}				"abc.com", "pqr.com"
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${filters}		{"filters":[${filters_content}]}
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}
+
+	Delete filters to a cluster using Inventory API 1.6.2           clusterId=${cluster_id}
+	...                                                             username=${QA_DEFAULT_USER}
+	...                                                             filter=MISSING
+    ...                                                             response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_04.2_Remove filters from a cluster(Valid cluster id, username and empty filter, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid data and blank filter,
+    ...               Expected:       API should not process successfully and provide response code as 400.
+    Set Test Variable    ${filters_content}    "abc.com", "pqr.com"
+    Get Cluster Id    cluster_name=${cluster_name}    #${cluster_id} is generated
+    Set Test Variable    ${filters}    {"filters":[${filters_content}]}
+    Add Filter To Cluster    cluster_id=${cluster_id}    username=${QA_DEFAULT_USER}    data=${filters}
+
+    Delete filters to a cluster using Inventory API 1.6.2       clusterId=${cluster_id}
+    ...                                                         username=${QA_DEFAULT_USER}
+    ...                                                         filter=""
+    ...                                                         response_code=400
+    # response_code is 400 hence get reason code and reason description
+    Json Value Should Equal    ${body}    /reason_code    "700-405"
+    Json Value Should Equal    ${body}    	/reason_desc			"Empty filter list."
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_04.3_Remove filters from a cluster(Valid cluster id, username and null filter, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid data and null filter,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Set Test Variable	${filters_content}				"abc.com", "pqr.com"
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${filters}		{"filters":[${filters_content}]}
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}
+
+	Delete filters to a cluster using Inventory API 1.6.2        clusterId=${cluster_id}
+	...                                                 username=${QA_DEFAULT_USER}
+	...                                                 filter=null
+    ...                                                 response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-405"
+	Json Value Should Equal		${body}			/reason_desc			"Empty filter list."
+    [Tags]     
+
+
+InventoryAPI_1.6.2_TC_04.4_Remove filters from a cluster(Valid cluster id, username and blank filter, invalid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid data and null filter,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Set Test Variable	${filters_content}				"abc.com", "pqr.com"
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${filters}		{"filters":[${filters_content}]}
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}
+
+	Delete filters to a cluster using Inventory API 1.6.2        clusterId=${cluster_id}
+	...                                                 username=${QA_DEFAULT_USER}
+	...                                                 filter=""
+    ...                                                 response_code=400
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-405"
+	Json Value Should Equal		${body}			/reason_desc			"Empty filter list."
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_04.5_Remove filters from a cluster(Valid cluster id, username and filter contain invalid characters, valid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid data and filter contain invalid characters,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Set Test Variable	${filters_content}				"abc.com", "pqr.com"
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${filters}		{"filters":[${filters_content}]}
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}
+
+	Delete filters to a cluster using Inventory API 1.6.2        clusterId=${cluster_id}
+	...                                                 username=${QA_DEFAULT_USER}
+	...                                                 filter="!@#"
+    ...                                                 response_code=200
+    # response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"400-001"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+	#There's no limit or restriction on the filter right now
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_04.6_Remove filters from a cluster(Valid cluster id, username and filter contain invalid numbers, valid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid data and filter contain invalid numbers,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Set Test Variable	${filters_content}				"abc.com", "pqr.com"
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${filters}		{"filters":[${filters_content}]}
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}
+
+	Delete filters to a cluster using Inventory API 1.6.2        clusterId=${cluster_id}
+	...                                                 username=${QA_DEFAULT_USER}
+	...                                                 filter="123", "345"
+    ...                                                 response_code=200
+    # response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"400-001"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+	#There's no limit or restriction on the filter right now
+    [Tags]
+
+
+InventoryAPI_1.6.2_TC_04.7_Remove filters from a cluster(Valid cluster id, username and filter contain two spaces, valid)
+    [Documentation]		Input:          Use Inventory API to delete filters to a cluster with valid data and filter contain Two spaces,
+	...   		        Expected:       API should not process successfully and provide response code as 400.
+	Set Test Variable	${filters_content}				"abc.com", "pqr.com"
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable	${filters}		{"filters":[${filters_content}]}
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}
+
+	Delete filters to a cluster using Inventory API 1.6.2        clusterId=${cluster_id}
+	...                                                 username=${QA_DEFAULT_USER}
+	...                                                 filter="SDF \ 8900"
+    ...                                                 response_code=200
+    # response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"400-001"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+	#There's no limit or restriction on the filter right now
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------------------------

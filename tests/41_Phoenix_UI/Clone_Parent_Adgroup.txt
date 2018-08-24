@@ -1,0 +1,467 @@
+*** Settings ***
+Resource          phoenix_ui_imports.txt
+Library           OperatingSystem
+Force Tags        PHOENIX     Phoenix_CloneParent      BATCH22    PHOENIX_1
+Suite Setup       Run Keyword    Clean Up Advertiser Parent Clone
+# Suite Teardown    Run Keywords    Close All Browsers    Clean Up Advertiser Parent Clone
+
+
+# 1.  Clone for same campaign with 15 childs with 1 ad each child
+# 2.  Clone for different campaign with 15 childs with 1 ad each child
+# 3.  Clone for same campaign with 15 child with targeting 10 device segment for each child
+# 4.  Clone for same campaign with 15 child with targeting 10 HH segment for each child
+# 6.  Clone for different campaign with 15 child with targeting 10 device segment for each child
+# 7.  Clone for different campaign with 15 child with targeting 10 HH segment for each child
+# 8.  Clone for same campaign with 15 child with deal ids for each child
+# 9.  Clone for different campaign with 15 child with deal ids for each child
+# 8.  Clone for same campaign with 15 child with zip codes for each child
+# 9.  Clone for different campaign with 15 child with zip codes for each child
+
+
+*** Variables ***
+${QA_TEST_ADVERTISER}           00_QATEST_advertiser_parent_clone
+${CAMPAIGN_NAME_UI_01}          00_QATEST_campaign_01
+${CAMPAIGN_NAME_UI_02}          00_QATEST_campaign_02
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${CHILD_ADGROUP}                adGroup
+${parent_name}                  00_QATEST_parent
+${QA_TEST_ADVERTISER_01}          ${QA_TEST_ADVERTISER}_01
+${QA_TEST_ADVERTISER_02}          ${QA_TEST_ADVERTISER}_02
+${parent_1ChildWithAd}                  ${parent_name}_1ChildWithAd
+${parent_15ChildsWithAd}               ${parent_name}_15ChildsWithAd
+${parent_15ChildsWithHHSegments}       ${parent_name}_15ChildsWithHHSegments
+${parent_15ChildsWithDeviceSegments}    ${parent_name}_15ChildsWithDeviceSegments
+
+${child_name}                   00_QATEST_child
+${START_DATE}                   12/07/2018
+${END_DATE_TIME_CAMPAIGN}       12/07/2019
+${START_DATE_TIME_PARENT}       12/12/2018
+${END_DATE_TIME_PARENT}         12/01/2019
+${DOMAIN_ERROR_ICON_MSG}        Required to enter a top level domain such as "example.com")
+${inpSearchInputXpath}          xpath=.//input[@id='inpSearchInput']
+${startdatetimeXpath}           xpath=.//input[@name='startDate']/option[@value='today']
+
+${CloneInitiationMessage}           xpath=//div[@id='informationDialog']//h1
+${CloneMessagePopUp_OkButton}       xpath=//div[@id='informationDialog']//div//div//div//button[text()='Ok']
+${Label_CampaignSummary}            xpath=//h1[contains(.,'CAMPAIGN SUMMARY')]
+${CAMPAIGN_SUMMERY_PAGE}            https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+
+
+*** Keywords ***
+Clean Up Advertiser Parent Clone
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER_01}
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER_02}
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI_01}%
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI_02}%
+
+Get Today's Date
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC + 20 minutes
+    Set Suite Variable    ${todaysDate}   ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+    Set Suite Variable       ${START_DATE}      ${todaysDate}
+    Log To Console          ${todaysDate}
+    ${yyyy}    ${mm}    ${dd}    ${hours}    ${minutes}=    Get Time    year,month,day,hours,minutes    UTC + 1 day
+    Set Suite Variable    ${ParentStartDate}   ${mm}/${dd}/${yyyy} ${hours}:${minutes}
+    Log    ${ParentStartDate}
+    Set Suite Variable    ${START_DATE_PARENT}   ${mm}/${dd}/${yyyy}
+    Log    ${START_DATE_PARENT}
+    Set Suite Variable    ${START_DATETIME_PARENT}   ${hours}
+    Log    ${START_DATETIME_PARENT}
+
+
+Generate Pre-requisite data for Clone Parent Adgroup
+    Log To Console    Create pre-requisite parent adgroup with one child without any advertise.
+    Comment    Create pre-requisite parent adgroup with one child without any advertise.
+
+    #----------------------------------------------------------------------------------------------
+    Get Today's Date
+
+    Create Advertiser    uri=/pac-api/partner/advertiser
+    ...                  data={"name": "${QA_TEST_ADVERTISER_01}"}
+    Sleep    10s
+    Create Advertiser    uri=/pac-api/partner/advertiser
+    ...                  data={"name": "${QA_TEST_ADVERTISER_02}"}
+    Sleep    10s
+    #----------------------------------------------------------------------------------------------
+    Log To Console    Create first campaign
+    Comment    Create first campaign
+    Create New Campaign via API     campaign_name=${CAMPAIGN_NAME_UI_01}
+    ...                             campaign_advertiser_id=${advertiser_id}
+    ...                             campaign_status=1
+    ...                             campaign_start_date_time=${START_DATE}
+    ...                             campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${Campaign01}    Get JSON Value    ${body}    /campaign/id
+    Set Suite Variable    ${CampaignID_01}    ${Campaign01}
+
+    Log To Console    Create second campaign
+    Comment    Create second campaign
+    Create New Campaign via API     campaign_name=${CAMPAIGN_NAME_UI_02}
+    ...                             campaign_advertiser_id=${advertiser_id}
+    ...                             campaign_status=1
+    ...                             campaign_start_date_time=${START_DATE}
+    ...                             campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${Campaign02}    Get JSON Value    ${body}    /campaign/id
+    Set Suite Variable    ${CampaignID_02}    ${Campaign02}
+#----------------------------------------------------------------------------------------------
+
+
+Create parent adgroup with one child adgroup without any ad
+    Comment    Create parent adgroup with one child adgroup without any ad
+    Create Parent Adgroup via API    parent_name=${parent_1ChildWithAd}
+    ...                              parent_status=1
+    ...                              parent_campaign_id=${CampaignID_01}
+    ...                              parent_start_date_time=${ParentStartDate}
+    ...                              parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    Log    Advertiser_id=${advertiser_id}
+    Log    Campaign_id=${CampaignID_01}
+    ${Parent_id}=       Get JSON Value      ${body}       /parent/id
+    Set Suite Variable    ${parent_id_1ChildWithAd}          ${Parent_id}
+    Log    parent_id=${parent_id_1ChildWithAd}
+    Set Suite Variable    ${CloneParentAdgroup_Button}    xpath=.//span[contains(.,'${parent_1ChildWithAd}')]//parent::a//parent::td//following-sibling::td//div//button[@mdtooltip='Clone parent ad group']
+    Create Child Adgroup via API        child_name=PAC_regression_child_182_011
+    ...                                 child_parent_campaign_id=${parent_id_1ChildWithAd}
+    ...                                 child_start_date_time=${ParentStartDate}
+    ...                                 child_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ...                                 response_code=200
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+
+    #----------------------------------------------------------------------------------------------
+
+Create parent adgroup with 15 childs with one ad each child
+    Comment    Create parent adgroup with 15 childs with one ad each child.
+    Create Parent Adgroup via API       parent_name=${parent_15ChildsWithAd}
+    ...                                 parent_campaign_id=${CampaignID_01}
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 response_code=200
+    ${parent_id}        Get JSON Value          ${body}     /parent/id
+    Set Suite Variable      ${parent_id_15ChildsWithAd}       ${parent_id}
+    Set Suite Variable      ${body1}       ${body}
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 2 day
+    Set Test Variable   ${start_date}           ${mm}/${dd}/${yyyy} 04:30
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 10 day
+    Set Test Variable   ${end_date}           ${mm}/${dd}/${yyyy} 04:30
+    Log To Console      Creating Childs
+    : FOR    ${INDEX}    IN RANGE    1    16
+    \    Log To Console   Creating Child_ad and Creative ${INDEX}
+    \    Comment   Creating Child_ad and Creative ${INDEX}
+    \    Create Child Adgroup via API    child_name=PAC_regression_child_1610_CloneParent_${INDEX}_TC    child_parent_campaign_id=${parent_id_15ChildsWithAd}     child_start_date_time=${start_date}    child_end_date_time=${end_date}
+    \    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    \    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+    \    Generate JSON For Creative Native           campaign_id=${CampaignID_01}     adName="NATIVE_AD_CONE_NATIVE_01_${INDEX}"
+    \    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    \    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    \    Create ad for Native                        adName="NATIVE_AD_CONE_NATIVE_${INDEX}"      adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+#----------------------------------------------------------------------------------------------
+
+
+Create parent adgroup with large Household segments targeting for parent adgroup with 15 childs
+    Comment    Create parent adgroup with targeting 10 Household segments for parent adgroup with 15 childs
+    Set Test Variable     ${parent_householdSegments}    {"group":[{"id":4416,"score":-1,"exclude":false},{"id":4295,"score":-1,"exclude":false},{"id":4417,"score":-1,"exclude":false},{"id":4296,"score":-1,"exclude":false},{"id":4418,"score":-1,"exclude":false},{"id":4419,"score":-1,"exclude":false},{"id":4297,"score":-1,"exclude":false},{"id":4420,"score":-1,"exclude":false},{"id":4298,"score":-1,"exclude":false},{"id":4299,"score":-1,"exclude":false},{"id":4300,"score":-1,"exclude":false},{"id":4301,"score":-1,"exclude":false},{"id":4369,"score":-1,"exclude":false},{"id":3032,"score":-1,"exclude":false},{"id":3815,"score":-1,"exclude":false},{"id":3804,"score":-1,"exclude":false},{"id":4076,"score":-1,"exclude":false},{"id":4382,"score":-1,"exclude":false},{"id":3387,"score":-1,"exclude":false},{"id":3303,"score":-1,"exclude":false},{"id":3381,"score":-1,"exclude":false},{"id":3375,"score":-1,"exclude":false},{"id":3374,"score":-1,"exclude":false},{"id":3794,"score":-1,"exclude":false},{"id":3913,"score":-1,"exclude":false},{"id":3415,"score":-1,"exclude":false},{"id":4271,"score":-1,"exclude":false},{"id":3583,"score":-1,"exclude":false},{"id":4080,"score":-1,"exclude":false},{"id":3806,"score":-1,"exclude":false},{"id":3816,"score":-1,"exclude":false},{"id":3378,"score":-1,"exclude":false},{"id":3657,"score":-1,"exclude":false},{"id":3844,"score":-1,"exclude":false},{"id":3478,"score":-1,"exclude":false},{"id":4140,"score":-1,"exclude":false},{"id":4081,"score":-1,"exclude":false},{"id":3379,"score":-1,"exclude":false},{"id":3515,"score":-1,"exclude":false},{"id":3513,"score":-1,"exclude":false},{"id":3514,"score":-1,"exclude":false},{"id":3380,"score":-1,"exclude":false},{"id":3376,"score":-1,"exclude":false},{"id":3377,"score":-1,"exclude":false},{"id":3916,"score":-1,"exclude":false},{"id":3444,"score":-1,"exclude":false},{"id":3664,"score":-1,"exclude":false},{"id":3592,"score":-1,"exclude":false},{"id":3590,"score":-1,"exclude":false},{"id":3591,"score":-1,"exclude":false},{"id":4139,"score":-1,"exclude":false},{"id":4216,"score":-1,"exclude":false},{"id":4152,"score":-1,"exclude":false},{"id":4149,"score":-1,"exclude":false},{"id":4393,"score":-1,"exclude":false},{"id":4392,"score":-1,"exclude":false},{"id":3761,"score":-1,"exclude":false},{"id":4427,"score":-1,"exclude":false},{"id":3769,"score":-1,"exclude":false},{"id":3771,"score":-1,"exclude":false},{"id":3770,"score":-1,"exclude":false},{"id":3951,"score":-1,"exclude":false},{"id":4384,"score":-1,"exclude":false},{"id":3760,"score":-1,"exclude":false},{"id":3759,"score":-1,"exclude":false},{"id":4145,"score":-1,"exclude":false},{"id":4077,"score":-1,"exclude":false},{"id":4079,"score":-1,"exclude":false},{"id":4078,"score":-1,"exclude":false},{"id":4123,"score":-1,"exclude":false},{"id":4154,"score":-1,"exclude":false},{"id":4442,"score":-1,"exclude":false},{"id":4119,"score":-1,"exclude":false},{"id":4429,"score":-1,"exclude":false},{"id":4425,"score":-1,"exclude":false},{"id":4390,"score":-1,"exclude":false},{"id":3252,"score":-1,"exclude":false},{"id":3340,"score":-1,"exclude":false},{"id":3360,"score":-1,"exclude":false},{"id":3341,"score":-1,"exclude":false},{"id":628,"score":-1,"exclude":false},{"id":972,"score":-1,"exclude":false},{"id":1204,"score":-1,"exclude":false},{"id":3829,"score":-1,"exclude":false},{"id":3830,"score":-1,"exclude":false},{"id":3831,"score":-1,"exclude":false},{"id":3361,"score":-1,"exclude":false},{"id":3342,"score":-1,"exclude":false},{"id":3343,"score":-1,"exclude":false},{"id":3419,"score":-1,"exclude":false},{"id":3416,"score":-1,"exclude":false},{"id":3420,"score":-1,"exclude":false},{"id":3417,"score":-1,"exclude":false},{"id":3421,"score":-1,"exclude":false},{"id":3418,"score":-1,"exclude":false},{"id":3880,"score":-1,"exclude":false},{"id":3881,"score":-1,"exclude":false},{"id":3882,"score":-1,"exclude":false},{"id":3883,"score":-1,"exclude":false},{"id":3884,"score":-1,"exclude":false},{"id":4010,"score":-1,"exclude":false},{"id":3293,"score":-1,"exclude":false},{"id":3294,"score":-1,"exclude":false},{"id":3530,"score":-1,"exclude":false},{"id":3531,"score":-1,"exclude":false},{"id":3532,"score":-1,"exclude":false},{"id":3715,"score":-1,"exclude":false},{"id":3645,"score":-1,"exclude":false},{"id":3886,"score":-1,"exclude":false},{"id":3773,"score":-1,"exclude":false},{"id":3314,"score":-1,"exclude":false},{"id":3468,"score":-1,"exclude":false},{"id":3535,"score":-1,"exclude":false},{"id":3469,"score":-1,"exclude":false},{"id":3245,"score":-1,"exclude":false},{"id":4171,"score":-1,"exclude":false},{"id":4174,"score":-1,"exclude":false},{"id":4175,"score":-1,"exclude":false},{"id":4176,"score":-1,"exclude":false},{"id":4182,"score":-1,"exclude":false},{"id":4177,"score":-1,"exclude":false},{"id":4198,"score":-1,"exclude":false},{"id":4199,"score":-1,"exclude":false},{"id":4200,"score":-1,"exclude":false},{"id":4201,"score":-1,"exclude":false},{"id":3241,"score":-1,"exclude":false},{"id":3952,"score":-1,"exclude":false},{"id":3958,"score":-1,"exclude":false},{"id":3959,"score":-1,"exclude":false},{"id":3965,"score":-1,"exclude":false},{"id":3968,"score":-1,"exclude":false},{"id":3955,"score":-1,"exclude":false},{"id":3990,"score":-1,"exclude":false},{"id":3989,"score":-1,"exclude":false},{"id":3567,"score":-1,"exclude":false},{"id":3569,"score":-1,"exclude":false},{"id":3571,"score":-1,"exclude":false},{"id":3573,"score":-1,"exclude":false},{"id":3575,"score":-1,"exclude":false},{"id":3577,"score":-1,"exclude":false},{"id":3579,"score":-1,"exclude":false},{"id":3581,"score":-1,"exclude":false},{"id":3568,"score":-1,"exclude":false},{"id":3570,"score":-1,"exclude":false},{"id":3572,"score":-1,"exclude":false},{"id":3574,"score":-1,"exclude":false},{"id":3576,"score":-1,"exclude":false},{"id":3578,"score":-1,"exclude":false},{"id":3580,"score":-1,"exclude":false},{"id":3582,"score":-1,"exclude":false},{"id":3728,"score":-1,"exclude":false},{"id":3729,"score":-1,"exclude":false},{"id":3730,"score":-1,"exclude":false},{"id":3731,"score":-1,"exclude":false},{"id":3732,"score":-1,"exclude":false},{"id":3733,"score":-1,"exclude":false},{"id":3734,"score":-1,"exclude":false},{"id":3735,"score":-1,"exclude":false},{"id":3736,"score":-1,"exclude":false},{"id":3737,"score":-1,"exclude":false},{"id":3738,"score":-1,"exclude":false},{"id":3739,"score":-1,"exclude":false},{"id":3740,"score":-1,"exclude":false},{"id":3741,"score":-1,"exclude":false},{"id":3742,"score":-1,"exclude":false},{"id":3743,"score":-1,"exclude":false},{"id":4038,"score":-1,"exclude":false},{"id":4019,"score":-1,"exclude":false},{"id":4020,"score":-1,"exclude":false},{"id":4022,"score":-1,"exclude":false},{"id":4023,"score":-1,"exclude":false},{"id":4028,"score":-1,"exclude":false},{"id":3200,"score":-1,"exclude":false},{"id":2352,"score":-1,"exclude":false},{"id":2077,"score":-1,"exclude":false},{"id":2080,"score":-1,"exclude":false},{"id":3174,"score":-1,"exclude":false},{"id":3192,"score":-1,"exclude":false},{"id":3177,"score":-1,"exclude":false},{"id":3195,"score":-1,"exclude":false},{"id":2509,"score":-1,"exclude":false},{"id":2511,"score":-1,"exclude":false},{"id":2518,"score":-1,"exclude":false},{"id":1826,"score":-1,"exclude":false},{"id":3190,"score":-1,"exclude":false},{"id":3180,"score":-1,"exclude":false},{"id":3853,"score":-1,"exclude":false},{"id":3852,"score":-1,"exclude":false},{"id":3851,"score":-1,"exclude":false},{"id":3928,"score":-1,"exclude":false},{"id":3932,"score":-1,"exclude":false},{"id":3926,"score":-1,"exclude":false},{"id":3927,"score":-1,"exclude":false},{"id":3930,"score":-1,"exclude":false},{"id":3936,"score":-1,"exclude":false},{"id":3923,"score":-1,"exclude":false},{"id":3924,"score":-1,"exclude":false},{"id":3885,"score":-1,"exclude":false},{"id":3833,"score":-1,"exclude":false},{"id":4064,"score":-1,"exclude":false},{"id":3153,"score":-1,"exclude":false},{"id":3204,"score":-1,"exclude":false},{"id":3154,"score":-1,"exclude":false},{"id":3207,"score":-1,"exclude":false},{"id":3998,"score":-1,"exclude":false},{"id":4001,"score":-1,"exclude":false},{"id":3953,"score":-1,"exclude":false},{"id":4003,"score":-1,"exclude":false},{"id":3967,"score":-1,"exclude":false},{"id":4002,"score":-1,"exclude":false},{"id":3997,"score":-1,"exclude":false},{"id":3999,"score":-1,"exclude":false},{"id":4000,"score":-1,"exclude":false},{"id":3995,"score":-1,"exclude":false},{"id":3963,"score":-1,"exclude":false},{"id":3996,"score":-1,"exclude":false},{"id":3892,"score":-1,"exclude":false},{"id":3891,"score":-1,"exclude":false},{"id":3893,"score":-1,"exclude":false},{"id":3897,"score":-1,"exclude":false},{"id":3898,"score":-1,"exclude":false},{"id":3899,"score":-1,"exclude":false},{"id":3888,"score":-1,"exclude":false},{"id":3895,"score":-1,"exclude":false},{"id":3889,"score":-1,"exclude":false},{"id":3466,"score":-1,"exclude":false},{"id":3456,"score":-1,"exclude":false},{"id":3464,"score":-1,"exclude":false},{"id":3460,"score":-1,"exclude":false},{"id":3465,"score":-1,"exclude":false},{"id":3459,"score":-1,"exclude":false},{"id":3458,"score":-1,"exclude":false},{"id":3463,"score":-1,"exclude":false},{"id":3462,"score":-1,"exclude":false},{"id":3457,"score":-1,"exclude":false},{"id":3461,"score":-1,"exclude":false},{"id":3315,"score":-1,"exclude":false},{"id":3321,"score":-1,"exclude":false},{"id":3329,"score":-1,"exclude":false},{"id":3328,"score":-1,"exclude":false},{"id":4012,"score":-1,"exclude":false},{"id":4021,"score":-1,"exclude":false},{"id":4024,"score":-1,"exclude":false},{"id":4026,"score":-1,"exclude":false},{"id":4029,"score":-1,"exclude":false},{"id":4037,"score":-1,"exclude":false},{"id":4042,"score":-1,"exclude":false},{"id":4050,"score":-1,"exclude":false},{"id":4013,"score":-1,"exclude":false},{"id":4055,"score":-1,"exclude":false},{"id":4057,"score":-1,"exclude":false},{"id":4058,"score":-1,"exclude":false},{"id":4059,"score":-1,"exclude":false},{"id":4060,"score":-1,"exclude":false},{"id":4061,"score":-1,"exclude":false},{"id":4062,"score":-1,"exclude":false},{"id":4014,"score":-1,"exclude":false},{"id":4025,"score":-1,"exclude":false},{"id":4030,"score":-1,"exclude":false},{"id":4041,"score":-1,"exclude":false},{"id":4052,"score":-1,"exclude":false},{"id":4053,"score":-1,"exclude":false},{"id":4054,"score":-1,"exclude":false},{"id":4056,"score":-1,"exclude":false},{"id":4015,"score":-1,"exclude":false},{"id":4033,"score":-1,"exclude":false},{"id":4036,"score":-1,"exclude":false},{"id":4040,"score":-1,"exclude":false},{"id":4043,"score":-1,"exclude":false},{"id":4046,"score":-1,"exclude":false},{"id":4049,"score":-1,"exclude":false},{"id":4051,"score":-1,"exclude":false},{"id":4016,"score":-1,"exclude":false},{"id":4032,"score":-1,"exclude":false},{"id":4035,"score":-1,"exclude":false},{"id":4039,"score":-1,"exclude":false},{"id":4044,"score":-1,"exclude":false},{"id":4045,"score":-1,"exclude":false},{"id":4047,"score":-1,"exclude":false},{"id":4017,"score":-1,"exclude":false},{"id":4027,"score":-1,"exclude":false},{"id":4031,"score":-1,"exclude":false},{"id":4034,"score":-1,"exclude":false},{"id":4048,"score":-1,"exclude":false},{"id":4070,"score":-1,"exclude":false},{"id":4066,"score":-1,"exclude":false},{"id":4074,"score":-1,"exclude":false},{"id":4068,"score":-1,"exclude":false},{"id":4071,"score":-1,"exclude":false},{"id":4072,"score":-1,"exclude":false},{"id":4069,"score":-1,"exclude":false},{"id":4018,"score":-1,"exclude":false},{"id":4073,"score":-1,"exclude":false},{"id":4067,"score":-1,"exclude":false},{"id":4075,"score":-1,"exclude":false},{"id":3929,"score":-1,"exclude":false},{"id":3933,"score":-1,"exclude":false},{"id":3939,"score":-1,"exclude":false},{"id":3934,"score":-1,"exclude":false},{"id":3925,"score":-1,"exclude":false},{"id":3931,"score":-1,"exclude":false},{"id":3941,"score":-1,"exclude":false},{"id":3940,"score":-1,"exclude":false},{"id":3938,"score":-1,"exclude":false},{"id":3937,"score":-1,"exclude":false},{"id":3935,"score":-1,"exclude":false},{"id":3772,"score":-1,"exclude":false},{"id":3956,"score":-1,"exclude":false},{"id":3970,"score":-1,"exclude":false},{"id":3971,"score":-1,"exclude":false},{"id":3957,"score":-1,"exclude":false},{"id":3969,"score":-1,"exclude":false},{"id":3962,"score":-1,"exclude":false},{"id":3960,"score":-1,"exclude":false},{"id":3961,"score":-1,"exclude":false},{"id":3954,"score":-1,"exclude":false},{"id":3966,"score":-1,"exclude":false},{"id":3964,"score":-1,"exclude":false},{"id":3508,"score":-1,"exclude":false},{"id":3763,"score":-1,"exclude":false},{"id":3764,"score":-1,"exclude":false},{"id":3765,"score":-1,"exclude":false},{"id":3766,"score":-1,"exclude":false},{"id":3767,"score":-1,"exclude":false},{"id":3768,"score":-1,"exclude":false},{"id":3775,"score":-1,"exclude":false},{"id":3662,"score":-1,"exclude":false},{"id":3643,"score":-1,"exclude":false},{"id":3663,"score":-1,"exclude":false},{"id":3644,"score":-1,"exclude":false},{"id":3594,"score":-1,"exclude":false},{"id":3595,"score":-1,"exclude":false},{"id":3596,"score":-1,"exclude":false},{"id":3660,"score":-1,"exclude":false},{"id":3661,"score":-1,"exclude":false},{"id":3609,"score":-1,"exclude":false},{"id":3441,"score":-1,"exclude":false},{"id":3442,"score":-1,"exclude":false},{"id":3443,"score":-1,"exclude":false},{"id":3707,"score":-1,"exclude":false},{"id":3708,"score":-1,"exclude":false},{"id":3709,"score":-1,"exclude":false},{"id":3345,"score":-1,"exclude":false},{"id":3346,"score":-1,"exclude":false},{"id":3347,"score":-1,"exclude":false},{"id":3348,"score":-1,"exclude":false},{"id":3349,"score":-1,"exclude":false},{"id":3350,"score":-1,"exclude":false},{"id":3358,"score":-1,"exclude":false},{"id":3351,"score":-1,"exclude":false},{"id":3839,"score":-1,"exclude":false},{"id":3840,"score":-1,"exclude":false},{"id":3841,"score":-1,"exclude":false},{"id":3842,"score":-1,"exclude":false},{"id":3422,"score":-1,"exclude":false},{"id":3426,"score":-1,"exclude":false},{"id":3423,"score":-1,"exclude":false},{"id":3424,"score":-1,"exclude":false},{"id":3425,"score":-1,"exclude":false},{"id":3428,"score":-1,"exclude":false},{"id":3894,"score":-1,"exclude":false},{"id":3890,"score":-1,"exclude":false},{"id":3887,"score":-1,"exclude":false},{"id":3988,"score":-1,"exclude":false},{"id":3992,"score":-1,"exclude":false},{"id":3991,"score":-1,"exclude":false},{"id":3993,"score":-1,"exclude":false},{"id":3450,"score":-1,"exclude":false},{"id":3451,"score":-1,"exclude":false},{"id":3452,"score":-1,"exclude":false},{"id":3510,"score":-1,"exclude":false},{"id":3511,"score":-1,"exclude":false},{"id":3512,"score":-1,"exclude":false},{"id":4334,"score":-1,"exclude":false},{"id":4335,"score":-1,"exclude":false},{"id":4340,"score":-1,"exclude":false},{"id":4348,"score":-1,"exclude":false},{"id":4354,"score":-1,"exclude":false},{"id":4355,"score":-1,"exclude":false},{"id":4356,"score":-1,"exclude":false},{"id":4357,"score":-1,"exclude":false},{"id":4359,"score":-1,"exclude":false},{"id":4360,"score":-1,"exclude":false},{"id":4362,"score":-1,"exclude":false},{"id":4363,"score":-1,"exclude":false},{"id":4222,"score":-1,"exclude":false},{"id":4223,"score":-1,"exclude":false},{"id":4224,"score":-1,"exclude":false},{"id":4399,"score":-1,"exclude":false},{"id":4365,"score":-1,"exclude":false},{"id":4415,"score":-1,"exclude":false},{"id":4364,"score":-1,"exclude":false},{"id":3824,"score":-1,"exclude":false},{"id":4141,"score":-1,"exclude":false},{"id":4445,"score":-1,"exclude":false},{"id":4283,"score":-1,"exclude":false},{"id":3240,"score":-1,"exclude":false},{"id":3391,"score":-1,"exclude":false},{"id":3876,"score":-1,"exclude":false},{"id":4142,"score":-1,"exclude":false},{"id":3867,"score":-1,"exclude":false},{"id":4089,"score":-1,"exclude":false},{"id":3843,"score":-1,"exclude":false},{"id":3835,"score":-1,"exclude":false},{"id":4144,"score":-1,"exclude":false},{"id":4282,"score":-1,"exclude":false},{"id":4336,"score":-1,"exclude":false},{"id":4266,"score":-1,"exclude":false},{"id":4147,"score":-1,"exclude":false},{"id":4347,"score":-1,"exclude":false},{"id":3845,"score":-1,"exclude":false},{"id":4436,"score":-1,"exclude":false},{"id":3896,"score":-1,"exclude":false},{"id":4151,"score":-1,"exclude":false},{"id":4339,"score":-1,"exclude":false},{"id":3914,"score":-1,"exclude":false},{"id":3322,"score":-1,"exclude":false},{"id":4212,"score":-1,"exclude":false},{"id":4202,"score":-1,"exclude":false},{"id":4213,"score":-1,"exclude":false},{"id":4203,"score":-1,"exclude":false},{"id":4333,"score":-1,"exclude":false},{"id":4438,"score":-1,"exclude":false},{"id":4437,"score":-1,"exclude":false},{"id":4242,"score":-1,"exclude":false},{"id":3333,"score":-1,"exclude":false},{"id":4435,"score":-1,"exclude":false},{"id":4439,"score":-1,"exclude":false},{"id":3390,"score":-1,"exclude":false},{"id":3392,"score":-1,"exclude":false},{"id":3488,"score":-1,"exclude":false},{"id":3479,"score":-1,"exclude":false},{"id":3138,"score":-1,"exclude":false},{"id":3137,"score":-1,"exclude":false},{"id":3477,"score":-1,"exclude":false},{"id":3475,"score":-1,"exclude":false},{"id":3476,"score":-1,"exclude":false},{"id":1545,"score":-1,"exclude":true},{"id":3429,"score":-1,"exclude":true},{"id":3261,"score":-1,"exclude":true},{"id":3383,"score":-1,"exclude":true},{"id":3264,"score":-1,"exclude":true},{"id":3533,"score":-1,"exclude":true},{"id":3251,"score":-1,"exclude":true},{"id":3217,"score":-1,"exclude":true},{"id":3284,"score":-1,"exclude":true},{"id":3534,"score":-1,"exclude":true},{"id":3320,"score":-1,"exclude":true},{"id":3710,"score":-1,"exclude":true},{"id":3711,"score":-1,"exclude":true},{"id":3800,"score":-1,"exclude":true},{"id":3798,"score":-1,"exclude":true},{"id":3802,"score":-1,"exclude":true},{"id":3796,"score":-1,"exclude":true},{"id":3803,"score":-1,"exclude":true},{"id":3797,"score":-1,"exclude":true},{"id":3801,"score":-1,"exclude":true},{"id":3799,"score":-1,"exclude":true},{"id":3795,"score":-1,"exclude":true},{"id":3744,"score":-1,"exclude":true},{"id":3745,"score":-1,"exclude":true},{"id":3746,"score":-1,"exclude":true},{"id":3747,"score":-1,"exclude":true},{"id":3748,"score":-1,"exclude":true},{"id":3749,"score":-1,"exclude":true},{"id":3597,"score":-1,"exclude":true},{"id":3598,"score":-1,"exclude":true},{"id":3599,"score":-1,"exclude":true},{"id":3600,"score":-1,"exclude":true},{"id":3601,"score":-1,"exclude":true},{"id":3669,"score":-1,"exclude":true},{"id":3670,"score":-1,"exclude":true},{"id":3671,"score":-1,"exclude":true},{"id":3672,"score":-1,"exclude":true},{"id":3673,"score":-1,"exclude":true},{"id":3674,"score":-1,"exclude":true},{"id":3950,"score":-1,"exclude":true},{"id":3675,"score":-1,"exclude":true},{"id":3487,"score":-1,"exclude":true},{"id":3834,"score":-1,"exclude":true},{"id":3915,"score":-1,"exclude":true},{"id":3870,"score":-1,"exclude":true},{"id":3871,"score":-1,"exclude":true},{"id":3872,"score":-1,"exclude":true},{"id":3873,"score":-1,"exclude":true},{"id":3874,"score":-1,"exclude":true},{"id":3875,"score":-1,"exclude":true},{"id":3972,"score":-1,"exclude":true},{"id":3973,"score":-1,"exclude":true},{"id":3974,"score":-1,"exclude":true},{"id":3975,"score":-1,"exclude":true},{"id":3976,"score":-1,"exclude":true},{"id":3977,"score":-1,"exclude":true},{"id":4138,"score":-1,"exclude":true},{"id":4133,"score":-1,"exclude":true},{"id":4134,"score":-1,"exclude":true},{"id":4135,"score":-1,"exclude":true},{"id":4136,"score":-1,"exclude":true},{"id":4137,"score":-1,"exclude":true},{"id":3855,"score":-1,"exclude":true},{"id":3854,"score":-1,"exclude":true},{"id":3856,"score":-1,"exclude":true},{"id":3857,"score":-1,"exclude":true},{"id":3861,"score":-1,"exclude":true},{"id":3862,"score":-1,"exclude":true},{"id":3858,"score":-1,"exclude":true},{"id":3859,"score":-1,"exclude":true},{"id":3860,"score":-1,"exclude":true},{"id":3907,"score":-1,"exclude":true},{"id":3908,"score":-1,"exclude":true},{"id":3909,"score":-1,"exclude":true},{"id":3910,"score":-1,"exclude":true},{"id":3911,"score":-1,"exclude":true},{"id":3912,"score":-1,"exclude":true},{"id":4082,"score":-1,"exclude":true},{"id":4083,"score":-1,"exclude":true},{"id":4084,"score":-1,"exclude":true},{"id":4085,"score":-1,"exclude":true},{"id":4086,"score":-1,"exclude":true},{"id":4087,"score":-1,"exclude":true},{"id":4156,"score":-1,"exclude":true},{"id":4157,"score":-1,"exclude":true},{"id":4158,"score":-1,"exclude":true},{"id":4159,"score":-1,"exclude":true},{"id":4160,"score":-1,"exclude":true},{"id":4155,"score":-1,"exclude":true},{"id":3917,"score":-1,"exclude":true},{"id":3918,"score":-1,"exclude":true},{"id":3919,"score":-1,"exclude":true},{"id":3920,"score":-1,"exclude":true},{"id":3921,"score":-1,"exclude":true},{"id":3922,"score":-1,"exclude":true},{"id":4124,"score":-1,"exclude":true},{"id":4125,"score":-1,"exclude":true},{"id":4126,"score":-1,"exclude":true},{"id":4127,"score":-1,"exclude":true},{"id":4128,"score":-1,"exclude":true},{"id":4129,"score":-1,"exclude":true},{"id":4130,"score":-1,"exclude":true},{"id":4146,"score":-1,"exclude":true},{"id":3942,"score":-1,"exclude":true},{"id":3943,"score":-1,"exclude":true},{"id":3944,"score":-1,"exclude":true},{"id":3945,"score":-1,"exclude":true},{"id":3946,"score":-1,"exclude":true},{"id":3947,"score":-1,"exclude":true},{"id":4100,"score":-1,"exclude":true},{"id":4101,"score":-1,"exclude":true},{"id":4102,"score":-1,"exclude":true},{"id":4103,"score":-1,"exclude":true},{"id":4104,"score":-1,"exclude":true},{"id":4105,"score":-1,"exclude":true},{"id":4117,"score":-1,"exclude":true},{"id":4106,"score":-1,"exclude":true},{"id":4107,"score":-1,"exclude":true},{"id":4108,"score":-1,"exclude":true},{"id":4109,"score":-1,"exclude":true},{"id":4110,"score":-1,"exclude":true},{"id":3810,"score":-1,"exclude":true},{"id":3809,"score":-1,"exclude":true},{"id":3808,"score":-1,"exclude":true},{"id":3811,"score":-1,"exclude":true},{"id":3807,"score":-1,"exclude":true},{"id":3812,"score":-1,"exclude":true},{"id":3978,"score":-1,"exclude":true},{"id":3979,"score":-1,"exclude":true},{"id":3980,"score":-1,"exclude":true},{"id":3981,"score":-1,"exclude":true},{"id":3982,"score":-1,"exclude":true},{"id":3983,"score":-1,"exclude":true},{"id":3984,"score":-1,"exclude":true},{"id":3985,"score":-1,"exclude":true},{"id":3986,"score":-1,"exclude":true},{"id":3987,"score":-1,"exclude":true},{"id":4111,"score":-1,"exclude":true},{"id":4112,"score":-1,"exclude":true},{"id":4113,"score":-1,"exclude":true},{"id":4114,"score":-1,"exclude":true},{"id":4115,"score":-1,"exclude":true},{"id":4116,"score":-1,"exclude":true},{"id":4307,"score":-1,"exclude":true},{"id":4308,"score":-1,"exclude":true},{"id":4248,"score":-1,"exclude":true},{"id":4326,"score":-1,"exclude":true},{"id":4432,"score":-1,"exclude":true},{"id":3481,"score":-1,"exclude":true},{"id":3480,"score":-1,"exclude":true},{"id":3482,"score":-1,"exclude":true},{"id":3483,"score":-1,"exclude":true},{"id":3484,"score":-1,"exclude":true},{"id":3486,"score":-1,"exclude":true},{"id":3485,"score":-1,"exclude":true},{"id":3501,"score":-1,"exclude":true},{"id":3502,"score":-1,"exclude":true},{"id":3750,"score":-1,"exclude":true},{"id":3751,"score":-1,"exclude":true},{"id":3847,"score":-1,"exclude":true},{"id":3850,"score":-1,"exclude":true},{"id":3848,"score":-1,"exclude":true},{"id":3849,"score":-1,"exclude":true},{"id":3846,"score":-1,"exclude":true},{"id":3900,"score":-1,"exclude":true},{"id":3902,"score":-1,"exclude":true},{"id":3901,"score":-1,"exclude":true},{"id":3903,"score":-1,"exclude":true},{"id":4118,"score":-1,"exclude":true},{"id":4120,"score":-1,"exclude":true},{"id":4225,"score":-1,"exclude":true},{"id":4275,"score":-1,"exclude":true},{"id":4332,"score":-1,"exclude":true},{"id":4374,"score":-1,"exclude":true},{"id":4375,"score":-1,"exclude":true},{"id":4376,"score":-1,"exclude":true},{"id":4377,"score":-1,"exclude":true},{"id":3400,"score":-1,"exclude":true},{"id":3395,"score":-1,"exclude":true},{"id":3396,"score":-1,"exclude":true},{"id":3401,"score":-1,"exclude":true},{"id":3399,"score":-1,"exclude":true},{"id":3398,"score":-1,"exclude":true},{"id":3397,"score":-1,"exclude":true},{"id":4274,"score":-1,"exclude":false},{"id":486,"score":-1,"exclude":false},{"id":595,"score":-1,"exclude":false},{"id":4316,"score":0,"exclude":false},{"id":3694,"score":0,"exclude":false},{"id":3758,"score":0,"exclude":false},{"id":3467,"score":0,"exclude":false},{"id":2580,"score":0,"exclude":false},{"id":4302,"score":0,"exclude":false},{"id":4303,"score":0,"exclude":false},{"id":3276,"score":0,"exclude":false},{"id":3277,"score":0,"exclude":false},{"id":3296,"score":0,"exclude":false},{"id":3752,"score":0,"exclude":false},{"id":3297,"score":0,"exclude":false},{"id":3753,"score":0,"exclude":false},{"id":3298,"score":0,"exclude":false},{"id":3754,"score":0,"exclude":false},{"id":3299,"score":0,"exclude":false},{"id":3755,"score":0,"exclude":false},{"id":2428,"score":0,"exclude":false},{"id":3756,"score":0,"exclude":false},{"id":3304,"score":0,"exclude":false},{"id":3757,"score":0,"exclude":false},{"id":3332,"score":0,"exclude":false},{"id":3611,"score":0,"exclude":false},{"id":3652,"score":0,"exclude":false},{"id":3613,"score":0,"exclude":false},{"id":3221,"score":0,"exclude":false},{"id":4011,"score":0,"exclude":false},{"id":4063,"score":0,"exclude":false},{"id":4065,"score":0,"exclude":false},{"id":3219,"score":0,"exclude":false},{"id":3220,"score":0,"exclude":false},{"id":4204,"score":0,"exclude":false},{"id":4205,"score":0,"exclude":false},{"id":4206,"score":0,"exclude":false},{"id":3140,"score":0,"exclude":false},{"id":3139,"score":0,"exclude":false},{"id":3585,"score":0,"exclude":false},{"id":3402,"score":0,"exclude":false},{"id":3403,"score":0,"exclude":false},{"id":3404,"score":0,"exclude":false},{"id":3405,"score":0,"exclude":false},{"id":3406,"score":0,"exclude":false},{"id":4304,"score":0,"exclude":false},{"id":3614,"score":0,"exclude":false},{"id":3615,"score":0,"exclude":false},{"id":3616,"score":0,"exclude":false},{"id":3658,"score":0,"exclude":false},{"id":3618,"score":0,"exclude":false},{"id":3619,"score":0,"exclude":false},{"id":3620,"score":0,"exclude":false},{"id":3659,"score":0,"exclude":false},{"id":3470,"score":0,"exclude":false},{"id":3471,"score":0,"exclude":false},{"id":3507,"score":0,"exclude":false},{"id":3509,"score":0,"exclude":false},{"id":4207,"score":0,"exclude":false},{"id":4208,"score":0,"exclude":false},{"id":3434,"score":0,"exclude":false},{"id":3430,"score":0,"exclude":false},{"id":3216,"score":0,"exclude":false},{"id":3516,"score":0,"exclude":false},{"id":4459,"score":0,"exclude":false},{"id":4447,"score":0,"exclude":false},{"id":3388,"score":0,"exclude":false},{"id":4256,"score":0,"exclude":false},{"id":4276,"score":0,"exclude":false},{"id":4394,"score":0,"exclude":false},{"id":4422,"score":0,"exclude":false},{"id":4395,"score":0,"exclude":false},{"id":4448,"score":0,"exclude":false},{"id":4277,"score":0,"exclude":false},{"id":4409,"score":0,"exclude":false},{"id":4381,"score":0,"exclude":false},{"id":4309,"score":0,"exclude":false},{"id":4378,"score":0,"exclude":false},{"id":4310,"score":0,"exclude":false},{"id":4449,"score":0,"exclude":false},{"id":4396,"score":0,"exclude":false},{"id":4441,"score":0,"exclude":false},{"id":4410,"score":0,"exclude":false},{"id":4305,"score":0,"exclude":false},{"id":4397,"score":0,"exclude":false},{"id":4431,"score":0,"exclude":false},{"id":4387,"score":0,"exclude":false},{"id":4388,"score":0,"exclude":false},{"id":4423,"score":0,"exclude":false},{"id":4278,"score":0,"exclude":false},{"id":4317,"score":0,"exclude":false},{"id":4403,"score":0,"exclude":false},{"id":3334,"score":0,"exclude":false},{"id":3431,"score":0,"exclude":false},{"id":4379,"score":0,"exclude":false},{"id":4450,"score":0,"exclude":false},{"id":4286,"score":0,"exclude":false},{"id":3435,"score":0,"exclude":false},{"id":3436,"score":0,"exclude":false},{"id":3437,"score":0,"exclude":false},{"id":3432,"score":0,"exclude":false},{"id":3472,"score":0,"exclude":false},{"id":3473,"score":0,"exclude":false},{"id":3832,"score":0,"exclude":false},{"id":3453,"score":0,"exclude":false},{"id":3454,"score":0,"exclude":false},{"id":3455,"score":0,"exclude":false},{"id":3223,"score":0,"exclude":false},{"id":3222,"score":0,"exclude":false},{"id":4451,"score":0,"exclude":false},{"id":4404,"score":0,"exclude":false},{"id":3433,"score":0,"exclude":false},{"id":4460,"score":0,"exclude":false},{"id":4322,"score":0,"exclude":false},{"id":4440,"score":0,"exclude":false},{"id":4411,"score":0,"exclude":false},{"id":3445,"score":0,"exclude":false},{"id":4262,"score":0,"exclude":false},{"id":4249,"score":0,"exclude":false},{"id":4383,"score":0,"exclude":false},{"id":4287,"score":0,"exclude":false},{"id":4250,"score":0,"exclude":false},{"id":4325,"score":0,"exclude":false},{"id":4324,"score":0,"exclude":false},{"id":4217,"score":0,"exclude":false},{"id":4268,"score":0,"exclude":false},{"id":4218,"score":0,"exclude":false},{"id":4219,"score":0,"exclude":false},{"id":4398,"score":0,"exclude":false},{"id":3225,"score":0,"exclude":false},{"id":3226,"score":0,"exclude":false},{"id":3227,"score":0,"exclude":false},{"id":3224,"score":0,"exclude":false},{"id":3286,"score":0,"exclude":false},{"id":4327,"score":0,"exclude":false},{"id":4380,"score":0,"exclude":false},{"id":4251,"score":0,"exclude":false},{"id":3248,"score":0,"exclude":false},{"id":3249,"score":0,"exclude":false},{"id":3639,"score":0,"exclude":false},{"id":3640,"score":0,"exclude":false},{"id":3256,"score":0,"exclude":false},{"id":3141,"score":0,"exclude":false},{"id":4288,"score":0,"exclude":false},{"id":4246,"score":0,"exclude":false},{"id":3142,"score":0,"exclude":false},{"id":4389,"score":0,"exclude":false},{"id":3407,"score":0,"exclude":false},{"id":3408,"score":0,"exclude":false},{"id":4289,"score":0,"exclude":false},{"id":4385,"score":0,"exclude":false},{"id":4328,"score":0,"exclude":false},{"id":4329,"score":0,"exclude":false},{"id":3203,"score":0,"exclude":false},{"id":3168,"score":0,"exclude":false},{"id":3169,"score":0,"exclude":false},{"id":3789,"score":0,"exclude":false},{"id":3790,"score":0,"exclude":false},{"id":3791,"score":0,"exclude":false},{"id":3792,"score":0,"exclude":false},{"id":3793,"score":0,"exclude":false},{"id":3257,"score":0,"exclude":false},{"id":3258,"score":0,"exclude":false},{"id":3259,"score":0,"exclude":false},{"id":2689,"score":0,"exclude":false},{"id":3641,"score":0,"exclude":false},{"id":4232,"score":0,"exclude":false},{"id":4461,"score":0,"exclude":false},{"id":4306,"score":0,"exclude":false},{"id":4162,"score":0,"exclude":false},{"id":4237,"score":0,"exclude":false},{"id":4238,"score":0,"exclude":false},{"id":4236,"score":0,"exclude":false},{"id":4209,"score":0,"exclude":false},{"id":4269,"score":0,"exclude":false},{"id":4270,"score":0,"exclude":false},{"id":3712,"score":0,"exclude":false},{"id":2772,"score":0,"exclude":false},{"id":3182,"score":0,"exclude":false},{"id":4443,"score":0,"exclude":false},{"id":4279,"score":0,"exclude":false},{"id":4452,"score":0,"exclude":false},{"id":4163,"score":0,"exclude":false},{"id":4247,"score":0,"exclude":false},{"id":4311,"score":0,"exclude":false},{"id":4412,"score":0,"exclude":false},{"id":4323,"score":0,"exclude":false},{"id":4358,"score":0,"exclude":false},{"id":4280,"score":0,"exclude":false},{"id":4462,"score":0,"exclude":false},{"id":3446,"score":0,"exclude":false},{"id":3491,"score":0,"exclude":false},{"id":3492,"score":0,"exclude":false},{"id":4463,"score":0,"exclude":false},{"id":3447,"score":0,"exclude":false},{"id":4464,"score":0,"exclude":false},{"id":4312,"score":0,"exclude":false},{"id":3260,"score":0,"exclude":false},{"id":3253,"score":0,"exclude":false},{"id":4164,"score":0,"exclude":false},{"id":3389,"score":0,"exclude":false},{"id":4252,"score":0,"exclude":false},{"id":4253,"score":0,"exclude":false},{"id":4254,"score":0,"exclude":false},{"id":4255,"score":0,"exclude":false},{"id":4453,"score":0,"exclude":false},{"id":4424,"score":0,"exclude":false},{"id":4426,"score":0,"exclude":false},{"id":3536,"score":0,"exclude":false},{"id":3537,"score":0,"exclude":false},{"id":4244,"score":0,"exclude":false},{"id":4281,"score":0,"exclude":false},{"id":4290,"score":0,"exclude":false},{"id":3448,"score":0,"exclude":false},{"id":3493,"score":0,"exclude":false},{"id":3494,"score":0,"exclude":false},{"id":4258,"score":0,"exclude":false},{"id":4167,"score":0,"exclude":false},{"id":4168,"score":0,"exclude":false},{"id":4257,"score":0,"exclude":false},{"id":4454,"score":0,"exclude":false},{"id":4458,"score":0,"exclude":false},{"id":4444,"score":0,"exclude":false},{"id":4455,"score":0,"exclude":false},{"id":3183,"score":0,"exclude":false},{"id":3184,"score":0,"exclude":false},{"id":3186,"score":0,"exclude":false},{"id":3517,"score":0,"exclude":false},{"id":4400,"score":0,"exclude":false},{"id":4401,"score":0,"exclude":false},{"id":3449,"score":0,"exclude":false},{"id":3495,"score":0,"exclude":false},{"id":3496,"score":0,"exclude":false},{"id":3528,"score":0,"exclude":false},{"id":3505,"score":0,"exclude":false},{"id":3529,"score":0,"exclude":false},{"id":3506,"score":0,"exclude":false},{"id":4421,"score":0,"exclude":false},{"id":3497,"score":0,"exclude":false},{"id":3498,"score":0,"exclude":false},{"id":3409,"score":0,"exclude":false},{"id":3499,"score":0,"exclude":false},{"id":3500,"score":0,"exclude":false},{"id":4165,"score":0,"exclude":false},{"id":4166,"score":0,"exclude":false},{"id":4361,"score":0,"exclude":false},{"id":4405,"score":0,"exclude":false},{"id":4406,"score":0,"exclude":false},{"id":3127,"score":0,"exclude":false},{"id":3229,"score":0,"exclude":false},{"id":3438,"score":0,"exclude":false},{"id":3439,"score":0,"exclude":false},{"id":3440,"score":0,"exclude":false},{"id":3474,"score":0,"exclude":false},{"id":4414,"score":0,"exclude":false},{"id":3489,"score":0,"exclude":false},{"id":3335,"score":0,"exclude":false},{"id":3784,"score":0,"exclude":false},{"id":3783,"score":0,"exclude":false},{"id":3780,"score":0,"exclude":false},{"id":3782,"score":0,"exclude":false},{"id":3781,"score":0,"exclude":false},{"id":3584,"score":0,"exclude":false},{"id":3588,"score":0,"exclude":false},{"id":3836,"score":0,"exclude":false},{"id":3589,"score":0,"exclude":false},{"id":3838,"score":0,"exclude":false},{"id":3490,"score":0,"exclude":false},{"id":3779,"score":0,"exclude":false},{"id":3778,"score":0,"exclude":false},{"id":3787,"score":0,"exclude":false},{"id":3788,"score":0,"exclude":false},{"id":2975,"score":0,"exclude":false},{"id":4386,"score":0,"exclude":false},{"id":4318,"score":0,"exclude":false},{"id":4313,"score":0,"exclude":false},{"id":3131,"score":0,"exclude":false},{"id":3132,"score":0,"exclude":false},{"id":3230,"score":0,"exclude":false},{"id":3231,"score":0,"exclude":false},{"id":3232,"score":0,"exclude":false},{"id":3538,"score":0,"exclude":false},{"id":3551,"score":0,"exclude":false},{"id":3539,"score":0,"exclude":false},{"id":4210,"score":0,"exclude":false},{"id":4211,"score":0,"exclude":false},{"id":3813,"score":0,"exclude":false},{"id":3814,"score":0,"exclude":false},{"id":3817,"score":0,"exclude":false},{"id":3540,"score":0,"exclude":false},{"id":3541,"score":0,"exclude":false},{"id":4226,"score":0,"exclude":false},{"id":3410,"score":0,"exclude":false},{"id":3411,"score":0,"exclude":false},{"id":3412,"score":0,"exclude":false},{"id":3413,"score":0,"exclude":false},{"id":3312,"score":0,"exclude":false},{"id":3313,"score":0,"exclude":false},{"id":3236,"score":0,"exclude":false},{"id":3133,"score":0,"exclude":false},{"id":4391,"score":0,"exclude":false},{"id":4161,"score":0,"exclude":false},{"id":4227,"score":0,"exclude":false},{"id":4228,"score":0,"exclude":false},{"id":4229,"score":0,"exclude":false},{"id":4230,"score":0,"exclude":false},{"id":4231,"score":0,"exclude":false},{"id":2650,"score":0,"exclude":false},{"id":3339,"score":0,"exclude":false},{"id":3338,"score":0,"exclude":false},{"id":4259,"score":0,"exclude":false},{"id":4260,"score":0,"exclude":false},{"id":4261,"score":0,"exclude":false},{"id":4220,"score":0,"exclude":false},{"id":4214,"score":0,"exclude":false},{"id":4239,"score":0,"exclude":false},{"id":4240,"score":0,"exclude":false},{"id":4428,"score":0,"exclude":false},{"id":4346,"score":0,"exclude":false},{"id":4352,"score":0,"exclude":false},{"id":4456,"score":0,"exclude":false},{"id":4457,"score":0,"exclude":false},{"id":4233,"score":0,"exclude":false},{"id":4430,"score":0,"exclude":false},{"id":3653,"score":0,"exclude":false},{"id":3654,"score":0,"exclude":false},{"id":3655,"score":0,"exclude":false},{"id":3656,"score":0,"exclude":false},{"id":2308,"score":-1,"exclude":false},{"id":2309,"score":-1,"exclude":false},{"id":2315,"score":-1,"exclude":false},{"id":2321,"score":-1,"exclude":false},{"id":2325,"score":-1,"exclude":false},{"id":2331,"score":-1,"exclude":false},{"id":2334,"score":-1,"exclude":false},{"id":2340,"score":-1,"exclude":false},{"id":2343,"score":-1,"exclude":false},{"id":2346,"score":-1,"exclude":false},{"id":2351,"score":-1,"exclude":false},{"id":2354,"score":-1,"exclude":false},{"id":2358,"score":-1,"exclude":false},{"id":2310,"score":-1,"exclude":false},{"id":2316,"score":-1,"exclude":false},{"id":2323,"score":-1,"exclude":false},{"id":2328,"score":-1,"exclude":false},{"id":2332,"score":-1,"exclude":false},{"id":2337,"score":-1,"exclude":false},{"id":2342,"score":-1,"exclude":false},{"id":2344,"score":-1,"exclude":false},{"id":2350,"score":-1,"exclude":false},{"id":2355,"score":-1,"exclude":false},{"id":2357,"score":-1,"exclude":false},{"id":2361,"score":-1,"exclude":false},{"id":2311,"score":-1,"exclude":false},{"id":2314,"score":-1,"exclude":false},{"id":2318,"score":-1,"exclude":false},{"id":2324,"score":-1,"exclude":false},{"id":2327,"score":-1,"exclude":false},{"id":2333,"score":-1,"exclude":false},{"id":2341,"score":-1,"exclude":false},{"id":2345,"score":-1,"exclude":false},{"id":2349,"score":-1,"exclude":false},{"id":2356,"score":-1,"exclude":false},{"id":2360,"score":-1,"exclude":false},{"id":2363,"score":-1,"exclude":false},{"id":2312,"score":-1,"exclude":false},{"id":2317,"score":-1,"exclude":false},{"id":2322,"score":-1,"exclude":false},{"id":2326,"score":-1,"exclude":false},{"id":2330,"score":-1,"exclude":false},{"id":2335,"score":-1,"exclude":false},{"id":2339,"score":-1,"exclude":false},{"id":2348,"score":-1,"exclude":false},{"id":2359,"score":-1,"exclude":false},{"id":2364,"score":-1,"exclude":false},{"id":2370,"score":-1,"exclude":false},{"id":2371,"score":-1,"exclude":false},{"id":2313,"score":-1,"exclude":false},{"id":2320,"score":-1,"exclude":false},{"id":2329,"score":-1,"exclude":false},{"id":2336,"score":-1,"exclude":false},{"id":2338,"score":-1,"exclude":false},{"id":2347,"score":-1,"exclude":false},{"id":2353,"score":-1,"exclude":false},{"id":2362,"score":-1,"exclude":false},{"id":2367,"score":-1,"exclude":false}]}
+    Create Parent Adgroup via API       parent_name=${parent_15ChildsWithHHSegments}
+    ...                                 parent_campaign_id=${CampaignID_01}
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 parent_targeting_hh_segment=${parent_householdSegments}
+    ...                                 response_code=200
+    ${parent_id}        Get JSON Value          ${body}     /parent/id
+    Set Suite Variable      ${parent_id_15ChildsWithHHSegments}       ${parent_id}
+    Set Suite Variable      ${body1}       ${body}
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 2 day
+    Set Test Variable   ${start_date}           ${mm}/${dd}/${yyyy} 04:30
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 10 day
+    Set Test Variable   ${end_date}           ${mm}/${dd}/${yyyy} 04:30
+    Log To Console      Creating Childs
+    : FOR    ${INDEX}    IN RANGE    1    16
+    \    Log To Console   Creating Child_ad and Creative ${INDEX}
+    \    Comment   Creating Child_ad and Creative ${INDEX}
+    \    Create Child Adgroup via API    child_name=PAC_regression_child_CloneParent_HHSegments_${INDEX}_TC    child_parent_campaign_id=${parent_id_15ChildsWithHHSegments}     child_start_date_time=${start_date}    child_end_date_time=${end_date}
+    \    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    \    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+    \    Generate JSON For Creative Native           campaign_id=${campaignId}     adName="NATIVE_AD_CONE_NATIVE_02_${INDEX}"
+    \    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    \    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    \    Create ad for Native                       adName="NATIVE_AD_CONE_NATIVE_${INDEX}"      adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+#----------------------------------------------------------------------------------------------
+
+
+Create parent adgroup with large Device segments targeting for parent adgroup with 15 childs
+    Comment    Create parent adgroup with targeting 10 Household segments for parent adgroup with 15 childs
+    Set Test Variable     ${parent_DeviceIDSegments}             {"group":[{"id":105,"exclude":false},{"id":106,"exclude":false},{"id":107,"exclude":false},{"id":108,"exclude":false},{"id":109,"exclude":false},{"id":110,"exclude":false},{"id":111,"exclude":false},{"id":121,"exclude":false},{"id":118,"exclude":false},{"id":119,"exclude":false},{"id":120,"exclude":false}]}
+    Create Parent Adgroup via API       parent_name=${parent_15ChildsWithDeviceSegments}
+    ...                                 parent_campaign_id=${CampaignID_01}
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 parent_targeting_device_segment=${parent_DeviceIDSegments}
+    ...                                 response_code=200
+    ${parent_id}        Get JSON Value          ${body}     /parent/id
+    Set Suite Variable      ${parent_id_15ChildsWithDeviceSegments}       ${parent_id}
+    Set Suite Variable      ${body1}       ${body}
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 2 day
+    Set Test Variable   ${start_date}           ${mm}/${dd}/${yyyy} 04:30
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 10 day
+    Set Test Variable   ${end_date}           ${mm}/${dd}/${yyyy} 04:30
+    Log To Console      Creating Childs
+    : FOR    ${INDEX}    IN RANGE    1    16
+    \    Log To Console   Creating Child_ad and Creative ${INDEX}
+    \    Comment   Creating Child_ad and Creative ${INDEX}
+    \    Create Child Adgroup via API    child_name=PAC_regression_child_CloneParent_DeviceSegments_${INDEX}_TC    child_parent_campaign_id=${parent_id_15ChildsWithDeviceSegments}     child_start_date_time=${start_date}    child_end_date_time=${end_date}
+    \    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    \    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+    \    Generate JSON For Creative Native           campaign_id=${campaignId}     adName="NATIVE_AD_CONE_NATIVE_03_${INDEX}"
+    \    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    \    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    \    Create ad for Native                       adName="NATIVE_AD_CONE_NATIVE_${INDEX}"      adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+#----------------------------------------------------------------------------------------------
+
+Create parent adgroup with Deal IDs for each child
+    Comment    Create parent adgroup with targeting 10 Household segments for parent adgroup with 15 childs
+    Create Parent Adgroup via API       parent_name=${parent_15ChildsWithDealID}
+    ...                                 parent_campaign_id=${CampaignID_01}
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 response_code=200
+    ${parent_id}        Get JSON Value          ${body}     /parent/id
+    Set Suite Variable      ${parent_id_15ChildsWithDealID}       ${parent_id}
+    Set Suite Variable      ${body1}       ${body}
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 2 day
+    Set Test Variable   ${start_date}           ${mm}/${dd}/${yyyy} 04:30
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 10 day
+    Set Test Variable   ${end_date}           ${mm}/${dd}/${yyyy} 04:30
+    Log To Console      Creating Childs
+    : FOR    ${INDEX}    IN RANGE    1    16
+    \    Log To Console   Creating Child_ad and Creative ${INDEX}
+    \    Comment   Creating Child_ad and Creative ${INDEX}
+    \    Create Child Adgroup via API    child_name=PAC_regression_child_CloneParent_DealIDs_${INDEX}_TC    child_parent_campaign_id=${parent_id_15ChildsWithDeviceSegments}     child_start_date_time=${start_date}    child_end_date_time=${end_date}    child_targetDeal={"exchange": 395, "dealIds": "123123"}
+    \    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    \    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+    \    Generate JSON For Creative Native           campaign_id=${campaignId}     adName="NATIVE_AD_CONE_NATIVE_03_${INDEX}"
+    \    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    \    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    \    Create ad for Native                       adName="NATIVE_AD_CONE_NATIVE_${INDEX}"      adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+#----------------------------------------------------------------------------------------------
+
+    # Log To Console    Create parent adgroup with large zip codes for each child
+    # Comment    Create parent adgroup with targeting 10 Household segments for parent adgroup with 15 childs
+    # Set Test Variable    ${child_targetGeoZipStr}    []
+    # Create Parent Adgroup via API       parent_name=${parent_15ChildsWithZipCodes}
+    # ...                                 parent_campaign_id=${CampaignID_01}
+    # ...                                 parent_start_date_time=${todaysDate}
+    # ...                                 response_code=200
+    # ${parent_id}        Get JSON Value          ${body}     /parent/id
+    # Set Suite Variable      ${parent_id_15ChildsWithZipCodes}       ${parent_id}
+    # Set Suite Variable      ${body1}       ${body}
+    # ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 2 day
+    # Set Test Variable   ${start_date}           ${mm}/${dd}/${yyyy} 04:30
+    # ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 10 day
+    # Set Test Variable   ${end_date}           ${mm}/${dd}/${yyyy} 04:30
+    # Log To Console      Creating Childs
+    # : FOR    ${INDEX}    IN RANGE    1    16
+    # \    Log To Console   Creating Child_ad and Creative ${INDEX}
+    # \    Comment   Creating Child_ad and Creative ${INDEX}
+    # \    Create Child Adgroup via API    child_name=PAC_regression_child_CloneParent_ZipCodes_${INDEX}_TC    child_parent_campaign_id=${parent_id_15ChildsWithDeviceSegments}     child_start_date_time=${start_date}    child_end_date_time=${end_date}    child_targetDeal={"exchange": 395, "dealIds": "123123"}
+    # \    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    # \    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+    # \    Generate JSON For Creative Native           campaign_id=${campaignId}     adName="NATIVE_AD_CONE_NATIVE_03_${INDEX}"
+    # \    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    # \    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    # \    Create ad for Native                       adName="NATIVE_AD_CONE_NATIVE_${INDEX}"      adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    # #----------------------------------------------------------------------------------------------
+
+
+
+
+
+Search Advertiser in Phoenix UI
+    [Arguments]    ${Advertiser_name}
+    Click Link    Campaigns
+    Sleep    20s
+    Click Element    ${inpSearchInputXpath}
+    Sleep    5s
+    Clear Element Text    ${inpSearchInputXpath}
+    Input Text     ${inpSearchInputXpath}    ${Advertiser_name}
+    Sleep     15s
+    Set Test Variable    ${AdvertiserXpath}    xpath=.//a[contains(.,'${Advertiser_name}')]//preceding-sibling::span[@class='icon-col']
+    Click Element    ${AdvertiserXpath}
+    Sleep     15s
+    Capture Page Screenshot With Timestamp
+
+
+Search campaign in Phoenix UI
+    [Arguments]    ${campaignname}
+    Set Test Variable    ${campaignXpath}    xpath=.//a[contains(.,'${campaignname}')]
+    Click Element    ${campaignXpath}
+    Sleep     7s
+    Capture Page Screenshot With Timestamp
+
+
+Search Parent Adgroup And Press Button clone parent in UI
+    [Arguments]    ${parentName}
+    Set Test Variable    ${Button_CloneParentAdGroup}    xpath=.//span[text()='${parentName}']//parent::a//parent::td//following-sibling::td//div//button[@mdtooltip='Clone parent ad group']
+    Click Element    ${Button_CloneParentAdGroup}
+    Sleep     10s
+    Capture Page Screenshot With Timestamp
+
+
+Fill Clone Parent Adgroup Details on popup windonw
+    [Arguments]     ${campaignNameToClone}=
+    ...             ${StarDate}=${START_DATE_TIME_PARENT}
+    ...             ${EndDate}=${END_DATE_TIME_PARENT}
+    ...             ${StarDateTime}=${START_DATE_TIME}
+    ...             ${EndDateTime}=${END_DATE_TIME}
+
+    Set Test Variable    ${select_Campaign_xpath}       xpath=.//*[@id="campcampaignaignDiv"]/select
+    Set Test Variable    ${startDate_xpath}             xpath=.//html/body/ngb-modal-window/div/div/ng-component/form/div[3]/div/div[2]/div[2]/input    # xpath=.//input[@class='datepicker form-control ng-pristine ng-valid ng-touched']
+    Set Test Variable    ${startDateTime_xpath}         xpath=.//*[@id="startTimeDiv"]/select
+    Set Test Variable    ${endDate_xpath}               xpath=.//html/body/ngb-modal-window/div/div/ng-component/form/div[3]/div/div[3]/div[2]/input
+    Set Test Variable    ${endDateTime_xpath}           xpath=.//select[@name='endTime']
+    Set Test Variable    ${CloneParnetAdgroupButton}    xpath=.//button[contains(.,'Clone parent ad group')]
+
+    Select From List     ${select_Campaign_xpath}     ${campaignNameToClone}
+    Sleep    5s
+    Click Element    ${startDate_xpath}
+    Sleep    7s
+    Input Text     ${startDate_xpath}    ${START_DATE_PARENT}
+    Sleep    3s
+    Click Element    ${endDate_xpath}
+    Sleep    7s
+    Input Text     ${endDate_xpath}    ${END_DATE_TIME_PARENT}
+    Sleep    3s
+    Click Element    ${CloneParnetAdgroupButton}
+    Sleep    5s
+    Capture Page Screenshot With Timestamp
+    Sleep    4s
+    Element Should Be Visible    ${CloneInitiationMessage}
+    Element Should Contain       ${CloneInitiationMessage}    Clone is Initiated. You will receive notification email after completion
+    Element Should Be Visible    ${CloneMessagePopUp_OkButton}
+    Click Element    ${CloneMessagePopUp_OkButton}
+    Sleep    4s
+    Validate Clone Parent Adgroup goes back on Campaign Summary Page
+
+
+Validate Clone Parent Adgroup goes back on Campaign Summary Page
+    Element Should Be Visible    ${Label_CampaignSummary}
+    Element Should Contain       ${Label_CampaignSummary}    CAMPAIGN SUMMARY
+    Capture Page Screenshot With Timestamp
+
+
+
+
+
+
+*** Test Cases ***
+#-----------------------------------------------------------------------------------------
+CloneParent_TC_01.1.1_Clone Parent Adgroup with one child for same advertiser and same campaign (Valid Data, Accept)
+    [Documentation]    Test to verify clone parent adgroup with single child without any ad for cloning same campaign under same advertiser.
+    Generate Pre-requisite data for Clone Parent Adgroup
+    Create parent adgroup with one child adgroup without any ad
+    # Search Advertiser in Phoenix UI    Advertiser_name=${QA_TEST_ADVERTISER_01}
+    # Search campaign in Phoenix UI    campaignname=${CAMPAIGN_NAME_UI_01}
+    Go To                       ${CAMPAIGN_SUMMERY_PAGE}${CampaignID_01}
+    Sleep    10s
+    Search Parent Adgroup And Press Button clone parent in UI    parentName=${parent_1ChildWithAd}
+    Fill Clone Parent Adgroup Details on popup windonw    campaignNameToClone=${CAMPAIGN_NAME_UI_01}
+    [Tags]
+
+
+CloneParent_TC_01.1.2_Clone Parent Adgroup with one child for same advertiser and same campaign (Valid Data, Accept)
+    [Documentation]    Test to verify clone parent adgroup with single child without any ad for cloning different campaign under same advertiser.
+    # Search Advertiser in Phoenix UI    Advertiser_name=${QA_TEST_ADVERTISER_01}
+    # Search campaign in Phoenix UI    campaignname=${CAMPAIGN_NAME_UI_02}
+    Go To                       ${CAMPAIGN_SUMMERY_PAGE}${CampaignID_01}
+    Sleep    10s
+    Search Parent Adgroup And Press Button clone parent in UI    parentName=${parent_1ChildWithAd}
+    Fill Clone Parent Adgroup Details on popup windonw    campaignNameToClone=${CAMPAIGN_NAME_UI_02}
+    [Tags]
+
+
+# CloneParent_TC_01.1.3_Clone Parent Adgroup with one child for different advertiser and different campaign (Valid Data, Accept)
+#     [Documentation]    Test to verify clone parent adgroup with single child without any ad for cloning same campaign under same advertiser.
+#     Search Advertiser in Phoenix UI    Advertiser_name=${QA_TEST_ADVERTISER_01}
+#     Search campaign in Phoenix UI    campaignname=${CAMPAIGN_NAME_UI_01}
+#     Search Parent Adgroup And Press Button clone parent in UI    parentName=${parent_1ChildWithAd}
+#     Fill Clone Parent Adgroup Details on popup windonw    campaignNameToClone=${CAMPAIGN_NAME_UI_01}
+#     [Tags]
+
+#-----------------------------------------------------------------------------------------------------------------
+CloneParent_TC_01.2.1_Clone Parent Adgroup with Fifteen chilren with Ad under same campaign (Valid Data, Accept)
+    Create parent adgroup with 15 childs with one ad each child
+    # Search Advertiser in Phoenix UI    Advertiser_name=${QA_TEST_ADVERTISER_01}
+    # Search campaign in Phoenix UI    campaignname=${CAMPAIGN_NAME_UI_01}
+    Go To                       ${CAMPAIGN_SUMMERY_PAGE}${CampaignID_01}
+    Sleep    10s
+    Search Parent Adgroup And Press Button clone parent in UI    parentName=${parent_15ChildsWithAd}
+    Fill Clone Parent Adgroup Details on popup windonw    campaignNameToClone=${CAMPAIGN_NAME_UI_01}
+    [Tags]
+
+
+CloneParent_TC_01.2.2_Clone Parent Adgroup with Fifteen chilren with Ad under different campaign (Valid Data, Accept)
+    # Search Advertiser in Phoenix UI    Advertiser_name=${QA_TEST_ADVERTISER_01}
+    # Search campaign in Phoenix UI    campaignname=${CAMPAIGN_NAME_UI_01}
+    Go To                       ${CAMPAIGN_SUMMERY_PAGE}${CampaignID_01}
+    Sleep    10s
+    Search Parent Adgroup And Press Button clone parent in UI    parentName=${parent_15ChildsWithAd}
+    Fill Clone Parent Adgroup Details on popup windonw    campaignNameToClone=${CAMPAIGN_NAME_UI_02}
+    [Tags]
+
+
+Phoenix_CreateParentAdgroup_TC_2.1_Clone_the_parent_adGroup and Stays on Same page(CM-2200)
+    [Setup]          Cleanup Advertiser From DB          advertiser_name=QA_PAC_Clone_issue_UI
+    Get Start Date
+    Log To Console      Creating Campaign
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "QA_PAC_Clone_issue_UI"}
+    Create New Campaign via API         campaign_name=PAC_regression_campaign_Parent_clone_UI      campaign_advertiser_id=${advertiser_id}       campaign_start_date_time=${todaysDate}
+    Set Test Variable                   ${campaignId_Clone}             ${campaignId}
+    Log To Console      Creating Parent Ad group
+    Create Parent Adgroup via API       parent_name=PAC_regression_parent_Parent_UI
+    ...                                 parent_campaign_id=${campaignId}
+    ...                                 parent_start_date_time=${todaysDate}
+    ...                                 response_code=200
+    ${parent_id}        Get JSON Value          ${body}     /parent/id
+    Set Suite Variable      ${Parent_id}       ${parent_id}
+    Set Suite Variable      ${body1}       ${body}
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 2 day
+    Set Test Variable   ${start_date}           ${mm}/${dd}/${yyyy} 04:30
+    ${yyyy}     ${mm}       ${dd}=                      Get Time            year,month,day          UTC + 10 day
+    Set Test Variable   ${end_date}           ${mm}/${dd}/${yyyy} 04:30
+    Log To Console      Creating Childs
+    : FOR    ${INDEX}    IN RANGE    1    2
+    \    Log To Console   Creating${Space}Child_ad${Space}and${Space}Creative${Space}${INDEX}
+    \    Create Child Adgroup via API                child_name=PAC_regression_child_Parent_Clone${INDEX}_TC    child_parent_campaign_id=${parent_id}     child_start_date_time=${start_date}      child_end_date_time=${end_date}
+    \    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    \    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+    \    Generate JSON For Creative Native           campaign_id=${campaignId}     adName="NATIVE_AD_CONE_NATIVE_${INDEX}"
+    \    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    \    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    \    Create ad for Native                       adName="NATIVE_AD_CONE_NATIVE_${INDEX}"      adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Wait Until Page Contains     ADVERTISERS                timeout=20s
+    Wait Until Page Contains     Create Advertiser          timeout=20s
+    Go To                       ${CAMPAIGN_SUMMERY_PAGE}${CampaignID_01}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Click Element               xpath=((.//div[contains(normalize-space(.), '+ Child')])/child::button)[1]
+    Fill Clone Parent Adgroup Details on popup windonw     campaignNameToClone=PAC_regression_campaign_Parent_clone_UI
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Capture Page Screenshot With Timestamp
+
+    [Teardown]       Cleanup Advertiser From DB          advertiser_name=QA_PAC_Clone_issue_UI
+    [Tags]          cloneParentUI
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------------------------------------------------------------

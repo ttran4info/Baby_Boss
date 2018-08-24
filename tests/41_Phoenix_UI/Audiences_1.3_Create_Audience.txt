@@ -1,0 +1,253 @@
+*** Settings ***
+Resource          phoenix_ui_imports.txt
+Library           Selenium2Library
+Force Tags        PHOENIX    CreateAudience    OffshoreQA    PHOENIX_3
+# Suite Setup       Suite Setup For Create Audience Phoenix UI
+Suite Teardown    Close All Browsers
+
+*** Variables ***
+${filePath}    /home/vkatkar/projects/4info/AdHaven-QA/test_datafiles/data_test_banners/ACE_Geofence
+# ${filePath}    ../test_datafiles/data_test_banners/ACE_Geofence
+
+${QA_TEST_ADVERTISER}               00_QATEST_advertiser_Audiences
+${CAMPAIGN_NAME_UI}                 00_QATEST_campaign_Audiences
+${START_DATE}                       01/01/2019
+${END_DATE_TIME_CAMPAIGN}           12/12/2020
+
+*** Keywords ***
+Suite Setup For Create Audience Phoenix UI
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+    Remove New Geofence via DB      name=TestRegression_
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Create Advertiser    uri=/pac-api/partner/advertiser    data={"name": "${QA_TEST_ADVERTISER}"}
+    Get Today's Date
+    Create New Campaign via API     campaign_name=${CAMPAIGN_NAME_UI}
+    ...                             campaign_advertiser_id=${advertiser_id}
+    ...                             campaign_start_date_time=${START_DATE} 01:00
+    ...                             campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    Log    Advertiser_id=${advertiser_id}
+    Log    Campaign_id=${Campaign_Id}
+    Set Suite Variable    ${campaign_Id}          ${Campaign_Id}
+
+
+
+Get Today's Date
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 1 day
+    Set Suite Variable    ${todaysDate}   ${mm}/${dd}/${yyyy}
+    Set Suite Variable       ${START_DATE}      ${todaysDate}
+    Log To Console          ${todaysDate}
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 3 day
+    Set Suite Variable    ${START_DATE_TIME_PARENT}   ${mm}/${dd}/${yyyy}
+
+
+*** Test Cases ***
+CreateAudience_TradeArea_TC_01.1_Pre-requisite for tests
+    Suite Setup For Create Audience Phoenix UI
+    [Tags]    CM-2188        CM-2069    CM-2204
+
+
+#Tests using 4info user login.
+#--------------------------------------------------------------------------------------------------------------
+CreateAudience_TradeArea_TC_01.1_Create Audience for Trade Area File Upload, accept
+    [Documentation]    File should be successfully uploaded for Trade Area Data Source.
+    Set Test Variable    ${audienceName}    TestRegression_trade_area_file_upload_011
+    Set Test Variable    ${emailAddress}    ${QA_DEFAULT_USER}
+
+    Go To Create Audience Phoenix UI Page
+    Select Datasource Audience Type    AudienceType=Trade Area
+    Select Datasource Input    inputType=Upload lat/long file
+    Fill General Information for Required Fields    name=${audienceName}
+    ...                                             email=${emailAddress}
+    Enter Radius for Creation of Audience    Radius=0.3
+    Select Data File to Upload Upload lat/lon File    filename=CustomFileTAorGEO.csv
+    Save Newly Created Audience
+    # Search Newly Created Audience in Phoenix UI    audienceName=${audienceName}
+    [Tags]         Known_bug    CM-2069
+
+
+CreateAudience_TradeArea_TC_01.2_Create Audience for Trade Area File Upload If File Extension is not .csv, Don't accept
+    [Documentation]    Expected error message as 'The uploaded file does not have the required file extension of .csv'
+    Set Test Variable    ${audienceName}    TestRegression_trade_area_file_upload_012
+    Set Test Variable    ${emailAddress}    ${QA_DEFAULT_USER}
+    Set Test Variable    ${FileName1}    SampleGeocodingFileNEW.xlsx
+    Go To Create Audience Phoenix UI Page
+    Select Datasource Audience Type    AudienceType=Trade Area
+    Select Datasource Input    inputType=Upload lat/long file
+    Fill General Information for Required Fields    name=${audienceName}
+    ...                                             email=${emailAddress}
+    Enter Radius for Creation of Audience    Radius=0.3
+    Select Data File to Upload Upload lat/lon File    filename=${FileName1}
+    Mouse Over    xpath=.//div[@id="poiDataFile"]//div//div//img
+    Sleep    2s
+    Page Should Contain    The uploaded file does not have the required file extension of .csv
+    Capture Page Screenshot With Timestamp
+    [Tags]         Known_bug    CM-2069
+
+
+CreateAudience_TradeArea_TC_01.3_Create Audience for Trade Area File Upload If File name do not contain any extension, Don't accept
+    [Documentation]    Expected error message as 'The uploaded file does not have the required file extension of .csv'
+    Set Test Variable    ${audienceName}    TestRegression_trade_area_file_upload_013
+    Set Test Variable    ${emailAddress}    ${QA_DEFAULT_USER}
+    Set Test Variable    ${FileName1}    CustomFileTAorGEO.csv
+    Set Test Variable    ${FileName2}    CustomFileTAorGEO
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+
+    Go To Create Audience Phoenix UI Page
+    Select Datasource Audience Type    AudienceType=Trade Area
+    Select Datasource Input    inputType=Upload lat/long file
+    Fill General Information for Required Fields    name=${audienceName}
+    ...                                             email=${emailAddress}
+    Enter Radius for Creation of Audience    Radius=0.3
+    Select Data File to Upload Upload lat/lon File    filename=${FileName2}
+    Mouse Over    xpath=.//div[@id="poiDataFile"]//div//div//img
+    Sleep    2s
+    Page Should Contain    The uploaded file does not have the required file extension of .csv
+    Capture Page Screenshot With Timestamp
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]         Known_bug    CM-2069
+
+
+CreateAudience_TradeArea_TC_01.4_Create Audience for Trade Area File Upload If File name contains space, Don't accept
+    [Documentation]    Expected error message as 'The uploaded file does not have the required file extension of .csv'
+    Set Test Variable    ${audienceName}    TestRegression_trade_area_file_upload_014
+    Set Test Variable    ${emailAddress}    ${QA_DEFAULT_USER}
+    Set Test Variable    ${FileName1}    CustomFileTAorGEO.csv
+    Set Test Variable    ${FileName2}    Custom File TA or GEO.csv
+
+    Copy File    ${filePath}/${FileName1}    ${filePath}/${FileName2}
+
+    Go To Create Audience Phoenix UI Page
+    Select Datasource Audience Type    AudienceType=Trade Area
+    Select Datasource Input    inputType=Upload lat/long file
+    Fill General Information for Required Fields    name=${audienceName}
+    ...                                             email=${emailAddress}
+    Enter Radius for Creation of Audience    Radius=0.3
+    Select Data File to Upload Upload lat/lon File    filename=${FileName2}
+    Save Newly Created Audience
+    Mouse Over    xpath=.//div[@id="poiDataFile"]//div//div//img
+    Sleep    2s
+    Capture Page Screenshot With Timestamp
+    # Set Test Variable    ${error}    xpath=.//input[@name='latLonFile']//following-sibling::errorcontainer//div//span//ul//li
+    # Element Should Contain    ${error}    Only letters, numbers, underscores (_), hyphens (-) and no spaces are allowed.
+    [Teardown]    Remove File    ${filePath}/${FileName2}
+    [Tags]          Known_bug    CM-2069
+
+
+
+CreateAudience_TradeArea_TC_01.5_Create Audience for Trade Area File Upload using existing file name with different Audience name, Don't accept
+    [Documentation]    File should be successfully uploaded for Trade Area Data Source.
+    Set Test Variable    ${audienceName}    TestRegression_trade_area_file_upload_015
+    Set Test Variable    ${emailAddress}    ${QA_DEFAULT_USER}
+
+    Go To Create Audience Phoenix UI Page
+    Select Datasource Audience Type    AudienceType=Trade Area
+    Select Datasource Input    inputType=Upload lat/long file
+    Fill General Information for Required Fields    name=${audienceName}
+    ...                                             email=${emailAddress}
+    Enter Radius for Creation of Audience    Radius=0.3
+    Select Data File to Upload Upload lat/lon File    filename=CustomFileTAorGEO.csv
+    Save Newly Created Audience
+    # Search Newly Created Audience in Phoenix UI    audienceName=${audienceName}
+
+    Sleep    7s
+    Go To Create Audience Phoenix UI Page
+    Select Datasource Audience Type    AudienceType=Trade Area
+    Select Datasource Input    inputType=Upload lat/long file
+    Fill General Information for Required Fields    name=${audienceName}_1
+    ...                                             email=${emailAddress}
+    Enter Radius for Creation of Audience    Radius=0.3
+    Select Data File to Upload Upload lat/lon File    filename=CustomFileTAorGEO.csv
+    Save Newly Created Audience
+    # Search Newly Created Audience in Phoenix UI    audienceName=${audienceName}
+    [Tags]         Known_bug    CM-2069
+
+
+#--------------------------------------------------------------------------------------------------------------
+
+CreateAudience_TradeArea_TC_02.1_Create Audience for Trade Area Audience name contians double spaces, Don't accept
+    [Documentation]    File should Not be successfully uploaded for Trade Area Data Source.
+    ...                ${Space} Error Message expected as 'Report Name already Exists'
+    Set Test Variable    ${audienceName}    TestRegression_trade_area_file_upload${Space}${Space}${Space}_022
+    Set Test Variable    ${emailAddress}    ${QA_DEFAULT_USER}
+    Set Test Variable    ${FileName1}       CustomFileTAorGEO.csv
+
+    Go To Create Audience Phoenix UI Page
+    Select Datasource Audience Type    AudienceType=Trade Area
+    Select Datasource Input    inputType=Upload lat/long file
+    Fill General Information for Required Fields    name=${audienceName}
+    ...                                             email=${emailAddress}
+    Enter Radius for Creation of Audience    Radius=0.3
+    Select Data File to Upload Upload lat/lon File    filename=${FileName1}
+    Save Newly Created Audience
+    Sleep    3s
+    Mouse Over    xpath=.//errorcontainer[@ng-reflect-fields='report name']//div//div//img
+    Sleep    2s
+    Page Should Contain    Report name already exits
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+CreateAudience_TradeArea_TC_02.2_Create Audience for Trade Area Audience name contians Special Characters in name, Don't accept
+    [Documentation]    File should Not be successfully uploaded for Trade Area Data Source.
+    ...                ${Space} Error Message expected as 'Report Name already Exists'
+    Set Test Variable    ${audienceName}    TestRegression_trade_area_!#$%^&~
+    Set Test Variable    ${emailAddress}    ${QA_DEFAULT_USER}
+    Set Test Variable    ${FileName1}       CustomFileTAorGEO.csv
+
+    Go To Create Audience Phoenix UI Page
+    Select Datasource Audience Type    AudienceType=Trade Area
+    Select Datasource Input    inputType=Upload lat/long file
+    Fill General Information for Required Fields    name=${audienceName}
+    ...                                             email=${emailAddress}
+    Enter Radius for Creation of Audience    Radius=0.3
+    Select Data File to Upload Upload lat/lon File    filename=${FileName1}
+    Save Newly Created Audience
+    Sleep    3s
+    Mouse Over    xpath=.//errorcontainer[@ng-reflect-fields='report name']//div//div//img
+    Sleep    2s
+    Page Should Contain    Report name already exits
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+#--------------------------------------------------------------------------------------------------------------
+
+CreateAudience_Geofence_TC_01.1_Create Audience for for simple Geofence validate end to end flow.
+    [Documentation]    Steps : 1.  Create a new geofence, \n
+    ...                 2.  Create new parent adgroup using the geofence newly created.
+    ...                 3.  Save parent adgroup and check parent got created successfully.
+    ...                 4.  Search parent newly created. Check geofence is ready in the same.
+    Comment    Create Geofence
+    Set Test Variable    ${audienceName}    TestRegression_Geofence_file_upload_011
+    Set Test Variable    ${emailAddress}    ${QA_DEFAULT_USER}
+
+    Go To Create Audience Phoenix UI Page
+    Select Datasource Audience Type    AudienceType=Geofence
+    Select Datasource Input    inputType=Upload lat/long file
+    Fill General Information for Required Fields    name=${audienceName}
+    ...                                             email=${emailAddress}
+    Enter Radius for Creation of Audience    Radius=0.3
+    Select Data File to Upload Upload lat/lon File    filename=CustomFileTAorGEO.csv
+    Save Newly Created Audience
+    Sleep    60s
+
+
+    [Tags]    Known_bug    CM-2188    CM-2204
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------------

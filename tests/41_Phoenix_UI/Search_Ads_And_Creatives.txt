@@ -1,0 +1,299 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags         	PHOENIX			Phoenix_Search         BATCH22    PHOENIX_4
+Suite Setup         Run Keyword          Clean Up Advertiser Phoenix Ads
+# Suite Teardown      Run Keywords         Close All Browsers		Clean Up Advertiser Phoenix Ads
+
+*** Variables ***
+${ADVERTISER_NAME}              QA_REGRESSION_phoenix_ads
+${QA_TEST_ADVERTISER}           00_QATEST_advertiser_ads
+${CAMPAIGN_NAME_UI}             00_QATEST_campaign
+${CHILD_ADGROUP}                adGroup
+@{SINGLE_ACCESS}                QA
+${CREATIVE_NAME}                REGRESSION_CREATIVE_NATIVE
+${Ad_Search}                    REGRESSION_CREATIVE_NATIVE_AD
+${parent_name}                  00_QATEST_TEST_parent_SEARCH
+${CHILD_NAME}                   00_QATEST_TEST_CHILD
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+${native_uri}        native
+${video_uri}         video
+${banner_uri}        banner
+${search_result}                xpath=//div[@class="ngui-auto-complete"]/ul/li/a[contains(text(),
+${Campaign_page_summery}        https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+${Search_Header}                //div[@class="categoryHeader"]
+
+*** Keywords ***
+Clean Up Advertiser Phoenix Ads
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_Search
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+
+
+Generate Date for chronological order test case
+    Log To Console       "Creating test Data"
+    # Log          ${testsRootFolder}
+    # Set Suite Variable                          ${DataFiles}                               ${testsRootFolder}/../../test_datafiles/HydraFiles
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_Search"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}_Search          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}_Search                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native_Search            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${nativeChildId}=                           Get JSON Value                                    ${body}     /childId
+    Set Test Variable                           ${nativeChildId}                                  ${nativeChildId}
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE_Search"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Native_creative_id}                      ${DTO_id}
+    Create ad for Native                        adName="${CREATIVE_NAME}_NATIVE_Search"
+    ...                                         adgroupId=${nativeChildId}
+    ...                                         creativeId=${Native_creative_id}
+    Log To Console                              ${Native_creative_id}
+    Log To Console         "Created native data"
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoUpload _Search      child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${videoChildId}=                           Get JSON Value                                    ${body}     /childId
+    Set Test Variable                           ${videoChildId}                                  ${videoChildId}
+    Generate JSON For Creative Video            campaign_id=${Campaign_Id}                 videoType=1      mimeTypes=[1, 1]
+    ...                                         name="${CREATIVE_NAME}_VIDEO_UPLOAD_Search"
+    CREATIVE POST Request for Creative          uri=video       JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Video_upload_creative_id}                ${DTO_id}
+    Create ad for Video                         adgroupId=${videoChildId}           creativeId=${Video_upload_creative_id}      videoType=1
+    ...                                         name="${CREATIVE_NAME}_VIDEO_UPLOAD_Search"
+
+    #upload File to Video creative
+    Upload File And Attach Request              id=${DTO_id}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoVAST_Search         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Video            campaign_id=${Campaign_Id}                 videoType=2
+    ...                                         name="${CREATIVE_NAME}_VIDEO_VAST_Search"
+    CREATIVE POST Request for Creative          uri=video      JSON=${data}                expected_status_code=200
+    Set Suite Variable                          ${Video_vast_creative_id}                  ${DTO_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoWrapper_Search      child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Video            campaign_id=${Campaign_Id}                 videoType=3
+    ...                                         name="${CREATIVE_NAME}_VIDEO_WRAPPER_Search"
+    CREATIVE POST Request for Creative          uri=video       JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Video_wrapper_creative_id}               ${DTO_id}
+
+    Log To Console         "Created Video data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerStatic_Search       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${bannerChildId}=                           Get JSON Value                                    ${body}     /childId
+    Set Test Variable                           ${bannerChildId}                                  ${bannerChildId}
+    Generate JSON For Creative Banner           campaign_id=${Campaign_Id}                  bannerType=0
+    ...                                         adName="${CREATIVE_NAME}_BANNER_STATIC_Search"
+    CREATIVE POST Request for Creative          uri=banner           JSON=${data}           expected_status_code=200
+    Set Suite Variable                          ${Banner_Static_creative_id}                ${DTO_id}
+    # upload File to banner_static
+
+    Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+
+    Create ad for Banner                        adgroupId=${bannerChildId}        creativeId=${Banner_Static_creative_id}
+    ...                                         adName="${CREATIVE_NAME}_BANNER_STATIC_Search"      bannerType=0
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerRich_Search         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Banner           campaign_id=${Campaign_Id}                  bannerType=1
+    ...                                         adName="${CREATIVE_NAME}_BANNER_RICH_Search"
+    CREATIVE POST Request for Creative          uri=banner           JSON=${data}           expected_status_code=200
+    Set Suite Variable                          ${Banner_Rich_creative_id}                  ${DTO_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Banner3rd_Search          child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Banner           campaign_id=${Campaign_Id}                  bannerType=2
+    ...                                         adName="${CREATIVE_NAME}_BANNER_3RD_Search"
+    CREATIVE POST Request for Creative          uri=banner           JSON=${data}           expected_status_code=200
+    Set Suite Variable                          ${Banner_3rd_creative_id}                   ${DTO_id}
+    Log To Console         "Created banner data"
+
+
+    Sleep  180s
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Log To Console       Data Generated
+
+    [Tags]
+
+*** Test Cases ***
+TC_00.01_Generate_data_for_Tests
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Native_creative_id}                      ${DTO_id}
+
+
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${Native_creative_id}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0101"
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Sleep  180s
+    Login To Adhaven UI                 username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    # Sleep     10s
+    [Tags]
+
+
+
+
+TC_01.01_Search Campaign
+    Clear Element Text             ${TAB_SEARCH_TEXTBOX}
+    Select From List            ${TAB_SEARCH_SELECT}        Campaign
+    Input Text                   ${TAB_SEARCH_TEXTBOX}                ${CAMPAIGN_NAME_UI}
+    Sleep    5s
+    Page Should Contain            ${CAMPAIGN_NAME_UI}
+    Sleep     5s
+    Clear Element Text             ${TAB_SEARCH_TEXTBOX}
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.02_Search Parent Adgroup
+    Clear Element Text             ${TAB_SEARCH_TEXTBOX}
+    Select From List             ${TAB_SEARCH_SELECT}        Parent Adgroup
+    Input Text                   ${TAB_SEARCH_TEXTBOX}                ${parent_name}
+    Sleep    10s
+    Page Should Contain           ${parent_name}
+    Sleep     5s
+    Clear Element Text             ${TAB_SEARCH_TEXTBOX}
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.03_Search Child Adgroup
+    Clear Element Text             ${TAB_SEARCH_TEXTBOX}
+    Select From List             ${TAB_SEARCH_SELECT}        Child Adgroup
+    Input Text                   ${TAB_SEARCH_TEXTBOX}                ${CHILD_NAME}_Native
+    Sleep    10s
+    Page Should Contain           ${CHILD_NAME}_Native
+    Sleep     5s
+    Clear Element Text             ${TAB_SEARCH_TEXTBOX}
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.04_Search Creative
+    Clear Element Text              ${TAB_SEARCH_TEXTBOX}
+    Select From List                ${TAB_SEARCH_SELECT}        Campaign
+    Sleep   2s
+    Input Text                      ${TAB_SEARCH_TEXTBOX}                ${CREATIVE_NAME}
+    Sleep   3s
+    Select From List                ${TAB_SEARCH_SELECT}        Creatives
+    Sleep   2s
+    Input Text                      ${TAB_SEARCH_TEXTBOX}                ${CREATIVE_NAME}_NATIV
+    Sleep    10s
+    Page Should Contain             ${CREATIVE_NAME}_NATIVE
+    Sleep     5s
+    Clear Element Text              ${TAB_SEARCH_TEXTBOX}
+    [Tags]
+
+TC_01.05_Search Ads
+    Clear Element Text             ${TAB_SEARCH_TEXTBOX}
+    Select From List            ${TAB_SEARCH_SELECT}        Campaign
+    Sleep   2s
+    Input Text                  ${TAB_SEARCH_TEXTBOX}                ${CREATIVE_NAME}
+    Sleep   3s
+    Select From List            ${TAB_SEARCH_SELECT}        Ads
+    Sleep   2s
+    Input Text                  ${TAB_SEARCH_TEXTBOX}              ${CREATIVE_NAME}_NATIVE010
+    Sleep    10s
+    Page Should Contain           ${CREATIVE_NAME}_NATIVE0101
+    Sleep     5s
+    Clear Element Text             ${TAB_SEARCH_TEXTBOX}
+    [Tags]
+
+TC_01.06_Search in All
+    Clear Element Text              ${TAB_SEARCH_TEXTBOX}
+    Select From List                ${TAB_SEARCH_SELECT}        Campaign
+    Sleep   2s
+    Input Text                      ${TAB_SEARCH_TEXTBOX}                ${CREATIVE_NAME}
+    Sleep   3s
+    Select From List                ${TAB_SEARCH_SELECT}        All
+    Sleep   2s
+    Input Text                      ${TAB_SEARCH_TEXTBOX}              ${CREATIVE_NAME}_NATIVE010
+    Sleep    10s
+    Page Should Contain             ${CREATIVE_NAME}_NATIVE0101
+    Sleep     5s
+    Input Text                      ${TAB_SEARCH_TEXTBOX}                ${CHILD_NAME}_Native
+    Sleep    10s
+    Page Should Contain             ${CHILD_NAME}_Native
+    Clear Element Text             ${TAB_SEARCH_TEXTBOX}
+    [Tags]
+
+TC_01.07_Search AdGroup(Archived Adgroup Should not shown)
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string        update rhino.ad_group set status = '3' where id = '${parent_id}';
+    Disconnect From Database
+    Clear Element Text             ${TAB_SEARCH_TEXTBOX}
+
+    Select From List            ${TAB_SEARCH_SELECT}        Parent Adgroup
+    Input Text          ${TAB_SEARCH_TEXTBOX}                ${parent_name}
+    Sleep    10s
+    Page Should Not Contain             ${parent_name}
+    # Page Should Not Contain     Faultless MO_BA_Buyers Spray Starch Category NB Faultless
+    # Click Element       ${search_result}     ${search_result}"${parent_name} (${parent_id}) ")]
+    Sleep    5s
+    # Click Element     ${TAB_SEARCH_RESULT}
+    Sleep     5s
+    Close All Browsers
+
+TC_01.08_Search_Result chronological order(CM-2155)
+    # Generate Date for chronological order test case
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Select From List            ${TAB_SEARCH_SELECT}        All
+    Sleep      5s
+    Input Text                  ${TAB_SEARCH_TEXTBOX}              QA
+    Sleep    10s
+    ${Header_count}=    Get Matching Xpath Count     ${Search_Header}
+    Log     ${Header_count}
+
+    ${name}=    Get Text    xpath=(${Search_Header})[1]
+    Log     ${name}
+    Should Be Equal As Strings    CAMPAIGN              ${name}
+    ${name}=    Get Text    xpath=(${Search_Header})[2]
+    Log     ${name}
+    Should Be Equal As Strings    PARENT AD GROUP              ${name}
+    ${name}=    Get Text    xpath=(${Search_Header})[3]
+    Log     ${name}
+    Should Be Equal As Strings    CHILD AD GROUP              ${name}
+    ${name}=    Get Text    xpath=(${Search_Header})[4]
+    Log     ${name}
+    Should Be Equal As Strings    CREATIVES              ${name}
+    ${name}=    Get Text    xpath=(${Search_Header})[5]
+    Log     ${name}
+    Should Be Equal As Strings    ADS              ${name}
+    Capture Page Screenshot With Timestamp
+    Close All Browsers
+    [Tags]
+
+TC_01.09_Search_Result chronological order(CM-2155) Latest Created Items should be at top
+    Generate Date for chronological order test case
+    Select From List            ${TAB_SEARCH_SELECT}        All
+    Sleep      5s
+    Input Text                  ${TAB_SEARCH_TEXTBOX}       _Search
+    Sleep    10s
+    Page Should Contain Element     xpath=(//div[@class="categoryHeader"])[1]/following-sibling::a[contains(text(),'${CAMPAIGN_NAME_UI}_Search')]
+    Page Should Contain Element     xpath=(//div[@class="categoryHeader"])[2]/following-sibling::a[contains(text(),'${parent_name}_Search')]
+    Page Should Contain Element     xpath=(//div[@class="categoryHeader"])[3]/following-sibling::a[contains(text(),'${CHILD_NAME}_Native_Search')]
+    Page Should Contain Element     xpath=(//div[@class="categoryHeader"])[4]/following-sibling::a[contains(text(),'${CREATIVE_NAME}_NATIVE_Search')]
+    Page Should Contain Element     xpath=(//div[@class="categoryHeader"])[5]/following-sibling::a[contains(text(),'${CREATIVE_NAME}_NATIVE_Search')]
+    [Tags]
+
+

@@ -1,0 +1,58 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.2.6	   BATCH20
+
+#https:https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-1.2.6Suggestforauto-complete
+#API Name: 1.2.6 Suggest for auto-complete
+#Method: POST
+#URL: 192.168.99.100:8380/inventory-api/cluster/cluster/{clusterId}/autocomplete
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+TC_01 Suggest for auto-complete (Normal Case)
+	Set Test Variable		${uri}			inventory-api/cluster/cluster
+	Set Test Variable		${clusterId}	43
+	Set Test Variable		${data}			{"keyword": "a"}
+	Suggest Auto complete		uri=${uri}
+    ...                         clusterId=${clusterId}
+    ...                         data=${data}
+    ...                         expected_status_code=200
+    ...                         success=true
+	[Tags]
+
+TC_02 Suggest for auto-complete (invalid clusterId)
+    Set Test Variable       ${uri}          inventory-api/cluster/cluster
+    Set Test Variable       ${clusterId}    43123
+    Set Test Variable       ${data}         {"keyword": "a"}
+    Suggest Auto complete       uri=${uri}
+    ...                         clusterId=${clusterId}
+    ...                         data=${data}
+    ...                         expected_status_code=400
+    ...                         success=false
+    [Tags]
+
+TC_03 Suggest for auto-complete (invalid URL)
+    Set Test Variable       ${uri}          inventory-api/cluster/cluster/id
+    Set Test Variable       ${clusterId}    43
+    Set Test Variable       ${data}         {"keyword": "a"}
+    Suggest Auto complete       uri=${uri}
+    ...                         clusterId=${clusterId}
+    ...                         data=${data}
+    ...                         expected_status_code=400
+    ...                         success=false
+    [Tags]
+
+TC_04 Suggest for auto-complete (blank keyword)
+    Set Test Variable       ${uri}          inventory-api/cluster/cluster/id
+    Set Test Variable       ${clusterId}    43
+    Set Test Variable       ${data}         {"keyword": ""}
+    Suggest Auto complete       uri=${uri}
+    ...                         clusterId=${clusterId}
+    ...                         data=${data}
+    ...                         expected_status_code=400
+    ...                         success=false
+    [Tags]
+

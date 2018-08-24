@@ -1,0 +1,316 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             OperatingSystem
+Library             DatabaseLibrary
+Force Tags          PHOENIX         Phoenix_List_Ads      BATCH22
+Suite Setup         Run Keyword          Clean Up Campaign, Advertiser and Cretives
+Suite Teardown      Run Keywords         Close All Browsers     Clean Up Campaign, Advertiser and Cretives
+
+*** Variables ***
+${testsRootFolder}              ${CURDIR}
+${QA_TEST_ADVERTISER}           00_QATEST_advertiser_phoenix_16
+${CAMPAIGN_NAME_UI}             00_QATEST_campaign
+${CREATIVE_NAME}                REGRESSION_CREATIVE_41_15
+${CHILD_NAME}                   00_QATEST_CHILD
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  00_QATEST_parent
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+${Check}                        1
+${Uncheck}                      0
+${CHILD_BANNER_3RD}             xpath=(.//button[contains(normalize-space(.), '+ Ad')])[1]
+${CHILD_BANNER_RICH}            xpath=(.//button[contains(normalize-space(.), '+ Ad')])[2]
+${CHILD_BANNER_STATIC}          xpath=(.//button[contains(normalize-space(.), '+ Ad')])[3]
+${CHILD_VIDEO_UPLOAD}           xpath=(.//button[contains(normalize-space(.), '+ Ad')])[5]
+${CHILD_VIDEO_VAST}             xpath=(.//button[contains(normalize-space(.), '+ Ad')])[6]
+${CHILD_VIDEO_WRAPPER}          xpath=(.//button[contains(normalize-space(.), '+ Ad')])[7]
+${CHILD_NATIVE}                 xpath=(.//button[contains(normalize-space(.), '+ Ad')])[4]
+${CREATE_AD_BUTTON}             btnCreateAd
+${Campaign_page_summery}        https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+*** Keywords ***
+
+Clean Up Campaign, Advertiser and Cretives
+	Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+
+Verify Page Elements After Create Creative
+    Page Should Contain             Manage Creatives Template
+    Page Should Contain             Add new creative template
+    Page Should Contain             Contact 4INFO
+    Page Should Contain Button      btnCreateTpl
+
+*** Test Cases ***
+TC_00_Generate Data for Test Suite
+    Log To Console       "Creating test Data"
+    Log          ${testsRootFolder}
+    Set Suite Variable                          ${DataFiles}                               ${testsRootFolder}/../../test_datafiles/HydraFiles
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Native_creative_id}                      ${DTO_id}
+    Log To Console                              ${Native_creative_id}
+    Log To Console         "Created native data"
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoUpload       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Video            campaign_id=${Campaign_Id}                 videoType=1      mimeTypes=[1, 1]
+    ...                                         name="${CREATIVE_NAME}_VIDEO_UPLOAD"
+    CREATIVE POST Request for Creative          uri=video       JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Video_upload_creative_id}                ${DTO_id}
+    #upload File to Video creative
+    Upload File And Attach Request              id=${DTO_id}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoVAST         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Video            campaign_id=${Campaign_Id}                 videoType=2
+    ...                                         name="${CREATIVE_NAME}_VIDEO_VAST"
+    CREATIVE POST Request for Creative          uri=video      JSON=${data}                expected_status_code=200
+    Set Suite Variable                          ${Video_vast_creative_id}                  ${DTO_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoWrapper      child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Video            campaign_id=${Campaign_Id}                 videoType=3
+    ...                                         name="${CREATIVE_NAME}_VIDEO_WRAPPER"
+    CREATIVE POST Request for Creative          uri=video       JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Video_wrapper_creative_id}               ${DTO_id}
+
+    Log To Console         "Created Video data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerStatic       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Banner           campaign_id=${Campaign_Id}                  bannerType=0
+    ...                                         adName="${CREATIVE_NAME}_BANNER_STATIC"
+    CREATIVE POST Request for Creative          uri=banner           JSON=${data}           expected_status_code=200
+    Set Suite Variable                          ${Banner_Static_creative_id}                ${DTO_id}
+    # upload File to banner_static
+    Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerRich         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Banner           campaign_id=${Campaign_Id}                  bannerType=1
+    ...                                         adName="${CREATIVE_NAME}_BANNER_RICH"
+    CREATIVE POST Request for Creative          uri=banner           JSON=${data}           expected_status_code=200
+    Set Suite Variable                          ${Banner_Rich_creative_id}                  ${DTO_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Banner3rd          child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Banner           campaign_id=${Campaign_Id}                  bannerType=2
+    ...                                         adName="${CREATIVE_NAME}_BANNER_3RD"
+    CREATIVE POST Request for Creative          uri=banner           JSON=${data}           expected_status_code=200
+    Set Suite Variable                          ${Banner_3rd_creative_id}                   ${DTO_id}
+    Log To Console         "Created banner data"
+
+
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    # Login To Phoenix UI2
+    # Open Campaign summery page      Advertiser_name=${QA_TEST_ADVERTISER}       Campaign_name=${CAMPAIGN_NAME_UI}
+    # Click Element                                       ${ADV_EXPAND_DROPDOWN_BUTTON}
+    # Wait Until Element Is Visible                       ${CAMPAIGN_SEARCH_QA}          timeout=20s
+    # Click Element                                       ${CAMPAIGN_SEARCH_QA}
+    Go To                                       ${Campaign_page_summery}${Campaign_Id}
+    Log To Console       Data Generated
+    Sleep  10s
+    [Tags]
+
+TC_01_List Native Ads
+    Click Button                    ${CHILD_NATIVE}
+    Sleep     15s
+    Select From List                ${ADS_CREATIVE_TYPE_SELECT}      native
+    Sleep   3s
+    Click Element                   ${Native_creative_id}
+    Sleep   3s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   3s
+    Click Button                    ${CHILD_NATIVE}
+    Sleep    3s
+    Click Element                   ${Native_creative_id}
+    Sleep   3s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   3s
+    Click Button                    ${CHILD_NATIVE}
+    Sleep   3s
+    Click Element                   ${Native_creative_id}
+    Sleep   3s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   3s
+    Page Should Contain     Native - Mopub
+    Page Should Contain     Creative ID ${Native_creative_id} REGRESSION_CREATIVE_41_15_NATIVE
+    ${present}=  Run Keyword And Return Status    Element Should Be Visible   ${CHILD_POPUP_CLOSE_BUTTON}
+    Run Keyword If    ${present}    Click Element       ${CHILD_POPUP_CLOSE_BUTTON}
+    Wait Until Page Contains              CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_02_List Banner Ad (type 3rd party)
+    ${passed} =    Run Keyword And Return Status    Page Should Contain     CREATE AD
+    Run Keyword If    ${passed}    Click Element    xpath=.//span[contains(normalize-space(.), 'X Close')]
+    Click Button                    ${CHILD_BANNER_3RD}
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_TYPE_SELECT}         banner
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_SUB_TYPE_SELECT}     3rd-Party Tag
+    Sleep   5s
+    Click Element                   ${Banner_3rd_creative_id}
+    Sleep   1s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   3s
+    Click Button                    ${CHILD_BANNER_3RD}
+    Sleep    3s
+    Click Element                   ${Banner_3rd_creative_id}
+    Sleep   1s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Page Should Contain     Creative ID ${Banner_3rd_creative_id} REGRESSION_CREATIVE_41_15_BANNER_3RD
+    ${present}=  Run Keyword And Return Status    Element Should Be Visible   ${CHILD_POPUP_CLOSE_BUTTON}
+    Run Keyword If    ${present}    My Click Element        ${CHILD_POPUP_CLOSE_BUTTON}
+    Wait Until Page Contains              CAMPAIGN SUMMARY
+    [Tags]
+
+
+TC_03_Create Banner Ad (type Rich Media)
+    ${passed} =    Run Keyword And Return Status    Page Should Contain     CREATE AD
+    Run Keyword If    ${passed}    Click Element    xpath=.//span[contains(normalize-space(.), 'X Close')]
+
+    Click Button                    ${CHILD_BANNER_RICH}
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_TYPE_SELECT}             banner
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_SUB_TYPE_SELECT}         Rich Media
+    Sleep       5s
+    Click Element                   ${Banner_Rich_creative_id}
+    Sleep   1s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   2s
+    Click Button                    ${CHILD_BANNER_RICH}
+    Sleep   3s
+    Click Element                   ${Banner_Rich_creative_id}
+    Sleep   1s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Page Should Contain     Creative ID ${Banner_Rich_creative_id} REGRESSION_CREATIVE_41_15_BANNER_RICH
+    ${present}=  Run Keyword And Return Status    Element Should Be Visible   ${CHILD_POPUP_CLOSE_BUTTON}
+    Run Keyword If    ${present}    Click Element       ${CHILD_POPUP_CLOSE_BUTTON}
+    Wait Until Page Contains             CAMPAIGN SUMMARY
+    [Tags]
+
+
+TC_04_Create Banner Ad (type Static)
+    ${passed} =    Run Keyword And Return Status    Page Should Contain     CREATE AD
+    Run Keyword If    ${passed}    Click Element    xpath=.//span[contains(normalize-space(.), 'X Close')]
+
+    Click Button                    ${CHILD_BANNER_STATIC}
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_TYPE_SELECT}             banner
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_SUB_TYPE_SELECT}         Static Image
+    Sleep   5s
+    Click Element                   ${Banner_Static_creative_id}
+    Sleep   1s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   2s
+
+    Click Button                    ${CHILD_BANNER_STATIC}
+    Sleep      3s
+    Click Element                   ${Banner_Static_creative_id}
+    Sleep   1s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   2s
+    Page Should Contain     Creative ID ${Banner_Static_creative_id} REGRESSION_CREATIVE_41_15_BANNER_STATIC
+
+    ${present}=  Run Keyword And Return Status    Element Should Be Visible   ${CHILD_POPUP_CLOSE_BUTTON}
+    Run Keyword If    ${present}    Click Element       ${CHILD_POPUP_CLOSE_BUTTON}
+    Wait Until Page Contains             CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_05_Create Video Ad (type VAST Tag)
+    ${passed} =    Run Keyword And Return Status    Page Should Contain     CREATE AD
+    Run Keyword If    ${passed}    Click Element    xpath=.//span[contains(normalize-space(.), 'X Close')]
+    Click Button                    ${CHILD_VIDEO_VAST}
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_TYPE_SELECT}         video
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_SUB_TYPE_SELECT}     VAST Tag
+    Sleep   4s
+    Click Element                   ${Video_vast_creative_id}
+    Sleep   1s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   2s
+
+
+    Click Button                    ${CHILD_VIDEO_VAST}
+    Sleep      3s
+    Click Element                   ${Video_vast_creative_id}
+    Sleep   1s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   3s
+    Page Should Contain     Creative ID ${Video_vast_creative_id} REGRESSION_CREATIVE_41_15_VIDEO_VAST
+
+    ${present}=  Run Keyword And Return Status    Element Should Be Visible   ${CHILD_POPUP_CLOSE_BUTTON}
+    Run Keyword If    ${present}    Click Element       ${CHILD_POPUP_CLOSE_BUTTON}
+    Wait Until Page Contains             CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_06_Create Video Ad (type Wrapper URL)
+    ${passed} =    Run Keyword And Return Status    Page Should Contain     CREATE AD
+    Run Keyword If    ${passed}    Click Element    xpath=.//span[contains(normalize-space(.), 'X Close')]
+    Click Button                    ${CHILD_VIDEO_WRAPPER}
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_TYPE_SELECT}         video
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_SUB_TYPE_SELECT}     VAST Wrapper URL
+    Sleep   3s
+    Click Element                   ${Video_wrapper_creative_id}
+    Sleep   1s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   2s
+    Click Button                    ${CHILD_VIDEO_WRAPPER}
+    Sleep    3s
+    Click Element                   ${Video_wrapper_creative_id}
+    Sleep    3s
+    Click Button                    ${CREATE_AD_BUTTON}
+
+    Page Should Contain     Creative ID ${Video_wrapper_creative_id} REGRESSION_CREATIVE_41_15_VIDEO_WRAPPER
+
+
+
+    ${present}=  Run Keyword And Return Status    Element Should Be Visible   ${CHILD_POPUP_CLOSE_BUTTON}
+    Run Keyword If    ${present}    Click Element       ${CHILD_POPUP_CLOSE_BUTTON}
+    Wait Until Page Contains             CAMPAIGN SUMMARY
+    Sleep    30s
+    [Tags]
+
+
+
+TC_07_Create Video Ad (type upload Video Type)
+    ${passed} =    Run Keyword And Return Status    Page Should Contain     CREATE AD
+    Run Keyword If    ${passed}    Click Element    xpath=.//span[contains(normalize-space(.), 'X Close')]
+
+    Click Element                   ${CHILD_VIDEO_UPLOAD}
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_TYPE_SELECT}         video
+    Sleep      3s
+    Select From List                ${ADS_CREATIVE_SUB_TYPE_SELECT}     Uploaded Video
+    Sleep       3s
+    Click Element                   ${Native_creative_id}
+    Sleep   1s
+    Click Button                    ${CREATE_AD_BUTTON}
+    Sleep   2s
+    ${present}=  Run Keyword And Return Status    Element Should Be Visible   ${CHILD_POPUP_CLOSE_BUTTON}
+    Run Keyword If    ${present}    Click Element       ${CHILD_POPUP_CLOSE_BUTTON}
+    Wait Until Page Contains             CAMPAIGN SUMMARY
+    [Tags]       Known_bug    CM-2112

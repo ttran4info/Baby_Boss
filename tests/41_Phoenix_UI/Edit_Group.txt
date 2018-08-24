@@ -1,0 +1,96 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX    Edit_Group    BATCH22    PHOENIX_3
+Suite Setup         Delete a user       username=editgroupregression@temp.com
+Suite Teardown      Run Keywords    Close All Browsers    Clean Up Groups Created for Test
+
+
+*** Variables ***
+${username}    editgroupregression@temp.com
+${status}       1
+${Pass}         abcABC123!
+${firstName}    "Regression"
+${lastName}     "Test"
+${authority}    "USER"
+${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}, {"permissions": [3], "groupId": 1, "productId": 2}]
+${lastModifiedBy}           "${QA_DEFAULT_USER}"
+
+${QA_TEST_GROUP}    00_QA_TEST_GROUP
+${GroupName}            ${QA_TEST_GROUP}_01
+
+*** Keywords ***
+
+Clean Up Groups Created for Test
+    Clean UP Created Groups By Name             groupName=${GroupName}
+
+
+Create Data for Edit Group Pre-requisite
+    Clean Up Groups Created for Test
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="${Pass}"
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Comment    Create a group to edit it
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 1,"lastModifiedBy":"${username}"}
+    ...                         uri=/user-management-api/admin/groups
+
+    Login To Dashboard UI    username=${username}    password=${Pass}
+    
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------
+EditGroup_TC_00_Edit Group Pre-requisites
+    [Documentation]    Pre-requisites for edit group
+    Create Data for Edit Group Pre-requisite
+    Go To Manage Groups Page
+    [Tags]
+
+
+EditGroup_TC_001_Edit Group CM-2388 Disable Editing Group Name
+    [Documentation]    Confirm whether group name is disabled for editing group page.
+    Go To Edit Groups Page    groupName=${GroupName}
+    Confirm Group Name is Disabled for editing
+    Capture Page Screenshot     filename=EditGroup_001.png
+    # Click Element    ${button_btnClose}
+    [Tags]
+#--------------------------------------------------------------------------------------
+
+EditGroup_TC_002.1_Edit Group - Modify Status from Active to Inactive - Allow
+    [Documentation]    Confirm whether group name is disabled for editing group page.
+    Set Test Variable    ${status}    Inactive
+    Enter status    Status=${status}
+    Capture Page Screenshot     filename=EditGroup_002.1.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=EditGroup_002.1_Created.png
+    Confirm status in db for group    groupName=${GroupName}    status=${status}
+    [Tags]
+
+
+EditGroup_TC_002.2_Edit Group - Modify Status from Inactive to Active - Allow
+    [Documentation]    Confirm whether group name is disabled for editing group page.
+    Go To Edit Groups Page    groupName=${GroupName}
+    Set Test Variable    ${status}    Active
+    Enter status    Status=${status}
+    Capture Page Screenshot     filename=EditGroup_002.2.png
+    Save Newly Created Group
+    Capture Page Screenshot     filename=EditGroup_002.2_Created.png
+    Confirm status in db for group    groupName=${GroupName}    status=${status}
+    [Tags]
+#--------------------------------------------------------------------------------------
+EditGroup_TC_003.1_Edit Group - Click on Cancel, allow
+    [Documentation]    Clicking on cancel link, it do not save entry modifications and allow window to close.
+    Go To Edit Groups Page    groupName=${GroupName}
+    Capture Page Screenshot     filename=EditGroup_0031.png
+    Click Element    ${button_btnClose}
+    Capture Page Screenshot     filename=EditGroup_0031_Created.png
+    [Tags]
+#--------------------------------------------------------------------------------------

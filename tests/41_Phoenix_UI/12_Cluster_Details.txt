@@ -1,0 +1,305 @@
+# Cluster Details UI Automation
+# QA Task ID :  https://jira.adhaven.com/browse/CM-405
+
+
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags         	PHOENIX    CLUSTERDETAILS    BATCH22    OffshoreQA    PHOENIX_2
+Suite Setup         Preconditions for Cluster Details
+Suite Teardown      Run Keywords    Close All Browsers
+
+# QA Task ID :  https://jira.adhaven.com/browse/CM-405
+# Wiki Document : https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-1.2.ClusterDetailPage
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+ClusterDetail_TC_0.0_Create Sample Cluster for Cluster Detail
+    Run Suite Set up for cluster creation
+    Click Clusters Tab
+    Sleep    5s
+    Create Cluster On UI    clustername=APPBundleCluster    data=11158    count=1
+    [Tags]
+
+
+ClusterDetail_TC_01.1_Verify all page objects are present
+    [Documentation]    On page Cluster Detail, confirm all page objects expected are present.
+    Sleep    4s
+    Get Cluster in The List    clusterName=APPBundleCluster
+    Check Header and Footer objects are present
+    Validate Cluster Detail Page Elements are present
+    [Tags]
+
+#--------------------------------------------------------------------------------------------
+ClusterDetail_TC_02.1_Verify all page objects for Cluster Name Edit window are present - accept
+    [Documentation]    Confirm all page objects for Cluster Edit window are present.
+    Sleep    4s
+    Get Cluster in The List
+    Click Link    ${ClusterDetail_Link_Edit}
+    Validate Cluster Name Edit Page Elements are present
+    Click Element    ${ClusterDetail_ClusterEdit_Button_Close}
+    Sleep    3s
+    [Tags]
+
+
+ClusterDetail_TC_02.2_Verify Cluster Name Edit saves name containing underscore and numbers
+    [Documentation]    Input : Edit the cluster name and save it,
+    ...                Expected : The Clustername modified should be saved successfully
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Suite Variable       ${EditString}            1 AOL_${ret}
+    Get Cluster in The List
+    Click Link    ${ClusterDetail_Link_Edit}
+    Clear Element Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}
+    Input Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}    ${EditString}
+    Click Button    ${ClusterDetail_ClusterEdit_Button_Save}
+    Sleep    3s
+    Get Clusters Page
+    Input Text    ${SEARCH_CLUSTER}    ${EditString}
+    Sleep    4s
+    Get Cluster Xpath    clustername=${EditString}
+    Sleep    4s
+    ${Modified_Value}    Get Text    ${ClusterDetail_Link_ClusterName}
+    Log    ${EditString} : ${Modified_Value}
+    Should Be Equal As Strings    ${Modified_Value}    ${EditString}
+    Sleep    3s
+    [Tags]
+
+
+ClusterDetail_TC_02.3_Verify Cluster Name Edit saves name containing hyphen
+    [Documentation]    Input : Edit the cluster name and save it,
+    ...                Expected : The Clustername modified should be saved successfully
+    Log    ${EditString}
+    Get Cluster in The List    clusterName=${EditString}
+    Click Link    ${ClusterDetail_Link_Edit}
+    Clear Element Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}
+
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Suite Variable       ${EditString}            1 AOL-${ret}
+
+    Input Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}    ${EditString}
+    Click Button    ${ClusterDetail_ClusterEdit_Button_Save}
+    Sleep    3s
+
+    Get Clusters Page
+    Input Text    ${SEARCH_CLUSTER}    ${EditString}
+    Sleep    4s
+    Get Cluster Xpath    clustername=${EditString}
+    Sleep    4s
+    ${Modified_Value}    Get Text    ${ClusterDetail_Link_ClusterName}
+    Log    ${EditString} : ${Modified_Value}
+    Should Be Equal As Strings    ${Modified_Value}    ${EditString}
+    Sleep    3s
+    [Tags]
+
+
+ClusterDetail_TC_02.4_Verify Cluster Name Edit saves name containing single space
+    [Documentation]    Input : Edit the cluster name and save it,
+    ...                Expected : The Clustername modified should be saved successfully
+    Log    ${EditString}
+    Get Cluster in The List    clusterName=${EditString}
+    Click Link    ${ClusterDetail_Link_Edit}
+    Clear Element Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}
+
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Suite Variable       ${EditString}            1 AOL${Space}${ret}
+
+    Input Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}    ${EditString}
+    Click Button    ${ClusterDetail_ClusterEdit_Button_Save}
+    Sleep    3s
+
+    Get Clusters Page
+    Input Text    ${SEARCH_CLUSTER}    ${EditString}
+    Sleep    4s
+    Get Cluster Xpath    clustername=${EditString}
+    Sleep    4s
+    ${Modified_Value}    Get Text    ${ClusterDetail_Link_ClusterName}
+    Log    ${EditString} : ${Modified_Value}
+    Should Be Equal As Strings    ${Modified_Value}    ${EditString}
+    Sleep    3s
+    [Tags]
+
+
+ClusterDetail_TC_02.5_Verify Cluster Edit Name do not save value containing special characters
+    [Documentation]    Input : Edit the cluster name and save it,
+    ...                Expected : The Clustername modified should be saved successfully
+    Log    ${EditString}
+    Get Cluster in The List    clusterName=${EditString}
+    Click Link    ${ClusterDetail_Link_Edit}
+    Clear Element Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}
+
+    Set Test Variable       ${EditString}            1AOL_$%^&)()
+
+    Input Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}    ${EditString}
+    Click Button    ${ClusterDetail_ClusterEdit_Button_Save}
+    Sleep    6s
+
+    Alert Should Be Present    Reason Desc :Invalid Cluster Name.
+
+    # Confirm Action
+    Click Element    ${ClusterDetail_ClusterEdit_Button_Close}
+    Sleep    3s
+    [Tags]
+
+
+ClusterDetail_TC_02.6_Verify Cluster Edit Name for blank value save button disabled
+    [Documentation]    Input : Edit the cluster name and save it,
+    ...                Expected : The Clustername modified should be saved successfully
+    Log    ${EditString}
+    Get Cluster in The List    clusterName=${EditString}
+    Click Link    ${ClusterDetail_Link_Edit}
+    Clear Element Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}
+
+    Set Test Variable       ${EditString}            '${Empty}'
+
+    Input Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}    ${EditString}
+    Click Button    ${ClusterDetail_ClusterEdit_Button_Save}
+    Sleep    6s
+
+    Alert Should Be Present    Reason Desc :Invalid Cluster Name.
+
+    # Confirm Action
+    Click Element    ${ClusterDetail_ClusterEdit_Button_Close}
+    Sleep    3s
+    [Tags]
+
+
+ClusterDetail_TC_02.7_Verify Cluster Edit Name do not save for name containing two speces
+    [Documentation]    Input : Edit the cluster name and save it,
+    ...                Expected : The Clustername modified should be saved successfully
+    Log    ${EditString}
+    Get Cluster in The List    clusterName=${EditString}
+    Click Link    ${ClusterDetail_Link_Edit}
+    Clear Element Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}
+
+    ${ret} =        Generate Random String  3       QATESTABCDEFGHIJKLMNOP
+    Set Test Variable       ${EditString}            1 AOL_${Space}${Space}${ret}
+
+    Input Text    ${ClusterDetail_ClusterEdit_Input_ClusterName}    ${EditString}
+    Click Button    ${ClusterDetail_ClusterEdit_Button_Save}
+    Sleep    6s
+
+    Alert Should Be Present    Reason Desc :Invalid Cluster Name.
+
+    # Confirm Action
+    Click Element    ${ClusterDetail_ClusterEdit_Button_Close}
+    Sleep    3s
+    [Tags]
+
+#--------------------------------------------------------------------------------------------
+ClusterDetail_TC_03.1_Verify all page objects for Cluster History popup are present
+    [Documentation]    Confirm all page objects expected are present.
+    Get Cluster in The List    clusterName=${EditString}
+    Click Link    ${ClusterDetail_Link_ClusterHistory}
+    Validate Cluster History popup window elements are present
+    Click Element   ${ClusterDetail_ClusterEdit_Button_Close}
+    Sleep    3s
+    [Tags]
+
+
+ClusterDetail_TC_03.2_Verify Cluster History Change link displays cluster history detail
+    [Documentation]     Confirm after clicking link for change, cluster history page populates
+    ...                 and all objects are present as expected.
+    Get Cluster in The List    clusterName=${EditString}
+    Click Link    ${ClusterDetail_Link_ClusterHistory}
+    # Click Link    ${ClusterDetail_ClusterHistory_Link_Change}
+    Validate Header and footer elements are present
+    Validate Cluster History Change page elements are present
+    [Tags]
+
+#--------------------------------------------------------------------------------------------
+ClusterDetail_TC_04.1_Verify Type to search gives appropriate result
+    [Documentation]     Confirm after entering any valid value in type to search text field,
+    ...                 appropriate search result is displayed.
+    Get Cluster in The List
+    Input Text    ${ClusterDetail_Input_TypeToSearch}    ab
+    Element Should Be Visible    ${ClusterDetail_TypeToSearch_popup}
+    Sleep    2s
+    Capture Page Screenshot With Timestamp
+    #Click Element    ${ClusterDetail_Input_TypeToSearch}
+    #Sleep    3s
+    #${searchedtext}=       Get Text     ${ClusterDetail_Input_TypeToSearch}
+    #Log    ${searchedtext}
+    #Should Be Equal    ${searchedtext}    ab
+    [Tags]
+
+#--------------------------------------------------------------------------------------------
+ClusterDetail_TC_05.1_Verify Remove Sites/Apps link opens Appropriate page
+    [Documentation]     Confirm after click on link Remove Sites/Apps, appropriate page opens and
+    ...                 all page objects expected are visible.
+    Get Cluster in The List
+    Click Link    ${ClusterDetail_Link_RemoveSitesApps}
+    Validate Cluster Remove Sites/Apps page elements are present
+    [Tags]
+
+
+ClusterDetail_TC_05.2_Verify Remove Sites/Apps page removes sites or apps selected
+    [Documentation]     Confirm after click on link Remove Sites/Apps page removes sites or apps selected
+    Get Cluster in The List
+    Click Link    ${ClusterDetail_Link_RemoveSitesApps}
+    Element Should Be Visible    ${ClusterDetail_RemoveSitesAppsPage_Label_RemoveSitesApps}
+    Click Element    ${ClusterDetail_RemoveSitesAppsPage_Check_SitesApps}
+    Element Should Be enabled    ${ClusterDetail_RemoveSitesAppsPage_Button_Save}
+    Click Button    ${ClusterDetail_RemoveSitesAppsPage_Button_Save}
+    [Tags]
+
+#--------------------------------------------------------------------------------------------
+ClusterDetail_TC_06.1_Verify Add Sites/Apps link opens Appropriate page
+    [Documentation]     Confirm after click on link Add Sites/Apps, appropriate page opens and
+    ...                 all page objects expected are visible.
+    Get Cluster in The List
+    Click Link    ${ClusterDetail_Link_AddSitesApps}
+    Validate Cluster Add Sites/Apps page elements are present
+    [Tags]
+
+
+ClusterDetail_TC_06.2_Verify newly added Sites/Apps are added as expected
+    [Documentation]     Confirm after click on link Add Sites/Apps, add new sites/apps and save them
+    ...                 Expected : Sites newly added should get saved.
+    Get Cluster in The List
+    Click Link       ${ClusterDetail_Link_AddSitesApps}
+    Input Text       ${ClusterDetail_AddSitesAppsPage_TextArea_SitesApps}    Test_Add_12345
+    Sleep    2s
+    Click Button     ${ClusterDetail_AddSitesAppsPage_Button_Save}
+    Sleep    2s
+    Click Button     ${ClusterDetail_AddSitesAppsPage_Button_Save}
+    #Sleep    3s
+    #Get Cluster in The List
+    #Table Should Contain    ${ClusterDetail_ClusterDetail_SitesAppsTable}    Test_Add_12345
+    [Tags]
+
+
+ClusterDetail_TC_06.3_Verify existing Sites/Apps are not added
+    [Documentation]     Confirm existing Sites/Apps are not added
+    Get Cluster in The List
+    Click Link       ${ClusterDetail_Link_AddSitesApps}
+    Sleep    4s
+    Input Text       ${ClusterDetail_AddSitesAppsPage_TextArea_SitesApps}    123456
+    Sleep    2s
+    Click Button     ${ClusterDetail_AddSitesAppsPage_Button_Save}
+    Sleep    4s
+    # Click Button     ${ClusterDetail_AddSitesAppsPage_Button_Save}
+    # Sleep    2s
+    Validate Cluster Add Sites/Apps Error page elements are present
+    [Tags]
+
+#--------------------------------------------------------------------------------------------
+ClusterDetail_TC_07.1_Verify newly added Sites/Apps are added as expected
+   [Documentation]     User is able to Click on Export button and download filter file
+   Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+   Empty Directory     ${CLUSTER_EMPTY_DIRECTORY}
+   Get Cluster in The List
+   Click Link      Export
+   Sleep   5s
+   Capture Page Screenshot With Timestamp
+   OperatingSystem.File Should Exist       /home/vagrant/Downloads/cluster_785_detail.txt
+   [Tags]
+
+#--------------------------------------------------------------------------------------------
+
+
+
+
+
+

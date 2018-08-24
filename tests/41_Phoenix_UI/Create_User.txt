@@ -1,0 +1,189 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX    CREATE_USER    BATCH22    PHOENIX_3
+Suite Setup         Clear Regression UI users
+Suite Teardown      Run Keywords    Close All Browsers
+
+*** Variables ***
+${User_AdminPermission}
+${User_READPermission}
+${User_WRITEPermission}
+
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------
+CreateUser_TC_01.1_Verify Manage Users option is visible for any user with Admin User_AdminPermission
+    [Documentation]    This test validates a drop down option for "Manage Users" is available${Space}
+    ...    at right top drop down box for logged in user who has permission id = 3
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Element Should Be Visible    ${Header_setting-select}
+    Select From List    ${Header_setting-select}    Manage Users
+    Capture Page Screenshot With Timestamp
+    Close All Browsers
+    [Tags]
+
+
+CreateUser_TC_01.2_Verify Manage Users option is not visible for any user with Admin User_READPermission
+    [Documentation]    This test validates a drop down option for "Manage Users" is not available${Space}
+    ...    at right top drop down box for logged in user who has permission id = 1
+    Login To Adhaven UI    username=${QA_READONLY_USER}    password=${QA_DEFAULT_PASSWORD}
+    Element Should Be Visible    ${Header_setting-select}
+    Element Should Not Contain    ${Header_setting-select}    Manage Users
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+CreateUser_TC_01.3_Verify Manage Users option is not visible for any user with Admin User_READPermission
+    [Documentation]    This test validates a drop down option for "Manage Users" is not available${Space}
+    ...    at right top drop down box for logged in user who has permission id = 2
+    Login To Adhaven UI    username=${QA_QA_USER}    password=${QA_DEFAULT_PASSWORD}
+    Element Should Be Visible    ${Header_setting-select}
+    Element Should Not Contain    ${Header_setting-select}    Manage Users
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+#--------------------------------------------------------------------------------------
+CreateUser_TC_02.1_Validate Save user button takes user back to Mange User Page
+    [Documentation]    As per CM-2087, Validate Save user button takes user back to Mange User Page
+    Create a new user from UI    uname=regression@temp.com
+    ...                                     pwd=1234Test!
+    ...                                     firstname=QA
+    ...                                     lastname=Test
+    Assign Groups to User    groupName=4INFO
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Campaign Manager
+    ...                          Permission=READ
+    Save User Changes in UI
+    [Tags]    # Known_bug    CM-2087
+
+
+CreateUser_TC_02.2_Validate Logged in user is able to save manage permissions.
+    [Documentation]    As per CM-2076, Logged in user should be able to save manage permissions.
+    Set Test Variable    ${usrname}    regression@temp1.com
+
+    Create a new user from UI    uname=${usrname}
+    ...                                     pwd=1234Test!
+    ...                                     firstname=QA
+    ...                                     lastname=Test
+    ...             LoginUserName=abc@4info.com
+    ...             LoggedinUserPW=1234info
+
+    Assign Groups to User    groupName=4INFO
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Audience-Solutions
+    ...                          Permission=READ
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Audience-Solutions
+    ...                          Permission=WRITE
+
+    Save User Changes in UI
+
+    Search newly created user in UI    username=${usrname}
+
+    Validate User Permissons Checked    Group=4INFO
+    ...                         UI_Type=Audience-Solutions
+    ...                         Permission=READ
+    ...                         checkedStatus=true
+
+    Validate User Permissons Checked    Group=4INFO
+    ...                         UI_Type=Audience-Solutions
+    ...                         Permission=WRITE
+    ...                         checkedStatus=true
+
+    [Tags]    #CM-2076
+
+#--------------------------------------------------------------------------------------
+
+CreateUser_TC_03.1_Validate newly created user permissions are not saved twice
+    Set Test Variable    ${usrname}    regression@temp31.com
+
+    Create a new user from UI               uname=${usrname}
+    ...                                     pwd=1234Test!
+    ...                                     firstname=QA
+    ...                                     lastname=Test
+    ...             LoginUserName=abc@4info.com
+    ...             LoggedinUserPW=P@ssw0rd
+
+    Assign Groups to User    groupName=4INFO
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Audience-Solutions
+    ...                          Permission=READ
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Audience-Solutions
+    ...                          Permission=WRITE
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Per4mance Trax
+    ...                          Permission=ADMIN
+
+    Save User Changes in UI
+
+    Validate DB Records for user for read permission is not saved twice    username=${usrname}
+
+    [Tags]    # CM-2229     # Known_bug    CM-2078
+
+
+
+CreateUser_TC_04.1_Page Scrolling Verification For any error on page CM-2123
+    Set Test Variable    ${usrname}    admin@4info.net
+    Create a new user from UI    uname=${usrname}
+    ...                                     pwd=1234Test!
+    ...                                     firstname=QA
+    ...                                     lastname=Test
+    ...             LoginUserName=${usrname}
+    ...             LoggedinUserPW=P@ssw0rd
+    Execute javascript     document.body.style.zoom="150%"
+
+    Assign Groups to User        groupName=4INFO
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Audience-Solutions
+    ...                          Permission=READ
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Audience-Solutions
+    ...                          Permission=WRITE
+
+    Assign Permissons to User    Group=4INFO
+    ...                          UI_Type=Per4mance Trax
+    ...                          Permission=ADMIN
+
+
+    Click Element    ${button_SaveUser}
+    Sleep    10s
+    Element Should Be Visible           xpath=(.//span[contains(., '*')])[3]/following::img
+    Mouse Over      xpath=(.//span[contains(., '*')])[3]/following::img
+    Page Should Contain     Username already exists.
+    Capture Page Screenshot With Timestamp
+    [Tags]          scrollTest
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#--------------------------------------------------------------------------------------

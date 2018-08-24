@@ -1,0 +1,394 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX    UPDATE_GROUP_PERMISSIONS    BATCH22
+Suite Setup         Run Keyword        Clean UP Created Groups By Name     groupName=00_QA_TEST_GROUP_UPDATE
+# Suite Teardown      Run Keyword        CleanUp Created Groups in Update Groups Permissions
+
+
+
+*** Variables ***
+${QA_URL}                       https://qa-customer.4info.com/dashboard/#/home
+${GROUP_NAME_UI}                00_QA_TEST_GROUP_UPDATE
+${QA_USER}                      admin@4info.net
+${QA_INVALID_USER}              abc@4info.com
+${QA_USER_PWD}                  P@ssw0rd
+${PAGINATION_PREV_BUTTON}       xpath=(//div[@class="grouplist-paging"]/a/i)[0]
+${PAGINATION_NEXT_BUTTON}       xpath=(//div[@class="grouplist-paging"]/a/i)[last()]
+${SORT_BY_NAME}                 xpath=(//a[@class="grouplist-reorder"]/i)[1]
+${SORT_BY_MODIFIED_BY}          xpath=(//a[@class="grouplist-reorder"]/i)[2]
+${SORT_BY_MODIFIED_DT}          xpath=(//a[@class="grouplist-reorder"]/i)[3]
+${GROUP_NAME_EDIT_LINK}         xpath=//a[contains(.,'${QA_TEST_GROUP}_01')]
+${QA_TEST_GROUP}                00_QA_TEST_GROUP_18
+${LAST_MDFD_BY}                 "admin@4info.net"
+
+${AUDIANCE_SOL_SETUP_BTN}           xpath=(//div[@id="tdGroupAction00_QA_TEST_GROUP_18_01"]/div/button)[1]
+${CAMPAIGN_MANAGER_SETUP_BTN}       xpath=(//div[@id="tdGroupAction00_QA_TEST_GROUP_18_01"]/div/button)[2]
+${CAMPAIGN_MANAGER_LINK}            https://qa-customer.4info.com/dashboard/#/campaignManagerSetup/
+${INPUT_DATASOURCE_BUTTON}          (//button[contains(text(),'Include')])
+${MANAGE_GROUP_PAGE}                https://qa-customer.4info.com/dashboard/#/group
+
+
+
+*** Keywords ***
+CleanUp Created Groups in Update Groups Permissions
+    Clean UP Created Groups By Name     groupName=00_QA_TEST_GROUP_UPDATE
+    Close All Browsers
+
+Get Group Id From DB
+    [Arguments]             ${groupName}=
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    Set Test Variable    ${Query}    select id, group_name from rhino.groups where group_name='${groupName}';
+    @{queryResults}=     Query    ${Query}
+    ${QueryResult}=   Create Dictionary    reset_done=${queryResults[0][0]}
+    Set Suite Variable      ${GroupId_UI}    ${QueryResult}
+    Log                     ${GroupId_UI}
+    Disconnect From Database
+
+Remove All UI Elements Records from DB
+    [Arguments]              ${groupId}=${GroupId_UI}
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    Set Test Variable    ${Query}    DELETE from rhino.groups_ui_element where group_id=${groupId};
+    Disconnect From Database
+
+Verify UI_Elements Records with DB
+    [Arguments]             ${groupId}=${GroupId_UI}
+    ...                     ${access}=1
+    ...                     ${UI_element_id}=
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    Set Test Variable    ${Query}    select ui_element_id,access from rhino.groups_ui_element where group_id=${groupId} and ui_element_id=${UI_element_id};
+    @{queryResults}=     Query    ${Query}
+    ${QueryResult}=   Create Dictionary    reset_done=${queryResults[0][0]}
+    Set Suite Variable      ${ui_element_id}    ${QueryResult}
+    ${QueryResult}=   Create Dictionary    reset_done=${queryResults[0][1]}
+    Set Suite Variable      ${access}    ${QueryResult}
+    Log                     ${access}
+    Disconnect From Database
+
+
+Compare Segment Permissions From DB
+    [Arguments]              ${groupId}=${GroupId_UI}
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    Set Test Variable    ${Query}    select segment_datasource_id from rhino.groups_segment_datasource where group_id=${groupId};
+    @{queryResults}=     Query    ${Query}
+    Log Many    @{queryResults}
+    ${count}=           Get Length  ${queryResults}
+    ${Assigned_Segments} =  Create List
+
+    :FOR   ${i}  IN RANGE    0     ${count}
+    \       ${output} =    Convert To String   ${queryResults[${i}]}
+    \       ${output}=     Remove String Using Regexp           ${output}      \\(|L|,\\)
+    \       Log     ${output}
+    \       ${output}=     Remove String Using Regexp           ${output}      u'|'
+    \       Log     ${output}
+    \       Append To List          ${Assigned_Segments}       ${output}
+    Log Many    ${Assigned_Segments}
+    Sort List               ${Assigned_Segments}
+    Log To Console          ${Assigned_Segments}
+    Log                     ${Assigned_Segments}
+    Lists Should Be Equal               ${Assigned_Segments}       ${Expected_Segments}
+    Disconnect From Database
+
+Compare Measurement Permissions From DB
+    [Arguments]              ${groupId}=${GroupId_UI}
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    Set Test Variable    ${Query}    select measurement_datasource_id from rhino.groups_measurement_datasource where group_id=${GroupId_UI};
+    @{queryResults}=     Query    ${Query}
+    Log Many    @{queryResults}
+    ${count}=           Get Length  ${queryResults}
+    ${Assigned_Measurements} =  Create List
+
+    :FOR   ${i}  IN RANGE    0     ${count}
+    \       ${output} =    Convert To String   ${queryResults[${i}]}
+    \       ${output}=     Remove String Using Regexp           ${output}      \\(|L|,\\)
+    \       Log     ${output}
+    \       ${output}=     Remove String Using Regexp           ${output}      u'|'
+    \       Log     ${output}
+    \       Append To List          ${Assigned_Measurements}       ${output}
+    Log Many    ${Assigned_Measurements}
+    Sort List               ${Assigned_Measurements}
+    Log To Console          ${Assigned_Measurements}
+    Log                     ${Assigned_Measurements}
+    Lists Should Be Equal               ${Assigned_Measurements}       ${Expected_Measurements}
+    Disconnect From Database
+Compare Target Permissions From DB
+    [Arguments]              ${groupId}=${GroupId_UI}
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    Set Test Variable    ${Query}    select target_datasource_id from rhino.groups_target_datasource where group_id=${GroupId_UI};
+    @{queryResults}=     Query    ${Query}
+    Log Many    @{queryResults}
+    ${count}=           Get Length  ${queryResults}
+    ${Assigned_Targets} =  Create List
+
+    :FOR   ${i}  IN RANGE    0     ${count}
+    \       ${output} =    Convert To String   ${queryResults[${i}]}
+    \       ${output}=     Remove String Using Regexp           ${output}      \\(|L|,\\)
+    \       Log     ${output}
+    \       ${output}=     Remove String Using Regexp           ${output}      u'|'
+    \       Log     ${output}
+    \       Append To List          ${Assigned_Targets}       ${output}
+    Log Many    ${Assigned_Targets}
+    Sort List               ${Assigned_Targets}
+    Log To Console          ${Assigned_Targets}
+    Log                     ${Assigned_Targets}
+    Lists Should Be Equal               ${Assigned_Targets}       ${Expected_Targets}
+    Disconnect From Database
+
+Remove Added Datasources
+    [Arguments]         ${Datasource_Name}=
+    Set Test Variable           ${Selected_datasource_xpath}     xpath=//div[@class="selectedItem"]/span[contains(.,"${Datasource_Name}")]
+    Mouse Over          ${Selected_datasource_xpath}
+    Click Element       ${Selected_datasource_xpath}//preceding-sibling::span
+
+
+
+*** Test Cases ***
+00_Generate_Data_For_Update_Group_Permissions
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GROUP_NAME_UI}","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    ${GroupId_UI}=              Get Json Value      ${body}     /group/id
+    Set Suite Variable          ${GroupId_UI}           ${GroupId_UI}
+    Login To Dashboard UI       username=${QA_USER}    password=${QA_USER_PWD}
+    [Tags]
+
+01_Update Campaign Permissions
+    [Documentation]             Comparing results with DB
+    Go To                       ${CAMPAIGN_MANAGER_LINK}${GroupId_UI}
+    Sleep   10s
+    Change Group Permissions From UI    Element=Ads-External Id                 permission=HIDE
+    Change Group Permissions From UI    Element=Campaign edit-External Id       permission=SHOW
+    Change Group Permissions From UI    Element=Campaign summary-eCPM           permission=MANDATORY
+    Change Group Permissions From UI    Element=Child Adg Target Cluster        permission=MANDATORY
+    Change Group Permissions From UI    Element=Creatives-External Id           permission=HIDE
+    Change Group Permissions From UI    Element=Campaign edit-Access Control    permission=MANDATORY
+    Sleep   5s
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS              timeout=30s
+    Sleep   3s
+
+    Go To                       ${CAMPAIGN_MANAGER_LINK}${GroupId_UI}
+    Sleep   10s
+    Change Group Permissions From UI    Element=Ads-External Id                 permission=MANDATORY
+    Change Group Permissions From UI    Element=Campaign edit-External Id       permission=HIDE
+    Change Group Permissions From UI    Element=Campaign summary-eCPM           permission=SHOW
+    Change Group Permissions From UI    Element=Child Adg Target Cluster        permission=HIDE
+    Change Group Permissions From UI    Element=Creatives-External Id           permission=SHOW
+    Change Group Permissions From UI    Element=Campaign edit-Access Control    permission=SHOW
+    Sleep   5s
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS              timeout=30s
+    Verify UI_Elements Records with DB              access=0             UI_element_id=67
+    Verify UI_Elements Records with DB              access=0             UI_element_id=39
+    Verify UI_Elements Records with DB              access=0             UI_element_id=59
+    [Teardown]      Remove All UI Elements Records from DB     groupId=${GroupId_UI}
+    [Tags]
+
+02_Update Audiance Permissions
+    [Documentation]             Comparing results with DB
+    Go To                       ${CAMPAIGN_MANAGER_LINK}${GroupId_UI}
+    Sleep    5s
+    Change Group Permissions From UI                    Element=Convert Lat Lon link      permission=HIDE
+    Capture Page Screenshot With Timestamp
+    Sleep   2s
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS              timeout=30s
+    Go To                       ${CAMPAIGN_MANAGER_LINK}${GroupId_UI}
+    Sleep    5s
+    Verify UI_Elements Records with DB              access=0             UI_element_id=72
+    Change Group Permissions From UI                Element=Convert Lat Lon link      permission=MANDATORY
+    Sleep   2s
+    Save Campaign Manager Setup
+    Verify UI_Elements Records with DB              access=1             UI_element_id=72
+    [Tags]
+
+03_Update Segment Datasource
+    Go To               ${CAMPAIGN_MANAGER_LINK}${GroupId_UI}
+    Sleep   5s
+    Sleep       5s
+    Scroll To Element               Element=xpath=${INPUT_DATASOURCE_BUTTON}[1]
+    Change Group Permissions For Segment Data-Sources    dataSource=Acxiom CRM (25%)
+    Change Group Permissions For Segment Data-Sources    dataSource=Nielsen ConneXions (20%)
+    Change Group Permissions For Segment Data-Sources    dataSource=Crossix (Acxiom)
+    Change Group Permissions For Segment Data-Sources    dataSource=Datalogix (20%)
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS    timeout=20s
+    ${Expected_Segments} =  Create List
+    @{Expected_Segments}        Create List     3  10  16  7
+    Log                     ${Expected_Segments}
+    Sort List               ${Expected_Segments}
+    Set Test Variable       ${Expected_Segments}             ${Expected_Segments}
+    Compare Segment Permissions From DB              groupId=${GroupId_UI}
+
+    #########################update Now and check with DB
+    Go To               ${CAMPAIGN_MANAGER_LINK}${GroupId_UI}
+    Sleep   5s
+    Sleep       5s
+    Scroll To Element               Element=xpath=${INPUT_DATASOURCE_BUTTON}[1]
+    Remove Added Datasources        Datasource_Name=Acxiom CRM (25%)
+    Remove Added Datasources        Datasource_Name=Nielsen ConneXions (20%)
+    Remove Added Datasources        Datasource_Name=Datalogix (20%)
+
+    Change Group Permissions For Segment Data-Sources    dataSource=Datamyx
+    Change Group Permissions For Segment Data-Sources    dataSource=Speedeon
+    Sleep    3s
+    Save Campaign Manager Setup
+
+    Wait Until Page Contains     MANAGE GROUPS    timeout=20s
+    ${Expected_Segments} =  Create List
+    @{Expected_Segments}        Create List     13  16  17
+    Log                     ${Expected_Segments}
+    Sort List               ${Expected_Segments}
+    Set Test Variable       ${Expected_Segments}             ${Expected_Segments}
+    Compare Segment Permissions From DB              groupId=${GroupId_UI}
+
+    [Tags]
+
+04_Update Measuremnt Datasource
+    Go To               ${CAMPAIGN_MANAGER_LINK}${GroupId_UI}
+    Wait Until Page Contains      CAMPAIGN MANAGER SETUP
+    Wait Until Page Contains      Cancel
+    Wait Until Page Contains      Save
+    Wait Until Page Contains      MEASUREMENT DATASOURCES
+    Sleep       5s
+    Scroll To Element      Element=xpath=${INPUT_DATASOURCE_BUTTON}[2]
+    Change Group Permissions For Measurement Data-Sources    dataSource=ATT
+    Change Group Permissions For Measurement Data-Sources    dataSource=Other
+    Change Group Permissions For Measurement Data-Sources    dataSource=Kantar
+    Change Group Permissions For Measurement Data-Sources    dataSource=NBCU
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS    timeout=20s
+    Sleep   5s
+    ${Expected_Measurements} =  Create List
+    @{Expected_Measurements}        Create List     15  16  18  2
+    Log                     ${Expected_Measurements}
+    Sort List               ${Expected_Measurements}
+    Set Test Variable       ${Expected_Measurements}             ${Expected_Measurements}
+    Compare Measurement Permissions From DB           groupId=${GroupId_UI}
+
+    Go To               ${CAMPAIGN_MANAGER_LINK}${GroupId_UI}
+    Sleep   5s
+    Sleep       5s
+    Scroll To Element               Element=xpath=${INPUT_DATASOURCE_BUTTON}[2]
+    Remove Added Datasources        Datasource_Name=ATT
+    Remove Added Datasources        Datasource_Name=Other
+    Remove Added Datasources        Datasource_Name=NBCU
+
+    Change Group Permissions For Measurement Data-Sources    dataSource=TruSignal
+    Change Group Permissions For Measurement Data-Sources    dataSource=Crossix
+
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS    timeout=20s
+    Sleep   5s
+    ${Expected_Measurements} =  Create List
+    @{Expected_Measurements}        Create List     10  13  15
+    Log                     ${Expected_Measurements}
+    Sort List               ${Expected_Measurements}
+    Set Test Variable       ${Expected_Measurements}             ${Expected_Measurements}
+    Compare Measurement Permissions From DB           groupId=${GroupId_UI}
+    [Tags]
+
+05_Update Target Datasource
+    Go To               ${CAMPAIGN_MANAGER_LINK}${GroupId_UI}
+    Wait Until Page Contains      CAMPAIGN MANAGER SETUP
+    Wait Until Page Contains      Cancel
+    Wait Until Page Contains      Save
+    Wait Until Page Contains      GENERAL INFORMATION
+    Wait Until Page Contains      UI ACCESS
+    Wait Until Page Contains      TARGET DATASOURCES
+    Sleep       5s
+    Scroll To Element      Element=xpath=${INPUT_DATASOURCE_BUTTON}[3]
+    Change Group Permissions For Target Data-Sources    dataSource=PRIZM 2016
+    Change Group Permissions For Target Data-Sources    dataSource=DLX House Hold
+    Change Group Permissions For Target Data-Sources    dataSource=Acxiom
+    Change Group Permissions For Target Data-Sources    dataSource=NBI
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS    timeout=20s
+    Sleep   5s
+    ${Expected_Targets} =      Create List
+    @{Expected_Targets}        Create List     11  23  26  7
+    Log                     ${Expected_Targets}
+    Sort List               ${Expected_Targets}
+    Set Test Variable       ${Expected_Targets}             ${Expected_Targets}
+    Compare Target Permissions From DB
+#########################update target dataSource
+    Go To               ${CAMPAIGN_MANAGER_LINK}${GroupId_UI}
+    Wait Until Page Contains      UI ACCESS
+    Wait Until Page Contains      TARGET DATASOURCES
+    Sleep       5s
+    Scroll To Element      Element=xpath=${INPUT_DATASOURCE_BUTTON}[3]
+    Change Group Permissions For Target Data-Sources    dataSource=Catalina
+    Change Group Permissions For Target Data-Sources    dataSource=FCA Group
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS    timeout=20s
+    Sleep   5s
+    ${Expected_Targets} =      Create List
+    @{Expected_Targets}        Create List     11  23  26  7  38  45
+    Log                     ${Expected_Targets}
+    Sort List               ${Expected_Targets}
+    Set Test Variable       ${Expected_Targets}             ${Expected_Targets}
+    Compare Target Permissions From DB
+
+    [Tags]
+
+
+06_verification of User_permission entry in DB
+    [Documentation]         on Edit Entry should be made when user does this set first time,
+    ...                     upon subsequent updates these entries should not be made.
+    ...                     NOTE :  This test case is depends on above test case they need to execute before this test case
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    Set Test Variable    ${Query}    select permissions_id,group_id,product_id from rhino.user_permissions where group_id=${GroupId_UI};
+    @{queryResults}=        Query                   ${Query}
+    ${count}=               Get Length              ${queryResults}
+    Should Be Equal         "${count}"               "1"
+    ${QueryResult}=          Convert To String      ${queryResults[0][0]}
+    Set Suite Variable      ${permissions_id}       ${QueryResult}
+    Log                     ${permissions_id}
+    Should Be Equal         "${permissions_id}"               "3"
+    ${QueryResult}=          Convert To String      ${queryResults[0][1]}
+    Set Suite Variable      ${group_id}             ${QueryResult}
+    Log                     ${group_id}
+    Should Be Equal         "${group_id}"               "${GroupId_UI}"
+    ${QueryResult}=          Convert To String      ${queryResults[0][2]}
+    Set Suite Variable      ${product_id}           ${QueryResult}
+    Log                     ${product_id}
+    Should Be Equal         "${product_id}"               "1"
+    Disconnect From Database
+    [Tags]
+
+
+

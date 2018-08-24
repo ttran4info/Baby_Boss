@@ -1,0 +1,280 @@
+*** Settings ***
+Resource     phoenix_ui_imports.txt
+Library      OperatingSystem
+Library      DatabaseLibrary
+Force Tags      PHOENIX     campaign_manager_setup     BATCH22
+# Suite Setup     Run Keyword      Clean up Campaign Manager Setup Groups   
+Suite Teardown      Run Keywords     Clean up Campaign Manager Setup Groups      Close All Browsers
+
+#WIKI LINK  : https://wiki.4info.com/display/Software/cm2+UI+test+matrix
+#UI LINK    : https://qa-customer.4info.com/dashboard/#/campaignManagerSetup/1056
+
+#QA TASK IDs : 
+# https://jira.adhaven.com/browse/CM-2370
+# https://jira.adhaven.com/browse/CM-2353
+
+#DEV TASKs   : 
+# https://jira.adhaven.com/browse/CM-2334
+# https://jira.adhaven.com/browse/CM-2338
+
+
+
+
+*** Variables ***
+${QA_URL}     https://qa-customer.4info.com/dashboard/#/home
+${QA_USER}    ${QA_DEFAULT_USER}    # admin@4info.net
+${QA_INVALID_USER}       abc@4info.com
+${QA_USER_PWD}       P@ssw0rd
+${PAGINATION_PREV_BUTTON}       xpath=(//div[@class="grouplist-paging"]/a/i)[0]
+${PAGINATION_NEXT_BUTTON}       xpath=(//div[@class="grouplist-paging"]/a/i)[last()]
+${SORT_BY_NAME}      xpath=(//a[@class="grouplist-reorder"]/i)[1]
+${SORT_BY_MODIFIED_BY}      xpath=(//a[@class="grouplist-reorder"]/i)[2]
+${SORT_BY_MODIFIED_DT}      xpath=(//a[@class="grouplist-reorder"]/i)[3]
+${GROUP_NAME_EDIT_LINK}     xpath=//a[contains(.,'${QA_TEST_GROUP}')]
+${QA_TEST_GROUP}     0_campaign_manager_setup_group
+${LAST_MDFD_BY}      "saff@4info.com"
+
+${AUDIANCE_SOL_SETUP_BTN}    xpath=(//div[@id="tdGroupAction00_QA_TEST_GROUP_18_01"]/div/button)[1]
+${CAMPAIGN_MANAGER_SETUP_BTN}       xpath=(//div[@id="tdGroupAction00_QA_TEST_GROUP_18_01"]/div/button)[2]
+${CAMPAIGN_MANAGER_LINK}     https://qa-customer.4info.com/dashboard/#/campaignManagerSetup/
+${INPUT_DATASOURCE_BUTTON}      (//button[contains(text(),'Include')])
+
+*** Keywords ***
+
+*** Test Cases ***
+#----------------------------------------------------------------------------------
+TC_00_Pre-requisite Log In And Go To Manage Groups Page
+    Close All Browsers
+    Clean up Campaign Manager Setup Groups
+
+    USER MANAGEMENT API     request_type=POST
+    ...       data={"groupName":"${QA_TEST_GROUP}","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...       uri=/user-management-api/admin/groups
+    
+    ${GroupID}=      Get JSON Value      ${body}      /group/id
+    Log   ${GroupID}
+    Set Suite Variable      ${GroupID}      ${GroupID}
+    Login To QA Env      username=${QA_USER}     password=${QA_DEFAULT_PASSWORD}
+    Go To Manage Groups Page
+    [Tags]     TC_00      CM-2353
+
+#----------------------------------------------------------------------------------
+TC_01_Edit Campaign Manager Setup page(Element Verification)
+    Go To Cmpaign Manage Group Page     groupID=${GroupID}
+    Validate Campaign Manager Setup Page Elements  
+    [Tags]     CM-2315    TC_00    
+
+#----------------------------------------------------------------------------------
+TC_02_Group Campaign Manager Setup page(Audiance Checkbox)
+    Click Element      ${CAMPAIGN_CHECKBOX}
+    Click Element      ${FORCASTING_CHECKBOX}
+    Sleep   3s
+    Page Should Contain     Convert Lat Lon link
+    Page Should Not Contain     Ads-External Id
+    Page Should Not Contain     Campaign edit Data-Sources
+    Page Should Not Contain     Campaign edit-Access Control
+    Page Should Not Contain     Campaign edit-External Id
+    [Tags]     CM-2315       
+
+
+TC_03_Group Campaign Manager Setup page(Campaign Checkbox)
+    Click Element      ${CAMPAIGN_CHECKBOX}
+    Click Element      ${AUDIANCE_CHECKBOX}
+    Sleep   3s
+    Page Should Contain     Ads-External Id
+    Page Should Contain     Campaign edit Data-Sources
+    Page Should Contain     Campaign edit-Access Control
+    Page Should Contain     Campaign edit-External Id
+    Page Should Not Contain     Convert Lat Lon link
+    [Tags]     CM-2315
+
+
+TC_04_Group Campaign Manager Setup page(Forcasting Checkbox)
+    Click Element      ${FORCASTING_CHECKBOX}
+    Click Element      ${CAMPAIGN_CHECKBOX}
+    Sleep   3s
+    Page Should Contain     Forecasting
+    Page Should Not Contain     Campaign edit-Access Control
+    Page Should Not Contain     Campaign edit-External Id
+    Page Should Not Contain     Convert Lat Lon link
+    [Tags]     CM-2315
+
+#----------------------------------------------------------------------------------
+TC_05_Group Campaign Manager Setup page(Change Group Permissions for Campaign)
+    # Click Element      ${CAMPAIGN_CHECKBOX}
+    Click Element      ${FORCASTING_CHECKBOX}
+    Change Group Permissions From UI    Element=Ads-External Id    permission=HIDE
+    Change Group Permissions From UI    Element=Campaign edit-External Id     permission=SHOW
+    Change Group Permissions From UI    Element=Campaign summary-eCPM     permission=MANDATORY
+    Change Group Permissions From UI    Element=Child Adg Target Cluster      permission=MANDATORY
+    Change Group Permissions From UI    Element=Creatives-External Id     permission=HIDE
+    Change Group Permissions From UI    Element=Campaign edit-Access Control      permission=MANDATORY
+    Sleep   2s
+    Save Campaign Manager Setup
+    # Wait Until Page Contains Element    ${button_CreateGroup}    timeout=180s
+    # Wait Until Page Contains     ${QA_TEST_GROUP}    timeout=180s
+    Sleep   10s
+    Get Request For Group Access UI Elements     groupId=${GroupID}
+    ${Expected_Mandatory_Elements}      Get Json Value    ${body}    /groupAccessElements/mandatoryElementsIds
+    ${Expected_Excluded_Elements}    Get Json Value    ${body}    /groupAccessElements/excludedElementsIds
+    List Should Contain Value    ${Expected_Mandatory_Elements}       75
+    List Should Contain Value    ${Expected_Mandatory_Elements}       25
+    List Should Contain Value    ${Expected_Mandatory_Elements}       67
+    List Should Contain Value    ${Expected_Excluded_Elements}    58
+    List Should Contain Value    ${Expected_Excluded_Elements}    59
+    [Tags]      CM-2315    
+
+
+#----------------------------------------------------------------------------------
+TC_06_Group Campaign Manager Setup page(Change Group Permissions for Audiance-Hide)
+    Go To       ${CAMPAIGN_MANAGER_LINK}${GroupID}
+    Wait Until Page Contains      CAMPAIGN MANAGER SETUP
+    Wait Until Page Contains      Cancel
+    Wait Until Page Contains      Save
+    Wait Until Page Contains      GENERAL INFORMATION
+    Wait Until Page Contains      UI ACCESS
+    Sleep   5s
+    Click Element      ${CAMPAIGN_CHECKBOX}
+    Click Element      ${AUDIANCE_CHECKBOX}
+    Change Group Permissions From UI    Element=Convert Lat Lon link      permission=HIDE
+    Capture Page Screenshot With Timestamp
+    Sleep   2s
+    Save Campaign Manager Setup
+    Sleep   10s
+    Get Request For Group Access UI Elements     groupId=${GroupID}
+    ${Expected_Mandatory_Elements}      Get Json Value    ${body}    /groupAccessElements/mandatoryElementsIds
+    ${Expected_Excluded_Elements}    Get Json Value    ${body}    /groupAccessElements/excludedElementsIds
+    List Should Contain Value    ${Expected_Mandatory_Elements}       75
+    List Should Contain Value    ${Expected_Mandatory_Elements}       25
+    List Should Contain Value    ${Expected_Mandatory_Elements}       67
+    List Should Contain Value    ${Expected_Excluded_Elements}    58
+    List Should Contain Value    ${Expected_Excluded_Elements}    59
+    List Should Contain Value    ${Expected_Excluded_Elements}    72
+    List Should Contain Value    ${Expected_Excluded_Elements}    5
+    [Tags]      CM-2315
+
+#----------------------------------------------------------------------------------
+TC_07_Group Campaign Manager Setup page(Metamarket Input Validations)
+    Go To       ${CAMPAIGN_MANAGER_LINK}${GroupID}
+    Wait Until Page Contains      CAMPAIGN MANAGER SETUP
+    Wait Until Page Contains      Cancel
+    Wait Until Page Contains      Save
+    Wait Until Page Contains      GENERAL INFORMATION
+    Wait Until Page Contains      UI ACCESS
+    Input Text     ${CAMPAIGN_MANAGER_SETUP_METAMARKET_INPUT}     -10
+    Press key      ${CAMPAIGN_MANAGER_SETUP_METAMARKET_INPUT}     \\13
+    Sleep    4s
+    Mouse Over     xpath=.//select[contains(., 'ImpressionsBudget')]/following::img
+    Page Should Contain    Value should be positive integer
+    Input Text     ${CAMPAIGN_MANAGER_SETUP_METAMARKET_INPUT}     10
+    Sleep     3s
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS     timeout=20s
+    Wait Until Page Contains     ${QA_TEST_GROUP}      timeout=20s
+    [Tags]      CM-2315
+
+#----------------------------------------------------------------------------------
+TC_08_Group Campaign Manager Setup page(Segment Data-Sources)
+    Go To       ${CAMPAIGN_MANAGER_LINK}${GroupID}
+    Wait Until Page Contains      CAMPAIGN MANAGER SETUP
+    Wait Until Page Contains      Cancel
+    Wait Until Page Contains      Save
+    Wait Until Page Contains      GENERAL INFORMATION
+    Wait Until Page Contains      UI ACCESS
+    Wait Until Page Contains      SEGMENT DATASOURCES
+    Sleep       5s
+    Scroll To Element      Element=xpath=${INPUT_DATASOURCE_BUTTON}[1]
+    Change Group Permissions For Segment Data-Sources    dataSource=Acxiom CRM (25%)
+    Change Group Permissions For Segment Data-Sources    dataSource=Nielsen ConneXions (20%)
+    Change Group Permissions For Segment Data-Sources    dataSource=Crossix (Acxiom)
+    Change Group Permissions For Segment Data-Sources    dataSource=Datalogix (20%)
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS    timeout=20s
+    Wait Until Page Contains     ${QA_TEST_GROUP}      timeout=20s
+    [Tags]
+
+#----------------------------------------------------------------------------------
+TC_09_Group Campaign Manager Setup page(Measurement Data-Sources)
+    Go To       ${CAMPAIGN_MANAGER_LINK}${GroupID}
+    Wait Until Page Contains      CAMPAIGN MANAGER SETUP
+    Wait Until Page Contains      Cancel
+    Wait Until Page Contains      Save
+    Wait Until Page Contains      GENERAL INFORMATION
+    Wait Until Page Contains      UI ACCESS
+    Wait Until Page Contains      MEASUREMENT DATASOURCES
+    Sleep       5s
+    Scroll To Element      Element=xpath=${INPUT_DATASOURCE_BUTTON}[2]
+    Change Group Permissions For Measurement Data-Sources    dataSource=ATT
+    Change Group Permissions For Measurement Data-Sources    dataSource=Other
+    Change Group Permissions For Measurement Data-Sources    dataSource=Kantar
+    Change Group Permissions For Measurement Data-Sources    dataSource=NBCU
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS    timeout=20s
+    Wait Until Page Contains     ${QA_TEST_GROUP}      timeout=20s
+    [Tags]
+#----------------------------------------------------------------------------------
+TC_10_Group Campaign Manager Setup page(Target Data-Sources)
+    Go To       ${CAMPAIGN_MANAGER_LINK}${GroupID}
+    Wait Until Page Contains      CAMPAIGN MANAGER SETUP
+    Wait Until Page Contains      Cancel
+    Wait Until Page Contains      Save
+    Wait Until Page Contains      GENERAL INFORMATION
+    Wait Until Page Contains      UI ACCESS
+    Wait Until Page Contains      TARGET DATASOURCES
+    Sleep       5s
+    Scroll To Element      Element=xpath=${INPUT_DATASOURCE_BUTTON}[3]
+    Change Group Permissions For Target Data-Sources    dataSource=Location Append
+    Change Group Permissions For Target Data-Sources    dataSource=4INFO Device Segments
+    Change Group Permissions For Target Data-Sources    dataSource=Speedeon-Spire
+    Change Group Permissions For Target Data-Sources    dataSource=Catalina Trade Area
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS    timeout=20s
+    Wait Until Page Contains     ${QA_TEST_GROUP}      timeout=20s
+    [Tags]
+
+#----------------------------------------------------------------------------------
+TC_11_Check Checkbox Channel(CM-2377)
+    Go To       ${CAMPAIGN_MANAGER_LINK}${GroupID}
+    Wait Until Page Contains      CAMPAIGN MANAGER SETUP
+    Wait Until Page Contains      Cancel
+    Wait Until Page Contains      Save
+    Wait Until Page Contains      GENERAL INFORMATION
+    Wait Until Page Contains      UI ACCESS
+    Wait Until Page Contains      TARGET DATASOURCES
+    Sleep       5s
+    Click Element      ${CAMPAIGN_MANAGER_SETUP_CHANNEL_CHECKBOX}
+    Sleep    3s
+    Save Campaign Manager Setup
+    Wait Until Page Contains     MANAGE GROUPS    timeout=20s
+    Wait Until Page Contains     ${QA_TEST_GROUP}      timeout=20s
+    [Tags]
+#----------------------------------------------------------------------------------
+
+CM-2353_TC_01_Validate added columns in table ui_element
+    [Documentation]    Validate configurable (boolean) and description (string) columns to ui_element table are added. ${\n} Checks to be performed for column configurable : ${\n} 1.  Column name added =  configurable, ${\n} 2. datatype for configurable is int ${\n} 3. column size is only 1 char ${\n} 4. column default value is zero (0)
+    Validate columns configurable and description are present in db table ui_element
+    [Tags]    CM-2432    known_bug    CM-2353    
+
+
+CM-2353_TC_02_show only the configurable = 1 elements on Groups CM setup page
+    [Documentation]    Validate Set configurable flag to 1 only for those ui_element records for which there are currently any entries in groups_ui_elements table in production DB. ${\n} 1.  This will show only the configurable = 1 elements on Groups CM setup page ${\n} 2.  Show description column in UI.
+    Validate Set configurable flag to 1 as per ue-desc-4 (2) (1).xlsx file in DB
+    Go To Cmpaign Manage Group Page     groupID=${GroupID}
+    Validate Elements mentioned in ue-desc-4 (2) (1).xlsx are displayed at UI as Show for Audience
+    Validate Elements mentioned in ue-desc-4 (2) (1).xlsx are displayed at UI as Show for Campaigns
+    [Tags]    CM-2353
+
+
+CM-2353_TC_03_configurable flag can be modified directly in the DB, and the UI should behave accordingly.
+    [Documentation]    If configurable flag is set to 0 to "Ads-External Id" and check in UI whether "Ads-External Id" is not displayed under UI Access for Campaigns
+    [Setup]    Close All Browsers    
+    Set DB column configurable value for ui_element table    name=Ads-External Id    value=0
+    Sleep    5s
+    Login To QA Env      username=${QA_USER}     password=${QA_DEFAULT_PASSWORD}
+    Go To Cmpaign Manage Group Page     groupID=${GroupID}    
+    Validate value for configurable 0 field is not present in UI    name=Ads-External Id
+    Sleep    10s
+    [Teardown]    Set DB column configurable value for ui_element table    name=Ads-External Id    value=1
+    [Tags]    CM-2353
+
+#----------------------------------------------------------------------------------

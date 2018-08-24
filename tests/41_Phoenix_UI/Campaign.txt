@@ -1,0 +1,1281 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags         	PHOENIX    UI_Create_Campaign       BATCH22    PHOENIX_3
+Suite Setup         Run Keyword          Clean-up_generated_data
+Suite Teardown      Run Keywords         Close All Browsers    Clean-up_generated_data
+
+*** Variables ***
+${QA_TEST_ADVERTISER}               00_QATEST_advertiser_campaign
+${CAMPAIGN_NAME_UI}                 00_QATEST_campaign
+# ${START_DATE}               2018/01/01						#${REGRESSION_START_DATE}   The date format is incorrect
+${END_DATE}                         2020/12/12						#${REGRESSION_END_DATE}		The date format is incorrect
+${START_DATE_TIME}                  12:00 AM
+${END_DATE_TIME}                    11:59 PM
+${CHILD_ADGROUP}                    adGroup
+@{SINGLE_ACCESS}                    QA
+${STORE_VISIT_LIST_ERROR}           Max limit. We only support up to 12 store chains for store visits.
+${CAMPAIGN_NAME_ERROR_MSG}          Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed.
+${START_DATE}                       01/01/2019
+${START_DATE_CAMPAIGN}              01/01/2019
+${END_DATE_TIME_CAMPAIGN}           12/12/2020
+${START_DATE_TIME_PARENT}           02/02/2019
+${END_DATE_TIME_PARENT}             11/11/2020
+${START_DATE_CHILD}                 03/03/2019 01:00
+${END_DATE_CHILD}                   04/04/2019 07:59
+${parent_name}                      00_QATEST_parent
+${child_name}                       00_QATEST_child
+${Home_page}                        https://qa-campaigns.4info.com/phoenix/#/advertisersList
+${EXTERNAL_ID_text}                 xpath=//div[@id="externalId"]
+${group_id_6_username}              cat6@catalina.com
+${group_id_6_password}              P@ssw0rd
+${group_id_14_username}             cat@cat.com
+${group_id_15_username}             regression@catalina.com
+${group_id_17_username}             qa@datamyx.com
+${group_id_18_username}             regression_undertone@undertone.com
+${group_id_2_username}              regressionqa2@4info.com
+${group_id_3_username}              regressionqa3@4info.com
+${group_id_4_username}              regressionqa4@4info.com
+${group_id_8_username}              regressionqa8@acxiom.com
+${group_id_12_username}             regressionqa12@att.com
+${group_id_11_username}             regressionqa11@4info.com
+${group_id_13_username}             regressionqa13@belltoweradvertising.com
+${group_id_17_username}             regressionqa17@datamyx.com
+${group_id_19_username}             regressionqa19@4info.com
+${group_id_9_username}              regressionqa9@exp.com
+${group_id_5_username}              regressionqa5@4info.com
+${group_id_10_username}             regressionqa10@4info.com
+${group_id_7_username}              regressionqa7@4info.com
+${group_id_20_username}             regressionqa20@tegna.com
+${group_id_16_username}             regression_qa@qa.com
+${group_password}                   P@ssw0rd
+${QA_TEST_GROUP}                    00_QA_TEST_GROUP_PAC
+${LAST_MDFD_BY}                     "saff@4info.com"
+
+${Campaigns_summary_page}           https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+${Addtional_Summery_page}           https://qa-campaigns.4info.com/phoenix/#/summary/
+
+*** Keywords ***
+
+Clean-up_generated_data
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}1
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_eCPM
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}Audit01
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}Audit02
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}Audit03
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}Audit04
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}Audit05
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}0201
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}0202
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP6
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP14
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP15
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP18
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP19
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_eCPM2
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_eCPM3
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_eCPM3
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}CAT0802
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}0801
+    Cleanup Advertiser From DB          advertiser_name=TestCM2122Advertiser
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_CM_2254
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+
+Wait until Advertiser Element To Load
+    Wait Until Page Contains     ADVERTISERS                timeout=20s
+    Wait Until Page Contains     Create Advertiser          timeout=20s
+    Wait Until Page Contains     Search advertisers         timeout=20s
+Wait until Campaign Element To Load
+    Wait Until Page Contains    CAMPAIGN                            timeout=20s
+    Wait Until Page Contains    Campaign status                     timeout=20s
+    Wait Until Page Contains    General campaign information        timeout=20s
+
+
+Login To Adhaven UI For Group 17
+    [Arguments]     ${username}=${QA_DEFAULT_USER}      ${password}=${QA_DEFAULT_PASSWORD}
+    Open Browser       ${LOGIN_URL}    ${Browser}
+    Maximize Browser Window
+    Sleep    10s
+    Wait Until Element Is Visible    ${LOGIN_NAME_TEXTBOX}    timeout=40s
+    Input Text         ${LOGIN_NAME_TEXTBOX}                ${username}
+    Input Text         ${LOGIN_PASSWORD_TEXTBOX}        ${password}
+    Click Button       ${LOGIN_BUTTON}
+    Wait Until Page Contains    Campaigns       timeout=20s
+    Wait Until Page Contains    Clusters        timeout=20s
+    Wait Until Page Contains    Forecasting     timeout=20s
+    Wait Until Page Contains    ADVERTISERS     timeout=20s
+
+Get Today's Date
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 1 day
+    Set Suite Variable    ${todaysDate}   ${mm}/${dd}/${yyyy}
+    Set Suite Variable       ${START_DATE}      ${todaysDate}
+    Log To Console          ${todaysDate}
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 3 day
+    Set Suite Variable    ${START_DATE_TIME_PARENT}   ${mm}/${dd}/${yyyy}
+
+Login To CM2
+    [Arguments]     ${username}=${QA_DEFAULT_USER}      ${password}=${QA_DEFAULT_PASSWORD}
+    Input Text         ${LOGIN_NAME_TEXTBOX}                ${username}
+    Input Text         ${LOGIN_PASSWORD_TEXTBOX}        ${password}
+    Click Button       ${LOGIN_BUTTON}
+    Wait Until Page Contains    Campaigns       timeout=20s
+    Wait Until Page Contains    Clusters        timeout=20s
+    Wait Until Page Contains    Forecasting     timeout=20s
+
+Create Campaign For eCPM and Spend TC
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}_eCPM"}
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}1"}
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}_eCPM    campaign_advertiser_id=${advertiser_id}    campaign_start_date_time=${START_DATE_CAMPAIGN} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=6, 14, 15, 20  #campaign_access_control=6,14,15,20,2,4,8,12,11,13,17,19,9,5,10,16,18,7
+    Log    Advertiser_id=${advertiser_id}
+    Set Suite Variable      ${Campaign_Id_eCPM}          ${Campaign_Id}
+
+*** Test Cases ***
+UI_Create_Campaign_TC_00.01_Generate_data_for_Tests
+    # Create Required Users To Test Phoenix Campaign Script
+    Log To Console    Data Generating.
+    # Create Advertiser     uri=/pac-api/partner/advertiser     data={"name": "${QA_TEST_ADVERTISER}"}
+    Create Campaign For eCPM and Spend TC
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+
+    [Tags]     PHOENIX_SANITY      CM-2324       #  CM-1988
+
+
+UI_Create_Campaign_TC_01.01_Create_Campaign(Normal)
+    [Documentation]                 Create the campaign Normal
+    Create Campaign on UI                       ADVERTISER_NAME=${QA_TEST_ADVERTISER}1
+    ...                                         CAMPAIGN_STATUS_UI=Active
+    ...                                         CAMPAIGN_NAME_UI=${CAMPAIGN_NAME_UI}01
+    ...                                         START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+
+    Select Access Control                       SELECT_ACCESS_CONTROL=@{SINGLE_ACCESS}
+
+    Click Element    //input[@id='legacy']
+    Sleep    3s
+    Select Taxonomy                             TAXONOMY_VERTICAL=Education
+    ...                                         TAXONOMY_SEGMENT=College Life
+
+    Capture Page Screenshot With Timestamp
+
+    Save The Campaign
+    Sleep   10s
+    Page Should Contain			CAMPAIGN SUMMARY
+    Page Should Contain			${CAMPAIGN_NAME_UI}01
+    Capture Page Screenshot With Timestamp
+    # Go To                       ${Home_page}
+    Click Link    ${Header_Link_Campaigns}
+    [Tags]       PHOENIX_SANITY
+
+UI_Create_Campaign_TC_01.02_Create_Campaign(Adding Store Visit list)
+    [Documentation]                 Create the campaign with Store Visit Lists
+    ${STORE_VISIT_LIST}    Set Variable       AUTO PARTS       STATIONERY STORES
+    @{STORE_VISIT_CATEGORY}=    Convert To List    ${STORE_VISIT_LIST}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    # Wait Until Element Is Visible               Search advertiser_ids
+    # Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Create Campaign on UI                       ADVERTISER_NAME=${QA_TEST_ADVERTISER}1
+    ...                                         CAMPAIGN_STATUS_UI=Active
+    ...                                         CAMPAIGN_NAME_UI=${CAMPAIGN_NAME_UI}02
+    ...                                         START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+    Select Access Control                       SELECT_ACCESS_CONTROL=@{SINGLE_ACCESS}
+    Select Taxonomy                             TAXONOMY_VERTICAL=Education
+    ...                                         TAXONOMY_SEGMENT=College Life
+    Add Store Visit Categories                  SELECT_DATASET=legacy
+    ...                                         STORE_VISIT_CATEGORY=${STORE_VISIT_CATEGORY}
+    Save The Campaign
+    Sleep  10s
+    Page Should Contain         CAMPAIGN SUMMARY
+    Page Should Contain         ${CAMPAIGN_NAME_UI}02
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+UI_Create_Campaign_TC_01.03_Create_Campaign(Adding Store Visit list and Data source list)
+    [Documentation]                 Create the campaign with adding data source list
+    ${STORE_VISIT_LIST}    Set Variable       Accessories Fashion          Automobile Lubrication Service
+    @{STORE_VISIT_CATEGORY}=    Convert To List    ${STORE_VISIT_LIST}
+    ${DATA_SOURCE_LIST}        Set Variable       Gender    Social IQ    Age    Children
+    @{DATA_SOURCE_CATEGORY}=    Convert To List    ${DATA_SOURCE_LIST}
+    # Go To                                   ${Home_page}
+    Click Link    ${Header_Link_Campaigns}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Create Campaign on UI                       ADVERTISER_NAME=${QA_TEST_ADVERTISER}1
+    ...                                         CAMPAIGN_STATUS_UI=Active
+    ...                                         CAMPAIGN_NAME_UI=${CAMPAIGN_NAME_UI}03
+    ...                                         START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+    Select Access Control                       SELECT_ACCESS_CONTROL=@{SINGLE_ACCESS}
+    Select Taxonomy                             TAXONOMY_VERTICAL=Education
+    ...                                         TAXONOMY_SEGMENT=College Life
+    Add Store Visit Categories                  SELECT_DATASET=infogroup
+    ...                                         STORE_VISIT_CATEGORY=${STORE_VISIT_CATEGORY}
+    Sleep    5s
+    Check Data Source Categories                DATA_SOURCE=Experian
+    ...                                         DATA_SOURCE_CATEGORY=@{DATA_SOURCE_CATEGORY}
+    Sleep  1s
+    Save The Campaign
+    Sleep  10s
+    Page Should Contain         CAMPAIGN SUMMARY
+    Page Should Contain         ${CAMPAIGN_NAME_UI}03
+    Capture Page Screenshot With Timestamp
+    [Tags]         PHOENIX_SANITY
+
+UI_Create_Campaign_TC_01.04_Create_Campaign(Campign Summery Page)
+    [Documentation]                 Create the campaign and validate campaign summery page
+    # Set Test Variable       ${Add_link}         //a[contains(.,'${QA_TEST_ADVERTISER}1')]
+    # Set Test Variable       ${Campign_link}     //a[contains(.,'${CAMPAIGN_NAME_UI}')]
+    # Set Test Variable       ${adGroup_link}     //a[contains(.,'${CHILD_ADGROUP}')]
+    # Go To                                   ${Home_page}
+    Click Link    ${Header_Link_Campaigns}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Create Campaign on UI                       ADVERTISER_NAME=${QA_TEST_ADVERTISER}1
+    ...                                         CAMPAIGN_STATUS_UI=Active
+    ...                                         CAMPAIGN_NAME_UI=${CAMPAIGN_NAME_UI}04
+    ...                                         START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+    Select Access Control                       SELECT_ACCESS_CONTROL=@{SINGLE_ACCESS}
+    Select Taxonomy                             TAXONOMY_VERTICAL=Education
+    ...                                         TAXONOMY_SEGMENT=College Life
+    Capture Page Screenshot With Timestamp
+    Sleep  1s
+    Save The Campaign
+    Sleep   10s
+    Page Should Contain         CAMPAIGN SUMMARY
+    Page Should Contain         ${CAMPAIGN_NAME_UI}04
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+UI_Create_Campaign_TC_01.05_Create_Campaign(MULTIPLE Access Controls)
+    ${ACCESS_COTROL_LIST}    Set Variable       ATT    QA    NCS
+    @{ACCESS_CONTROL_LIST}=    Convert To List    ${ACCESS_COTROL_LIST}
+    # Go To                                   ${Home_page}
+    Click Link    ${Header_Link_Campaigns}
+    # Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Create Campaign on UI                       ADVERTISER_NAME=${QA_TEST_ADVERTISER}
+    ...                                         CAMPAIGN_STATUS_UI=Active
+    ...                                         CAMPAIGN_NAME_UI=${CAMPAIGN_NAME_UI}05
+    ...                                         START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+    Select Access Control                       SELECT_ACCESS_CONTROL=@{ACCESS_CONTROL_LIST}
+    Select Taxonomy                             TAXONOMY_VERTICAL=Education
+    ...                                         TAXONOMY_SEGMENT=College Life
+    Capture Page Screenshot With Timestamp
+    Sleep  1s
+    Save The Campaign
+    Sleep   10s
+    Page Should Contain         CAMPAIGN SUMMARY
+    Page Should Contain         ${CAMPAIGN_NAME_UI}05
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+UI_Create_Campaign_TC_01.06_Create_Campaign(Validations Check)
+    ${STORE_VISIT_LIST}    Set Variable       Accessories Fashion       Animal & Bird Housing       Arcades      Automobile Lubrication Service
+    @{STORE_VISIT_CATEGORY}=    Convert To List    ${STORE_VISIT_LIST}
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Create Campaign on UI                       ADVERTISER_NAME=${QA_TEST_ADVERTISER}
+    ...                                         CAMPAIGN_STATUS_UI=Active
+    ...                                         CAMPAIGN_NAME_UI=${CAMPAIGN_NAME_UI} $#$#$06
+    ...                                         START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+    Select Access Control                       SELECT_ACCESS_CONTROL=@{SINGLE_ACCESS}
+    Select Taxonomy                             TAXONOMY_VERTICAL=Pets
+    ...                                         TAXONOMY_SEGMENT=Cats
+    Add Store Visit Categories                  SELECT_DATASET=infogroup
+    ...                                         STORE_VISIT_CATEGORY=${STORE_VISIT_CATEGORY}
+    Page Should Contain                         ${STORE_VISIT_LIST_ERROR}
+    Sleep  1s
+    Remove Store Visit List         STORE_VISIT_CATEGORY=${STORE_VISIT_CATEGORY}
+    Save The Campaign
+    Sleep  2s
+    Element Should Be Visible                   ${CAMPAIGN_NAME_ERROR}
+    Mouse Over                                  ${CAMPAIGN_NAME_ERROR}
+    Page Should Contain                         ${CAMPAIGN_NAME_ERROR_MSG}
+    Sleep  5s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+UI_Create_Campaign_TC_02.01_List_adgroups(Parent AdGroups)
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}0201"}
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=6
+    ${Campaign_Id}=                     Get JSON Value      ${body}     /campaign/id
+    Set Test Variable                   ${Campaign_Id}              ${Campaign_Id}
+    Create Parent Adgroup via API       parent_name=${parent_name}01           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    Create Parent Adgroup via API       parent_name=${parent_name}02           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    Create Parent Adgroup via API       parent_name=${parent_name}03           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    # Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Go To                                   ${Home_page}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Open Campaign summery page                  Advertiser_name=${QA_TEST_ADVERTISER}0201       Campaign_name=${CAMPAIGN_NAME_UI}
+    Click Element     ${ADV_EXPAND_DROPDOWN_BUTTON}
+    Wait Until Element Is Visible      ${CAMPAIGN_SEARCH_QA}
+    Click Element        ${CAMPAIGN_SEARCH_QA}
+    Wait Until Element Is Visible      ${CAMPAIGN_SEARCH_QA}
+    Wait Until Page Contains            CAMPAIGN SUMMARY
+    Page Should Contain     ${parent_name}01
+    Page Should Contain     ${parent_name}02
+    Page Should Contain     ${parent_name}03
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+UI_Create_Campaign_TC_02.02_List_adgroups(Child AdGroups)
+    Delete child via DB                 name=${child_name}%
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}0202"}
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=6
+    Create Parent Adgroup via API       parent_name=${parent_name}05           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value      ${body}       /parent/id
+    Set Suite Variable    ${parent_id}          ${Parent_id}
+    Create Child Adgroup via API        child_name=${child_name}
+    ...                                 child_parent_campaign_id=${parent_id}
+    ...                                 child_start_date_time=${START_DATE_CHILD}
+    ...                                 child_end_date_time=${END_DATE_CHILD}
+    ...                                 response_code=200
+    Create Child Adgroup via API        child_name=${child_name}01
+    ...                                 child_parent_campaign_id=${parent_id}
+    ...                                 child_start_date_time=${START_DATE_CHILD}
+    ...                                 child_end_date_time=${END_DATE_CHILD}
+    ...                                 response_code=200
+    # Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Go To                                   ${Home_page}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Open Campaign summery page    Advertiser_name=${QA_TEST_ADVERTISER}0202       Campaign_name=${CAMPAIGN_NAME_UI}
+    Click Element     ${ADV_EXPAND_DROPDOWN_BUTTON}
+    Wait Until Element Is Visible      ${CAMPAIGN_SEARCH_QA}
+    Click Element        ${CAMPAIGN_SEARCH_QA}
+    Wait Until Page Contains            CAMPAIGN SUMMARY            timeout=20s
+    Page Should Contain      ${child_name}
+    Page Should Contain      ${child_name}01
+    Delete child via DB                 name=${child_name}%
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Capture Page Screenshot With Timestamp
+    [Tags]            test1
+
+##################################
+######Audit Trail TC
+################################
+
+UI_Create_Campaign_TC_03.01_Audit trail(Normal TC)
+    Delete child via DB                 name=${child_name}%
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}Audit01"}
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    Create Parent Adgroup via API       parent_name=${parent_name}06           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    # Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Go To                                   ${Home_page}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Open Campaign summery page    Advertiser_name=${QA_TEST_ADVERTISER}Audit01       Campaign_name=${CAMPAIGN_NAME_UI}
+    Click Element     ${ADV_EXPAND_DROPDOWN_BUTTON}
+    Wait Until Element Is Visible      ${CAMPAIGN_SEARCH_QA}
+    Click Element        ${CAMPAIGN_SEARCH_QA}
+    Wait Until Element Is Visible      ${ADDITION_REPORT_DROPDOWN}
+    Select From List        ${ADDITION_REPORT_DROPDOWN}      Audit Trail
+    Sleep   3s
+    Page Should Contain      Campaign Created
+    Page Should Contain      AdGroup Created
+    Page Should Contain      admin@4info.net
+    Delete child via DB                 name=${child_name}%
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Capture Page Screenshot With Timestamp
+    [Tags]      PHOENIX_SANITY
+
+
+
+
+UI_Create_Campaign_TC_03.02_Audit trail(Updated fields)
+    Delete child via DB                 name=${child_name}%
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}Audit02"}
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59       campaign_access_control=6
+    Create Parent Adgroup via API       parent_name=${parent_name}06           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value      ${body}       /parent/id
+    Set Suite Variable    ${parent_id}          ${Parent_id}
+    Create Child Adgroup via API        child_name=${child_name}
+    ...                                 child_parent_campaign_id=${parent_id}
+    ...                                 child_start_date_time=${START_DATE_CHILD}
+    ...                                 child_end_date_time=${END_DATE_CHILD}
+    ...                                 response_code=200
+    ${childID}=         Get JSON Value       ${body}     /childId
+    ${parentID}=        Get JSON Value       ${body}     /parentID
+    ${campaignId}=      Get JSON Value       ${body}     /campaignId
+    Update Child Adgroup via API        response_child_name=${child_name}Updated01
+    ...                                 child_groupid=${childID}
+    ...                                 child_campaignid=${campaignId}
+    ...                                 response_child_parent_campaign_id=${parent_id}
+    ...                                 response_child_start_date_time=03/03/2019 01:00
+    ...                                 response_child_end_date_time=10/10/2020 04:59
+    ...                                 response_child_cmp=2
+    ...                                 updated_response_code=200
+    ...                                 updated_success=true
+    Create Child Adgroup via API        child_name=${child_name}01
+    ...                                 child_parent_campaign_id=${parent_id}
+    ...                                 child_start_date_time=${START_DATE_CHILD}
+    ...                                 child_end_date_time=${END_DATE_CHILD}
+    ...                                 response_code=200
+    ${childID}=         Get JSON Value       ${body}     /childId
+    ${parentID}=        Get JSON Value       ${body}     /parentID
+    ${campaignId}=      Get JSON Value       ${body}     /campaignId
+    Update Child Adgroup via API        response_child_name=${child_name}Updated02
+    ...                                 child_groupid=${childID}
+    ...                                 child_campaignid=${campaignId}
+    ...                                 response_child_parent_campaign_id=${parent_id}
+    ...                                 response_child_start_date_time=03/03/2019 01:00
+    ...                                 response_child_end_date_time=10/10/2020 04:59
+    ...                                 response_child_is_behavioral_targeted=null
+    ...                                 updated_response_code=200
+    ...                                 updated_success=true
+    # Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Go To                                   ${Home_page}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Open Campaign summery page    Advertiser_name=${QA_TEST_ADVERTISER}Audit02       Campaign_name=${CAMPAIGN_NAME_UI}
+    Click Element     ${ADV_EXPAND_DROPDOWN_BUTTON}
+    Wait Until Element Is Visible      ${CAMPAIGN_SEARCH_QA}
+    Click Element        ${CAMPAIGN_SEARCH_QA}
+    Wait Until Element Is Visible      ${ADDITION_REPORT_DROPDOWN}
+    Select From List        ${ADDITION_REPORT_DROPDOWN}      Audit Trail
+    Sleep   3s
+    Page Should Contain      Campaign Created
+    Page Should Contain      AdGroup Created
+    Page Should Contain      CPM
+    Page Should Contain      End Date
+    Page Should Contain      10/10/2020 04:59:59
+    Page Should Contain      00_QATEST_childUpdated01
+    Page Should Contain      00_QATEST_childUpdated02
+    Page Should Contain      admin@4info.net
+    Delete child via DB                 name=${child_name}%
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+
+
+UI_Create_Campaign_TC_03.03_Audit trail(Archive child adgroup)
+    Delete child via DB                 name=${child_name}%
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}Audit03"}
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59          campaign_access_control=6
+    Create Parent Adgroup via API       parent_name=${parent_name}0301           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value      ${body}       /parent/id
+    Set Suite Variable    ${parent_id}          ${Parent_id}
+    Create Child Adgroup via API        child_name=${child_name}0303
+    ...                                 child_parent_campaign_id=${parent_id}
+    ...                                 child_start_date_time=${START_DATE_CHILD}
+    ...                                 child_end_date_time=${END_DATE_CHILD}
+    ${child_groupid}=     Get Json Value   ${body}   /childId
+    Archive_a_child_adgroup             child_groupid=${child_groupid}
+    ...                                 response_code=200
+    # Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Go To                                   ${Home_page}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Open Campaign summery page    Advertiser_name=${QA_TEST_ADVERTISER}Audit03       Campaign_name=${CAMPAIGN_NAME_UI}
+    Click Element     ${ADV_EXPAND_DROPDOWN_BUTTON}
+    Wait Until Element Is Visible      ${CAMPAIGN_SEARCH_QA}
+    Click Element        ${CAMPAIGN_SEARCH_QA}
+    Wait Until Element Is Visible      ${ADDITION_REPORT_DROPDOWN}
+    Select From List        ${ADDITION_REPORT_DROPDOWN}      Audit Trail
+    Sleep   3s
+    Page Should Contain      Archived
+    Capture Page Screenshot With Timestamp
+    [Tags]    Known_bug      CM-1831
+
+
+
+UI_Create_Campaign_TC_03.04_Audit trail(Archive parent adgroup)
+    Delete child via DB                 name=${child_name}%
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}Audit04"}
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=6
+    Create Parent Adgroup via API       parent_name=${parent_name}0304           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value      ${body}       /parent/id
+    Set Suite Variable    ${parent_id}          ${Parent_id}
+    Archive a parent adgroup            adgroupId=${parent_id}
+    ...                                 url=pac-api/parent-adgroup/parent-adgroup/${parent_id}
+    ...                                 response_code=200
+    # Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Go To                                   ${Home_page}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Open Campaign summery page    Advertiser_name=${QA_TEST_ADVERTISER}Audit04       Campaign_name=${CAMPAIGN_NAME_UI}
+    Click Element     ${ADV_EXPAND_DROPDOWN_BUTTON}
+    Wait Until Element Is Visible      ${CAMPAIGN_SEARCH_QA}
+    Click Element        ${CAMPAIGN_SEARCH_QA}
+    Wait Until Element Is Visible      ${ADDITION_REPORT_DROPDOWN}
+    Select From List        ${ADDITION_REPORT_DROPDOWN}      Audit Trail
+    Sleep   3s
+    Page Should Contain      Archived
+    Capture Page Screenshot With Timestamp
+    [Tags]      Known_bug      CM-1831
+
+
+
+
+
+
+UI_Create_Campaign_TC_03.05_Audit trail(Archive parent adgroup)
+    Delete child via DB                 name=${child_name}%
+    Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}Audit05"}
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=6
+    Create Parent Adgroup via API       parent_name=${parent_name}0305           parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value      ${body}       /parent/id
+    Set Suite Variable    ${parent_id}          ${Parent_id}
+    Partially Update Parent Adgroup via API     uri=pac-api/parent-adgroup/parent-adgroup/${parent_id}
+    ...                                         request_body={"updateList":[{"attribute":"impressionGoal", "value":"222222"}]}
+    ...                                         partial_response_code=200
+    ...                                         partial_success=true
+
+    # Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Go To                                   ${Home_page}
+    Wait Until Element Is Visible               ${ADV_SEARCH_TEXTBOX}
+    Open Campaign summery page    Advertiser_name=${QA_TEST_ADVERTISER}Audit05       Campaign_name=${CAMPAIGN_NAME_UI}
+    Click Element     ${ADV_EXPAND_DROPDOWN_BUTTON}
+    Wait Until Element Is Visible      ${CAMPAIGN_SEARCH_QA}
+    Click Element        ${CAMPAIGN_SEARCH_QA}
+    Wait Until Element Is Visible      ${ADDITION_REPORT_DROPDOWN}
+    Select From List        ${ADDITION_REPORT_DROPDOWN}      Audit Trail
+    Sleep   3s
+    Page Should Contain      admin@4info.net
+    Page Should Contain      Campaign Created
+    Page Should Contain      AdGroup Created
+    Page Should Contain      Impression Goal
+    Page Should Contain      10000
+    Page Should Contain      222222
+    Page Should Contain      Archived
+    Capture Page Screenshot With Timestamp
+    [Tags]      Known_bug      CM-1831
+
+
+
+
+
+UI_Create_Campaign_TC_04.01_Campaign_Summery(Catalina User_name Validations)
+    Login To Adhaven UI             username=${QA_CATALINA_USER}         password=${QA_DEFAULT_PASSWORD}
+    Click Button     ${ADV_CREATE_BUTTON}
+    Input Text      ${ADV_NAME_INPUT}        ${QA_TEST_ADVERTISER}_CAT
+    Click Button          ${ADV_EDIT_OK_BUTTON}
+    Sleep   1s
+    Page Should Contain     CAMPAIGN
+    Page Should Contain     Advertiser Name
+    Page Should Contain     Campaign status
+    Focus             ${CAMPAIGN_NAME}
+    Press Key    ${CAMPAIGN_NAME}      \\09
+    Element Should Be Visible      xpath=(.//div[contains(normalize-space(.), 'CAMPAIGN NAME')])[last()]/following::img
+    Mouse Over      xpath=(.//div[contains(normalize-space(.), 'CAMPAIGN NAME')])[last()]/following::img
+    Page Should Contain     Required Field
+    Input Text         ${CAMPAIGN_NAME}          ${CAMPAIGN_NAME_UI}0401
+    Sleep    5s
+    [Tags]       #This is failing because validation are working after saving the campaign.
+
+
+UI_Create_Campaign_TC_04.02_Campaign_Summery(Catalina External Validations)
+    Press Key         ${CAMPAIGN_TIME_ZONE}          \\09
+    Focus             ${CAMPAIGN_EXTERNAL_ID}
+    Sleep   3s
+    Press Key         ${CAMPAIGN_EXTERNAL_ID}        \\09
+    Sleep   4s
+    # Mouse Over      xpath=((.//div[contains(normalize-space(.), 'EXTERNAL CAMPAIGN ID')])[last()]/following::img)[1]
+    Element Should Be Visible      xpath=(.//div[contains(normalize-space(.), 'EXTERNAL CAMPAIGN ID')])[last()]/following::img
+    Mouse Over      xpath=(.//div[contains(normalize-space(.), 'EXTERNAL CAMPAIGN ID')])[last()]/following::img
+    Page Should Contain     Required Field
+    Input Text         ${CAMPAIGN_EXTERNAL_ID}          BVIFourinfo1
+    Sleep    5s
+    [Tags]
+
+
+UI_Create_Campaign_TC_04.03_Campaign_Summery(Catalina Start Date Validations)
+    Focus             ${CAMPAIGN_START_DATE}
+    Press Key         ${CAMPAIGN_START_DATE}          \\09
+    Press Key         ${CAMPAIGN_START_DATE_CAL}      \\09
+    Element Should Be Visible        xpath=.//select[contains(normalize-space(.), '12:00 AM1:00 AM2:00 AM3:00 AM4:00 AM5:00 AM6:00 AM7:00 AM8:00 AM9:00 AM10:00 AM11:00 AM12:00 PM1:00 ')]/following::img
+    Mouse Over                       xpath=.//select[contains(normalize-space(.), '12:00 AM1:00 AM2:00 AM3:00 AM4:00 AM5:00 AM6:00 AM7:00 AM8:00 AM9:00 AM10:00 AM11:00 AM12:00 PM1:00 ')]/following::img
+    Page Should Contain     Required Field
+    Input Text          ${CAMPAIGN_START_DATE}          ${START_DATE}
+    Select From List    ${CAMPAIGN_START_DATE_TIME}     ${START_DATE_TIME}
+    Sleep    5s
+    [Tags]
+
+
+
+UI_Create_Campaign_TC_04.04_Campaign_Summery(Catalina 4INFO IO Validations)
+    Press Key         ${CAMPAIGN_START_DATE_TIME}          \\09
+    Press Key         ${CAMPAIGN_4INFO_IO}                 \\09
+    Element Should Be Visible      xpath=(.//div[contains(normalize-space(.), '4INFO IO')])[last()]/following::img
+    Mouse Over      xpath=(.//div[contains(normalize-space(.), '4INFO IO')])[last()]/following::img
+    Page Should Contain     Required Field
+    Input Text          ${CAMPAIGN_4INFO_IO}           111
+    Sleep    5s
+    [Tags]
+
+
+UI_Create_Campaign_TC_04.05_Campaign_Summery(End Time validation)
+    Press Key         ${CAMPAIGN_4INFO_IO}          \\09
+    Press Key         ${CAMPAIGN_END_DATE}          \\09
+    Press Key         ${CAMPAIGN_END_DATE_TIME}      \\09
+    Element Should Be Visible      xpath=.//select[contains(normalize-space(.), '12:59 AM1:59 AM2:59 AM3:59 AM4:59 AM5:59 AM6:59 AM7:59 AM8:59 AM9:59 AM10:59 AM11:59 AM12:59 PM1:59 ')]/following::img
+    Mouse Over      xpath=.//select[contains(normalize-space(.), '12:59 AM1:59 AM2:59 AM3:59 AM4:59 AM5:59 AM6:59 AM7:59 AM8:59 AM9:59 AM10:59 AM11:59 AM12:59 PM1:59 ')]/following::img
+    Page Should Contain     Required Field
+    Input Text          ${CAMPAIGN_END_DATE}          ${END_DATE}
+    Select From List    ${CAMPAIGN_END_DATE_TIME}     ${END_DATE_TIME}
+    Sleep    5s
+    [Tags]
+
+
+UI_Create_Campaign_TC_04.06_Campaign_Summery(Catalina 4INFO Taxonomy Validation)
+    Press Key         ${CAMPAIGN_TAXONOMY_VARTICAL}          \\09
+    # Press Key         ${CAMPAIGN_END_DATE}          \\09
+    # Press Key         ${CAMPAIGN_END_DATE_TIME}      \\09
+    Element Should Be Visible      xpath=.//select[contains(normalize-space(.), 'Arts & Entertainment Automotive Business Careers Education Family & Parenting Food & Drink Health & ')]/following::img
+    Mouse Over      xpath=.//select[contains(normalize-space(.), 'Arts & Entertainment Automotive Business Careers Education Family & Parenting Food & Drink Health & ')]/following::img
+    Page Should Contain     Required Field
+    Select From List    ${CAMPAIGN_TAXONOMY_VARTICAL}     Education
+    Sleep    5s
+    [Tags]
+
+
+UI_Create_Campaign_TC_04.07_Campaign_Validations for External ID
+    Login To Adhaven UI             username=${QA_CATALINA_USER}         password=${QA_DEFAULT_PASSWORD}
+    Create Campaign on UI                       ADVERTISER_NAME=${QA_TEST_ADVERTISER}
+    ...                                         CAMPAIGN_STATUS_UI=Active
+    ...                                         CAMPAIGN_NAME_UI=${CAMPAIGN_NAME_UI}01
+    ...                                         START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         EXTERNAL_ID=${Empty}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+
+    Select Taxonomy                             TAXONOMY_VERTICAL=Education
+    ...                                         TAXONOMY_SEGMENT=College Life
+    Capture Page Screenshot With Timestamp
+    Focus               ${CAMPAIGN_EXTERNAL_ID}
+    Press Key           ${CAMPAIGN_EXTERNAL_ID}          \\09
+    Save The Campaign
+    Sleep   2s
+    Mouse Over      xpath=(.//div[contains(normalize-space(.), 'EXTERNAL CAMPAIGN ID')])[last()]/following::img
+    Page Should Contain     External ID cannot be blank
+    # Page Should Contain         CAMPAIGN SUMMARY
+    # Page Should Contain         ${CAMPAIGN_NAME_UI}01
+    # Capture Page Screenshot With Timestamp
+    Go To                       ${Home_page}
+    [Tags]
+
+
+
+UI_Create_Campaign_TC_04.07_Campaign_Summery(Catalina checking of access control inputs)
+    Page Should Not Contain      Access control
+    [Tags]
+
+
+
+UI_Create_Campaign_TC_04.08_Campaign_Summery(Catalina Per4mance Trax: Demographic segments)
+    Page Should Not Contain      Per4mance Trax: Demographic segments
+    [Tags]
+
+#--------------------------------------------------------------------------------------------------
+
+UI_Create_Campaign_TC_05.01.1_Check Sales Channel is visible and can be selected and saved successfully for 4INFO user
+    [Documentation]    As per CM-1988, the sales channel should be visible to 4INFO user.
+    ...    And the options for Sales Channel list should be displayed as '4INFO', 'ATT', 'NBCU'
+    Create Campaign on UI                       ADVERTISER_NAME=${QA_TEST_ADVERTISER}
+    ...                                         CAMPAIGN_STATUS_UI=Active
+    ...                                         CAMPAIGN_NAME_UI=${CAMPAIGN_NAME_UI}01
+    ...                                         START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+    Select Access Control                       SELECT_ACCESS_CONTROL=@{SINGLE_ACCESS}
+
+    Select Taxonomy                             TAXONOMY_VERTICAL=Education
+    ...                                         TAXONOMY_SEGMENT=College Life
+    Check Sales Channel is Visible
+    Select Sales Channel    saleschannel=4INFO
+
+    Capture Page Screenshot With Timestamp
+
+    Save The Campaign
+    Sleep   10s
+    [Tags]   # CM-1988
+
+
+
+
+
+UI_Create_Campaign_TC_05.02_Check Sales Channel is not visible for non 4INFO user
+    [Documentation]    As per CM-1988, After logging in using non 4INFO user, the sales channel is not visible in UI.
+    Set Test Variable    ${QA_TEST_ADVERTISER1}    ${QA_TEST_ADVERTISER}_Catalina
+
+    Login To Adhaven UI    username=${QA_CATALINA_AND_QA_USER3}    password=${QA_DEFAULT_PASSWORD}
+
+    Click Element    xpath=.//*[@id="btnCreateAdv"]
+    Sleep    2s
+    Input Text    xpath=.//*[@id="name"]    ${QA_TEST_ADVERTISER1}
+    Click Element    xpath=.//*[@id="btnAdvEditOk"]
+    Sleep    5s
+
+    Check Sales Channel is not Visible
+    Sleep   10s
+    Capture Page Screenshot With Timestamp
+    Close All Browsers
+    [Tags]   # CM-1988
+
+
+UI_Create_Campaign_TC_05.03_Refreshing campaigns page as Catalina user, should not show SALES CHANNEL in UI for create campaign
+    [Documentation]    As per CM-1988, After logging in using non 4INFO user, the sales channel is not visible in UI.
+    [Setup]    Cleanup Advertiser From DB    advertiser_name=TestCM2122Advertiser
+    Set Test Variable    ${AdvertiserName}      TestCM2122Advertiser
+    Set Test Variable    ${CAMPAIGN_NAME_UI}    TestCM2122Campaign
+    Set Test Variable    ${EXTERNAL_ID}         BVIFourinfo1
+    # Login To Adhaven UI    username=cat@catalina.com    password=P@ssw0rd
+    Login To Adhaven UI    username=${QA_CATALINA_USER3}    password=P@ssw0rd
+    Sleep    50s
+    Click Element    ${ADV_CREATE_BUTTON}
+    Sleep    2s
+    Input Text      ${NewAdvertiserName}    ${AdvertiserName}
+    Sleep    2s
+    Click Element    ${ADV_CREATE_OK_BUTTON}
+    Sleep    10s
+
+    Select From List     ${CAMPAIGN_SELECT_STATUS}    Active
+    Sleep    3s
+    Input Text     ${CAMPAIGN_NAME}       ${CAMPAIGN_NAME_UI}
+    Sleep    3s
+    #Select From List                   ${CAMPAIGN_TIME_ZONE}     ${CAMPAIGN_TIME_ZONE_UI}
+    Focus           ${CAMPAIGN_EXTERNAL_ID}
+    Sleep    3s
+    Input Text      ${CAMPAIGN_EXTERNAL_ID}      ${EXTERNAL_ID}
+    Sleep    3s
+    Input Text     ${CAMPAIGN_4INFO_IO}     1234
+
+    Select Date And Time                        START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+    Sleep    3s
+
+    Select Taxonomy                             TAXONOMY_VERTICAL=Education
+    ...                                         TAXONOMY_SEGMENT=College Life
+    Sleep    3s
+
+    Focus    //*[@id='legacy']
+    Sleep    3s
+
+    Check Sales Channel is Not Visible
+    Capture Page Screenshot With Timestamp
+
+    Save The Campaign
+    Sleep   20s
+
+    Page Should Contain         CAMPAIGN SUMMARY
+    Page Should Contain Link         ${CAMPAIGN_NAME_UI}
+    Capture Page Screenshot With Timestamp
+
+    Comment    After Refresh of page confirm whether Sales channel is not available.
+    Click Link    ${CAMPAIGN_NAME_UI}
+    Sleep    120s
+
+    Reload Page
+    Sleep    120s
+
+    Capture Page Screenshot With Timestamp
+    Check Sales Channel is Not Visible
+
+    Save The Campaign
+    Sleep   20s
+
+    Page Should Contain         CAMPAIGN SUMMARY
+    Page Should Contain Link         ${CAMPAIGN_NAME_UI}
+
+    [Tags]
+
+
+UI_Create_Campaign_TC_05.04_Refreshing campaigns page as Catalina user, should not show SALES CHANNEL in UI for update campaign
+    [Documentation]    As per CM-1988, After logging in using non 4INFO user, the sales channel is not visible in UI.
+    Set Test Variable    ${CAMPAIGN_NAME_UI}    TestCM2122Campaign
+
+    Page Should Contain Link     ${CAMPAIGN_NAME_UI}
+    Click Element    //a[text()='${CAMPAIGN_NAME_UI}']
+    Sleep    15s
+
+    Check Sales Channel is Not Visible
+
+    Reload Page
+    Sleep    10s
+
+    Check Sales Channel is Not Visible
+
+    Capture Page Screenshot With Timestamp
+
+    [Tags]
+
+#--------------------------------------------------------------------------------------------------
+
+UI_Create_Campaign_TC_06.01_EXTERNAL_VALIDATION for (group id 6)
+    Close All Browsers
+    Login To Adhaven UI    username=${group_id_6_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Click Button          ${ADV_CREATE_BUTTON}
+    Input Text            ${ADV_NAME_INPUT}         ${QA_TEST_ADVERTISER}_GRP6
+    Click Element         ${ADV_EDIT_OK_BUTTON}
+    Wait until Campaign Element To Load
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]    erwer
+
+UI_Create_Campaign_TC_06.02_EXTERNAL_VALIDATION for (group id 14)
+    Close All Browsers
+    Login To Adhaven UI    username=${group_id_14_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Click Button          ${ADV_CREATE_BUTTON}
+    Input Text            ${ADV_NAME_INPUT}         ${QA_TEST_ADVERTISER}_GRP14
+    Click Element         ${ADV_EDIT_OK_BUTTON}
+    Wait until Campaign Element To Load
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]
+
+UI_Create_Campaign_TC_06.03_EXTERNAL_VALIDATION for (group id 15)
+    Close All Browsers
+    Login To Adhaven UI    username=${group_id_15_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Click Button          ${ADV_CREATE_BUTTON}
+    Input Text            ${ADV_NAME_INPUT}         ${QA_TEST_ADVERTISER}_GRP15
+    Click Element         ${ADV_EDIT_OK_BUTTON}
+    Wait until Campaign Element To Load
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]
+
+
+UI_Create_Campaign_TC_06.04_EXTERNAL_VALIDATION for (group id 17)
+    Close All Browsers
+    Login To Adhaven UI For Group 17     username=${group_id_17_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Click Button          ${ADV_CREATE_BUTTON}
+    Input Text            ${ADV_NAME_INPUT}         ${QA_TEST_ADVERTISER}_GRP17
+    Click Element         ${ADV_EDIT_OK_BUTTON}
+    Wait until Campaign Element To Load
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]
+
+UI_Create_Campaign_TC_06.05_EXTERNAL_VALIDATION for (group id 18)
+    Close All Browsers
+    Login To Adhaven UI    username=${group_id_18_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Click Button          ${ADV_CREATE_BUTTON}
+    Input Text            ${ADV_NAME_INPUT}         ${QA_TEST_ADVERTISER}_GRP18
+    Click Element         ${ADV_EDIT_OK_BUTTON}
+    Wait until Campaign Element To Load
+    Sleep    5s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Not Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]
+
+
+
+UI_Create_Campaign_TC_06.06_EXTERNAL_VALIDATION for (group id 1)
+    Close All Browsers
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Click Button          ${ADV_CREATE_BUTTON}
+    Input Text            ${ADV_NAME_INPUT}         ${QA_TEST_ADVERTISER}_GRP18
+    Click Element         ${ADV_EDIT_OK_BUTTON}
+    Wait until Campaign Element To Load
+    Sleep    5s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Not Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]
+
+
+
+UI_Create_Campaign_TC_07.01 eCPM and Spend Validations(group id 1)
+    [Documentation]         input : Campaign created with group id 1
+    ...                     output : Page should contain eCPM and Spend on page
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2     username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Contain     Spend
+    Page Should Contain     eCPM
+    Logout From CM2.0
+    [Tags]
+
+
+
+
+UI_Create_Campaign_TC_07.02 eCPM and Spend Validations(group id 6)
+    [Documentation]         input : Campaign created with group id 6
+    ...                     output : Page should contain eCPM and Spend on page
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2    username=${group_id_6_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Contain     Spend
+    Page Should Contain     eCPM
+    Logout From CM2.0
+    [Tags]
+
+
+
+UI_Create_Campaign_TC_07.03 eCPM and Spend Validations(group id 14)
+    [Documentation]         input : Campaign created with group id 14
+    ...                     output : Page should contain eCPM and Spend on page
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2    username=${group_id_14_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Contain     Spend
+    Page Should Contain     eCPM
+    Logout From CM2.0
+    [Tags]
+
+
+UI_Create_Campaign_TC_07.04 eCPM and Spend Validations(group id 15)
+    [Documentation]         input : Campaign created with group id 15
+    ...                     output : Page should contain eCPM and Spend on page
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2    username=${group_id_15_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Contain     Spend
+    Page Should Contain     eCPM
+    Logout From CM2.0
+    [Tags]
+
+
+
+
+
+
+UI_Create_Campaign_TC_07.05 eCPM and Spend Validations(group id 8 4INFO_ACXIOM)
+    [Documentation]         input : Campaign created with group id 3
+    ...                     output : Page should not contain eCPM and Spend on page
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}_eCPMGroup8    campaign_advertiser_id=${advertiser_id}    campaign_start_date_time=${START_DATE_CAMPAIGN} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=8        uri=/pac-api/campaign/campaign?username=HParihar@4info.com
+    Set Suite Variable      ${Campaign_Id_eCPM}          ${Campaign_Id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id_eCPM}    parent_start_date_time=${START_DATE_TIME_PARENT} 01:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2    username=${group_id_8_username}    password=${group_password}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Not Contain     Spend
+    Page Should Not Contain Element     xpath=.//th[contains(., 'eCPM')]
+    Capture Page Screenshot With Timestamp
+    Logout From CM2.0
+    [Tags]
+
+
+UI_Create_Campaign_TC_07.06 eCPM and Spend Validations(group id 12 ATT)
+    [Documentation]         input : Campaign created with group id 12
+    ...                     output : Page should not contain eCPM and Spend on page
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}_eCPMGroup12    campaign_advertiser_id=${advertiser_id}    campaign_start_date_time=${START_DATE_CAMPAIGN} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=12        uri=/pac-api/campaign/campaign?username=HParihar@4info.com
+    Set Suite Variable      ${Campaign_Id_eCPM}          ${Campaign_Id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id_eCPM}    parent_start_date_time=${START_DATE_TIME_PARENT} 01:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2    username=${group_id_12_username}    password=${group_password}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Not Contain     Spend
+    Page Should Not Contain Element     xpath=.//th[contains(., 'eCPM')]
+    Capture Page Screenshot With Timestamp
+    Logout From CM2.0
+    [Tags]
+
+
+UI_Create_Campaign_TC_07.07 eCPM and Spend Validations(group id 13 BellTower)
+    [Documentation]         input : Campaign created with group id 11
+    ...                     output : Page should not contain eCPM and Spend on page
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}_eCPMGroup13    campaign_advertiser_id=${advertiser_id}    campaign_start_date_time=${START_DATE_CAMPAIGN} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=13        uri=/pac-api/campaign/campaign?username=HParihar@4info.com
+    Set Suite Variable      ${Campaign_Id_eCPM}          ${Campaign_Id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id_eCPM}    parent_start_date_time=${START_DATE_TIME_PARENT} 01:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2    username=${group_id_13_username}    password=${group_password}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Not Contain     Spend
+    Page Should Not Contain Element     xpath=.//th[contains(., 'eCPM')]
+    Capture Page Screenshot With Timestamp
+    Logout From CM2.0
+    [Tags]
+
+
+UI_Create_Campaign_TC_07.08 eCPM and Spend Validations(group id 17 datamyx)
+    [Documentation]         input : Campaign created with group id 17
+    ...                     output : Page should not contain eCPM and Spend on page
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}_eCPMGroup17    campaign_advertiser_id=${advertiser_id}    campaign_start_date_time=${START_DATE_CAMPAIGN} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=17        uri=/pac-api/campaign/campaign?username=HParihar@4info.com
+    Set Suite Variable      ${Campaign_Id_eCPM}          ${Campaign_Id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id_eCPM}    parent_start_date_time=${START_DATE_TIME_PARENT} 01:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2    username=${group_id_17_username}    password=${group_password}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Not Contain     Spend
+    Page Should Not Contain Element     xpath=.//th[contains(., 'eCPM')]
+    Capture Page Screenshot With Timestamp
+    Logout From CM2.0
+    [Tags]
+
+
+UI_Create_Campaign_TC_07.09 eCPM and Spend Validations(group id 9 Experian)
+    [Documentation]         input : Campaign created with group id 9
+    ...                     output : Page should not contain eCPM and Spend on page
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}_eCPMGroup19    campaign_advertiser_id=${advertiser_id}    campaign_start_date_time=${START_DATE_CAMPAIGN} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=9        uri=/pac-api/campaign/campaign?username=HParihar@4info.com
+    Set Suite Variable      ${Campaign_Id_eCPM}          ${Campaign_Id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id_eCPM}    parent_start_date_time=${START_DATE_TIME_PARENT} 01:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2    username=${group_id_9_username}    password=${group_password}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Not Contain     Spend
+    Page Should Not Contain Element     xpath=.//th[contains(., 'eCPM')]
+    Capture Page Screenshot With Timestamp
+    Logout From CM2.0
+    [Tags]
+
+
+UI_Create_Campaign_TC_07.10 eCPM and Spend Validations(group id 16 QA)
+    [Documentation]         input : Campaign created with group id 16
+    ...                     output : Page should not contain eCPM and Spend on page
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}_eCPMGroup16    campaign_advertiser_id=${advertiser_id}    campaign_start_date_time=${START_DATE_CAMPAIGN} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=16        uri=/pac-api/campaign/campaign?username=HParihar@4info.com
+    Set Suite Variable      ${Campaign_Id_eCPM}          ${Campaign_Id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id_eCPM}    parent_start_date_time=${START_DATE_TIME_PARENT} 01:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2    username=${group_id_16_username}    password=${group_password}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Not Contain     Spend
+    Page Should Not Contain Element     xpath=.//th[contains(., 'eCPM')]
+    Capture Page Screenshot With Timestamp
+    Logout From CM2.0
+    [Tags]
+
+
+UI_Create_Campaign_TC_07.11 eCPM and Spend Validations(group id 18 undertone)
+    [Documentation]         input : Campaign created with group id 18
+    ...                     output : Page should not contain eCPM and Spend on page
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}_eCPMGroup18    campaign_advertiser_id=${advertiser_id}    campaign_start_date_time=${START_DATE_CAMPAIGN} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=18        uri=/pac-api/campaign/campaign?username=HParihar@4info.com
+    Set Suite Variable      ${Campaign_Id_eCPM}          ${Campaign_Id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id_eCPM}    parent_start_date_time=${START_DATE_TIME_PARENT} 01:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+    ${passed} =    Run Keyword And Return Status    Page Should Contain    Search in
+    Run Keyword If    ${passed}    Logout From CM2.0
+    Login To CM2    username=${group_id_18_username}    password=${group_password}
+    Wait until Advertiser Element To Load
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Page Should Not Contain     Spend
+    Page Should Not Contain Element     xpath=.//th[contains(., 'eCPM')]
+    Capture Page Screenshot With Timestamp
+    Logout From CM2.0
+    [Tags]
+
+UI_Create_Campaign_TC_08.01 Export Reports
+    [Setup]      Remove File                 ~/Downloads/Summary Data.xlsx
+    Close All Browsers
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}0801"}
+    Get Today's Date
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}    campaign_start_date_time=${START_DATE} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    Log    Advertiser_id=${advertiser_id}
+    Log    Campaign_id=${Campaign_Id}
+    Set Suite Variable    ${campaign_Id}          ${Campaign_Id}
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Wait Until Page Contains    ADVERTISERS                 timeout=20s
+    Wait Until Page Contains    Search advertisers                      timeout=20s
+    Sleep   3s
+    Go To                   ${Addtional_Summery_page}${campaignId}
+    Wait Until Page Contains    SUMMARY                 timeout=20s
+    Wait Until Page Contains    Show Child Adgroups                 timeout=20s
+    Wait Until Page Contains    Export              timeout=20s
+    Sleep    5s
+    # Click Button                ${SUMMERY_EXPORT_BTN}
+    Click Element               ${SUMMERY_EXPORT_BTN}
+    Sleep    10s
+    OperatingSystem.File Should Exist           ~/Downloads/Summary Data.xlsx
+    [Teardown]      Remove File                 ~/Downloads/Summary Data.xlsx
+    [Tags]
+
+
+UI_Create_Campaign_TC_08.02 Scrolling to Error CM-2123
+
+    Login To Adhaven UI             username=${QA_CATALINA_USER}         password=${QA_DEFAULT_PASSWORD}
+    # Page Should Contain     CAMPAIGN
+    Wait Until Page Contains    ADVERTISERS
+    Wait Until Page Contains    Create Advertiser
+    Click Button            ${ADV_CREATE_BUTTON}
+    Input Text              ${ADV_NAME_INPUT}        ${QA_TEST_ADVERTISER}CAT0802
+    Click Button            ${ADV_EDIT_OK_BUTTON}
+    Sleep   5s
+    Select From List        ${CAMPAIGN_SELECT_STATUS}    Active
+    Sleep    2s
+    Input Text              ${CAMPAIGN_NAME}       ${CAMPAIGN_NAME_UI}0802
+    Sleep    2s
+    Select From List                   ${CAMPAIGN_TIME_ZONE}     GMT
+    Sleep    2s
+    Focus           ${CAMPAIGN_EXTERNAL_ID}
+    Sleep    2s
+    Input Text      ${CAMPAIGN_EXTERNAL_ID}      *&^%&*()
+    Sleep    2s
+    Input Text     ${CAMPAIGN_4INFO_IO}     1234
+    Sleep    2s
+    # Select From List    ${CAMPAIGN_SALES_CHANNEL}    4INFO
+    Sleep    2s
+    Select Date And Time                        START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+    Click Element    //input[@id='legacy']
+    Select Taxonomy                             TAXONOMY_VERTICAL=Education
+    ...                                         TAXONOMY_SEGMENT=College Life
+
+
+    Execute javascript     document.body.style.zoom="150%"
+
+    Click Element    //input[@id='legacy']
+    Sleep    3s
+
+    Capture Page Screenshot With Timestamp
+
+    Save The Campaign
+    Sleep    5s
+    Element Should Be Visible       xpath=(.//div[contains(normalize-space(.), 'EXTERNAL CAMPAIGN ID')])[last()]/following::img
+    Mouse Over                      xpath=(.//div[contains(normalize-space(.), 'EXTERNAL CAMPAIGN ID')])[last()]/following::img
+    Page Should Contain             External ID must begin with BVI
+    Page Should Contain             External ID must be at least 11 characters
+
+    [Tags]
+#-----------------------------------------------------------------------------------
+# QA Task : CM-2254,  Dev Task : CM-2153
+
+UI_CampaignSummary_CM-2254_TC_01.1_Verify Campaign Summary Export Button Do not change font color on mouse hover
+    [Documentation]    This is to verify campaign summary page when selected Additional Reports as Summary, and after mouse hover on Export button, the text color do not changes.
+    Set Test Variable    ${AdvertiserName}    ${QA_TEST_ADVERTISER}_CM_2254
+    Create Advertiser    uri=/pac-api/partner/advertiser
+    ...                  data={"name": "${AdvertiserName}"}
+
+    Get Today's Date
+    Create New Campaign via API     campaign_name=${CAMPAIGN_NAME_UI}
+    ...                             campaign_advertiser_id=${advertiser_id}
+    ...                             campaign_start_date_time=${START_DATE} 01:00
+    ...                             campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+
+    Set Suite Variable      ${Campaign_Id_eCPM}          ${Campaign_Id}
+
+    Log    Advertiser_id=${advertiser_id}
+    Log    Campaign_id=${Campaign_Id}
+
+    Set Suite Variable    ${campaign_Id}          ${Campaign_Id}
+
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}
+    ...                    password=${QA_DEFAULT_PASSWORD}
+
+    Go To     ${Addtional_Summery_page}/${campaignId}
+    Sleep    5s
+
+    Go To    ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY    timeout=20s
+
+    ${Location}    Get Location
+    Log    ${Location}
+
+    Select From List    ${Additional_Reports_Select}    Summary
+    Sleep    5s
+
+    ${style}=    Get element attribute    ${ExportButton_CampaignSummary}@class
+    Log    ${style}
+    Should Match Regexp    ${style}    btn-md-secondary
+    Should Match Regexp    ${style}    exportBtn
+
+    Capture Page Screenshot With Timestamp
+
+    Mouse Over    ${ExportButton_CampaignSummary}
+    Sleep    3s
+    ${style_MouseOver}=    Get element attribute    ${ExportButton_CampaignSummary}@class
+    Log    ${style_MouseOver}
+    Should Match Regexp    ${style_MouseOver}    btn-md-secondary
+    Should Match Regexp    ${style_MouseOver}    exportBtn
+
+    [Tags]
+
+#-----------------------------------------------------------------------------------
+
+UI_CampaignSummary_CM-2324_TC_01.1_Do not display disabled group in Campaign page (Access control)
+    [Setup]                     Clean UP Created Groups By Name        groupName=${QA_TEST_GROUP}
+    Set Test Variable           ${mandatoryElements}                [5,7,32,25,39]
+    Set Test Variable           ${ExcludedElements}                 [58,70,72]
+    Set Test Variable           ${GroupName}            ${QA_TEST_GROUP}
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 0,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                          uri=/user-management-api/admin/groups
+    ${GroupID}=                 Get JSON Value          ${body}             /group/id
+    Log   ${GroupID}
+    Set Suite Variable          ${GroupID}             ${GroupID}
+    Set Test Variable           ${Data}         {"mandatoryElementsIds":${mandatoryElements},"excludedElementsIds":${ExcludedElements}}
+
+
+    Go To               ${Campaigns_summary_page}${Campaign_Id_eCPM}
+    Wait Until Page Contains     CAMPAIGN SUMMARY          timeout=20s
+    Click Link          00_QATEST_campaign_eCPM
+    Wait Until Page Contains    Campaign status                         timeout=20s
+    Wait Until Page Contains    General campaign information            timeout=20s
+    Wait Until Page Contains    Access control                          timeout=20s
+    Wait Until Page Contains    Campaign category                       timeout=20s
+
+    Click Element           xpath=(//select[@id="select0"])[1]
+    Capture Page Screenshot With Timestamp
+    Page Should Not Contain            ${QA_TEST_GROUP}
+    Sleep    10s
+    [Teardown]     Clean UP Created Groups By Id             id=${GroupID}
+    [Tags]           CM-2324

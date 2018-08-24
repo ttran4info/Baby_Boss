@@ -1,0 +1,48 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY    INVENTORY2.3.1    BATCH20    OffshoreQA   
+
+# https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-2.3.1Getlistofexchangepartnerprotocol
+# 2.3.1 Get list of exchange partner protocol
+# Method: GET
+# URL: 192.168.99.100:8380/inventory-api/exchange/exchange-protocol
+# DESC:  This will be used to get new exchange created
+
+
+
+*** Variables ***
+
+
+
+*** Keywords ***
+
+
+
+
+*** Test Cases ***
+#-----------------------------------------------------------------------------------------------------------------------
+InventoryAPI_2.3.1_TC_01.1_Get list of exchange partner protocol (valid URL, Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of exchange partner protocol,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Get list of exchange partner protocol
+    ...         reason_code=200
+    ...         success=true
+    Should Match Regexp      ${body}       {"id":1,"name":"JSON"}
+    Should Match Regexp      ${body}       {"id":2,"name":"ProtoBuf"}
+    Should Match Regexp      ${body}       {"id":3,"name":"Proprietary"}
+    [Tags]
+
+
+InventoryAPI_2.3.1_TC_01.2_Get list of exchange partner protocol (invalid URL, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of exchange partner protocol,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Get list of exchange partner protocol
+    ...         url=inventory-api/exchange/exchangeprotocol
+    ...         reason_code=400
+    ...         success=false
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+#-----------------------------------------------------------------------------------------------------------------------

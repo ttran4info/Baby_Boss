@@ -1,0 +1,145 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.2.4		BATCH20
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+
+#https://wiki.4info.com/pages/viewpage.action?title=Inventory+API+documentation&spaceKey=Software#InventoryAPIdocumentation-1.3.1PUTalistofclusterhistory(Devdone)
+#API Name: 1.2.4 Change cluster name (Dev done / May need refactoring)
+#Method: PUT
+#URL: /inventory-api/cluster/{clusterId}?username={username}
+#DESC: Change Cluster name
+#rhino.clusters
+#rhino.cluster_placement
+#rhino.groups_cluster
+
+*** Variables ***
+ ${cluster_name}	Regression_cluster_124
+
+*** Keywords ***
+
+*** Test Cases ***
+
+
+#CLUSTER
+INVENTORY1.2.4_TC_01_Update Cluster name with new name
+	[Documentation]		Send Put request to update existing Cluster with New Name
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/24
+	Set Test Variable		${name}					Cluster name change
+	Log		${name}
+
+	Update Cluster	uri=${uri_link}		data={"name": "${name}"} 	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/cluster/id					24
+	Json Value Should Equal		${body}		/cluster/name				"${name}"
+	Json Value Should Equal		${body}		/cluster/status				1
+	${Last modified by}= 	Get Json Value 	${body}		/cluster/lastModifiedBy
+	Json Value Should Equal		${body}		/cluster/lastModifiedBy		"jlouie@4info.com"
+	${Last Modified Time}= 	Get Json Value 	${body}		/cluster/lastModifiedTime
+	Should Match Regexp			${body}		${Last Modified Time}		"06/14/2017"
+	${Last Created Time}= 	Get Json Value 	${body}		/cluster/createdTime
+	Should Match Regexp			${body}		${Last Modified Time}		"06/14/2017"
+	${Last createdbBy}= 	Get Json Value 	${body}		/cluster/createdBy
+	Should Match Regexp			${body}		${Last Modified Time}		"jlouie@4info.com"
+	[Tags]	     #Known_bug     CM-868
+
+INVENTORY1.2.4_TC_02_Update Cluster name with same name
+	[Documentation]		Send Put request to update existing Cluster with same name
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/24
+	Set Test Variable		${name}				Cluster name change
+	Log		${name}
+	Update Cluster	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/cluster/id					24
+	Json Value Should Equal		${body}		/cluster/name				"${name}"
+	[Tags]
+
+INVENTORY1.2.4_TC_03_Update Cluster name with underscores name
+	[Documentation]		Send Put request to update existing Cluster with Underscores
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/24
+	Set Test Variable		${name}				Cluster_name_change
+	Log		${name}
+	Update Cluster	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/cluster/id					24
+	Json Value Should Equal		${body}		/cluster/name				"${name}"
+	[Tags]
+
+INVENTORY1.2.4_TC_04_Update Cluster name with Invalid cluster name !@#$%^&*
+	[Documentation]		Send Put request to update existing Cluster with special charaters
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/24
+	Set Test Variable		${name}				!@#$%^&*
+	Log		${name}
+	Update Cluster	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=400	success=false
+	[Tags]			Known_bug 	CM-607		EXCLUDE
+	#UI will be taking care of naming check
+
+INVENTORY1.2.4_TC_05_Update Cluster name with Invalid cluster id as ABC
+	[Documentation]		Send Put request to update existing Cluster with invalid Cluster Id
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/ABC
+	Set Test Variable		${name}			UpdateName
+	Log		${name}
+	Update Cluster	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=400	success=false
+	[Tags]
+
+INVENTORY1.2.4_TC_06_Update Cluster name with with cluster id that does not existing in db
+	[Documentation]		Send Put request to update Cluster name with id that does not exist
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/999999?username=hparihar@4info.com
+	Set Test Variable		${name}			RANDOMNAME
+	Log		${name}
+	Update Cluster	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=400
+	Json Value Should Equal		${body}		/success			false
+	Json Value Should Equal		${body}		/reason_desc		"Invalid cluster id."
+	[Tags]
+
+INVENTORY1.2.4_TC_07_Update existing cluster without name
+	[Documentation]		Send Put request to update Cluster name without name
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/2?username=hparihar@4info.com
+	Update Cluster		uri=${uri_link}		data={"name": ""}	expected_status_code=400
+	Json Value Should Equal		${body}		/success				false
+	Json Value Should Equal		${body}		/reason_desc			"Invalid Cluster Name."
+	[Tags]		  # Known_bug    CM-786
+
+INVENTORY1.2.4_TC_08_Update Cluster name with new name for Catalina user
+	[Documentation]		Send Put request to update existing Cluster for Catalina user
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/31?username=hp@catalina.com
+	Set Test Variable		${name}				CAT
+	Log		${name}
+	Update Cluster	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/cluster/id					31
+	Json Value Should Equal		${body}		/cluster/name				"${name}"
+	[Tags]
+
+INVENTORY1.2.4_TC_09_Update existing cluster name as Catalina read only user
+	[Documentation]		Send Put request to update Cluster name as read only user (not allowed)
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/2?username=read@4info.com
+	Update Cluster	uri=${uri_link}		data={"name": "READER"}	expected_status_code=400
+	Json Value Should Equal		${body}		/success				false
+	Json Value Should Equal		${body}		/reason_desc			"User's current group has no write permission."
+	[Tags]
+
+INVENTORY1.2.4_TC_10_ Get All Cluster By GroupId via DB
+	[Documentation]		Send Put resquest to get All Cluster by Groupid and compare with db.
+	Set Test Variable	${groupId}		1
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/clusters?groupId=${groupId}
+	INVENTORY API	uri=${uri_link}			expected_status_code=200	success=true
+	${clusters}=		Get Json Value			${body}		/clusters
+	@{clusters_list}=				String.Split String 					${clusters}				}, {
+	Log 	${clusters_list}
+	${clusters_count_api}=			Get Length 								${clusters_list}
+	Log		Api List Lenght is -> ${clusters_count_api}
+	Get All clusters By GroupId via DB		select COUNT(*) from rhino.groups_cluster where group_id=1;
+	Should Be Equal As Integers		${clusters_count_api}	${clusters_count_db}
+	[Tags]
+
+INVENTORY1.2.4_TC_11_Update Cluster name and compare with name in db
+	[Documentation]		Send Put request to update Cluster name and check new name in db
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=1
+	Log		${cluster_id}
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${cluster_id}
+	Set Test Variable		${name}				Regression_cluster_124Update
+	Log		${name}
+	Update Cluster	uri=${uri_link}		data={"name": "${name}"}	expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/cluster/id					${cluster_id}
+	Json Value Should Equal		${body}		/cluster/name				"${name}"
+	Get clusters name By ClusterId via DB
+	Should Be Equal As strings		${name}		${clusters_count_db}
+	[Tags]
+

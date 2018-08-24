@@ -1,0 +1,88 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY     INVENTORY2.1     BATCH20     OffshoreQA    #EXCLUDE    #Exclude tag will be removed once development pull request merged
+
+
+# Wiki Page : https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-2.1.Getlistofexchangewithinventorytype
+# Example   : http://192.168.99.100:8380/inventory-api/exchange/exchange-list
+# API Name  : 2.1. Get list of exchange with inventory type
+# Method    : GET
+# URL       : 192.168.99.100:8380/inventory-api/exchange/exchange-list
+# DESC      : Get a list of all exchanges and the inventory type
+
+*** Variables ***
+
+
+*** Keywords ***
+Get Id And Exchange Name From DB
+    [Arguments]         ${Row}=0
+    ...                 ${id_CMP}=
+    ...                 ${ExchangeName_CMP}=
+    ${id} =                         Convert To String     ${queryResults[${Row}][0]}
+    Log                             ${id}
+    Set Test Variable               ${id}                 ${id}
+    Should Be Equal As Strings      ${id}                 ${id_CMP}
+
+    ${ExchangeName} =               Convert To String     ${queryResults[${Row}][1]}
+    Log                             ${ExchangeName}
+    Set Test Variable               ${ExchangeName}       ${ExchangeName}
+    Should Be Equal As Strings      ${ExchangeName}                 ${ExchangeName_CMP}
+
+
+
+*** Test Cases ***
+InventoryAPI_2.1_TC_01.1_Get list of exchange with inventory type (valid URL, Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of exchange with inventory type,
+    ...                 Expected:       API should provide a valid list of exchange.
+    ...                                 The response code should be populated as 200.
+    Set Test Variable    ${exchangeId}      369
+    Set Test Variable    ${siteType}        Online
+    Delete Inventory Type to Exchange       siteType=${siteType}
+    ...                                     exchangeId=${exchangeId}
+    Add Inventory Type to Exchange      exchangeId=${exchangeId}
+    ...                                 siteType="${siteType}"
+    ...                                 success=true
+    ${siteTypeId}    Get Json Value    ${body}    /siteTypeId
+    Log    ${siteTypeId}
+    Get list of exchange with inventory type
+    ...         reason_code=200
+    ...         success=true
+    Should Match Regexp    ${body}    {"id":${siteTypeId},"name":"${exchangeId}-${siteType}","status":"Live"}
+    [Tags]
+
+
+InventoryAPI_2.1_TC_01.2_Get list of exchange with inventory type (invalid URL, Don't Accept)
+    [Documentation]     Input:          Use Inventory API to Get list of exchange with inventory type for invalid URL,
+    ...                 Expected:       API should not provide a valid list of exchange.
+    ...                                 The response code should be populated as 400.
+    Get list of exchange with inventory type        url=inventory-api/exchange/exchange_list
+    ...         reason_code=400
+    ...         success=false
+    [Tags]
+
+InventoryAPI_2.1_TC_01.3_Update Exchange names to their billed names(CM-2237)
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      select id, name from rhino.partner where type_id = 5 AND status=1 AND email IS NOT NULL order by name;
+    Log Many             @{query_results}
+    Set Suite Variable          @{query_results}        @{query_results}
+
+
+   Get Id And Exchange Name From DB     Row=0      id_CMP=375       ExchangeName_CMP=4INFO Exchange
+   Get Id And Exchange Name From DB     Row=1      id_CMP=531       ExchangeName_CMP=Ad Colony
+   Get Id And Exchange Name From DB     Row=2      id_CMP=384       ExchangeName_CMP=AppNexus
+   Get Id And Exchange Name From DB     Row=3      id_CMP=424       ExchangeName_CMP=AppNexus Microsoft
+   Get Id And Exchange Name From DB     Row=4      id_CMP=4161      ExchangeName_CMP=AppnexusRTB Test
+   Get Id And Exchange Name From DB     Row=5      id_CMP=521       ExchangeName_CMP=Chocolate
+   Get Id And Exchange Name From DB     Row=6      id_CMP=418       ExchangeName_CMP=Fyber
+   Get Id And Exchange Name From DB     Row=7      id_CMP=728       ExchangeName_CMP=Google AdX
+   Get Id And Exchange Name From DB     Row=8      id_CMP=496       ExchangeName_CMP=Oath One Display
+   Get Id And Exchange Name From DB     Row=9      id_CMP=370       ExchangeName_CMP=Oath One Mobile
+   Get Id And Exchange Name From DB     Row=10     id_CMP=489       ExchangeName_CMP=Oath One Video
+   Get Id And Exchange Name From DB     Row=11     id_CMP=705       ExchangeName_CMP=OpenX
+   Get Id And Exchange Name From DB     Row=12     id_CMP=481       ExchangeName_CMP=PubMatic Exchange
+   Get Id And Exchange Name From DB     Row=13     id_CMP=498       ExchangeName_CMP=Rubicon
+   Get Id And Exchange Name From DB     Row=14     id_CMP=475       ExchangeName_CMP=Smaato
+   Get Id And Exchange Name From DB     Row=15     id_CMP=606       ExchangeName_CMP=SpotXchange
+   Get Id And Exchange Name From DB     Row=16     id_CMP=369       ExchangeName_CMP=Twitter MoPub
+   Disconnect From Database
+    [Tags]

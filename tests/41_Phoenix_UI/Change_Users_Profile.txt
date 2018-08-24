@@ -1,0 +1,78 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX    MyAccount    BATCH22    PHOENIX_3
+Suite Teardown      Run Keywords    Close All Browsers    Clear All Users Created For Change Profile UI Tests
+
+*** Variables ***
+${regular_username}                024-ui-regular-regression@temp.com
+${regular_permissionsList}        [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}, {"permissions": [1, 2], "groupId": 1, "productId": 2}]
+${regular_authority}            USER
+
+${status}                       1
+${Pass}                         abcABC123!
+${firstName}                    Regression
+${lastName}                     Test
+${lastModifiedBy}               ${QA_DEFAULT_USER}
+
+${admin_username}                024-ui-admin-regression-UI@temp.com
+${admin_permissionsList}        [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}, {"permissions": [1], "groupId": 1, "productId": 2}]
+${admin_authority}            ADMIN
+
+${newPass}    abcCCC222!
+
+
+*** Keywords ***
+Clear All Users Created For Change Profile UI Tests
+    Delete a user       username=${regular_username}
+    Delete a user       username=${admin_username}
+
+
+Create Required Users for Modify User's Own Account Tests
+    [Documentation]   Create required users to be used in current script.
+    Clear All Users Created For Change Profile UI Tests
+    
+    Comment    Create a regular user 
+
+    Create a user       userName="${regular_username}"
+    ...                 status=${status}
+    ...                 password="${Pass}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${regular_authority}"
+    ...                 permissionsList=${regular_permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+
+
+    Comment    Create an Admin user 
+
+    Create a user       userName="${admin_username}"
+    ...                 status=${status}
+    ...                 password="${Pass}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${admin_authority}"
+    ...                 permissionsList=${admin_permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------
+ChangeUsersProfile_TC_00_Create Pre-requisite data
+    Create Required Users for Modify User's Own Account Tests
+    Login To Adhaven UI    username=${regular_username}    password=${Pass}
+    [Tags]   
+
+#--------------------------------------------------------------------------------------
+ChangeUsersProfile_TC_01.1_Modify User's Own Account (Valid Request for Any User, Accept)
+    [Documentation]    The logged in user can modify his own profile details like first name, last name, password.
+    Go To My Account Page
+    [Tags]
+
+
+
+
+#--------------------------------------------------------------------------------------

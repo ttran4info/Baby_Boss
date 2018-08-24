@@ -1,0 +1,465 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags         	PHOENIX    PHOENIX_ADVERTISER      BATCH22    PHOENIX_1
+Suite Setup         Run Keywords    Clean Up Advertiser Phoenix 02
+Suite Teardown      Run Keywords   Close All Browsers  AND	Clean Up Advertiser Phoenix 02
+
+*** Variables ***
+${att_advertiser}						00_QATEST_advertiser_12
+${catalina_advertiser_active}			00_QATEST_advertiser_15
+${catalina_advertiser_inactive}			00_QATEST_advertiser_15_2
+${qa_advertiser}						00_QATEST_advertiser_16
+
+${att_advertiser_xpath}    xpath=//a[@id="expandAdv"][text()='${att_advertiser}']
+${catalina_advertiser_active_xpath}    xpath=//a[@id="expandAdv"][text()='${catalina_advertiser_active}']
+${catalina_advertiser_inactive_xpath}    xpath=//a[@id="expandAdv"][text()='${catalina_advertiser_inactive}']
+${qa_advertiser_xpath}    xpath=//a[@id="expandAdv"][text()='${qa_advertiser}']
+
+${Advertiser_page}                  https://qa-campaigns.4info.com/phoenix/#/advertisersList
+
+
+# Need to revisit TC_05_Advertiser (Status Filtering Admin - All) to traverse all pages and search object QA_REGRESSION
+# Need to update test script for Inactive=campaign end date is exceeded. by adding advertiser (ztest_Sheldon) to test inactive status as a sample record.
+
+*** Keywords ***
+Clean Up Advertiser Phoenix 02
+	Cleanup Advertiser From DB          advertiser_name=${att_advertiser}
+	Cleanup Advertiser From DB          advertiser_name=${catalina_advertiser_active}
+	Cleanup Advertiser From DB          advertiser_name=${catalina_advertiser_inactive}
+	Cleanup Advertiser From DB          advertiser_name=${qa_advertiser}
+
+
+Go To Advertiser_page
+    Go To                       ${Advertiser_page}
+    Wait Until Page Contains    ADVERTISERS
+    Wait Until Page Contains    Create Advertiser
+    Wait Until Page Contains    Search advertisers
+#ztest_Sheldon inactive advertiser
+
+*** Test Cases ***
+TC_00_Generate_Data
+    Generate Advertisers Data
+# PHOENIX_ADVERTISER_TC_00_Generate Advertisers Data
+#     [Documentation] 	creating advertiser for (ATT, Catalina, QA Group = 12,15,16)
+#     Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+#     Create Advertiser And Campaign		campaign_access_control=12 	campaign_name=QATEST_campaign_12		advertiser_name=${att_advertiser}
+#     Create Advertiser And Campaign		campaign_access_control=15	campaign_name=QATEST_campaign_15		advertiser_name=${catalina_advertiser_active}
+#     Create Advertiser And Campaign		campaign_access_control=15	campaign_name=QATEST_campaign_15_2		advertiser_name=${catalina_advertiser_inactive} 	campaign_status=2
+#     Create Advertiser And Campaign		campaign_access_control=16	campaign_name=QATEST_campaign_16		advertiser_name=${qa_advertiser}
+#     Reload Page
+#     Sleep    3s
+#     Wait Until Page Contains Element    ${ADV_NAME_SORT}
+#     [Tags]		PHOENIX_SANITY
+
+#-------------------------------------------------------------------------------
+# Admin user tests
+
+PHOENIX_ADVERTISER_Admin_TC_01.1_Advertiser (Admin user can see all)
+    [Documentation]    Make a request for admin user group 1 and check the result advertiser ID,name
+    #Generate Advertisers Data
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Page Should Contain Link    0_QATEST_advertiser_12
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Contain Link    ${att_advertiser}
+    Page Should Contain Link    ${catalina_advertiser_active}
+    Page Should Contain Link    ${qa_advertiser}
+    Clear Element Text          ${ADV_SEARCH_TEXTBOX}
+    [Tags]    PHOENIX_SANITY
+
+
+PHOENIX_ADVERTISER_Admin_TC_01.2_Advertiser (Status Filtering Admin - All)
+    [Documentation]    Login And select filtering by status: all (show all)
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Go To Advertiser Page
+    Select From List By Label    ${ADV_STATUS_SELECTION}    All
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Page Should Contain Link    0_QATEST_advertiser_12
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Contain Link    ${att_advertiser}
+    # Click Element    ${ADV_NAME_SORT}
+    Page Should Contain Link    ${catalina_advertiser_active}
+    Page Should Contain Link    ${qa_advertiser}
+	#dd
+	[Tags]
+
+
+PHOENIX_ADVERTISER_Admin_TC_01.3_Advertiser (Status Filtering Admin - Active)
+    [Documentation]    Login And select filtering by status: active
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Go To Advertiser Page
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Select From List By Label    ${ADV_STATUS_SELECTION}    Active
+    Sleep	3s
+    # Page Should Contain Link    QA_Performance
+    Click Element    ${ADV_NAME_SORT}
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Contain Link    0_QATEST_advertiser_12
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Contain Element        ${att_advertiser_xpath}
+    Page Should Contain Element        ${catalina_advertiser_active_xpath}
+    Page Should Not Contain Element    ${catalina_advertiser_inactive_xpath}
+    Page Should Contain Element        ${qa_advertiser_xpath}
+    [Tags]
+
+
+PHOENIX_ADVERTISER_Admin_TC_01.4_Advertiser (Status Filtering Admin - Inactive)
+    [Documentation]    Login And select filtering by status: inactive
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Go To Advertiser Page
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Select From List By Label    ${ADV_STATUS_SELECTION}    Inactive
+    Sleep    3s
+    # Page Should Not Contain Link    QA_Performance
+    Page Should Not Contain Link    0_QATEST_advertiser
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Not Contain Link    ${att_advertiser}
+    Page Should Not Contain Link    ${catalina_advertiser_active}
+    Page Should Contain Link        ${catalina_advertiser_inactive}
+    Page Should Not Contain Link    ${qa_advertiser}
+    [Tags]
+
+
+# Default User Tests
+PHOENIX_ADVERTISER_DefaultUser_TC_03.1_Advertiser (Admin Group 1 - Data Validation)
+    Go To Advertiser Page
+    Input Text      ${ADV_SEARCH_TEXTBOX}   0_QATEST_advertiser_1
+    Select From List By Label    ${ADV_STATUS_SELECTION}    All
+    sleep	10s
+    Compare API data vs UI display for Advertiser    group_id=1    advertiser_name=0_QATEST_advertiser
+    Compare API data vs UI display for Advertiser    group_id=1    advertiser_name=${catalina_advertiser_active}
+    Compare API data vs UI display for Advertiser    group_id=1    advertiser_name=${catalina_advertiser_inactive}
+
+    [Tags]
+
+
+
+PHOENIX_ADVERTISER_DefaultUser_TC_03.2_Advertiser (Name sort)
+    [Documentation]    Login to UI as admin user, press the sort button (initially display a to z), now it will display z to a
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    ##Get Advertiser Page
+    Go To Advertiser Page
+    Capture Page Screenshot With Timestamp
+    Input Text      ${ADV_SEARCH_TEXTBOX}   0_QATEST_advertiser_1
+    Page Should Contain Link    ${att_advertiser}
+    Page Should Contain Link    ${catalina_advertiser_active}
+    Page Should Contain Link    ${qa_advertiser}
+    Click Element    ${ADV_NAME_SORT}
+    Sleep    3s
+    Capture Page Screenshot With Timestamp
+    Page Should Contain Link    ${att_advertiser}
+    Page Should Contain Link    ${catalina_advertiser_active}
+    Page Should Contain Link    ${qa_advertiser}
+    #dd
+    [Tags]    #CM-914   Known_bug   CM-923
+
+
+PHOENIX_ADVERTISER_DefaultUser_TC_03.3_Advertiser (Status sort - Active/Inactive Advertiser)
+    [Documentation]    Login to UI as admin user, press the sort button (initially display active adgroup), now it will display inactive adgroup
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Go To Advertiser Page
+    Input Text      ${ADV_SEARCH_TEXTBOX}   0_QATEST_advertiser_1
+    Capture Page Screenshot With Timestamp
+    Page Should Contain Link    ${att_advertiser}
+    Page Should Contain Link    ${catalina_advertiser_active}
+    Page Should Contain Link    ${qa_advertiser}
+    Click Element    ${ADV_STATUS_SORT}
+    Sleep    3s
+    Capture Page Screenshot With Timestamp
+    Page Should Contain Link    ${att_advertiser}
+    Page Should Contain Link    ${catalina_advertiser_active}
+    Page Should Contain Link    ${qa_advertiser}
+    #dd
+    [Tags]  #CM-914 Known_bug   CM-923
+
+
+PHOENIX_ADVERTISER_DefaultUser_TC_03.4_Advertiser (Live Sort)
+    [Documentation]    Login to UI as admin user, press the sort button (initially It is not sorted), click it once will show low to high live campaign, click it again will show high to low campaign
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Go To Advertiser Page
+    Input Text      ${ADV_SEARCH_TEXTBOX}   0_QATEST_advertiser_1
+    Capture Page Screenshot With Timestamp
+    Page Should Contain Link    0_QATEST_advertiser_12
+    Click Element    ${ADV_LIVE_SORT}
+    Sleep    3s
+    Capture Page Screenshot With Timestamp
+    Page Should Contain Link    0_QATEST_advertiser_12
+    #dd
+    [Tags]  #CM-914 Known_bug   CM-923
+
+
+PHOENIX_ADVERTISER_DefaultUser_TC_03.5_Advertiser (Pending Sort)
+    #Need to create pending campaign
+    [Documentation]    Login to UI as admin user, press the sort button (initially It is not sorted), click it once will show low to high live campaign, click it again will show high to low campaign
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Go To Advertiser Page
+    Input Text      ${ADV_SEARCH_TEXTBOX}   0_QATEST_advertiser_1
+    Capture Page Screenshot With Timestamp
+    Page Should Contain Link    0_QATEST_advertiser_12
+    Click Element    ${ADV_PENDING_SORT}
+    Sleep    3s
+    Capture Page Screenshot With Timestamp
+    Page Should Contain Link    0_QATEST_advertiser_12
+    #dd
+    [Tags]
+
+
+PHOENIX_ADVERTISER_DefaultUser_TC_03.6_Advertiser (Edit Advertiser - Advertiser Name change)
+    [Documentation]    Login, Click Edit Campaign, Change campaign name and expect the name to be changed.
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Click Advertiser name to open edit box, and click close without editing
+    #Get Advertiser Page
+    Go To Advertiser Page
+    Input Text          ${ADV_SEARCH_TEXTBOX}           ${qa_advertiser}
+    Sleep   2s
+    Click Link          ${qa_advertiser}
+    Sleep    3s
+    Input Text    ${ADV_EDIT_TEXTBOX}    ${qa_advertiser}_1
+    Click Button    ${ADV_EDIT_CLOSE_BUTTON}
+    Page Should Contain Link    ${qa_advertiser}
+
+    #Open edit advertiser again, this time change the name of advertiser
+    Click Link    ${qa_advertiser}
+    Sleep    3s
+    Input Text    ${ADV_EDIT_TEXTBOX}    ${qa_advertiser}_1
+    Click Button    ${ADV_EDIT_OK_BUTTON}
+    Sleep    3s
+    Page Should Contain Link    ${qa_advertiser}_12
+    #dd
+    #revert back the name via PAC 1.5.2
+    [Tags]  #Known_bug  CM-923
+
+
+PHOENIX_ADVERTISER_DefaultUser_TC_03.7_Advertiser (Edit Advertiser - Error validation, "Advertiser name exists")
+    [Documentation]    Login, Click Edit Campaign, Change campaign name and expect error when campaign name already exist
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    # Go To Advertiser Page
+    Input Text    ${ADV_EDIT_TEXTBOX}           ${att_advertiser}
+    Click Link    ${att_advertiser}
+    Sleep    3s
+    Input Text    ${ADV_EDIT_TEXTBOX}    ${catalina_advertiser_active}
+    Click Button 	${ADV_EDIT_OK_BUTTON}
+    Sleep    3s
+    #Page Should Contain    Advertiser name exists
+    Page Should Contain Image		xpath=/html/body/ngb-modal-window/div/div/ng-component/form/div[2]/div/errorcontainer/div/div/img
+    Click Button    ${ADV_EDIT_CLOSE_BUTTON}
+    #dd
+    [Tags]
+
+
+PHOENIX_ADVERTISER_DefaultUser_TC_03.8_Advertiser (Edit Advertiser - Certain characters not allow ~!@#$%^&*)
+    [Documentation]    Login, Click Edit Campaign, Change campaign name and expect error when campaign name already exist
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Go To Advertiser Page
+    Input Text    ${ADV_EDIT_TEXTBOX}           ${att_advertiser}
+    Click Link    ${att_advertiser}
+    Sleep    3s
+    Input Text    ${ADV_EDIT_TEXTBOX}    ${att_advertiser}_!@#$%^&*
+    Click Button 	${ADV_EDIT_OK_BUTTON}
+    Sleep    3s
+    Page Should Contain Image		xpath=/html/body/ngb-modal-window/div/div/ng-component/form/div[2]/div/errorcontainer/div/div/img
+    Click Button    ${ADV_EDIT_CLOSE_BUTTON}
+    #dd
+    [Tags]  #Known_bug  CM-923
+
+
+PHOENIX_ADVERTISER_DefaultUser_TC_03.9_Advertiser (Edit Advertiser - Certain characters not allow 2 Spaces)
+    [Documentation]    Login, Click Edit Campaign, Change campaign name and expect error when campaign name already exist
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Go To Advertiser Page
+    Input Text    ${ADV_EDIT_TEXTBOX}           ${att_advertiser}
+    Click Link    ${att_advertiser}
+    Sleep    3s
+    Input Text    ${ADV_EDIT_TEXTBOX}    ${att_advertiser}_ ${Space}One
+    Click Button 	${ADV_EDIT_OK_BUTTON}
+    Sleep    3s
+    Page Should Contain Image		xpath=/html/body/ngb-modal-window/div/div/ng-component/form/div[2]/div/errorcontainer/div/div/img
+    Click Button    ${ADV_EDIT_CLOSE_BUTTON}
+    #dd
+
+    [Tags]    #Known_bug    CM-923
+
+
+PHOENIX_ADVERTISER_DefaultUser_TC_03.10_Advertiser (Create Advertiser Button)
+    [Documentation]    Login, Click Campaign Tab, Click Create Advertiser button, expecting window to create advertiser.
+     # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Go To Advertiser Page
+    Click Create Advertisers Button
+    Click Button    ${CreateAdvertiserCloseButton}
+    #dd
+    [Tags]
+
+
+PHOENIX_ADVERTISER_DefaultUser_TC_03.11_Advertiser (Create Advertiser Invalid name error)
+    [Documentation]    Login, Click Campaign Tab, Click Create Advertiser button, create advertiser with invalid name and expect error. Here we will only test for error message showing up. All test pertaining to naming rule will be test as part of API (pac1.5.1).
+     # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Go To Advertiser Page
+    Click Create Advertisers Button
+    Input Text    ${ADV_NAME_INPUT}    ${att_advertiser}@hotmail.com
+    Click Button    ${ADV_CREATE_OK_BUTTON}
+    Sleep 	10s
+    Textfield Should Contain		id=advertiserName	${att_advertiser}@hotmail.com
+    #Input Text		id=advertiserName				${att_advertiser}@hotmail.com
+    #Page Should Contain				${att_advertiser}@hotmail.com
+    #Page Should Contain    Only letters, numbers, underscores (_), hyphens (-), and single spaces are allowed.
+    #dd
+    [Tags]  				#Known_bug  CM-923
+
+
+# TC_04_Advertiser (Pagination, 5, 10,25 and number of pages, Removed)
+#   #we purposely removed this feature
+#   [Tags]  exclude
+#-------------------------------------------------------------------------------
+
+PHOENIX_ADVERTISER_TC_04.1_Confirm all page objects are present
+    [Documentation]    Confirm all page objects like header, footer and Advertiser page objects present
+    # Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Comment    Check Header and footer objects are present
+    Check Header and Footer objects are present
+    Check Page Objects for Advertiser are present
+    [Tags]    	# CM-2088
+
+
+
+
+#-------------------------------------------------------------------------------
+#Catalina user Tests
+
+PHOENIX_ADVERTISER_Catalina_TC_02.1_Advertiser (Catalina user can see catalina advertiser only, group 15)
+    [Documentation]    Login for user group 15 and check the UI is showing advertiser containing campaign belong to group 15 and not other group
+    Login To Adhaven UI    username=${QA_CATALINA_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Not Contain Link    ${att_advertiser}
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Contain Link    ${catalina_advertiser_active}
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Not Contain Link    ${qa_advertiser}
+    [Tags]   	 #  Known_bug	CM-863
+
+
+PHOENIX_ADVERTISER_Catalina_TC_02.2_Advertiser (QA user can see QA advertisers only, group 16)
+    [Documentation]    Login for user group 16 and check the UI is showing advertiser containing campaign belong to group 16 and not other group
+    Login To Adhaven UI    username=${QA_CATALINA_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Not Contain Link    ${att_advertiser}
+    Page Should Contain Link    ${catalina_advertiser_active}
+     Page Should Not Contain Link    ${qa_advertiser}
+    Click Element    ${ADV_NAME_SORT}
+     Page Should Not Contain Link    ${att_advertiser}
+    Page Should Contain Link    ${catalina_advertiser_active}
+     Page Should Not Contain Link    ${qa_advertiser}
+    [Tags]     	Revisit with group 16 catalina login    #  Known_bug	CM-863
+
+
+PHOENIX_ADVERTISER_Catalina_TC_02.3_Advertiser (Catalina & QA user can see catalina and QA advertiser only, both group 15,16)
+    [Documentation]    Login for user group 15,16 and check the UI is showing advertiser containing campaign belong to group 15,16 and not other group
+    Login To Adhaven UI    username=${QA_CATALINA_AND_QA_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Not Contain Link    ${att_advertiser}
+    Page Should Contain Link    ${catalina_advertiser_active}
+    Page Should Not Contain Link    ${qa_advertiser}
+    Close All Browsers
+    [Tags]   	 #  Known_bug	CM-863
+
+
+PHOENIX_ADVERTISER_Catalina_TC_02.4_Advertiser (Status Filtering Catalina - All)
+    [Documentation]    Login as catalina and select filtering by status: all (show all)
+    Login To Adhaven UI    username=${QA_CATALINA_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Select From List By Label    ${ADV_STATUS_SELECTION}    All
+    Sleep    3s
+    # Page Should Not Contain Link    QA_Performance
+    Page Should Contain Link    0_QATEST_advertiser_12
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Not Contain Link    ${att_advertiser}
+    Page Should Contain Link    ${catalina_advertiser_active}
+    Page Should Contain Link    ${catalina_advertiser_inactive}
+    Page Should Not Contain Link    ${qa_advertiser}
+    Close All Browsers
+    [Tags]    #  Known_bug	CM-863
+
+
+PHOENIX_ADVERTISER_Catalina_TC_02.5_Advertiser (Status Filtering - Active)
+    [Documentation]    Login And select filtering by status: active
+    Login To Adhaven UI    username=${QA_CATALINA_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Select From List By Label    ${ADV_STATUS_SELECTION}    Active
+    Sleep    3s
+    # Page Should Not Contain Link    QA_Performance
+    Page Should Contain Link    0_QATEST_advertiser_12
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Not Contain Link    ${att_advertiser}
+    Page Should Contain Link    ${catalina_advertiser_active}
+    Page Should Not Contain Link    ${catalina_advertiser_inactive}
+    Page Should Not Contain Link    ${qa_advertiser}
+    Close All Browsers
+    [Tags]        #	CM-863
+
+
+PHOENIX_ADVERTISER_Catalina_TC_02.6_Advertiser (Status Filtering - Inactive)
+    [Documentation]    Login And select filtering by status: inactive
+    Login To Adhaven UI    username=${QA_CATALINA_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Select From List By Label    ${ADV_STATUS_SELECTION}    Inactive
+    Sleep    3s
+    # Page Should Not Contain Link    QA_Performance
+    Page Should Not Contain Link    0_QATEST_advertiser
+    Click Element    ${ADV_NAME_SORT}
+    Page Should Not Contain Link    ${att_advertiser}
+    Page Should Not Contain Link    ${catalina_advertiser_active}
+    Page Should Contain Link    ${catalina_advertiser_inactive}
+    Page Should Not Contain Link    ${qa_advertiser}
+    Close All Browsers
+    [Tags]       #	CM-863
+
+
+
+PHOENIX_ADVERTISER_Catalina_TC_02.7_Advertiser (Catalina Group 15 - Data Validation)
+    [Documentation]    Using API to get information for all advertiser, check UI to make sure advertiser is shown with same data as api
+    Login To Adhaven UI    username=${QA_CATALINA_USER}    password=${QA_DEFAULT_PASSWORD}
+    #Get Advertiser Page
+    Input Text		${ADV_SEARCH_TEXTBOX} 	0_QATEST_advertiser_1
+    Sleep     3s
+    Select From List By Label    ${ADV_STATUS_SELECTION}    All
+    Compare API data vs UI display for Advertiser    group_id=15    advertiser_name=0_QATEST_advertiser
+    Compare API data vs UI display for Advertiser    group_id=15    advertiser_name=${catalina_advertiser_active}
+    Compare API data vs UI display for Advertiser    group_id=15    advertiser_name=${catalina_advertiser_inactive}
+    Close All Browsers
+    [Tags]
+
+#-------------------------------------------------------------------------------
+
+
+
+
+#-------------------------------------------------------------------------------

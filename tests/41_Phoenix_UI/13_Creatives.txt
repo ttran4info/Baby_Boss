@@ -1,0 +1,1151 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             OperatingSystem
+Force Tags          PHOENIX         Phoenix_Creatives      BATCH22    PHOENIX_2
+Suite Setup         Run Keyword          Clean Up Campaign, Advertiser and Cretives
+Suite Teardown      Run Keywords         Close All Browsers     Clean Up Campaign, Advertiser and Cretives
+
+*** Variables ***
+${testsRootFolder}              ${CURDIR}
+${QA_TEST_ADVERTISER}           00_QATEST_advertiser_41_13
+${CAMPAIGN_NAME_UI}             00_QATEST_campaign
+${CREATIVE_NAME}                00_QATEST_CREATIVE_13
+${CHILD_NAME}                   00_QATEST_CHILD_13
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  00_QATEST_parent
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019
+${END_DATE_TIME_PARENT}         11/11/2019
+${START_DATE_TIME_CHILD}        03/03/2019
+${END_DATE_TIME_CHILD}          10/10/2019
+${Check}                        1
+${Uncheck}                      0
+${CAMPAIGN_CREATIVE_PAGE}       https://qa-campaigns.4info.com/phoenix/#/creativesList
+${group_id_6_username}              cat6@catalina.com
+${group_id_6_password}              P@ssw0rd
+${group_id_14_username}             cat@cat.com
+${group_id_15_username}             regression@catalina.com
+${group_id_17_username}             qa@datamyx.com
+${group_id_18_username}             regression_undertone@undertone.com
+${EDIT_CREATIVE_PAGE}               https://qa-campaigns.4info.com/phoenix/#/creativeAdd/
+${EXTERNAL_ID_text}                 xpath=//div[contains(text(),"EXTERNAL CREATIVE ID")]
+
+
+
+
+
+*** Keywords ***
+Clean Up Campaign, Advertiser and Cretives
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_SEARCH
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP6
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP14
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP15
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP17
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP19
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}_GRP1
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+
+Verify Page Elements After Create Creative
+    Page Should Contain             Manage Creatives Template
+    Page Should Contain             Add new creative template
+    Page Should Contain             Contact 4INFO
+    Page Should Contain Button      btnCreateTpl
+
+Wait until Advertiser Element To Load
+    Wait Until Page Contains     ADVERTISERS                timeout=20s
+    Wait Until Page Contains     Create Advertiser          timeout=20s
+    Wait Until Page Contains     Search advertisers         timeout=20s
+Wait until Creative Element To Load
+    Wait Until Page Contains    CREATIVE TEMPLATE            timeout=20s
+    Wait Until Page Contains    Creative information         timeout=20s
+
+Login To Adhaven UI For Group 17
+    [Arguments]     ${username}=${QA_DEFAULT_USER}      ${password}=${QA_DEFAULT_PASSWORD}
+    Open Browser       ${LOGIN_URL}    ${Browser}
+    Maximize Browser Window
+    Sleep    10s
+    Wait Until Element Is Visible    ${LOGIN_NAME_TEXTBOX}    timeout=40s
+    Input Text         ${LOGIN_NAME_TEXTBOX}                ${username}
+    Input Text         ${LOGIN_PASSWORD_TEXTBOX}        ${password}
+    Click Button       ${LOGIN_BUTTON}
+    Wait Until Page Contains    Campaigns       timeout=20s
+    Wait Until Page Contains    Clusters        timeout=20s
+    Wait Until Page Contains    Forecasting     timeout=20s
+    Wait Until Page Contains    ADVERTISERS     timeout=20s
+
+Get Today's Date
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 1 day
+    Set Suite Variable    ${todaysDate}   ${mm}/${dd}/${yyyy}
+    Set Suite Variable       ${START_DATE}      ${todaysDate}
+    Log To Console          ${todaysDate}
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 3 day
+    Set Suite Variable    ${START_DATE_TIME_PARENT}   ${mm}/${dd}/${yyyy}
+*** Test Cases ***
+TC_00_Generate Data for Test Suite
+    Log          ${testsRootFolder}
+    Set Suite Variable         ${DataFiles}            ${testsRootFolder}/../../test_datafiles/HydraFiles
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME_UI}    campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    Log To Console     Campaign_id=${Campaign_Id}
+    Set Suite Variable    ${campaign_Id}          ${Campaign_Id}
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Log     ${CURDIR}
+    # Open Campaign summery page    Advertiser_name=${QA_TEST_ADVERTISER}       Campaign_name=${CAMPAIGN_NAME_UI}
+    # Click Element                                       ${ADV_EXPAND_DROPDOWN_BUTTON}
+    # Wait Until Element Is Visible                       ${CAMPAIGN_SEARCH_QA}
+    # Click Element                                       ${CAMPAIGN_SEARCH_QA}
+
+    [Tags]
+
+TC_01.01_Create Creatives (Native)
+    [Documentation]                 Native Creative creation should be successfull
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0101
+    Sleep    2s
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.02_Create Creatives (Name Validation)
+    [Documentation]                 Leaving Creative name as a blank should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Create Native Creative UI                           name=${Empty}
+    Mouse Over                                          ${CREATIVE_NAME_REQUIRED_VALIDATION_ERROR}
+    Page Should Contain                                 Required Field
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+TC_01.03_Create Creatives (Duplicate Creative Name Validation)
+    [Documentation]                 Leaving Creative name as a blank should raise Validation popUp
+    Go To                                               ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0103
+    Sleep    2s
+    Save The Creative
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0103
+    Sleep    2s
+    Save The Creative
+    Sleep     4s
+    Mouse Over      xpath=(.//div[contains(., 'NAME')])[last()]/following::img
+    Page Should Contain     Duplicate creative name
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.04_Create Creatives (External Id validations)
+    [Documentation]                 Leaving Creative Extrnal Id as a blank should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0104      externalID=${Empty}
+    Save The Creative
+    Sleep    4s
+    Mouse Over                                          ${CREATIVE_EXTERNALID_REQUIRED_VALIDATION_ERROR}
+    sleep   5s
+    Page Should Contain     External ID cannot be blank
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.05_Create Creatives (Title blank Validation)
+    [Documentation]                 Leaving Creative Title as a blank should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0105      title=${Empty}
+    Save The Creative
+    Mouse Over                                          ${CREATIVE_TITLE_BLANK_REQUIRED_VALIDATION_ERROR}
+    Page Should Contain     Required Field
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.06_Create Creatives (Icon Image not uploading)
+    [Documentation]                 Icon Image not uploading then It should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0106      iconImage=${Empty}
+    # Mouse Over                                          ${CREATIVE_ICON_IMAGE_REQUIRED_VALIDATION_ERROR}
+    Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    # Page Should Contain     Required Field
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.07_Create Creatives (Icon Image txt file)
+    [Documentation]                 Icon Image not uploading then It should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0107      iconImage=headphones.txt
+    Element Should Be Visible                           ${CREATIVE_ICON_IMAGE_INVALID_FILE__VALIDATION_ERROR}
+    Mouse Over                                          ${CREATIVE_ICON_IMAGE_INVALID_FILE__VALIDATION_ERROR}
+    Page Should Contain                 The uploaded file does not have the required file extension of \ (.jpeg,.jpg,.png,.bmp,.gif)
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.08_Create Creatives (Icon Image wrong size)
+    [Documentation]                 Icon Image not uploading then It should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0108      iconImage=File1200x627.jpg
+    Create Native Creative UI                           ${CREATIVE_ICON_IMAGE_INVALID_FILE__VALIDATION_ERROR}
+    Mouse Over                                          ${CREATIVE_ICON_IMAGE_INVALID_FILE__VALIDATION_ERROR}
+    Page Should Contain                                 The uploaded file does not have the required dimension : \ 80 X 80
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.09_Create Creatives (Large Image not uploading)
+    [Documentation]                 Large Image not uploading then It should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0109      largeImage=${Empty}
+    Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.10_Create Creatives (Large Image txt file)
+    [Documentation]                 Large Image not uploading then It should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0110      largeImage=headphones.txt
+    Element Should Be Visible                            ${CREATIVE_LARGE_IMAGE_INVALID_FILE__VALIDATION_ERROR}
+    Mouse Over                                          ${CREATIVE_LARGE_IMAGE_INVALID_FILE__VALIDATION_ERROR}
+    Page Should Contain                 The uploaded file does not have the required file extension of \ (.jpeg,.jpg,.png,.bmp,.gif)
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.11_Create Creatives (Large Image wrong size file)
+    [Documentation]                 Large Image not uploading then It should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0111      largeImage=File80x80.png
+    Element Should Be Visible                           ${CREATIVE_LARGE_IMAGE_INVALID_FILE__VALIDATION_ERROR}
+    Mouse Over                                          ${CREATIVE_LARGE_IMAGE_INVALID_FILE__VALIDATION_ERROR}
+    Page Should Contain                                 The uploaded file does not have the required dimension : \ 1200 X 627
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.12_Create Creatives (DESTINATION URL blank)
+    [Documentation]                 Large Image not uploading then It should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0112     destinationURL=${Empty}
+    # Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    # Mouse Over                                          ${CREATIVE_DESTINATION_BLANK_URL_VALIDATION_ERROR}
+    # Page Should Contain                                 Required Field
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_01.13_Create Creatives (invalid DESTINATION URL)
+    [Documentation]                 Large Image not uploading then It should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0113     destinationURL=qwe!@#123
+    Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    Element Should Be Visible                          ${CREATIVE_DESTINATION_BLANK_URL_VALIDATION_ERROR}
+    Mouse Over                                          ${CREATIVE_DESTINATION_BLANK_URL_VALIDATION_ERROR}
+    Page Should Contain                                 destinationUrl must be a valid URL
+    Capture Page Screenshot With Timestamp
+    [Tags]       Known_bug        CM-1898
+
+TC_01.14_Create Creatives (CA text blank)
+    [Documentation]                 CA text blank then It should raise Validation popUp
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep     1s
+    # Create Native Creative UI                           name=00_QATEST_CREATIVE0113       CTAText=4info...
+    Input Text                      ${CREATIVE_NAME_TEXTBOX}                     00_QATEST_CREATIVE0114
+    Input Text                      ${CREATIVE_EXTERNAL_ID_TEXTBOX}              BVPFourinfo
+    Input Text                      ${CREATIVE_NATIVE_TITLE}                     SomeTitle
+    Input Text                      ${CREATIVE_NATIVE_DESTINATION_URL}           google.com
+    Press Key                       ${CREATIVE_NATIVE_DESTINATION_URL}          \\09
+    Press Key                       ${CREATIVE_NATIVE_DESTINATION_URL}          \\127
+    Clear Element Text              ${CREATIVE_NATIVE_CTA_TEXT_TEXTBOX}
+    Sleep   5s
+    Press Key                       ${CREATIVE_NATIVE_CTA_TEXT_TEXTBOX}         \\09
+    # Focus                           ${CREATIVE_NATIVE_CTA_TEXT_TEXTBOX}
+    Sleep   4s
+    # Save The Creative
+    Mouse Over                                          xpath=//div[@class="input-error-alert"]
+    Page Should Contain                                 Required Field
+    Capture Page Screenshot With Timestamp
+    [Tags]       EXCLUDE     #From Automation point of view it is not working ...Manually working.
+
+
+TC_01.15_Create Creatives (Extenssion should not matter while uploading files CM-2212)
+    [Documentation]                 Native Creative creation should be successfull
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Native
+    Sleep  1s
+    Create Native Creative UI                           name=00_QATEST_CREATIVE0115    iconImage=File80x80.PNG       largeImage=File1200x627.PNG
+    Sleep    2s
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+########################################################################
+# Video Creative
+########################################################################
+
+TC_02.01_Create Creatives (Video Video-Type VAST TAG)
+    [Documentation]                 Video Creative creation should be successfull
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Audio Ad (Auto Play)         Surveys      Has audio on/off button
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0201       videoType=VAST Tag
+    Add Creative Attributes For Creative                  CREATIVE_ATTRIBUTE_LIST=${CREATIVE_ATTRIBUTE_LIST}
+    Add Mime Types
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]     EXCLUDE
+
+TC_02.02_Create Creatives (Video Video-Type VAST TAG invalid file format)
+    [Documentation]                 Input : Invalid file format for upload
+    ...                             Output  : It should show validation error pop up
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Audio Ad (Auto Play)         Surveys      Has audio on/off button
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0202       videoType=VAST Tag        videoStillScreenShot=headphones.txt.tar.gz
+    Add Creative Attributes For Creative                  CREATIVE_ATTRIBUTE_LIST=${CREATIVE_ATTRIBUTE_LIST}
+    Add Mime Types
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Page Should Contain      The uploaded file does not have the required file extension of \ (.jpeg,.jpg,.png,.bmp,.gif)
+    Capture Page Screenshot With Timestamp
+    [Tags]      Known_bug       CM-1871
+
+TC_02.03_Create Creatives (Video VAST Tag-Not uploading Screenshot)
+    [Documentation]                 Input : Invalid file format for upload
+    ...                             Output  : It should show validation error pop up
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0203       videoType=VAST Tag        videoStillScreenShot=MISSING
+    Add Mime Types
+    Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    Capture Page Screenshot With Timestamp
+    [Tags]     EXCLUDE
+
+TC_02.04_Create Creatives (Video VAST Tag Duration validation)
+    [Documentation]                 Video Video-Upload Video Duration Empty
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0204       videoType=VAST Tag        duration=MISSING
+    Add Mime Types
+    Focus                                               ${CREATIVE_VIDEO_DURATION}
+    Press Key                                           ${CREATIVE_VIDEO_DURATION}              \\09
+    Element Should Be Visible                           ${CREATIVE_VIDEO_DURATION_ERROR}
+    Mouse Over                                          ${CREATIVE_VIDEO_DURATION_ERROR}
+    Page Should Contain                                 Required Field
+    Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    Sleep     3s
+    Input Text                                          ${CREATIVE_VIDEO_DURATION}         -1
+    Press Key                                           ${CREATIVE_VIDEO_DURATION}              \\09
+    Mouse Over                                          ${CREATIVE_VIDEO_DURATION_ERROR}
+    Page Should Contain                                 Duration should be greater than zero
+    Sleep     3s
+    Input Text                                          ${CREATIVE_VIDEO_DURATION}         0
+    Press Key                                           ${CREATIVE_VIDEO_DURATION}              \\09
+    Mouse Over                                          ${CREATIVE_VIDEO_DURATION_ERROR}
+    Page Should Contain                                 Duration should be greater than zero
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_02.05_Create Creatives (Video VAST Tag USE VAST TAG Empty)
+    [Documentation]                 Video Video-Upload Video
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0205       videoType=VAST Tag     useVastTag=MISSING
+    Focus                   ${CREATIVE_VIDEO_VAST_TAG_TEXTBOX}
+    Sleep   3s
+    Add Mime Types
+    Element Should Be Visible              ${CREATIVE_VIDEO_VAST_TAG_TEXTBOX_ERROR}
+    Mouse Over                              ${CREATIVE_VIDEO_VAST_TAG_TEXTBOX_ERROR}
+    Page Should Contain     Required Field
+    Sleep     5s
+    Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    Capture Page Screenshot With Timestamp
+    [Tags]         EXCLUDE
+
+TC_02.06_Create Creatives (Video VAST Tag MIME TYPES unselect)
+    [Documentation]                 Video Video-Upload Video
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0206       videoType=VAST Tag
+    Save The Creative
+    Sleep     7s
+    Mouse Over                                          ${CREATIVE_MIME_TYPE_REQUIRED_ERROR}
+    Page Should Contain     Mime types cannot be empty
+
+    # Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    Capture Page Screenshot With Timestamp
+    [Tags]       EXCLUDE
+
+TC_02.07_Create Creatives (Video VAST Tag Secure tags No)
+    [Documentation]                 Video Video-Upload Video
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0207       videoType=VAST Tag     secureTags=No
+    Add Mime Types
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]         EXCLUDE
+
+TC_02.08_Create Creatives (Video VAST Tag Negative Duration)
+    [Documentation]                 Video VAST Tag Negative Duration
+    ...                             output : it should not accept the negative value
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0208       videoType=VAST Tag        duration=-15
+    Add Mime Types
+    Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    Capture Page Screenshot With Timestamp
+    [Tags]        Known_bug    CM-1877      EXCLUDE
+
+TC_02.09_Create Creatives (Video Video-Upload Video)
+    [Documentation]                 Video Video-Upload Video
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0209       videoType=Uploaded Video        clickThroughURL=www.4info.com
+    Add Mime Types
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]     EXCLUDE
+
+TC_02.10_Create Creatives (Video Video-Upload Video invalid video extension)
+    [Documentation]                 Video Video-Upload Video
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0210       videoType=Uploaded Video        clickThroughURL=www.4info.com       uplodaVideo=headphones2.txt.tar.gz
+    Add Mime Types
+    Save The Creative
+    Page Should Contain                                 The uploaded file does not have the required file extension of (MP4, AVI ,WAV)
+    Capture Page Screenshot With Timestamp
+    [Tags]          Known_bug             CM-1871     EXCLUDE
+
+TC_02.11_Create Creatives (Video Video-Upload Video Negative video Duration)
+    [Documentation]                 input :  Video Video-Upload with negative duration value
+    ...                             output:  on UI error should displyed regarding duration
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0211       videoType=Uploaded Video        duration=-6
+    Add Mime Types
+    Page Should Contain                                 Duration Should be valid duration
+    Capture Page Screenshot With Timestamp
+    [Tags]    Known_bug    CM-1877     EXCLUDE
+
+TC_02.12_Create Creatives (Video Video-Upload clickThroughURL empty)
+    [Documentation]                 input :  Video Video-Upload with clickThroughURL empty value
+    ...                             output:  on UI error should disply reqired field error
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep   3s
+    Select From List                ${CREATIVE_VIDEO_TYPE}                     Uploaded Video
+    Sleep  1s
+    Focus                                                ${CREATIVE_VIDEO_CLICK_THR_URL_TEXTBOX}
+    Add Mime types
+    Element Should Be Visible                            ${CREATIVE_VIDEO_CLICK_THR_URL_ERROR}
+    Mouse Over                                           ${CREATIVE_VIDEO_CLICK_THR_URL_ERROR}
+    Page Should Contain                                 Required Field
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_02.13_Create Creatives (Video VAST Wrapper URL)
+    [Documentation]                 Video VAST Wrapper URL
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Audio Ad (Auto Play)        Surveys      Has audio on/off button
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0213       videoType=VAST Wrapper URL
+    Add Mime Types
+    Save The Creative
+    Sleep   4s
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]     EXCLUDE
+
+TC_02.14_Create Creatives (Video VAST Wrapper URL invalid screenshot extension)
+    [Documentation]                 Video VAST Wrapper URL
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Audio Ad (Auto Play)        Surveys      Has audio on/off button
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0214       videoType=VAST Wrapper URL     uploadFile=headphones2.txt.tar.gz
+    Add Mime Types
+    Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    Sleep   4s
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]       Known_bug   CM-1871     EXCLUDE
+
+TC_02.15_Create Creatives (Video VAST Wrapper URL negative duration)
+    [Documentation]                 Video VAST Wrapper URL
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Audio Ad (Auto Play)        Surveys      Has audio on/off button
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0215       videoType=VAST Wrapper URL     duration=-4
+    Add Mime Types
+    Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    Capture Page Screenshot With Timestamp
+    [Tags]        Known_bug    CM-1877     EXCLUDE
+
+TC_02.16_Create Creatives (Video VAST Wrapper URL USE VAST WRAPPER URL required)
+    [Documentation]                 Video VAST Wrapper URL
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Audio Ad (Auto Play)        Surveys      Has audio on/off button
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Select From List                ${CREATIVE_VIDEO_TYPE}              VAST Wrapper URL
+    Input Text                      ${CREATIVE_NAME_TEXTBOX}            00_QATEST_CREATIVE0216
+    Input Text                      ${CREATIVE_EXTERNAL_ID_TEXTBOX}     BVPFourinfo
+    Focus                           ${CREATIVE_VIDEO_VAST_WRAPPER_URL}
+    Add Mime Types
+    Mouse Over                      ${CREATIVE_VIDEO_VAST_WRAPPER_URL_ERROR}
+    Page Should Contain     Required Field
+    Sleep   4s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_02.17_Create Creatives (Video VAST Wrapper URL CLICK THROUGH URL required)
+    [Documentation]                 Video VAST Wrapper URL
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Audio Ad (Auto Play)        Surveys      Has audio on/off button
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Select From List                ${CREATIVE_VIDEO_TYPE}              VAST Wrapper URL
+    Input Text                      ${CREATIVE_NAME_TEXTBOX}            00_QATEST_CREATIVE0217
+    Input Text                      ${CREATIVE_EXTERNAL_ID_TEXTBOX}     BVPFourinfo
+    Focus                           ${CREATIVE_VIDEO_CLICK_THR_URL_TEXTBOX}
+    Add Mime Types
+    Mouse Over                      ${CREATIVE_VIDEO_VAST_WRAPPER_URL_ERROR}
+    Page Should Contain     Required Field
+    Sleep   4s
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_02.18_Create Creatives (Video VAST Wrapper URL secure tags no)
+    [Documentation]                 Video VAST Wrapper URL
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Audio Ad (Auto Play)        Surveys      Has audio on/off button
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0218       videoType=VAST Wrapper URL    secureTags=No
+    Add Mime Types
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Sleep   4s
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]     EXCLUDE
+
+TC_02.19_Create Creatives (Video VAST Wrapper WRAPPER REDIRECTIONS)
+    [Documentation]                 Video VAST Wrapper URL
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Audio Ad (Auto Play)        Surveys      Has audio on/off button
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0219       videoType=VAST Wrapper URL    wrapperRedirections=2
+    Add Mime Types
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Sleep   4s
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]     EXCLUDE
+
+TC_02.20_Create Creatives (Video Video-Type VAST TAG Extenssion in Capital leter)
+    [Documentation]                 Video Creative creation should be successfull
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Audio Ad (Auto Play)         Surveys      Has audio on/off button
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Video
+    Sleep  1s
+    Create Video Creative UI                            name=00_QATEST_CREATIVE0220       videoType=VAST Tag     videoStillScreenShot=headphones624x624.PNG
+    Add Creative Attributes For Creative                CREATIVE_ATTRIBUTE_LIST=${CREATIVE_ATTRIBUTE_LIST}
+    Add Mime Types
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+TC_02.21_Create Creative (For Video Creative VAST Wrapper URL should be default CM-2251)
+    Go To                       ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Wait Until Page Contains    Manage Creatives Template
+    Wait Until Page Contains    Add new creative template
+    Wait Until Page Contains    Search creatives
+    Click Button                ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Select From List            ${CREATIVE_CREATIVE_TYPE_SELECT}            Video
+    Sleep                       4s
+    Wait Until Page Contains    CREATIVE TEMPLATE
+    Wait Until Page Contains    General
+    Wait Until Page Contains    Creative information
+
+    ${selectedValue}            Get Selected List Label          ${CREATIVE_VIDEO_TYPE}
+    Should Be Equal As Strings    ${selectedValue}              VAST Wrapper URL
+
+    [Tags]
+
+########################################################################
+# Banner Creative
+########################################################################
+
+
+
+TC_03.01_Create Creatives (Banner Static Image)
+    [Documentation]                 Banner Creative creation should be successfull
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Pop (e.g., Over, Under, or upon Exit)          Surveys      In-Banner Video Ad (User Initiated)
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Sleep  1s
+    Create Banner Creative UI                            name=00_QATEST_CREATIVE0301
+    Add Creative Attributes For Creative                  CREATIVE_ATTRIBUTE_LIST=${CREATIVE_ATTRIBUTE_LIST}
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_03.02_Create Creatives (Banner Static Image Size select)
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Sleep  1s
+    Click Element           ${CREATIVE_BANNER_TYPE_3RD_PARTY_RADIO_INPUT}
+    Select From List             ${CREATIVE_BANNER_SIZE_CREATIVE_LIST}           120x20
+    Select From List             ${CREATIVE_BANNER_SIZE_CREATIVE_LIST}           300x600
+    Select From List             ${CREATIVE_BANNER_SIZE_CREATIVE_LIST}           320x50
+    Select From List             ${CREATIVE_BANNER_SIZE_CREATIVE_LIST}           180x150
+    Select From List             ${CREATIVE_BANNER_SIZE_CREATIVE_LIST}           768x1024
+    # Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_03.03_Create Creatives (Banner Static Image upload invalid file)
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Sleep  1s
+    Create Banner Creative UI                            name=00_QATEST_CREATIVE0303            uploadFile=headphones2.txt.tar.gz
+    # Add Creative Attributes For Creative                  CREATIVE_ATTRIBUTE_LIST=${CREATIVE_ATTRIBUTE_LIST}
+    Save The Creative
+    Sleep   4s
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]    Known_bug     CM-1871
+
+TC_03.04_Create Creatives (Banner Static Image Destination URL MISSING)
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Focus                                               ${CREATIVE_BANNER_DESTINATION_URL_TEXTBOX}
+    Page Should Contain         Required Field
+    [Tags]
+
+TC_03.05_Create Creatives (Banner Static Image Secure Tags No)
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Sleep  1s
+    Create Banner Creative UI                            name=00_QATEST_CREATIVE0305            secureTags=No
+    # Add Creative Attributes For Creative                  CREATIVE_ATTRIBUTE_LIST=${CREATIVE_ATTRIBUTE_LIST}
+    Save The Creative
+    Sleep   4s
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_03.06_Create Creatives (Banner Static Image Common Macros)
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Sleep  1s
+    Input Text          ${CREATIVE_NAME_TEXTBOX}                        00_QATEST_CREATIVE0306
+    Input Text          ${CREATIVE_EXTERNAL_ID_TEXTBOX}                 BVPFourinfo
+    Click Element           ${CREATIVE_BANNER_COMMON_MACROS_DROPDOWN_BUTTON}
+    Sleep   1s
+    Page Should Contain     [4info_click]
+    Page Should Contain     Copy to clipboard
+    Page Should Contain     [4info_tp_dest]
+    Page Should Contain     [4info_tp_dest_enc]
+    Page Should Contain     [4info_tp_dest_enc2]
+    Page Should Contain     [timestamp]
+    [Tags]
+
+TC_03.07_Create Creatives (Banner Static Image Position)
+    [Documentation]                 Banner Creative creation should be successfull
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Sleep  1s
+    Create Banner Creative UI                            name=00_QATEST_CREATIVE0307
+    Click Element                       ${CREATIVE_BANNER_POSITION_UNKNOWN}
+    Click Element                       ${CREATIVE_BANNER_POSITION_ABOVE}
+    Click Element                       ${CREATIVE_BANNER_POSITION_BELOW}
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_03.08_Create Creatives (Banner Static Image Adchoice Icon)
+    [Documentation]                 Banner Creative creation should be successfull
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Sleep  1s
+    Create Banner Creative UI                            name=00_QATEST_CREATIVE0308
+    Select From List                ${CREATIVE_BANNER_ADCHOICE_LOCATOR}         Top Left
+    Sleep   1s
+    Select From List                ${CREATIVE_BANNER_ADCHOICE_LOCATOR}         Bottom Left
+    Sleep   1s
+    Select From List                ${CREATIVE_BANNER_ADCHOICE_LOCATOR}         Bottom Right
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_03.09_Create Creatives (3rd Party 3rd party Destination)
+    [Documentation]                 Banner Creative creation should be successfull
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Sleep  1s
+    Create Banner Creative UI                            name=00_QATEST_CREATIVE0309      bannerFormat=3rd party tag
+    Select Rich Media Type
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_03.10_Create Creatives (3rd Party 3rd Secure Tags No)
+    [Documentation]                 Banner Creative creation should be successfull
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Sleep  1s
+    Create Banner Creative UI                            name=00_QATEST_CREATIVE0310      bannerFormat=3rd party tag      secureTags=No
+    Select Rich Media Type
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+TC_03.11_Create Creatives (3rd Party 3rd party Tag)
+    [Documentation]                 Banner Creative creation should be successfull
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Input Text          ${CREATIVE_NAME_TEXTBOX}                        00_QATEST_CREATIVE0311
+    Input Text          ${CREATIVE_EXTERNAL_ID_TEXTBOX}                 BVPFourinfo
+    Sleep  3s
+    Click Element           ${CREATIVE_BANNER_TYPE_3RD_PARTY_RADIO_INPUT}
+    Sleep  3s
+    Focus               ${CREATIVE_BANNER_3RD_PARTY_TAG}
+    Input Text          ${CREATIVE_BANNER_3RD_PARTY_IMPRESSION_TRACKER}             http://dev.4info.net:7106/ad-engine/event/record?drId=1234&gAId=0000&gest=click
+    Mouse Over          ${CREATIVE_BANNER_3RD_PARTY_TAG_ERROR}
+    [Tags]
+
+TC_03.12_Create Creatives (3rd Party 3rd In-app expandable)
+    [Documentation]                 Banner Creative creation should be successfull
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Input Text          ${CREATIVE_NAME_TEXTBOX}                        00_QATEST_CREATIVE0312
+    Input Text          ${CREATIVE_EXTERNAL_ID_TEXTBOX}                 BVPFourinfo
+
+    Click Element                   ${CREATIVE_BANNER_TYPE_3RD_PARTY_RADIO_INPUT}
+    Click Element                   id=chkThirdMRAID
+    Select From List                ${CREATIVE_BANNER_SIZE_CREATIVE_LIST}           120x20
+    Input Text                      id=cBannerDestUrl        www.4info.com
+    Input Text                      ${CREATIVE_BANNER_RICH_MEDIA_MARKUP}            SOMETHING
+    Input Text                      ${CREATIVE_BANNER_3RD_PARTY_IMPRESSION_TRACKER}         http://dev.4info.net:7106/ad-engine/event/record?drId=1234&gAId=0000&gest=click
+    Select Rich Media Type          MRAID-1.0
+    Save The Creative
+    [Tags]
+
+TC_03.13_Create Creatives (3rd Party 3rd In-app expandable Rich Media Required)
+    [Documentation]                 Banner Creative creation should be successfull
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Input Text          ${CREATIVE_NAME_TEXTBOX}                        00_QATEST_CREATIVE0313
+    Input Text          ${CREATIVE_EXTERNAL_ID_TEXTBOX}                 BVPFourinfo
+
+    Click Element                   ${CREATIVE_BANNER_TYPE_3RD_PARTY_RADIO_INPUT}
+    Click Element                   id=chkThirdMRAID
+    Select From List                ${CREATIVE_BANNER_SIZE_CREATIVE_LIST}           120x20
+    Input Text                      id=cBannerDestUrl        www.4info.com
+    Input Text                      ${CREATIVE_BANNER_RICH_MEDIA_MARKUP}            SOMETHING
+    Input Text                      ${CREATIVE_BANNER_3RD_PARTY_IMPRESSION_TRACKER}         http://dev.4info.net:7106/ad-engine/event/record?drId=1234&gAId=0000&gest=click
+    Element Should Be Disabled                          ${CREATIVE_TOP_SAVE_BUTTON}
+    [Tags]
+
+
+
+TC_03.14_Search Option in creative page (CM-1835-Verification)
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_SEARCH"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}_SEARCH          campaign_advertiser_id=${advertiser_id}     campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59     campaign_access_control=${Empty}
+    ${campaignId}=                    Get JSON Value              ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaignId}
+    Generate JSON For Creative Native       campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_TC_01_0101"
+    CREATIVE POST Request for Creative      uri=native
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Generate JSON For Creative Native       campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_TC_01_0102"
+    CREATIVE POST Request for Creative      uri=native
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Generate JSON For Creative Native       campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_TC_01_0103"
+    CREATIVE POST Request for Creative      uri=native
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Generate JSON For Creative Native       campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_TC_01_0104"
+    CREATIVE POST Request for Creative      uri=native
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Login To Adhaven UI                     username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Go To               https://qa-campaigns.4info.com/phoenix/#/creativesList/${campaign_Id}
+    Wait Until Page Contains              Manage Creatives Template
+    Wait Until Page Contains              Search creatives
+    Sleep  2s
+    Input Text                                ${CREATIVE_SEARCH_INPUT}      ${CREATIVE_NAME}_TC_01_0101
+    Sleep   2s
+    Page Should Contain                       ${CREATIVE_NAME}_TC_01_0101
+    Input Text                                ${CREATIVE_SEARCH_INPUT}      ${CREATIVE_NAME}_TC_01_0102
+    Sleep   2s
+    Page Should Contain                       ${CREATIVE_NAME}_TC_01_0102
+    Input Text                                ${CREATIVE_SEARCH_INPUT}      ${CREATIVE_NAME}_TC_01_0103
+    Sleep   2s
+    Page Should Contain                       ${CREATIVE_NAME}_TC_01_0103
+    Input Text                                ${CREATIVE_SEARCH_INPUT}      ${CREATIVE_NAME}_TC_01_0104
+    Sleep   2s
+    Page Should Contain                       ${CREATIVE_NAME}_TC_01_0104
+    [Tags]               creativesearch
+
+
+TC_03.15_Create Creatives (Banner Static Image file extenssion in capital CM-2212)
+    [Documentation]                 Banner Creative creation should be successfull
+    ${CREATIVE_ATTRIBUTE}    Set Variable       Pop (e.g., Over, Under, or upon Exit)          Surveys      In-Banner Video Ad (User Initiated)
+    @{CREATIVE_ATTRIBUTE_LIST}=    Convert To List    ${CREATIVE_ATTRIBUTE}
+    Go To                   ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Sleep   4s
+    Click Button                                        ${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}
+    Sleep  3s
+    Select From List                                    ${CREATIVE_CREATIVE_TYPE_SELECT}        Banner
+    Sleep  1s
+    Create Banner Creative UI                            name=00_QATEST_CREATIVE0315      uploadFile=File120x20.JPG
+    Add Creative Attributes For Creative                  CREATIVE_ATTRIBUTE_LIST=${CREATIVE_ATTRIBUTE_LIST}
+    Save The Creative
+    Wait Until Page Contains              Manage Creatives Template          timeout=30s             #Temprary added this line as response taking too much time
+    Verify Page Elements After Create Creative
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+TC_04.01_Create_creative_page Verify ExternalId For Group id 6
+    Close All Browsers
+    Get Today's Date
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_GRP6"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59    campaign_access_control=6
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Login To Adhaven UI    username=${group_id_6_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To                                       ${EDIT_CREATIVE_PAGE}${campaign_id}
+    Wait until Creative Element To Load
+    Sleep   3s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]          extValidations
+
+TC_04.02_Create_creative_page Verify ExternalId For Group id 14
+    Close All Browsers
+    Get Today's Date
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_GRP14"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59    campaign_access_control=14
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Login To Adhaven UI    username=${group_id_14_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To                                       ${EDIT_CREATIVE_PAGE}${campaign_id}
+    Wait until Creative Element To Load
+    Sleep   3s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]          extValidations
+
+
+
+
+TC_04.03_Create_creative_page Verify ExternalId For Group id 15
+    Close All Browsers
+    Get Today's Date
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_GRP15"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59    campaign_access_control=15
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Login To Adhaven UI    username=${group_id_15_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To                                       ${EDIT_CREATIVE_PAGE}${campaign_id}
+    Wait until Creative Element To Load
+    Sleep   3s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]          extValidations
+
+
+
+TC_04.04_Create_creative_page Verify ExternalId For Group id 17
+    Close All Browsers
+    Get Today's Date
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_GRP17"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59    campaign_access_control=17
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Login To Adhaven UI For Group 17    username=${group_id_17_username}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To                                       ${EDIT_CREATIVE_PAGE}${campaign_id}
+    Wait until Creative Element To Load
+    Sleep   3s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]          extValidations
+
+
+TC_04.05_Create_creative_page Verify ExternalId For Group id 1
+    Close All Browsers
+    Get Today's Date
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}_GRP1"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Login To Adhaven UI For Group 17    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    Wait until Advertiser Element To Load
+    Go To                                       ${EDIT_CREATIVE_PAGE}${campaign_id}
+    Wait until Creative Element To Load
+    Sleep   3s
+    ${class}=       Get Element Attribute  ${EXTERNAL_ID_text}@class
+    Should Not Match Regexp         ${class}        reqFieldIcon
+    Log   ${class}
+    [Tags]          extValidations
+
+
+TC_05.01_Pause_All and Unpause all ads under creative from manage creative page(CM-2245)
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00      parent_end_date_time=${END_DATE_TIME_PARENT} 00:59
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD} 00:00    child_end_date_time=${END_DATE_TIME_CHILD} 00:59
+    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+    Generate JSON For Creative Native           campaign_id=${campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0101"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native                        adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0102"
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Create ad for Native                        adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0103"
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Create ad for Native                        adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0104"
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Create ad for Native                        adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0105"
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Create ad for Native                        adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0106"
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Log To Console              Data Created
+    Sleep   3s
+    Go To                                       ${CAMPAIGN_CREATIVE_PAGE}/${campaign_Id}
+    Wait Until Page Contains    Manage Creatives Template               timeout=20s
+    Wait Until Page Contains    Search creatives                timeout=20s
+    Sleep   5s
+    Click Element                   ${CREATIVE_LIST_ADS_DOWN_ARROW}
+    Sleep   2s
+    # Click Element                   xpath=//table[@id="tblCreativesList"]/tbody/tr[1]/td[9]/div/ul/li/a[contains(.,"Unpause all ads")]
+    Sleep   3s
+    # Click Link                      Unpause all ads
+    Click Element                   xpath=.//a[contains(normalize-space(.), 'Unpause all ads')]
+    Sleep   2s
+    Click Element                   xpath=//table[@id="tblCreativesList"]/tbody/tr[1]/td[9]/li/a
+    Sleep   3s
+    Page Should Contain             Active
+    Page Should Contain     00_QATEST_CREATIVE_13_NATIVE0102
+    Page Should Contain     00_QATEST_CREATIVE_13_NATIVE0103
+    Page Should Contain     00_QATEST_CREATIVE_13_NATIVE0104
+    Page Should Contain     00_QATEST_CREATIVE_13_NATIVE0105
+    Page Should Contain     00_QATEST_CREATIVE_13_NATIVE0106
+    Page Should Contain     ${nativeAdgroupId}
+
+    CLICK Element                   ${CHILD_POPUP_CLOSE_BUTTON}
+    Sleep   3s
+    Click Element                   ${CREATIVE_LIST_ADS_DOWN_ARROW}
+    Sleep   3s
+    Click Element                   xpath=.//a[contains(normalize-space(.), 'Pause all ads')]
+    Sleep   2s
+    Click Element                   xpath=//table[@id="tblCreativesList"]/tbody/tr[1]/td[9]/li/a
+    Sleep   3s
+    Page Should Contain             Paused
+    Page Should Contain     00_QATEST_CREATIVE_13_NATIVE0102
+    Page Should Contain     00_QATEST_CREATIVE_13_NATIVE0103
+    Page Should Contain     00_QATEST_CREATIVE_13_NATIVE0104
+    Page Should Contain     00_QATEST_CREATIVE_13_NATIVE0105
+    Page Should Contain     00_QATEST_CREATIVE_13_NATIVE0106
+    Page Should Contain     ${nativeAdgroupId}
+
+    [Tags]

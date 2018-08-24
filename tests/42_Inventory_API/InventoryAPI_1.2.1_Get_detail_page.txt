@@ -1,0 +1,86 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTRY1.2.1		BATCH20
+Suite Setup			Remove Cluster via DB    cluster_name=Regression_cluster_121
+Suite Teardown		Remove Cluster via DB    cluster_name=Regression_cluster_121
+#https://wiki.4info.com/pages/viewpage.action?title=Inventory+API+documentation&spaceKey=Software#InventoryAPIdocumentation-1.1.1Getallclusters(Devdone)
+#API Name: 1.2.1 Get detail of a cluster (Dev done)
+#Method: GET
+#URL: /inventory-api/cluster/cluster/{clusterId}
+#DESC: Get detail of a cluster by cluster id
+#rhino.clusters
+#rhino.cluster_placement
+#rhino.groups_cluster
+
+*** Variables ***
+ ${groupId}			1
+ ${max_filter}		10
+ ${cluster_name}	Regression_cluster_121
+*** Keywords ***
+
+*** Test Cases ***
+TC_00 Generate Data
+	[Documentation]		Create Cluster: ${cluster_name} with random filter of size:  ${max_filter}
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	Generate Filter		max=${max_filter}		#${filters} is generated
+	Add Filter To Cluster		cluster_id=${cluster_id}
+	...							username=${QA_DEFAULT_USER}
+	...							data=${filters}
+	...							valid_filter=${max_filter}
+	[Tags]
+
+TC_01_Get detail of a clusters by cluster id (0, invalid)
+	[Documentation]		Get detail of a clusters that is invalid - 0, expecting error
+	Set Test Variable	${clusterId}		0
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"700-401"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid cluster id."
+	[Tags]
+
+TC_02_Get detail of a clusters by cluster id (valid)
+	[Documentation]		Get detail of a clusters that is valid, expect detail of that cluster to display
+	#Set Test Variable	${groupId}			1
+	#Set Test Variable	${cluster_name}		Regression_cluster_2
+	#Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	# ${cluster_id} is generated
+	#Set Test Variable	${clusterId}		9
+	#Set Suite Variable	${cluster_id}		${cluster_id}
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${cluster_id}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=true
+	Json Value Should Equal		${body}		/cluster/id					${cluster_id}
+	Json Value Should Equal		${body}		/cluster/name				"${cluster_name}"
+	Validate List Of Keywords		keyword_string=${body}			keyword=id,name,status,lastModifiedBy,lastModifiedTime,createdTime,createdBy
+	[Tags]
+
+TC_03_Get detail of a clusters by cluster id (valid vs DB)
+	[Documentation]		Get detail of a clusters that is valid, compare the data to DB to make sure it match
+	Get Cluster Id		cluster_name=${cluster_name}		#${cluster_id} is generated
+	Get Cluster Detail API vs DB			clusterId=${cluster_id}
+	[Tags]
+
+TC_04_Get detail of a clusters by cluster id (999, invalid)
+	[Documentation]		Get detail of a clusters that is invalid - 0, expecting error
+	Set Test Variable	${clusterId}		999
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"700-401"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid cluster id."
+	[Tags]
+
+TC_05_Get detail of a clusters by cluster id (3abc6, invalid)
+	[Documentation]		Get detail of a clusters that is invalid - 0, expecting error
+	Set Test Variable	${clusterId}		3abc6
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${clusterId}
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"400-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid Request."
+	[Tags]
+TC_06_Get detail of a clusters by cluster id (missing, invalid)
+	[Documentation]		Get detail of a clusters that is missing - 0, expecting error
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"400-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid Request."
+	[Tags]

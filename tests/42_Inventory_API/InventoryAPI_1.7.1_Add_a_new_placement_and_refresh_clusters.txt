@@ -1,0 +1,216 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.7.1		BATCH20	    OffshoreQA
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+
+#https://wiki.4info.com/pages/viewpage.action?title=Inventory+API+Documentation&spaceKey=Software#InventoryAPIDocumentation-1.4.2Getlistoffiltersforaclusterhistory
+#API Name: 1.4.1 Get detail of a cluster history change
+#Method: GET
+#URL: /inventory-api/cluster/history/{clusterId}/{timestamp(Long)}/filters?page={page_number}&size={page_size}
+#Elastic Search URL : http://10.18.8.84:9200/history/{cluster_id}/_search
+#DESC: Get list of filters for a cluster history
+#rhino.cluster
+#rhino.cluster_placement
+#rhino.groups_cluster
+
+*** Variables ***
+# For timebeing keeping this script on hold as there is a complex logic for database and Yuyang will be updating wiki page for the same.
+
+
+*** Keywords ***
+Add a new placement and refresh clusters via API
+    [Arguments]     ${placement_name}=puzzlerama
+    ...             ${placement_rvalue}=farsi1hd.com
+    ...             ${placement_type}=6
+    ...             ${placement_id}=99999
+    ...             ${response_code}=200
+    ...             ${success}=true
+    Create Session   docker     https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    ${headers}    Create Dictionary     Content-type=application/json       Accept=application/json
+    Set Test Variable    ${uri}     /inventory-api/cluster/placement
+    Set Test Variable    ${data}     {"placements": [{"name": ${placement_name},"rvalue": ${placement_rvalue},"type": ${placement_type},"id": ${placement_id}}]}
+    Log             ${data}
+    ${resp}=    RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'
+    ...             Should Match Regexp  ${body}  "success":false
+    Run Keyword If  '${response_code}'=='200'  Json Value Should Equal  ${body}  /success   true
+
+
+
+
+*** Test case ***
+#--------------------------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.7.1_TC_01.1_Add a new placement and refresh clusters (Valid Placement record, accept)
+    [Documentation]	     Input:      Use API to add new placement
+    ...                 Output:     API should add a palcement successfully and response code is returned as 200
+    Add a new placement and refresh clusters via API    placement_name="Inventory_Regression_Add_New_Placement_01"
+    ...                                                 placement_rvalue="farsi1hd.com"
+    ...                                                 placement_type=6
+    ...                                                 placement_id=99999
+    [Tags]
+
+#--------------------------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.7.1_TC_02.1_Add a new placement and refresh clusters (Placement_name:Blank - Name, Do not accept)
+    [Documentation]     Input:      Use API to add new placement using blank Name field
+    ...                 Output:     API should add a palcement successfully and response code is returned as 200
+    Add a new placement and refresh clusters via API    placement_name=${Empty}
+    ...                                                 placement_rvalue="farsi1hd.com"
+    ...                                                 placement_type=6
+    ...                                                 placement_id=99999
+    ...									                response_code=400
+	...                                                 success=false
+	# response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]    #  CM-574
+
+
+InventoryAPI_1.7.1_TC_02.2_Add a new placement and refresh clusters (Placement_name:Name With Underscore - Name, Accept)
+    [Documentation]     Input:      Use API to add new placement using  Name having Underscore
+    ...                 Output:     API should add a palcement successfully with response code 200
+    Add a new placement and refresh clusters via API    placement_name="Inventory_Regression_Add_New_Placement_02"
+    ...                                                 placement_rvalue="abc.com"
+    ...                                                 placement_type=6
+    ...                                                 placement_id=99999
+    ...									                response_code=200
+    [Tags]
+
+
+InventoryAPI_1.7.1_TC_02.3_Add a new placement and refresh clusters (Placement_name:Name With speacial Chars - Name, Do not accept)
+    [Documentation]     Input:      Use API to add new placement using Name having speacial Chars
+    ...                 Output:     API should not add a palcement successfully with response code 400
+    Add a new placement and refresh clusters via API    placement_name="Inventory_Regression_Add_New_Placement_!@#$%^"
+    ...                                                 placement_rvalue="abc.com"
+    ...                                                 placement_type=6
+    ...                                                 placement_id=99999
+    ...									                response_code=200
+	...                                                 success=true
+	# response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"400-001"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    #CM-575 - all characters are valid
+    [Tags]
+
+
+InventoryAPI_1.7.1_TC_02.4_Add a new placement and refresh clusters (Placement_name:Name With hyphen - Name, Accept)
+    [Documentation]     Input:      Use API to add new placement using Name having Hyphen
+    ...                 Output:     API should add a palcement successfully with response code 200
+    Add a new placement and refresh clusters via API    placement_name="Inventory_Regression_Add_New_Placement-05"
+    ...                                                 placement_rvalue="abc.com"
+    ...                                                 placement_type=6
+    ...                                                 placement_id=99999
+    ...									                response_code=200
+    [Tags]
+
+
+InventoryAPI_1.7.1_TC_02.5_Add a new placement and refresh clusters (Placement_name:Name With single space - Name, Accept)
+    [Documentation]     Input:      Use API to add new placement using Name having single space
+    ...                 Output:     API should add a palcement successfully with response code 200
+    Add a new placement and refresh clusters via API    placement_name="Inventory_Regression_Add_New_Placement 06"
+    ...                                                 placement_rvalue="abc.com"
+    ...                                                 placement_type=6
+    ...                                                 placement_id=99999
+    ...									                response_code=200
+    [Tags]
+
+
+InventoryAPI_1.7.1_TC_02.6_Add a new placement and refresh clusters (Placement_name:Name With more than single space - Name, Do not Accept)
+    [Documentation]     Input:      Use API to add new placement using Name having single space
+    ...                 Output:     API should add a palcement successfully with response code 200
+    Add a new placement and refresh clusters via API    placement_name="Inventory_Regression_Add_New_Placement \ 07"
+    ...                                                 placement_rvalue="abc.com"
+    ...                                                 placement_type=6
+    ...                                                 placement_id=99999
+    ...									                response_code=200
+	...                                                 success=true
+	# response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"400-001"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    #CM-575 - all characters are valid
+    [Tags]
+
+
+InventoryAPI_1.7.1_TC_02.7_Add a new placement and refresh clusters (Placement_name:MISSING, Do not accept)
+    [Documentation]     Input:      Use API to add new placement withoutn key Name
+    ...                 Output:     API should not add a palcement successfully with response code 400
+    Create Session   docker     https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    ${headers}    Create Dictionary     Content-type=application/json       Accept=application/json
+    Set Test Variable    ${uri}     /inventory-api/cluster/placement
+    Set Test Variable    ${data}     {"placements": [{"rvalue": "abc.com","type": 6,"id":99999}]}
+    Set Test Variable    ${response_code}   400
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING
+    Log             ${data}
+    ${resp}=    RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'
+    ...             Should Match Regexp  ${body}  "success":false
+    # response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"700-701"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid placement request"
+    [Tags]
+
+#--------------------------------------------------------------------------------------------------------------------------------------------
+InventoryAPI_1.7.1_TC_03.1_Add a new placement and refresh clusters (Placement_rvalue:MISSING = null, acceptable)
+    [Documentation]     Input:      Use API to add new placement without key rvalues
+    ...                 Output:     API should not add a palcement successfully and response code is returned as 400
+    Create Session   docker     https://${QA_INVENTORY}:${QA_INVENTORY_PORT}
+    ${headers}    Create Dictionary     Content-type=application/json       Accept=application/json
+    Set Test Variable    ${uri}     /inventory-api/cluster/placement
+    Set Test Variable    ${data}     {"placements": [{"name": "Inventory_Regression_Add_New_Placement_03-1","type": 6,"id":99999}]}
+    Set Test Variable    ${response_code}   200
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING
+    Log             ${data}
+    ${resp}=    RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Run Keyword If  '${response_code}'=='400'
+    ...             Should Match Regexp  ${body}  "success":false
+    # response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"400-001"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.7.1_TC_03.2_Add a new placement and refresh clusters (Placement_rvalue:Blank, do not accept)
+    [Documentation]     Input:      Use API to add new placement with blank rvalues
+    ...                 Output:     API should add a palcement successfully and response code is returned as 200
+    Add a new placement and refresh clusters via API    placement_name="Inventory_Regression_Add_New_Placement_08"
+    ...                                                 placement_rvalue=${Empty}
+    ...                                                 placement_type=6
+    ...                                                 placement_id=9999
+    ...									                response_code=400
+	...                                                 success=false
+	# response_code is 400 hence get reason code and reason description
+	Json Value Should Equal		${body}			/reason_code			"400-001"
+	Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+    [Tags]
+
+
+InventoryAPI_1.7.1_TC_03.3_Add a new placement and refresh clusters (Placement_rvalue:as "", do not accept)
+    [Documentation]     Input:      Use API to add new placement without Name
+    ...                 Output:     API should add a palcement successfully and response code is returned as 200
+    Add a new placement and refresh clusters via API    placement_name="Inventory_Regression_Add_New_Placement_08"
+    ...                                                 placement_rvalue=""
+    ...                                                 placement_type=6
+    ...                                                 placement_id=9999
+    ...									                response_code=200
+	...                                                 success=true
+	# response_code is 400 hence get reason code and reason description
+	#Json Value Should Equal		${body}			/reason_code			"400-001"
+	#Json Value Should Equal		${body}			/reason_desc			"Invalid Request."
+	#rtvalue can be blank = null
+    [Tags]	#    Known_bug	CM-719
+
+#--------------------------------------------------------------------------------------------------------------------------------------------

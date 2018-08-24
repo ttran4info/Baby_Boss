@@ -1,0 +1,1053 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             OperatingSystem
+Library             DatabaseLibrary
+Force Tags          PHOENIX         Phoenix_update_parent      BATCH22
+Suite Setup         Run Keyword          Clean Up Campaign, Advertiser and Parent
+Suite Teardown      Run Keywords         Close All Browsers     Clean Up Campaign, Advertiser and Parent
+
+*** Variables ***
+${QA_TEST_ADVERTISER}           00_QATEST_advertiser_phoenix_06
+${CAMPAIGN_NAME_UI}             00_QATEST_campaign
+${CHILD_NAME}                   00_QATEST_CHILD
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  00_QATEST_parent
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+${PARENT_XPATH}                 xpath=.//span[contains(., '${parent_name}')]
+${Name_Error}                   xpath=(.//div[contains(normalize-space(.), 'PARENT AD GROUP NAME')])[last()]/following::img
+${PARENT_EDIT_PATH}             https://qa-campaigns.4info.com/phoenix/#/parentAdGroupEdit/
+${Check}                        1
+${Uncheck}                      0
+${Home_page}                    https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+
+
+*** Keywords ***
+
+Clean Up Campaign, Advertiser and Parent
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+
+Verify Page Elements After Create Creative
+    Page Should Contain             Manage Creatives Template
+    Page Should Contain             Add new creative template
+    Page Should Contain             Contact 4INFO
+    Page Should Contain Button      btnCreateTpl
+
+*** Test Cases ***
+TC_00_Generate Data for Test Suite
+    Log To Console                              ${\n}"Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+    Login To Adhaven UI                         username=${QA_DEFAULT_USER}                password=${QA_DEFAULT_PASSWORD}
+    Go To                                       ${PARENT_EDIT_PATH}${parent_id}
+    Wait Until Page Contains    PARENT AD GROUP
+    Wait Until Page Contains    General information
+    [Tags]
+
+
+TC_01_Update_Parent_AdGroup Name
+    Sleep     5s
+    Input Text                                          ${PARENT_NAME_TEXTBOX}                  ${parent_name}_updated
+    Sleep    2s
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Sleep    5s
+    Page Should Contain                                 ${parent_name}_updated
+    Click Element                                       xpath=.//span[contains(., '00_QATEST_parent_updated')]
+    Wait Until Page Contains                            PARENT AD GROUP
+    ${response}    Get Value                            ${PARENT_NAME_TEXTBOX}
+    Should Be Equal As Strings                          ${response}                             ${parent_name}_updated
+    Input Text                                          ${PARENT_NAME_TEXTBOX}                  ${parent_name}
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+TC_02_Update_Parent_AdGroup Name(Blank Name)
+    Sleep   4s
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Clear Element Text                                  ${PARENT_NAME_TEXTBOX}
+    Focus                                               ${PARENT_NAME_TEXTBOX}
+    Press key                                           ${PARENT_NAME_TEXTBOX}                  \\09
+    Press key                                           ${PARENT_NAME_TEXTBOX}                  \\09
+    # Sleep    7s
+    # Element Should Be Disabled                          ${PARENT_TOP_SAVE_BUTTON}
+    # Element Should Be Disabled                          ${PARENT_BOTTOM_SAVE_BUTTON}
+    Sleep   10s
+    Save The Parent ad group
+    Sleep   10s
+    Input Text                                          ${PARENT_NAME_TEXTBOX}                  ${parent_name}
+    Save The Parent ad group
+    [Tags]   EXCLUDE   #works manually but not with Automation
+
+
+
+TC_03_Update_Parent_AdGroup Name(Special Chars Name)
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Input Text                                          ${PARENT_NAME_TEXTBOX}                 $#@#$$%#@
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Sleep   5s
+    Mouse Over                                          ${Name_Error}
+    Page Should Contain                                 Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed.
+    Input Text                                          ${PARENT_NAME_TEXTBOX}                  ${parent_name}
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+TC_04_Update_Parent_AdGroup TimeZone(Time Zone)
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Select From List                                    ${PARENT_TIMEZONE_SELECT}            Hawaii Time
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+TC_05_Update_Parent_AdGroup External Id(Blank)
+    Sleep   3s
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Clear Element Text                                  ${PARENT_EXTERNAL_ID_TEXTBOX}
+    Press Key                                           ${PARENT_EXTERNAL_ID_TEXTBOX}           \\09
+    Sleep   2s
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Sleep   10s
+    Mouse Over                                          xpath=(.//div[contains(normalize-space(.), 'EXTERNAL ID')])[last()]/following::img
+    Page Should Contain                                 External ID cannot be blank
+    Go Back
+    Sleep   2s
+    [Tags]    EXCLUDE   #works manually but not with Automation
+
+
+TC_06_Update_Parent_AdGroup External Id(Special Chars)
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Input Text                                          ${PARENT_EXTERNAL_ID_TEXTBOX}               $#^%$#
+    Press Key                                           ${PARENT_EXTERNAL_ID_TEXTBOX}           \\09
+    Sleep   2s
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Sleep   3s
+    Element Should Be Visible                           xpath=(.//div[contains(normalize-space(.), 'EXTERNAL ID')])[last()]/following::img
+    Mouse Over                                          xpath=(.//div[contains(normalize-space(.), 'EXTERNAL ID')])[last()]/following::img
+    Page Should Contain                                 External ID must begin with BVT
+    Page Should Contain                                 External ID must be at least 11 characters
+    Page Should Contain                                 External ID must contain only letters and numbers
+    Go Back
+    Sleep   4s
+    [Tags]
+
+
+TC_07_Update_Parent_AdGroup Start Date
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Input Text                                          ${PARENT_START_DATE_TEXTBOX}           02/03/2019
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+TC_08_Update_Parent_AdGroup Start Date(Date out of campaign date region)
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Input Text                                          ${PARENT_START_DATE_TEXTBOX}           02/01/2010
+    Press Key                                           ${PARENT_START_DATE_TEXTBOX}           \\09
+    Sleep   2s
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Sleep   5s
+    Element Should Be Visible                           xpath=.//select[contains(normalize-space(.), '12:00 AM1:00 AM2:00 AM3:00 AM4:00 AM5:00 AM6:00 AM7:00 AM8:00 AM9:00 AM10:00 AM11:00 AM12:00 PM1:00 ')]/following::img
+    Mouse Over                                          xpath=.//select[contains(normalize-space(.), '12:00 AM1:00 AM2:00 AM3:00 AM4:00 AM5:00 AM6:00 AM7:00 AM8:00 AM9:00 AM10:00 AM11:00 AM12:00 PM1:00 ')]/following::img
+    Page Should Contain                                 Parent start date has to be within today's and within campaign date range(01/01/2019 00:00 - 12/12/2019 23:59 GMT)
+    Input Text                                          ${PARENT_START_DATE_TEXTBOX}           02/02/2019
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+TC_09_Update_Parent_AdGroup Start Time
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Select From List                                    ${PARENT_START_TIME_SELECT}           4:00 AM
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_10_Update_Parent_AdGroup End Date
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Input Text                                          ${PARENT_START_DATE_TEXTBOX}           02/11/2019
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+TC_11_Update_Parent_AdGroup End Date(End out of campaign date region)
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Input Text                                          ${PARENT_END_DATE_TEXTBOX}           02/01/2040
+    Press Key                                           ${PARENT_END_DATE_TEXTBOX}           \\09
+    Sleep   2s
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Sleep   5s
+    Element Should Be Visible               xpath=.//select[contains(normalize-space(.), '12:59 AM1:59 AM2:59 AM3:59 AM4:59 AM5:59 AM6:59 AM7:59 AM8:59 AM9:59 AM10:59 AM11:59 AM12:59 PM1:59 ')]/following::img
+    Mouse Over                              xpath=.//select[contains(normalize-space(.), '12:59 AM1:59 AM2:59 AM3:59 AM4:59 AM5:59 AM6:59 AM7:59 AM8:59 AM9:59 AM10:59 AM11:59 AM12:59 PM1:59 ')]/following::img
+    Page Should Contain                     Parent end date has to be within today's and within campaign date range(01/01/2019 00:00 - 12/12/2019 23:59 GMT)
+    Input Text                                          ${PARENT_END_DATE_TEXTBOX}           11/11/2019
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+TC_12_Update_Parent_AdGroup End Time
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Select From List                                    ${PARENT_END_TIME_SELECT}           4:59 AM
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+TC_13_Update_Parent_AdGroup Impression Goals(Blank)
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Clear Element Text                                  ${PARENT_IO_TEXTBOX}
+    Press Key                                           ${PARENT_IO_TEXTBOX}                \\09
+    Sleep  4s
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Sleep   4s
+    Element Should Be Visible                           xpath=(.//div[contains(normalize-space(.), 'IMPRESSION GOAL (IO)')])[last()]/following::img
+    Mouse Over                                          xpath=(.//div[contains(normalize-space(.), 'IMPRESSION GOAL (IO)')])[last()]/following::img
+    Page Should Contain                                 Impression Goal must be an Integer greater than Zero and length is up to 10 chars
+    [Tags]   EXCLUDE   #works manually but not with Automation
+
+TC_14_Update_Parent_AdGroup Impression Goals(invalid input)
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Input Text                                          ${PARENT_IO_TEXTBOX}                info
+    Press Key                                           ${PARENT_IO_TEXTBOX}                \\09
+    Focus                                               ${PARENT_IO_TEXTBOX}
+    Sleep  4s
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Sleep   4s
+    Element Should Be Visible                           xpath=(.//div[contains(normalize-space(.), 'IMPRESSION GOAL (IO)')])[last()]/following::img
+    Mouse Over                                          xpath=(.//div[contains(normalize-space(.), 'IMPRESSION GOAL (IO)')])[last()]/following::img
+    Page Should Contain                                 Impression Goal must be an Integer greater than Zero and length is up to 10 chars
+    Input Text                                          ${PARENT_IO_TEXTBOX}                1111
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+TC_15_Update_Parent_AdGroup HouseHold freq cap disabling and enabling (Times per day)
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Click Element                                   ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep   5s
+    Save The parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Sleep    3s
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    ${response}    Get Value                            ${PARENT_HH_FC_PER_DAY_TEXTBOX}
+    Log     ${response}
+    Should Be Equal As Strings    ${response}           ${Empty}
+    Click Element                                       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Input Text                                          ${PARENT_HH_FC_PER_DAY_TEXTBOX}             12
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_16_Update_Parent_AdGroup HouseHold Max duration disabling and enabling(Time duration)
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Click Element                                   ${PARENT_HH_FC_PER_DURATION_CHECKBOX}
+    Sleep   5s
+    Save The parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    ${response}    Get Value                            ${PARENT_HH_FC_PER_DURATION_TEXTBOX}
+    Log     ${response}
+    Should Be Equal As Strings    ${response}           ${Empty}
+    Click Element                                       ${PARENT_HH_FC_PER_DURATION_CHECKBOX}
+    Input Text                                          ${PARENT_HH_FC_PER_DURATION_TEXTBOX}            12
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_17_Update_Parent_AdGroup Device freq cap disabling and enabling (Times per day)
+
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Click Element                                       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Sleep   5s
+    Save The parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    ${response}    Get Value                            ${PARENT_DEVICE_FC_PER_DAY_TEXTBOX}
+    Log     ${response}
+    Should Be Equal As Strings    ${response}           ${Empty}
+    Click Element                                       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Input Text                                          ${PARENT_DEVICE_FC_PER_DAY_TEXTBOX}             12
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_18_Update_Parent_AdGroup HouseHold Max duration disabling and enabling(Time duration)
+
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Click Element                                       ${PARENT_DEVICE_FC_PER_DURATION_CHECKBOX}
+    Sleep   5s
+    Save The parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    ${response}    Get Value                            ${PARENT_DEVICE_FC_PER_DURATION_TEXTBOX}
+    Log     ${response}
+    Should Be Equal As Strings    ${response}           ${Empty}
+    Click Element                                       ${PARENT_DEVICE_FC_PER_DURATION_CHECKBOX}
+    Input Text                                          ${PARENT_DEVICE_FC_PER_DURATION_TEXTBOX}            12
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_19_Update_Parent_AdGroup Deveice freq cap disabling and enabling (Times per day)
+
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Click Element                                       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Sleep   5s
+    Save The parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    ${response}    Get Value                            ${PARENT_IP_FC_PER_DAY_TEXTBOX}
+    Log     ${response}
+    Should Be Equal As Strings    ${response}           ${Empty}
+    Click Element                                       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Input Text                                          ${PARENT_IP_FC_PER_DAY_TEXTBOX}                     12
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_20_Update_Parent_AdGroup HouseHold Max duration disabling and enabling(Time duration)
+
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Click Element                                       ${PARENT_IP_FC_PER_DURATION_CHECKBOX}
+    Sleep   5s
+    Save The parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    ${response}    Get Value                            ${PARENT_IP_FC_PER_DURATION_TEXTBOX}
+    Should Be Equal As Strings    ${response}           ${Empty}
+    Click Element                                       ${PARENT_IP_FC_PER_DURATION_CHECKBOX}
+    Input Text                                          ${PARENT_IP_FC_PER_DURATION_TEXTBOX}                12
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+TC_21_Update_Parent_AdGroup Viewability and performance
+    Sleep   4s
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}     viewbleImpressionPercentage=90
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Click Element                                       ${PARENT_VIEWABILITY_CHECKBOX}    #Uncheck The Viewability and OperatingSystem checkbox
+    Sleep    3s
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Page Should Not Contain                             ${PARENT_VIEWABILITY_PERCENT_OF_IO_TEXTBOX}
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_22_Update_Parent_AdGroup Viewability and performance(Measurement and Performance - viewability optimization with Measurement and viewable rates)
+
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    customerRequirement=Measurable and Viewable Rates      measarableGoal=50         viewbleGoal=56
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Input Text     ${PARENT_VIEWABILITY_MEASURABLE_GOAL_TEXTBOX}              60
+    Input Text     ${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}                70
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    ${response}    Get Value                            ${PARENT_VIEWABILITY_MEASURABLE_GOAL_TEXTBOX}
+    Should Be Equal As Strings    ${response}           60
+    ${response}    Get Value                            ${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}
+    Should Be Equal As Strings    ${response}           70
+    Click Element                                       ${PARENT_VIEWABILITY_CHECKBOX}
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_23_Update_Parent_AdGroup Viewability and performance(Measurement and Performance - viewability optimization with Custom)
+
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}    customerRequirement=Custom      measarableGoal=50         viewbleGoal=56       viewableImpression=12
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Input Text                                          ${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}              30
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    ${response}    Get Value                            ${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}
+    Should Be Equal As Strings    ${response}           30
+    Click Element                                       ${PARENT_VIEWABILITY_CHECKBOX}
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_24_Update_Parent_AdGroup Viewability and performance(Measurement and Performance - optimization Extrapolate to unmeasurable impressions)
+
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Add Measurement and performance parametes           viewbilityOptimization=${Check}    extrapolateCheckbox=${Check}
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Click Element                                       xpath=.//label[contains(normalize-space(.), 'Extrapolate to unmeasurable impressions')]
+    Click Element                                       ${PARENT_VIEWABILITY_CHECKBOX}
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_25_Update_Parent_AdGroup Viewability and performance - optimization CTR
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Click Element                                           ${PARENT_CtrVcrOptimization_CHECKBOX}
+    Select From List                                        ${PARENT_CtrVcrOptimization_SELECTION}     CTR Optimization
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                           ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Select From List                                        ${PARENT_CtrVcrOptimization_SELECTION}      VCR Optimization
+    Click Element                                           ${PARENT_CtrVcrOptimization_CHECKBOX}
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_26_Update_Parent_AdGroup Viewability and performance - digital conversion
+
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Add Measurement and performance parametes        digitalConversion=${Check}
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Add Measurement and performance parametes        digitalConversion=${Check}
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+
+TC_27_Update_Parent_Adgroup(Sales lift measurement - Exposure Receipient 1)
+    # Sleep   4s
+    # Click Element                                       ${PARENT_XPATH}
+    Sleep   3s
+    Select From List            ${PARENT_SALES_LIFT1_SELECTION}      Kantar
+
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            EXPOSURE FILE RECIPIENT 1
+    Sleep    5s
+    ${selcted_option}       Get Selected List Label        ${PARENT_SALES_LIFT1_SELECTION}
+    Log     ${selcted_option}
+    Set Test Variable       ${selcted_option}              ${selcted_option}
+    Should Be Equal As Strings    ${selcted_option}         Kantar
+    [Tags]      Known_Bug   CM-2096
+
+
+TC_28_Update_Parent_Adgroup(Sales lift measurement - Exposure Receipient 2)
+    Sleep   4s
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            PARENT AD GROUP
+    Select From List    ${PARENT_SALES_LIFT2_SELECTION}      NBCU
+    Save The Parent ad group
+    Sleep    3s
+    Click Button                                        ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    Click Element                                       ${PARENT_XPATH}
+    Wait Until Page Contains                            EXPOSURE FILE RECIPIENT 2
+    Sleep    5s
+    ${selcted_option}       Get Selected List Label        ${PARENT_SALES_LIFT2_SELECTION}
+    Set Test Variable       ${selcted_option}              ${selcted_option}
+    Should Be Equal As Strings    ${selcted_option}         NBCU
+    [Tags]      Known_Bug   CM-2096
+
+###########################################################################################################
+##################    Additional Test Cases ###############################################################
+
+
+TC_29_Update_Parent_Adgroup(Disable and Enable save Viewability)
+    Sleep    4s
+    Go To    ${PARENT_EDIT_PATH}${parent_id}
+    Wait Until Page Contains    PARENT AD GROUP
+    Wait Until Page Contains    General information
+    Wait Until Page Contains    Frequency
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep   3s
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    3s
+    Save The Parent ad group
+    Sleep    2s
+    CLick Button            ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+
+TC_30_Update_Parent_Adgroup(Disable and save Viewability)
+    Sleep    4s
+    Go To    ${PARENT_EDIT_PATH}${parent_id}
+    Wait Until Page Contains    PARENT AD GROUP
+    Wait Until Page Contains    General information
+    Wait Until Page Contains    Frequency
+
+    Click Element       ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    3s
+    Save The Parent ad group
+    Sleep    2s
+    CLick Button            ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+TC_31_Update_Parent_AdGroup(un-check Extrapolate to unmeasurable impressions and save)
+    Sleep    4s
+    Go To    ${PARENT_EDIT_PATH}${parent_id}
+    Wait Until Page Contains    PARENT AD GROUP
+    Wait Until Page Contains    General information
+    Wait Until Page Contains    Frequency
+    Select From List      ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    Viewable Impressions
+    Sleep   2s
+    Click Element         ${PARENT_VIEWABILITY_EXTRAPOLATE_CHECKBOX}
+    Save The Parent ad group
+    Sleep    2s
+    CLick Button            ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains                            CAMPAIGN SUMMARY
+    [Tags]
+
+
+TC_32_Update_Parent_AdGroup(Score cut from parentAdGroupEdit should be editable CM-2247)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                            ${PARENT_ADD_BUTTON}
+    Sleep    3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent3701      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add Measurement and performance parametes
+    Focus                                   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Wait Until Page Contains    EDIT HOUSEHOLD SEGMENT                     timeout=20s
+    Wait Until Page Contains    AVAILABLE SEGMENTS                         timeout=20s
+    Input Text          ${FILTER_TEXTBOX}           NCS Score
+    Sleep               5s
+    Click Element       ${PARENT_DEVICE_DOWN_ARROW}
+    Sleep               10s
+    Click Element       xpath=(//md-checkbox[@ng-reflect-name])[2]      #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    Input Text          xpath=//div[@class="scorecutDiv"]/input               30
+    Click Button        ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+    Sleep   4s
+    Page Should Contain     INCLUDED SEGMENTS
+    Page Should Contain     SCORE CUT
+    Select From List    ${PARENT_TARGETING_DATA_PARTNER_SELECTION}           Walmart
+    Input Text              ${PARENT_NCS_SCORE_EDIT}        50
+    Press key               ${PARENT_NCS_SCORE_EDIT}           \\13
+    Sleep                   2s
+    Save The Parent ad group
+    Wait Until Page Contains    CAMPAIGN SUMMARY                        timeout=50s
+    Wait Until Page Contains    Manage creative templates               timeout=50s
+    Click Link                  00_QATEST_Parent3701
+    Wait Until Page Contains    PARENT AD GROUP
+    Wait Until Page Contains    General information
+    Sleep     5s
+    ${response}                 Get Value           ${PARENT_NCS_SCORE_EDIT}
+    Should Be Equal As Strings      ${response}    50
+    Capture Page Screenshot With Timestamp
+    [Tags]         TASK-CM-22471
+
+
+TC_33_Update_Parent_AdGroup(Score cut from parentAdGroupEdit should be editable CM-2247)
+    Go To                                   ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                            ${PARENT_ADD_BUTTON}
+    Sleep    3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_Parent3702      Parent_Start_date_date=${START_DATE_TIME_PARENT}       Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add Measurement and performance parametes
+    Focus                                   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element                           ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Wait Until Page Contains    EDIT HOUSEHOLD SEGMENT                     timeout=20s
+    Wait Until Page Contains    AVAILABLE SEGMENTS                         timeout=20s
+    Input Text          ${FILTER_TEXTBOX}           NCS Score
+    Sleep               5s
+    Click Element       ${PARENT_DEVICE_DOWN_ARROW}
+    Sleep               10s
+    Click Element       xpath=(//md-checkbox[@ng-reflect-name])[2]      #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    Click Button        ${TARGETING_EXCLUDE_BUTTON}                     #BUG logged for having id for this element
+    Input Text          xpath=//div[@class="scorecutDiv"]/input               30
+    Click Button        ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+    Sleep   4s
+    # Page Should Contain     INCLUDED SEGMENTS
+    Page Should Contain     SCORE CUT
+    Select From List    ${PARENT_TARGETING_DATA_PARTNER_SELECTION}           Walmart
+    Input Text              ${PARENT_NCS_SCORE_EDIT}        50
+    Press key               ${PARENT_NCS_SCORE_EDIT}           \\13
+    Sleep                   2s
+    Save The Parent ad group
+    Wait Until Page Contains    CAMPAIGN SUMMARY                        timeout=50s
+    Wait Until Page Contains    Manage creative templates               timeout=50s
+    Click Link                  00_QATEST_Parent3702
+    Wait Until Page Contains    PARENT AD GROUP
+    Wait Until Page Contains    General information
+    Sleep     5s
+    ${response}                 Get Value           ${PARENT_NCS_SCORE_EDIT}
+    Should Be Equal As Strings      ${response}    50
+    Capture Page Screenshot With Timestamp
+    [Tags]         TASK-CM-22471
+
+#---------------------------------------------------------------------------------------------------------
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_01_Check Measurable goal is not displayed when checkbox for CTRVCROptimization is unchecked
+    [Documentation]    To validate when checkbox is unchecked, field measurable goal is hidden. Not displayed on screen
+
+    Focus   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Page Should Not Contain    ${PARENT_CtrVcrOptimization_Goal}
+    Element Should Not Be Visible    ${PARENT_CtrVcrOptimization_Goal}
+
+    Capture Page Screenshot With Timestamp
+    Sleep    3s
+    [Tags]
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_02_Check Measurable goal is displayed when checkbox for CTRVCROptimization is checked
+    [Documentation]    To validate when checkbox is unchecked, field measurable goal is hidden. Not displayed on screen
+    Focus   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+    Click Element    ${PARENT_CtrVcrOptimization_CHECKBOX}
+    Sleep    5s
+
+    Element Should Be Visible     ${PARENT_CtrVcrOptimization_Goal}
+
+    Capture Page Screenshot With Timestamp
+    Sleep    3s
+    [Tags]
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_03.1.1_Check Measurable goal value 1 is saved successfully for CTR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      ${parent_name}
+    Set Test Variable    ${optimization}    CTR Optimization
+    Set Test Variable    ${optimization_db}    1
+    Set Test Variable    ${goal}            1
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}    Run Keyword And Return Status    Page Should Contain    Yes
+    Run Keyword If    '${status}' == 'True'    Click Element    ${WITHOUT_HH_YES_BUTTON}
+
+    Log    ${goal}
+    ${goal}=    Evaluate    ${goal} * 0.01
+
+    Confirm DB Value is correct for goal in Database for optimization
+    ...    ParentName=${ParentName}
+    ...    ctr_Optimization=${optimization_db}
+    ...    goal=${goal}
+    [Tags]
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_03.1.2_Check Measurable goal value 1 is saved successfully for VCR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      ${parent_name}
+    Set Test Variable    ${optimization}    VCR Optimization
+    Set Test Variable    ${optimization_db}    2
+    Set Test Variable    ${goal}            1
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    ${status}    Run Keyword And Return Status    Page Should Contain    Yes
+    Run Keyword If    '${status}' == 'True'    Click Element    ${WITHOUT_HH_YES_BUTTON}
+
+    Log    ${goal}
+    ${goal}=    Evaluate    ${goal} * 0.01
+
+    Confirm DB Value is correct for goal in Database for optimization
+    ...    ParentName=${ParentName}
+    ...    ctr_Optimization=${optimization_db}
+    ...    goal=${goal}
+    [Tags]
+
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_03.2.1_Check Measurable goal value null is saved successfully for CTR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      ${parent_name}
+    Set Test Variable    ${optimization}    CTR Optimization
+    Set Test Variable    ${optimization_db}    1
+    Set Test Variable    ${goal}            ${Empty}
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    ${status}    Run Keyword And Return Status    Page Should Contain    Yes
+    Run Keyword If    '${status}' == 'True'    Click Element    ${WITHOUT_HH_YES_BUTTON}
+
+    Set Test Variable    ${goal}    1
+
+    Confirm DB Value is correct for goal in Database for optimization
+    ...    ParentName=${ParentName}
+    ...    ctr_Optimization=${optimization_db}
+    ...    goal=${goal}
+    ...    isNullFlag=true
+
+    [Tags]
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_03.2.2_Check Measurable goal value null is saved successfully for VCR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      ${parent_name}
+    Set Test Variable    ${optimization}    VCR Optimization
+    Set Test Variable    ${optimization_db}    2
+    Set Test Variable    ${goal}            ${Empty}
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}    Run Keyword And Return Status    Page Should Contain    Yes
+    Run Keyword If    '${status}' == 'True'    Click Element    ${WITHOUT_HH_YES_BUTTON}
+
+    Set Test Variable    ${goal}    1
+
+    Confirm DB Value is correct for goal in Database for optimization
+    ...    ParentName=${ParentName}
+    ...    ctr_Optimization=${optimization_db}
+    ...    goal=${goal}
+    ...    isNullFlag=true
+
+    [Tags]
+
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_04.1_Check Measurable goal value 101 gives an error for CTR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      ${parent_name}
+    Set Test Variable    ${optimization}    CTR Optimization
+    Set Test Variable    ${goal}            101
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 0.01 and 100.
+    [Tags]
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_04.2_Check Measurable goal value 101 gives an error for VCR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      ${parent_name}
+    Set Test Variable    ${optimization}    VCR Optimization
+    Set Test Variable    ${goal}            101
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 0.01 and 100.
+    [Tags]
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_05.1_Check Measurable goal value -5 gives an error for CTR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      ${parent_name}
+    Set Test Variable    ${optimization}    CTR Optimization
+    Set Test Variable    ${goal}            -5
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 0.01 and 100.
+    [Tags]
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_05.2_Check Measurable goal value -5 gives an error for VCR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      ${parent_name}
+    Set Test Variable    ${optimization}    VCR Optimization
+    Set Test Variable    ${goal}            -5
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 0.01 and 100.
+    [Tags]
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_06.1_Check Measurable goal value 0 gives an error for CTR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      ${parent_name}
+    Set Test Variable    ${optimization}    CTR Optimization
+    Set Test Variable    ${goal}            0
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 0.01 and 100.
+    [Tags]
+
+
+Phoenix_UpdateParentAdgroup_CM-2273_TC_06.2_Check Measurable goal value 0 gives an error for VCR Optimization
+    [Documentation]    To validate Measurable goal value 1 is saved successfully for CTR Optimization
+    Set Test Variable    ${ParentName}      ${parent_name}
+    Set Test Variable    ${optimization}    VCR Optimization
+    Set Test Variable    ${goal}            0
+
+    Add data for CM-2273 Optimization Goal Validations
+    ...    ParentName=${ParentName}
+    ...    optimization=${optimization}
+    ...    goal=${goal}
+
+    Element Should Be Visible    ${Parent_Optimization_ErrorImage}
+    Page Should Contain    The CTR/VCR optimization goal must be between 0.01 and 100.
+    [Tags]
+
+
+
+
+
+
+
+#---------------------------------------------------------------------------------------------------------
+
+Phoenix_UpdateParentAdgroup_TC_CM-2365_Update_Parent_Adgroup(ELIGIBILTY FLAG ENABLE and Disable)
+    Go To                                   ${Home_page}${Campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                            ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_UPDParent02365
+    ...                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                            Parent_End_date_date=${END_DATE_TIME_PARENT}
+    # Add HouseHold Frequency Cap                     ipShowingTimeLimit=200     ipShowingPerDay=1    ipNotMoreThanDuration=30    householdNotMoreThanDuration=10
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}
+    ...                                             optimization=CTR Optimization
+    ...                                             eligibility=1
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Sleep     5s
+
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+
+    Wait Until Page Contains    CAMPAIGN SUMMARY            timeout=20s
+    Page Should Contain     00_QATEST_UPDParent02365        timeout=20s
+    Click Link              00_QATEST_UPDParent02365
+    Sleep   5s
+    Scroll To Element           Element=${PARENT_ELIGIBILITY_FILTER_CEHCKBOX}
+    Click Element       ${PARENT_ELIGIBILITY_FILTER_CEHCKBOX}    #Disable Eligibility Filter
+    Save The Parent ad group
+    Sleep    4s
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element                                     ${WITHOUT_HH_YES_BUTTON}
+    Wait Until Page Contains    CAMPAIGN SUMMARY            timeout=20s
+    Page Should Contain     00_QATEST_UPDParent02365        timeout=20s
+    Capture Page Screenshot With Timestamp
+    [Teardown]          Run Keyword If Test Failed              Go Back
+    [Tags]
+
+
+Phoenix_UpdateParentAdgroup_TC_CM-2365_TestAuto: Warning Alert should be close after pressing back button.
+    Go To                                   ${Home_page}${Campaign_Id}
+    Wait Until Element Is Visible           ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        timeout=20s
+    Click Button                            ${PARENT_ADD_BUTTON}
+    Sleep   3s
+    Add General information for ParentAdGroup       Parent_AdGroup_Name=00_QATEST_UPDParent02365
+    ...                                             Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...                                            Parent_End_date_date=${END_DATE_TIME_PARENT}
+    Add Measurement and performance parametes       viewbilityOptimization=${Check}
+    ...                                             optimization=CTR Optimization
+    ...                                             eligibility=1
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    Go Back
+    Sleep  5s
+    Page Should Not Contain     X Close
+    Page Should Not Contain     Are you sure you want to save this Ad Group without any household or device targeting?
+    [Tags]

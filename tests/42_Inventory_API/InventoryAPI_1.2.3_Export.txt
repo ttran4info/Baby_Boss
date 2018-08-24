@@ -1,0 +1,63 @@
+*** Settings ***
+Resource            InventoryAPI_imports.txt
+Force Tags         	INVENTORY		INVENTORY1.2.3		BATCH20		
+Suite Setup			Remove Cluster via DB
+Suite Teardown		Remove Cluster via DB
+#https://wiki.4info.com/pages/viewpage.action?title=Inventory+API+documentation&spaceKey=Software#InventoryAPIdocumentation-1.1.1Getallclusters(Devdone)
+#API Name: 1.2.3 Export
+#Method: GET
+#URL: /inventory-api/cluster/cluster/{clusterId}/export
+#Des: More like downloading the cluster
+#rhino.clusters
+#rhino.cluster_placement
+#rhino.groups_cluster
+
+*** Variables ***
+ ${groupId}			1
+ ${max_filter}		10	
+ ${cluster_name}	Regression_cluster_123	
+*** Keywords ***
+	
+*** Test Cases ***
+TC_00 Generate Data
+	[Documentation]		Create Cluster: ${cluster_name} with random filter of size:  ${max_filter}
+	Create Cluster		cluster_name=${cluster_name}				username=${QA_DEFAULT_USER}			groupId=${groupId}
+	Generate Filter		max=${max_filter}		#${filters} is generated		
+	Add Filter To Cluster		cluster_id=${cluster_id}		username=${QA_DEFAULT_USER}			data=${filters}		valid_filter=${max_filter}
+	[Tags]				
+TC_01 Exporting Valid cluster
+	[Documentation]		Exporting valid cluster should work
+	Get Cluster Id			cluster_name=${cluster_name}		#cluster_id is generated from cluster name
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/${cluster_id}/export
+	INVENTORY API 	uri=${uri_link}			expected_status_code=200	success=NA
+	Should Match Regexp 		${body}			ID: ${cluster_id}
+	Should Match Regexp 		${body}			Name: ${cluster_name}
+	Should Match Regexp 		${body}			Created By: ${QA_DEFAULT_USER}
+	Should Match Regexp 		${body}			"success":true
+	[Tags]				
+	
+TC_02 Exporting invalid cluster 999999
+	[Documentation]		Exporting invalid cluster id (99999), should work get error 400
+	Get Cluster Id			cluster_name=${cluster_name}		#cluster_id is generated from cluster name
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/9999/export
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"700-401"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid cluster id."	
+	[Tags]		
+TC_03 Exporting invalid cluster null
+	[Documentation]		Exporting invalid cluster id (null) should work get error 400
+	Get Cluster Id			cluster_name=${cluster_name}		#cluster_id is generated from cluster name
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/null/export
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"400-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid Request."	
+	[Tags]
+	
+TC_03 Exporting no cluster id
+	[Documentation]		Exporting cluster without specifying cluster id should get 400
+	Get Cluster Id			cluster_name=${cluster_name}		#cluster_id is generated from cluster name
+	Set Test Variable 	${uri_link}		/inventory-api/cluster/cluster/null/export
+	INVENTORY API 	uri=${uri_link}			expected_status_code=400	success=false
+	Json Value Should Equal		${body}		/reason_code					"400-001"
+	Json Value Should Equal		${body}		/reason_desc					"Invalid Request."
+	[Tags]		

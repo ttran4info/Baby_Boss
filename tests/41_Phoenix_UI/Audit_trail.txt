@@ -1,0 +1,170 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Library             DateTime
+Force Tags          PHOENIX         Phoenix_audit         BATCH22    PHOENIX_3
+Suite Setup         Run Keywords       Clean Up Advertiser Phoenix Audit Trail
+# Suite Teardown      Run Keywords         Close All Browsers    AND  	Clean Up Advertiser Phoenix Audit Trail
+
+***Variables***
+
+${QA_TEST_ADVERTISER}           00_QATEST_advertiser_Audit
+${CAMPAIGN_NAME_UI}             00_QATEST_campaign_Audit
+${CHILD_ADGROUP}                adGroup
+@{SINGLE_ACCESS}                QA
+${Creative_Search}              REGRESSION_CREATIVE_Audit
+${Ad_Search}                    REGRESSION_CREATIVE_Audit
+${CHILD_NAME}                   00_QATEST_TEST_CHILD_Audit
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019
+${END_DATE_TIME_PARENT}         11/11/2019
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+${native_uri}                   native
+${video_uri}                    video
+${banner_uri}                   banner
+${AUDIT_TRAIL_LINK}             https://qa-campaigns.4info.com/phoenix/#/auditTrail/
+${CREATIVE_NAME}                REGRESSION_CREATIVE_AUDIT_TRAIL
+${CAMPAIGN_SUMMERY_LINK}        https://qa-campaigns.4info.com/phoenix/#/campaignSummary/
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  00_QATEST_TEST_parent
+
+*** Keywords ***
+Clean Up Advertiser Phoenix Audit Trail
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+
+Create Ad For Audit Trail
+    Click Button                xpath=.//button[contains(normalize-space(.), '+ Ad')]
+    Wait Until Page Contains    CREATE AD               timeout=20s
+    Wait Until Page Contains    CREATIVE TYPE           timeout=20s
+    Wait Until Page Contains    SUB TYPE                timeout=20s
+    Sleep    5s
+    Select From List                ${ADS_CREATIVE_TYPE_SELECT}      native
+    Sleep   4s
+    Click Element                   ${Native_creative_id}
+    Sleep   2s
+    Click Button                    ${ADS_CREATE_AD}
+    Sleep    5s
+
+
+
+***Test cases***
+TC_00_Generate_data
+    Log To Console                              Data Generation..
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59    campaign_access_control=${Empty}
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT} 00:00       parent_end_date_time=${END_DATE_TIME_PARENT} 23:59
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Native_creative_id}                      ${DTO_id}
+    Login To Adhaven UI                 username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    Wait Until Page Contains            Search advertisers       timeout=30s
+    [Tags]
+
+TC01.01_Audit_trail(normal TC)
+    Go To                   ${AUDIT_TRAIL_LINK}${Campaign_Id}
+    Wait Until Page Contains            AUDIT TRAIL       timeout=20s
+    Page Should Contain       AUDIT TRAIL
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+UI_Audit_Trails_TC_02.01_Audit trail(Archive parent adgroup-Search By Entity Name)
+
+    Go To                   ${AUDIT_TRAIL_LINK}${Campaign_Id}
+    Wait Until Page Contains              AUDIT TRAIL     timeout=20s
+    Sleep   3s
+    Input Text                  ${CREATIVE_SEARCH_INPUT}            Campaign
+    Sleep   3s
+    Page Should Contain      Campaign
+    Page Should Contain      ${Campaign_Id}
+    Page Should Contain      Campaign Created
+    Input Text                  ${CREATIVE_SEARCH_INPUT}            AdGroup
+    Sleep   3s
+    Page Should Contain      AdGroup
+    Page Should Contain      ${parent_id}
+    Page Should Contain      AdGroup Created
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+UI_Audit_Trails_TC_02.02_Audit trail(Archive parent adgroup-Search By Entity Name)
+    Sleep   3s
+    Input Text                  ${CREATIVE_SEARCH_INPUT}            ${Campaign_Id}
+    Sleep   3s
+    Page Should Contain      Campaign
+    Page Should Contain      ${Campaign_Id}
+    Page Should Contain      Campaign Created
+    Input Text                  ${CREATIVE_SEARCH_INPUT}            ${parent_id}
+    Sleep   3s
+    Page Should Contain      AdGroup
+    Page Should Contain      ${parent_id}
+    Page Should Contain      AdGroup Created
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+UI_Audit_Trails_TC_02.03_Audit trail(Archive parent adgroup-Search By Modification Date-campaign)
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    SELECT modified_dt FROM rhino.campaign where id=${Campaign_Id};
+    Set Suite Variable    ${Campaign_id_db}      ${queryResults[0][0]}
+    Log         Campaign ID: ${Campaign_id_db}
+    Disconnect From Database
+    Set Suite Variable    ${Campaign_id_db}         ${Campaign_id_db}
+    ${date} =   Convert Date    ${Campaign_id_db}     exclude_millis=yes    date_format=%m/%d/%Y %H:%M %p     result_format=%m/%d/%Y %H:%M:%S %p
+    Sleep   5s
+
+    Go To                   ${AUDIT_TRAIL_LINK}${Campaign_Id}
+    Wait Until Page Contains              AUDIT TRAIL     timeout=20s
+    Sleep   3s
+    Input Text                  ${CREATIVE_SEARCH_INPUT}            ${date}
+    Sleep   3s
+    Sleep   18s
+    Page Should Contain         Campaign Created
+    Page Should Not Contain     AdGroup Created
+
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+UI_Audit_Trails_TC_02.04_Audit trail(Archive parent adgroup-Search By Modification Date-adgroup)
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    SELECT modified_dt FROM rhino.ad_group where id=${parent_id};
+    Set Suite Variable    ${parent_id_db}      ${queryResults[0][0]}
+    Log         Adgroup ID: ${parent_id_db}
+    Disconnect From Database
+    Set Suite Variable    ${parent_id_db}         ${parent_id_db}
+    ${date} =   Convert Date    ${parent_id_db}     exclude_millis=yes       date_format=%m/%d/%Y %H:%M %p     result_format=%m/%d/%Y %H:%M:%S %p
+    Sleep   5s
+    Go To                   ${AUDIT_TRAIL_LINK}${Campaign_Id}
+    Wait Until Page Contains              AUDIT TRAIL     timeout=20s
+    Sleep   3s
+    Input Text                  ${CREATIVE_SEARCH_INPUT}            ${date}
+    Sleep   4s
+    Page Should Not Contain    Campaign Created
+    Page Should Contain    AdGroup Created
+    Capture Page Screenshot With Timestamp
+    [Tags]
+
+
+UI_Audit_Trails_TC_03.01_Create Ad Audit Trail (CM-2424)
+    Go To                       ${CAMPAIGN_SUMMERY_LINK}${Campaign_Id}
+    Wait Until Page Contains    CAMPAIGN SUMMARY              timeout=20s
+    Sleep   5s
+    Create Ad For Audit Trail
+    Sleep   20s
+    Go To                   ${AUDIT_TRAIL_LINK}${Campaign_Id}
+    Wait Until Page Contains    AUDIT TRAIL                 timeout=20s
+    Wait Until Page Contains    Search audit trails         timeout=20s
+    Wait Until Page Contains    Modification Date           timeout=20s
+    Page Should Contain         AdGroup Created
+    Page Should Contain         admin@4info.net
+    [Tags]         known_bug         CM-2405
+

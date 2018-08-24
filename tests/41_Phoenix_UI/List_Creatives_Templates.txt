@@ -1,0 +1,117 @@
+*** Settings ***
+Resource            phoenix_ui_imports.txt
+Force Tags          PHOENIX         LIST_CREATIVES_UI          BATCH22    PHOENIX_4
+Suite Setup         Run Keywords         Clean Up Advertiser Phoenix Creative Templates
+Suite Teardown      Run Keywords         Close All Browsers     Clean Up Advertiser Phoenix Creative Templates
+
+***Variables***
+
+${QA_TEST_ADVERTISER}           00_QATEST_TEST_phoenix_creative
+${CAMPAIGN_NAME_UI}             00_QATEST_TEST_campaign
+${CREATIVE_NAME}                REGRESSION_CREATIVE_41_15
+${CHILD_NAME}                   00_QATEST_TEST_CHILD
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  00_QATEST_TEST_parent
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+${CREATIVE_PAGE}                https://qa-campaigns.4info.com/phoenix/#/creativesList/
+
+*** Keywords ***
+Clean Up Advertiser Phoenix Creative Templates
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+*** Test Cases ***
+TC00.01_Generete Data For UI Tests
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Native_creative_id}                      ${DTO_id}
+    Log To Console                              ${Native_creative_id}
+    Log To Console         "Created native data"
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoUpload       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Video            campaign_id=${Campaign_Id}                 videoType=1      mimeTypes=[1, 1]
+    ...                                         name="${CREATIVE_NAME}_VIDEO_UPLOAD"
+    CREATIVE POST Request for Creative          uri=video       JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Video_upload_creative_id}                ${DTO_id}
+    #upload File to Video creative
+    Upload File And Attach Request              id=${DTO_id}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoVAST         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Video            campaign_id=${Campaign_Id}                 videoType=2
+    ...                                         name="${CREATIVE_NAME}_VIDEO_VAST"
+    CREATIVE POST Request for Creative          uri=video      JSON=${data}                expected_status_code=200
+    Set Suite Variable                          ${Video_vast_creative_id}                  ${DTO_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoWrapper      child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Video            campaign_id=${Campaign_Id}                 videoType=3
+    ...                                         name="${CREATIVE_NAME}_VIDEO_WRAPPER"
+    CREATIVE POST Request for Creative          uri=video       JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Video_wrapper_creative_id}               ${DTO_id}
+
+    Log To Console         "Created Video data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerStatic       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Banner           campaign_id=${Campaign_Id}                  bannerType=0
+    ...                                         adName="${CREATIVE_NAME}_BANNER_STATIC"
+    CREATIVE POST Request for Creative          uri=banner           JSON=${data}           expected_status_code=200
+    Set Suite Variable                          ${Banner_Static_creative_id}                ${DTO_id}
+    # upload File to banner_static
+    Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerRich         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Banner           campaign_id=${Campaign_Id}                  bannerType=1
+    ...                                         adName="${CREATIVE_NAME}_BANNER_RICH"
+    CREATIVE POST Request for Creative          uri=banner           JSON=${data}           expected_status_code=200
+    Set Suite Variable                          ${Banner_Rich_creative_id}                  ${DTO_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Banner3rd          child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    Generate JSON For Creative Banner           campaign_id=${Campaign_Id}                  bannerType=2
+    ...                                         adName="${CREATIVE_NAME}_BANNER_3RD"
+    CREATIVE POST Request for Creative          uri=banner           JSON=${data}           expected_status_code=200
+    Set Suite Variable                          ${Banner_3rd_creative_id}                   ${DTO_id}
+    Log To Console         "Created banner data"
+
+
+    Login To Adhaven UI             username=${QA_DEFAULT_USER}         password=${QA_DEFAULT_PASSWORD}
+    # Login To Phoenix UI2
+
+    Log To Console       Data Generated
+    Sleep  10s
+    [Tags]
+
+TC01.01_List Creatives
+    Go To                       ${CREATIVE_PAGE}${Campaign_Id}
+
+    Wait Until Page Contains    Manage Creatives Template
+    Wait Until Page Contains    Add new creative template
+    Wait Until Page Contains    Search creatives
+    Sleep   3s
+    Page Should Contain     ${CREATIVE_NAME}_NATIVE
+    Page Should Contain     ${CREATIVE_NAME}_VIDEO_UPLOAD
+    Page Should Contain     ${CREATIVE_NAME}_VIDEO_VAST
+    Page Should Contain     ${CREATIVE_NAME}_VIDEO_WRAPPER
+    Page Should Contain     ${CREATIVE_NAME}_BANNER_STATIC
+    Page Should Contain     ${CREATIVE_NAME}_BANNER_RICH
+    Page Should Contain     ${CREATIVE_NAME}_BANNER_3RD
+
+
+    [Tags]
