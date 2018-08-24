@@ -1,0 +1,138 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16		HYDRA   OffshoreQA    ReadCreative
+Suite Setup     Run Keyword        Clean-up_generated_date
+Suite Teardown  Run Keyword        Clean-up_generated_date
+
+#Wiki https:https://wiki.4info.com/display/Software/Creative+Management+API%28Hydra%29+Documentation#CreativeManagementAPI(Hydra)Documentation-ReadCreative
+#API NAME :READ Creatives
+#METHOD : Get
+#API :/hydra/v1/creative/video/${DTO_id}
+
+
+***Variables***
+# ${campaign_id}       3726    #2138
+${native_uri}        native
+${video_uri}         video
+${banner_uri}        banner
+${Creative_name}     TestREGRESSION_CREATIVE_09
+${Regexp_dateCreated}        "dateCreatedCM2":"\\d{2}[/.]\\d{2}[/.]\\d{4}\\s+\\d{2}[/.:]\\d{2}[/.:]\\d{2}\\s+([AaPp][Mm])",
+${Regexp_dateModified}       "dateModifiedCM2":"\\d{2}[/.]\\d{2}[/.]\\d{4}\\s+\\d{2}[/.:]\\d{2}[/.:]\\d{2}\\s+([AaPp][Mm])"
+
+
+
+${CREATIVE_NAME}     TestREGRESSION_CREATIVE_09
+${CAMPAIGN_NAME}     Test_Campaign_HYDRA_09
+${QA_TEST_ADVERTISER}       Test_ADV_HYDRA_09
+${QA_CATALINA_AUTH}             "Basic cmVncmVzc2lvbl9jYXRhbGluYV9hbmRfcWEyQGNhdGFsaW5hLmNvbToxNjFlYmQ3ZDQ1MDg5YjM0NDZlZTRlMGQ4NmRiY2Y5Mg=="
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+*** Keywords ***
+
+
+
+
+Creative Read Request for campaign
+    [Arguments]     ${uri}=     ${expected_status_code}=200     ${success}=NA       ${auth}=${HYDRA_AUTH}
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    ${headers}    Create Dictionary     Accept=application/json     Authorization=${auth}    #Basic Y3BoYW1ANGluZm8uY29tOjVmYjlmYzA2ZTRmODhhNzg2YmEwYTU5MDE1NDVkNzQy
+    ${resp}=    Get Request     docker  ${uri}          headers=${headers}
+    Set Test Variable       ${resp}     ${resp}
+    ${resp}    RequestsLibrary.Get Request    docker   ${uri}    headers=${headers}
+    Log    Response: '${resp.content}'
+    Run Keyword If  '${expected_status_code}'=='200'        Set Suite Variable       ${body}     ${resp.content}
+    Run Keyword If  '${expected_status_code}'=='200'        Should Be Valid Json     ${body}
+    Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless  '${success}'=='NA'          Should Match Regexp     ${body}     "success":${success}
+
+
+Get Today's Date
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 1 day
+    Set Suite Variable    ${todaysDate}   ${mm}/${dd}/${yyyy}
+    Set Suite Variable       ${START_DATE}      ${todaysDate}
+    Log To Console          ${todaysDate}
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 3 day
+    Set Suite Variable    ${START_DATE_TIME_PARENT}   ${mm}/${dd}/${yyyy}
+
+Clean-up_generated_date
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+***Test Cases***
+
+
+
+
+TC_00_TEST_DATA_GENERATE
+    Log To Console                              "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59           campaign_access_control=${Empty}
+    ${campaignId}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${campaign_id}                             ${campaignId}
+    [Tags]
+
+####################################################################################
+#####    Native TCs
+#########################################################################
+TC_001 Verify Read Native Creatives can be retrive
+    [Documentation]     User must be able to send GET request for Creatives
+    Generate JSON For Creative Native       campaign_id=${campaign_id}
+    ...                                     status=1
+    ...                                     adName="${Creative_name}_001"
+    CREATIVE POST Request for Creative      uri=${native_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Creative Read Request for campaign    uri=/hydra/v1/creative/native/${DTO_id}
+    ...                                  expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp         ${body}         {"id":${DTO_id},
+    Should Match Regexp 		${body} 		"adName".+TestREGRESSION_CREATIVE
+    Should Match Regexp 		${body} 		"campaignId".+${campaign_id}
+    [Tags]
+
+
+####################################################################################
+#####    Video TCs
+#########################################################################
+TC_002 Verify Read Video Creatives can be retrive
+    [Documentation]     User must be able to send GET request for Creatives
+    Generate JSON For Creative Video       campaign_id=${campaign_id}
+    ...                                     status=1
+    ...                                    name="${Creative_name}_002"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Creative Read Request for campaign    uri=/hydra/v1/creative/video/${DTO_id}
+    ...                                  expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp 		${body} 		"name".+TestREGRESSION_CREATIVE_09
+    Should Match Regexp 		${body} 		"campaignId".+${campaign_id}
+    Should Match Regexp     	${body}         {"id":${DTO_id},
+    [Tags]
+
+
+####################################################################################
+#####    Banner TCs
+#########################################################################
+TC_003 Verify Read Banner Creatives can be retrive
+    [Documentation]     User must be able to send GET request for Creatives
+    Generate JSON For Creative Banner       campaign_id=${campaign_id}
+    ...                                     status=1
+    ...                                     adName="${Creative_name}_003"
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Creative Read Request for campaign    uri=/hydra/v1/creative/banner/${DTO_id}
+    ...                                  expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp 		${body} 		"adName".+TestREGRESSION_CREATIVE
+    Should Match Regexp 		${body} 		"campaignId".+${campaign_id}
+    Should Match Regexp     	${body}         {"id":${DTO_id},
+    [Tags]
+

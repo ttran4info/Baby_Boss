@@ -1,0 +1,87 @@
+*** Settings ***
+Resource            access_control_imports.txt
+Force Tags         	UI    BATCH7									
+Suite Setup			Run Keywords               Start UI     	Adjust Screen Size
+Suite Teardown      Run Keywords               Close All Browsers
+
+*** Keywords ***
+Start UI 
+	Start AdHaven UI    ${URL}    ${BROWSER}
+Adjust Screen Size
+	Set Window Size     1200    800
+
+*** Test Cases ***
+Admin User Can Log In 
+	Login with "${QA_DEFAULT_USER}" and "${QA_DEFAULT_PASSWORD}"
+	Capture Page Screenshot With Timestamp
+	Page Should Contain            		${QA_DEFAULT_USER}
+	Page Should Contain            		${USER_LOGGED_IN}
+
+Admin User Has Access To All Data In Supply Tab
+	Click Link         					${TAB_PARTNERS}
+	Capture Page Screenshot With Timestamp
+	Page Should Contain 				tag2
+	Click Link 							Partners
+	Capture Page Screenshot With Timestamp
+	Page Should Contain 		 		MoPub
+	
+Admin User Has Access To All Data In Demand Tab
+	Click Link         					${TAB_ADVERTISERS}
+	Capture Page Screenshot With Timestamp
+	Page Should Contain   		 		Pepsi
+	Click Link                   		Pepsi
+	Capture Page Screenshot With Timestamp
+	Page Should Contain      			Chewy Quaker Apr 2015
+
+Admin User Has Access To SMB Campaigns 	
+	Click Link         					${TAB_ADVERTISERS_SMB}
+	Capture Page Screenshot With Timestamp
+	Page Should Contain  				ACME
+	Click Link 							ACME
+	Page Should Contain 				Feb 19th Campaign - 11160
+	Capture Page Screenshot With Timestamp
+	Page Should Contain 				PAUSED
+	[Tags]	Exclude	#smb is becoming obsolete
+Admin User Has Access To Audience Tab	
+	Click Link 							${TAB_AUDIENCE}
+	Capture Page Screenshot With Timestamp
+	Page Should Contain Element         ${CREATE_NEW_TARGET_BUTTON}   
+	Page Should Contain 				QA_TA_PAYCHEX
+	
+Admin User Has Access To Admin Tab	
+	Click Link 							${TAB_ADMIN}
+	Capture Page Screenshot With Timestamp
+	Page Should Contain   				1har@4info.com
+
+Admin User Can Create Campaigns
+	Click Link         					${TAB_ADVERTISERS}
+	#Click Link 							${REGRESSION_ADVERTISER} 
+	Sleep   2s
+    Click Link       					${CREATE_NEW_CAMPAIGN_LINK}
+    Sleep   2s
+	Page Should Contain 				Name *
+	Page Should Contain 				Access Control
+	Page Should Contain Button			Save
+	Page Should Contain Button			Cancel
+	Click Button						Cancel
+	
+Admin User Can Go to URL For Campaign That Has Completed More Than 90 days
+	Go To 		${QA_URL}campaignsView.html?partnerId=337&campaignId=603
+	Page Should Contain        			Audi Baltimore Oct 2012
+	
+Admin User Can Go to URL For Parent Adgroup That Has Completed More Than 90 days
+	Go To 		${QA_URL}adGroupsAddEdit.html?partnerId=337&campaignId=603&adGroupBundleId=13173&pageMode=edit&agLevel=parent
+	Page Should Contain        			Targeting
+	Page Should Contain Button 			Delete
+	Page Should Contain Button 			Cancel 
+	
+Admin User Can Go to URL For Child Adgroup That Has Completed More Than 90 days
+	Go To 		${QA_URL}adGroupsAddEdit.html?partnerId=337&campaignId=603&adGroupBundleId=13173&adGroupId=13174&adGroupBundleName=A4+DLX%2fPolk&adGroupAdId=11893&pageMode=edit&agLevel=child&currentMargin=0%25
+	Page Should Contain Link	 		Add/Edit ads
+	Page Should Contain Button 			Delete
+
+
+	
+	
+
+

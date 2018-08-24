@@ -1,0 +1,174 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16     DELETE_AD     OffshoreQA    HYDRA
+Suite Setup     Run Keyword        Clean-up_generated_date
+Suite Teardown  Run Keyword        Clean-up_generated_date
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-DeleteAd
+#API NAME :Delete Ad
+#METHOD : Delete
+#API :/hydra/v1/ad/native/{detailId}
+
+
+
+***Variables***
+${nativeAdgroupId}              null
+${videoAdgroupId1}              null
+${videoAdgroupId2}              null
+${videoAdgroupId3}              null
+${bannerCreativeId0}            null
+${bannerAdgroupId1}             null
+${bannerAdgroupId2}             null
+${Campaign_Id}                  000000
+
+
+${QA_TEST_ADVERTISER}           QA_AUTOMATION_TEST_ADVERTISER_15
+${CAMPAIGN_NAME_UI}             QA_AUTOMATION_TEST_CAMPAIGN_TEST_15
+${CREATIVE_NAME}                QA_AUTOMATION_TEST_CREATIVE_15_CR
+${CHILD_NAME}                   QA_AUTOMATION_TEST_CHILD_TEST_15
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  QA_AUTOMATION_TEST_PARENT_TEST_15
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+
+*** Keywords ***
+Clean-up_generated_date
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+    Delete New Campaign via DB       campaign_name=QA_AUTOMATION_TEST_CAMPAIGN_TEST_15
+
+***Test Cases***
+
+TC_00_TEST_DATA_GENERATE
+    Log To Console                              "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=${Empty}
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+###########################
+    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+##########################
+
+    Log To Console         "Created native data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoUpload       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+##########################
+    ${Video_Upload_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId1}                  ${Video_Upload_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerRich         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_3rdParty_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId1}                  ${Banner_3rdParty_Child_AdGroup_ID}
+
+
+TC_01.01_Delete the Native Ad
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0101"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+##########################
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native                        adName="${CREATIVE_NAME}_NATIVE0101"    adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    Delete Request for Ad                       id=${type_Ad_id}      type=native
+    Json Value Should Equal         ${body}         /success            true
+    Json Value Should Equal         ${body}         /reason_code        "000-000"
+    [Tags]
+
+
+TC_01.02_Delete the Native Ad(invalid id)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0102"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+##########################
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native                        adName="${CREATIVE_NAME}_NATIVE0102"    adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ${type_Ad_id}=    Evaluate          ${type_Ad_id}+1
+    Delete Request for Ad                       id=${type_Ad_id}      type=native     expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-703"
+    Json Value Should Equal         ${body}         /reason_desc        "Invalid Ad Id"
+    [Tags]
+
+
+
+TC_02.01_Delete the Video Ad
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0201"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                                         name="${CREATIVE_NAME}_VIDEO0201"
+    Delete Request for Ad             id=${type_Ad_id}      type=video
+    Json Value Should Equal         ${body}         /success            true
+    Json Value Should Equal         ${body}         /reason_code        "000-000"
+    [Tags]
+
+
+TC_02.02_Delete the Video Ad(invalid id)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0202"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0202"
+    ${type_Ad_id}=              Evaluate        ${type_Ad_id}+1
+    Delete Request for Ad             id=${type_Ad_id}      type=video     expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code            "500-703"
+    Json Value Should Equal         ${body}         /reason_desc        "Invalid Ad Id"
+    [Tags]
+
+
+
+TC_03.01_Delete the Banner Ad
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0301"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}              adName="${CREATIVE_NAME}_BANNER0301"      bannerType=0
+
+    Delete Request for Ad             id=${type_Ad_id}      type=banner
+    Json Value Should Equal         ${body}         /success            true
+    Json Value Should Equal         ${body}         /reason_code        "000-000"
+    [Tags]
+
+
+
+TC_02.02_Delete the Banner Ad(invalid id)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0302"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}              adName="${CREATIVE_NAME}_BANNER0302"      bannerType=0
+    ${type_Ad_id}=              Evaluate        ${type_Ad_id}+1
+    Delete Request for Ad             id=${type_Ad_id}      type=banner      expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-703"
+    Json Value Should Equal         ${body}         /reason_desc        "Invalid Ad Id"
+    [Tags]
+
+

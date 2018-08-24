@@ -1,0 +1,139 @@
+*** Settings ***
+Resource            access_control_imports.txt
+Force Tags         	BATCH17     UM		EXCLUDE
+#this set is being replace with UM1.0 in folder 35_user_management
+
+*** Variables ***
+
+#								***************  permissions-internal  ***************			
+#Get all groups and permissions from username
+${PERMISSIONS_USER0}			noPerm@4info.com		#custom
+${PERMISSIONS_USER1}			dbikman1@4info.com		#custom
+${PERMISSIONS_USER2}			pkatod@4info.com		#read only/basic
+${PERMISSIONS_USER3}			dbikman2@4info.com		#read only/basic
+${GET_GROUPS_PERMISSIONS}		/user-management-api/permissions-internal/groups?userId=
+${GET_PERMITTED_CAMPAIGNS}		/user-management-api/permissions-internal/campaigns?userId=
+${GET_NOT_DELETED_CAMPAIGNS}	/user-management-api/permissions-internal/groupId/1	
+${UPDATE_DEFAULT_GROUP}			/user-management-api/permissions-internal/default-group?username=new@4info.com&groupId=6
+
+
+
+*** Keywords ***
+Get UI element accesses from page URL HTTP
+	[Arguments]		${uri}=	 	${expected_status_code}=200
+	Create Session   docker    http://${QA_USER_MANAGEMENT_HTTP}:${QA_USER_MANAGEMENT_PORT_HTTP}
+	#Create Session   docker    http://10.34.64.120:8080/
+	${headers}    Create Dictionary     Accept=application/json
+	${resp}=	Get Request		docker	${uri}			headers=${headers}
+	Set Test Variable		${resp}		${resp}
+    ${resp}    RequestsLibrary.Get Request    docker   ${uri}    headers=${headers}
+    Log    Response: '${resp.content}'
+	Set Test Variable       ${body}     ${resp.content}
+	Should Be Valid Json 	 ${body}
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+
+
+Get UI element accesses from page URL
+	[Arguments]		${uri}=	 	${expected_status_code}=200
+	Create Session   docker    https://${QA_USER_MANAGEMENT}:${QA_USER_MANAGEMENT_PORT}
+	#Create Session   docker    http://10.34.64.120:8080/
+	${headers}    Create Dictionary     Accept=application/json
+	${resp}=	Get Request		docker	${uri}			headers=${headers}
+	Set Test Variable		${resp}		${resp}
+    ${resp}    RequestsLibrary.Get Request    docker   ${uri}    headers=${headers}
+    Log    Response: '${resp.content}'
+	Set Test Variable       ${body}     ${resp.content}
+	Should Be Valid Json 	 ${body}
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+
+*** Test Cases ***
+
+
+
+#replace by UM 1.1	
+#Get all groups and permissions from username	
+TC_033 Verify API call returns a Map contains all related groups and permission
+	Get UI element accesses from page URL	uri=${GET_GROUPS_PERMISSIONS}${PERMISSIONS_USER1}
+	[Tags]		Exclude
+	
+TC_033.1 Verify API call returns correct result for two users with different permissions
+	Get UI element accesses from page URL	uri=${GET_GROUPS_PERMISSIONS}${PERMISSIONS_USER1}
+	Set Test Variable       ${PERMISSIONS_USER1}     ${resp.content}
+	Get UI element accesses from page URL	uri=${GET_GROUPS_PERMISSIONS}${PERMISSIONS_USER2}
+	Set Test Variable       ${PERMISSIONS_USER2}     ${resp.content}
+	${RESULT}=	Compare Permissions	${PERMISSIONS_USER1}	${PERMISSIONS_USER2}
+	Should Be Equal As Strings 	${RESULT} 	permissions differ
+	[Tags]		
+TC_033.2 Verify API call returns correct result for users with the same permissions
+	Get UI element accesses from page URL	uri=${GET_GROUPS_PERMISSIONS}${PERMISSIONS_USER2}
+	Set Test Variable       ${PERMISSIONS_USER2}     ${resp.content}
+	Get UI element accesses from page URL	uri=${GET_GROUPS_PERMISSIONS}${PERMISSIONS_USER3}
+	Set Test Variable       ${PERMISSIONS_USER3}     ${resp.content}
+	${RESULT}=	compare permissions	${PERMISSIONS_USER2}	${PERMISSIONS_USER3}
+	Should Be Equal As Strings 	${RESULT} 	same permissions
+	[Tags]		
+TC_034 Verify API call gets all permitted campaigns including read-only campaigns and read-write campaigns
+	Get UI element accesses from page URL	uri=${GET_PERMITTED_CAMPAIGNS}${PERMISSIONS_USER1}
+	[Tags]		
+TC_034.1 Verify API call contains permitted campaigns (not blank)
+	Get UI element accesses from page URL	uri=${GET_PERMITTED_CAMPAIGNS}${PERMISSIONS_USER1}
+	Set Test Variable       ${CAMAPIAGN_IDS}     ${resp.content}
+	Log Many  campaign ids: ${CAMAPIAGN_IDS}
+	#Should Be True	${CAMAPIAGN_IDS}
+	${RESULT}=	verify campaign ids		${CAMAPIAGN_IDS}
+	#Should Not Be True	${RESULT}=="list of campaign is blank"
+	Should Not Be Equal As Strings	${RESULT}	"list of campaign is blank"
+	[Tags]		
+TC_034.2 Verify API call returns the correct number of permitted campaigns 
+	#QA_DB
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+	#PROD_DB
+	#Set Test Variable  ${DB_PROD}	10.34.84.180
+	#Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_PROD}   ${DB_PORT}   
+	
+	#${CAMPAIGN_ID_N}		Query 	select count(campaign_id) from user_mgt_permissions where username like ('${PERMISSIONS_USER1}')
+    ${CAMPAIGN_ID_N}		Query 	SELECT COUNT(campaign_id) from (SELECT upg.username AS username,cg.campaign_id AS campaign_id,c.partner_id AS partner_id,group_concat(distinct per.permission_name separator ',') AS permission_name from ((((user_permissions upg join campaign_groups cg on((cg.group_id = upg.group_id))) join permissions per on((per.id = upg.permissions_id))) join campaign c on((c.id = cg.campaign_id))) join partner p on((p.id = c.partner_id))) where ((c.status <> 3) and (p.type_id in (1,3,4,6))) and username = '${PERMISSIONS_USER1}' group by c.partner_id,cg.campaign_id,upg.username order by cg.campaign_id) as subquery;
+    Disconnect From Database
+    ${NUM_CAMPAIGNS}=   retrieve number 	'${CAMPAIGN_ID_N}'
+	Get UI element accesses from page URL	uri=${GET_PERMITTED_CAMPAIGNS}${PERMISSIONS_USER1}
+	Set Test Variable       ${CAMAPIAGN_IDS}     ${resp.content}
+	Log Many  campaign ids: ${CAMAPIAGN_IDS}
+	Should Be True	${CAMAPIAGN_IDS}
+	@{CAMPAIGN_ID_LIST}=  	Create List
+	@{CAMPAIGN_ID_LIST}=	retrieve list	 '${CAMAPIAGN_IDS}'
+	Log	reports: @{CAMPAIGN_ID_LIST}
+	${CAMPAIGN_ID_LIST_LEN}=	Get Length	${CAMPAIGN_ID_LIST} 
+	Should Be Equal As Strings   ${NUM_CAMPAIGNS}	${CAMPAIGN_ID_LIST_LEN}
+	[Tags]		
+TC_034.3 Verify API call returns no campaigns for user without permissions
+	#PROD_DB
+	#Set Test Variable  ${DB_PROD}	10.34.84.180
+	#Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_PROD}   ${DB_PORT}   
+	#QA_DB
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+	${CAMPAIGN_ID_N}		Query 	select count(campaign_id) from user_mgt_permissions where username like ('${PERMISSIONS_USER0}')
+    Disconnect From Database
+    ${NUM_CAMPAIGNS}=   retrieve number 	'${CAMPAIGN_ID_N}'
+	Get UI element accesses from page URL	uri=${GET_PERMITTED_CAMPAIGNS}${PERMISSIONS_USER0}
+	Set Test Variable       ${CAMAPIAGN_IDS}     ${resp.content}
+	Log Many  campaign ids: ${CAMAPIAGN_IDS}
+	@{CAMPAIGN_ID_LIST}=  	Create List
+	@{CAMPAIGN_ID_LIST}=	retrieve list	 '${CAMAPIAGN_IDS}'
+	Log	reports: @{CAMPAIGN_ID_LIST}
+	${CAMPAIGN_ID_LIST_LEN}=	Get Length	${CAMPAIGN_ID_LIST} 
+	Should Be Equal As Strings   ${NUM_CAMPAIGNS}	${CAMPAIGN_ID_LIST_LEN}
+    [Tags]		
+TC_035 Verify API call returns all the permitted non-deleted campaigns as a list
+	Get UI element accesses from page URL	uri=${GET_NOT_DELETED_CAMPAIGNS}
+	[Tags]
+
+# Reuse of UM1.4			
+TC_036 Verify API call returns the user object with updated user's default group
+	Get UI element accesses from page URL	uri=${UPDATE_DEFAULT_GROUP}
+	[Tags]	Exclude	
+TC_036.1 Verify API call returns the user object with correct updated user's default group
+	Get UI element accesses from page URL	uri=${UPDATE_DEFAULT_GROUP}
+	${UPDATED_GROUP}=	extract_matching_regex	'${resp.content}'	"groupId":(.+?),
+	Should Be Equal As Strings   	${UPDATED_GROUP}	6
+	[Tags]	Exclude
+	

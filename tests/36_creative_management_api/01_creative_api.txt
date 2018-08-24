@@ -1,0 +1,421 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      	BATCH16			HYDRA		EXCLUDE		OLD_NEED REVISIT
+
+***Variables***
+${campaign_id}		2079
+${agid_video}		36982
+${agid_banner}		36981
+${agid_native}		36983
+${JSON_CR_NATIVE}	{"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"TEST_CRN_AUG26","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+${JSON_CR_VIDEO}	{"campaignId":${campaign_id},"videoDTO":{"weight":1,"name":"TEST_CRV_AUG26","duration":1,"videoType":1,"clickThroughUrl":"sourceurl","redirectionCount":0,"secure":false,"deleteFromUI":false,"VASTTag":"tag","VASTWrapperUrl":"http://url.com","playbackUrl":"playbackurl","status":0,"skipAfterTime":0,"skippable":false,"thirdPartyVASTTracker":[{"destinationType":1,"thirdpartyTrackingUrl":"http://type1.com"},{"destinationType":12,"thirdpartyTrackingUrl":"http://type12.com"}],"extendedAttributes":[]}}
+${JSON_CR_BANNER}	{"campaignId":${campaign_id},"bannerDTO":{"adName":"BANNER_CREATIVE_TEST","weight":1,"bannerType":0,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://destinationUrl.con","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+
+${JSON_AD_BANNER}	{"adgroupId":1053,"creativeId":26459,"bannerDTO":{"adName":" Darren_AD_CREATE_TEST_2","weight":1,"bannerType":1,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"secure":false,"deleteFromUI":false,"status":0,"positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[]}}
+${JSON_AD_VIDEO}	{"adgroupId":2818,"creativeId":26500,"videoDTO":{"weight":1,"name":"TEST_ADV_AUG26","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[]}}
+${JSON_AD_NATIVE}	{"adgroupId":2818,"creativeId":161,"nativeDTO":{"status":1,"assetType":"MoPub","adName":"TEST_ADN_AUG26","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+
+
+*** Test Cases ***
+ #TC_000_Cleanup All Creative Inside Campaign
+# 	Remove All Creative From Campaign By Name			campaign_name=Campaing4CreativeAPI
+
+#CREATIVE API
+TC_001 Verify list of creatives for a particular campaign can be retrieved with correct campaignId
+	[Documentation]		User must be able to send GET request
+	[Tags]
+	CREATIVE GET Request for CampaignID	   uri=/creatives?campaignId=${campaign_id}
+	Should Be Valid JSON 	${body}
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_002 Verify list of creatives for a particular campaign can be retrieved with correct campaignId & type
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/creatives?campaignId=${campaign_id}&type=video
+	Should Be Valid JSON  ${body}
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_003 Verify list of creatives for a particular campaign can NOT be retrieved with missing campaignId & type
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/creatives	expected_status_code=400
+	Should Be Equal As Strings    ${resp.status_code}    400
+
+TC_004 Verify list of creatives for a particular campaign can NOT be retrieved with missing campaignId for type 'banner'
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/creatives?type=banner expected_status_code=400
+	Should Be Equal As Strings    ${resp.status_code}    400
+
+TC_005 Verify list of creatives for a particular campaign can NOT be retrieved with missing campaignId
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/creatives?type=video expected_status_code=400
+	Should Be Equal As Strings    ${resp.status_code}    400
+
+TC_006 Verify list of creatives for a particular campaign can NOT be retrieved with missing campaignId for type 'native'
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/creatives?type=native expected_status_code=400
+	Should Be Equal As Strings    ${resp.status_code}    400
+
+TC_007 Verify user is able to create Creative upon sending POST request for native
+	[Documentation]		User must be able to send POST request
+	[Tags]
+	CREATIVE POST Request for Creative   uri=/creative/native	JSON=${JSON_CR_NATIVE}			#JSON={"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"DARREN_FILE_TEST_CREATIVE_TEST_5","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	Should Be Equal As Strings    ${resp.status_code}    200
+     	Log    Response: '${resp.content}'
+     	Set Suite Variable       ${response_content}     ${resp.content}
+		Validate Creative for Native
+     	...						 campaignId=${campaign_id}
+     	...                 	 externalId="external_id"
+     	...						 status=1
+     	...						 assetType="MoPub"
+     	...						 adName="TEST_CRN_AUG26"
+     	...						 weight=1
+     	...						 title="Title Edit"
+     	...						 text="Text Edit"
+     	...						 ctatext="More ..."
+     	...						 clickDestinationUrl="http://4info.com"
+	    ...						 secure=false
+     	...						 deleteFromUI=false
+     	...						 impressionTracing=[]
+
+TC_0071 Verify user is able to create Creative upon sending POST request for video
+	[Documentation]		User must be able to send POST request
+	[Tags]
+	CREATIVE POST Request for Creative   uri=/creative/video	 JSON=${JSON_CR_VIDEO}			#JSON={"campaignId":${campaign_id},"videoDTO":{"weight":1,"name":"DARREN_VIDEO_TEST_CREATIVE_3_new","duration":1,"videoType":1,"clickThroughUrl":"sourceurl","redirectionCount":0,"secure":false,"deleteFromUI":false,"VASTTag":"tag","VASTWrapperUrl":"http://url.com","playbackUrl":"playbackurl","status":0,"skipAfterTime":0,"skippable":false,"thirdPartyVASTTracker":[{"destinationType":1,"thirdpartyTrackingUrl":"http://type1.com"},{"destinationType":12,"thirdpartyTrackingUrl":"http://type12.com"}],"extendedAttributes":[]}}
+	Should Be Equal As Strings    ${resp.status_code}    200
+	    Log    Response: '${resp.content}'
+     	Set Suite Variable       ${response_content}     ${resp.content}
+		Validate Creative for Video
+		 ...					campaignId=${campaign_id}
+	     ...					weight=1
+		 ...					name="TEST_CRV_AUG26"
+		 ...					duration=1
+		 ...					videoType="1"
+		 ...					clickThroughUrl="sourceurl"
+		 ...					redirectionCount=0
+		 ...					secure=false
+		 ...					deleteFromUI=false
+		 ...					status=0
+		 #...					VASTTag="tag"
+		 #...					VASTWrapperUrl="http://url.com"
+		 ...					playbackUrl="playbackurl"
+		 ...					skipAfterTime=0
+		 #...					skippable=false
+		 	 #...					destinationType=1
+		 	 #...					thirdpartyTrackingUrl="http://type1.com"
+			 ...					extendedAttributes=[]
+			 #...					destinationType=12
+			 #...					thirdpartyTrackingUrl="http://type12.com"
+
+
+TC_0072 Verify user is able to create Creative upon sending POST request for banner
+	[Documentation]		User must be able to send POST request
+	[Tags]
+	CREATIVE POST Request for Creative   uri=/creative/banner	 JSON=${JSON_CR_BANNER}			#JSON={"campaignId":${campaign_id},"bannerDTO":{"adName":" BANNER_GESTURE_CREATIVE_BANNER_2_new","weight":1,"bannerType":0,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://destinationUrl.con","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+	Should Be Equal As Strings    ${resp.status_code}    200
+     	Log    Response: '${resp.content}'
+     	Set Suite Variable       ${response_content}     ${resp.content}
+		Validate Creative for Banner
+		...            			 campaignId=${campaign_id}
+     	...            			 adName="BANNER_CREATIVE_TEST"
+     	#...						 weight=1
+     	...						 bannerType=0
+        ...						 formatId=1
+        ...						 thirdPartyImpression="http://3rdimpress.com"
+        ...						 thirdPartyTag="3rdpartytag"
+        ...						 destinationUrl="http://destinationUrl.con"
+        ...						 externalPreviewLink=0
+        ...						 auditStatus=0
+        #...						 auditEta="auditEta"
+        ...						 auditFeedback="auditfeedback"
+        ...						 secure=false
+        ...						 deleteFromUI=false
+        #...						 status=0
+        ...						 positionList=[]
+        ...						 richMediaTypeList=[]
+        ...						 optOutIconLocation="tr"
+        ...						 richMediaMarkup="markup"
+        ...						 extendedAttributes=[1, 2, 3]
+        ...						 thirdPartyDestinationUrl="http://destination.com"
+        #...						 alternateLandingUrl="http://alternateLandingUrl.com"
+
+
+
+
+
+#EXTRA ERROR CODES	- to be modified when fix available -
+#CODE  ${500-400} 	"500-400" to be replaced with approprite code from corresponding test
+#CHANGE according to https://wiki.4info.com/display/Software/AdHaven+Creative+Management+API+Documentation#AdHavenCreativeManagementAPIDocumentation-FileEncodingCallback
+
+TC_0073 Verify user getting correct error messge for banner creative when AdName is blank
+	[Documentation]		/* Banner Error Codes */
+	...					BANNER_ADNAME_INVALID("500-101", "AdName can not be null or empty")	> AdName is empty
+	#[Tags]    test_cr7  test_e1
+	CREATIVE Get Error Code   uri=/creative/baner	xpath=reason_code	 JSON={"campaignId":${campaign_id},"bannerDTO":{"adName":" ","weight":1,"bannerType":0,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://destinationUrl.con","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+	Should Be Equal As Strings    ${resp.status_code}    400
+	Set Test Variable	${500-400} 	"500-400"
+	Should Be Equal As Strings			${error_code}	${500-400}
+
+TC_0074 Verify user getting correct error messge for banner creative for wrong Status
+	[Documentation]		/* Banner Error Codes */
+	...					BANNER_STATUS_INVALUD("500-102", "Status can only in [0-3]")	> Status=4
+	#[Tags]
+	CREATIVE Get Error Code   uri=/creative/baner	xpath=reason_code	 JSON={"campaignId":${campaign_id},"bannerDTO":{"adName":"TEST_WRONG_STATUS","weight":1,"bannerType":0,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":4,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://destinationUrl.con","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+	Should Be Equal As Strings    ${resp.status_code}    400
+	Set Test Variable	${500-400} 	"500-400"
+	Should Be Equal As Strings			${error_code}	${500-400}
+
+TC_0075 Verify user getting correct error messge for banner creative whith blank formatId
+	[Documentation]		/* Banner Error Codes */
+	...					BANNER_FORMAT_INVALID("500-103", "Format id should in [1-16]") > formatId - NULL
+	#[Tags]
+	CREATIVE Get Error Code   uri=/creative/baner	xpath=reason_code	 JSON={"campaignId":${campaign_id},"bannerDTO":{"adName":"TEST_FORMAT_ID_NULL","weight":1,"bannerType":0,"formatId":"","externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://destinationUrl.con","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+	Should Be Equal As Strings    ${resp.status_code}    200	#400
+	#Set Test Variable	${500-400} 	"500-400"
+	#Should Be Equal As Strings			${error_code}	${500-400}
+
+TC_0076 Verify user getting correct error messge for banner creative when destinationUrl is blank
+	[Documentation]		/* Banner Error Codes */
+	...					BANNER_DESTINATION_INVALID("500-104", "Destination URL can not be null or empty")	destinationUrl - empty
+	#[Tags]
+	CREATIVE Get Error Code   uri=/creative/baner	xpath=reason_code	 JSON={"campaignId":${campaign_id},"bannerDTO":{"adName":"TEST_BLANK_DESTINATION_URL","weight":1,"bannerType":0,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+	Should Be Equal As Strings    ${resp.status_code}    200  #400
+	#Set Test Variable	${500-400} 	"500-400"
+	#Should Be Equal As Strings			${error_code}	200${500-400}
+
+TC_0077 Verify user getting correct error messge for video creative when name is empty
+	[Documentation]
+	...				/* Video Error Codes */
+	...				VIDEO_NAME_INVALID("500-301", "Name can not be null or empty") > name is mpty
+	#[Tags]    		vv
+	CREATIVE Get Error Code   uri=/creative/video	xpath=reason_code	 JSON={"campaignId":${campaign_id},"videoDTO":{"weight":1,"name":"","duration":1,"videoType":1,"clickThroughUrl":"sourceurl","redirectionCount":0,"secure":false,"deleteFromUI":false,"VASTTag":"tag","VASTWrapperUrl":"http://url.com","playbackUrl":"playbackurl","status":0,"skipAfterTime":0,"skippable":false,"thirdPartyVASTTracker":[{"destinationType":1,"thirdpartyTrackingUrl":"http://type1.com"},{"destinationType":12,"thirdpartyTrackingUrl":"http://type12.com"}],"extendedAttributes":[]}}
+	Should Be Equal As Strings    ${resp.status_code}    400
+	Set Test Variable	${500-400} 	"500-400"
+	Should Be Equal As Strings			${error_code}	${500-400}
+
+TC_0078 Verify user getting correct error messge for video creative whith wrong status
+	[Documentation]
+	...				/* Video Error Codes */
+	...				VIDEO_STATUS_INVALID("500-302", "Status can only in [0-3]") > status = 4
+	#[Tags]    test_cr7  test_e6		vv
+	CREATIVE Get Error Code   uri=/creative/video	xpath=reason_code	 JSON={"campaignId":${campaign_id},"videoDTO":{"weight":1,"name":"TEST_WRONG_STATUS","duration":1,"videoType":1,"clickThroughUrl":"sourceurl","redirectionCount":0,"secure":false,"deleteFromUI":false,"VASTTag":"tag","VASTWrapperUrl":"http://url.com","playbackUrl":"playbackurl","status":4,"skipAfterTime":0,"skippable":false,"thirdPartyVASTTracker":[{"destinationType":1,"thirdpartyTrackingUrl":"http://type1.com"},{"destinationType":12,"thirdpartyTrackingUrl":"http://type12.com"}],"extendedAttributes":[]}}
+	Should Be Equal As Strings    ${resp.status_code}    400
+	Set Test Variable	${500-400} 	"500-400"
+	Should Be Equal As Strings			${error_code}	${500-400}
+
+TC_0079 Verify user getting correct error messge for video creative when its type is NULL
+	[Documentation]
+	...				/* Video Error Codes */
+	...				VIDEO_TYPE_INVALID("500-303", "Type can not be null or empty") > type is NULL (absent in JSON)
+	#[Tags]
+	CREATIVE Get Error Code   uri=/creative/video	xpath=reason_code	 JSON={"campaignId":${campaign_id},"videoDTO":{"weight":1,"name":"TEST_TYPE_EMPTY","duration":1,"clickThroughUrl":"sourceurl","redirectionCount":0,"secure":false,"deleteFromUI":false,"VASTTag":"tag","VASTWrapperUrl":"http://url.com","playbackUrl":"playbackurl","status":0,"skipAfterTime":0,"skippable":false,"thirdPartyVASTTracker":[{"destinationType":1,"thirdpartyTrackingUrl":"http://type1.com"},{"destinationType":12,"thirdpartyTrackingUrl":"http://type12.com"}],"extendedAttributes":[]}}
+	Should Be Equal As Strings    ${resp.status_code}    400
+	Set Test Variable	${500-400} 	"500-400"
+	Should Be Equal As Strings			${error_code}	${500-400}
+
+
+TC_00791 Verify user getting correct error messge for native creative when assetType is NULL
+	[Documentation]
+	...				/* Native Error Codes */
+	...				NATIVE_ASSETTYPE_INVALID("500-201", "AssetType can not be null or empty") > assetType is NULL (absent in JSON)	 #removed "assetType":"MoPub" from JSON
+	#[Tags]
+	CREATIVE Get Error Code   uri=/creative/native	xpath=reason_code	 JSON={"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"adName":"DARREN_FILE_TEST_CREATIVE_TEST_5","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	Should Be Equal As Strings    ${resp.status_code}    400
+	Set Test Variable	${500-400} 	"500-400"
+	Should Be Equal As Strings			${error_code}	${500-400}
+
+TC_00792 Verify user getting correct error messge for native creative when adName is empty
+	[Documentation]
+	...				/* Native Error Codes */
+	...				NATIVE_ADNAME_INVALID("500-202", "AdName can not be null or empty") > adName is empty  #removed value for key "adName":"" from JSON
+	#[Tags]
+	CREATIVE Get Error Code   uri=/creative/native	xpath=reason_code	 JSON={"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	Should Be Equal As Strings    ${resp.status_code}    400
+	Set Test Variable	${500-400} 	"500-400"
+	Should Be Equal As Strings			${error_code}	${500-400}
+
+TC_00793 Verify user getting correct error messge for native creative when its title is empty
+	[Documentation]
+	...				/* Native Error Codes */
+	...				NATIVE_TITLE_INVALID("500-203", "Title can not be null or empty") > title is empty 	 #removed value for key "title":"" from JSON
+	#[Tags]
+	CREATIVE Get Error Code   uri=/creative/native	xpath=reason_code	 JSON={"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"DARREN_FILE_TEST_CREATIVE_TEST_5","weight":1,"title":"","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	Should Be Equal As Strings    ${resp.status_code}    400
+	Set Test Variable	${500-400} 	"500-400"
+	Should Be Equal As Strings			${error_code}	${500-400}
+
+
+TC_00794 Verify user getting correct error messge for native creative when its text is empty
+	[Documentation]
+	...				/* Native Error Codes */
+	...				NATIVE_TEXT_INVALID("500-204", "Text can not be null or empty") > text is empty	 #removed value for key "text":"" from JSON
+	#[Tags]
+	CREATIVE Get Error Code   uri=/creative/native	xpath=reason_code	 JSON={"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"DARREN_FILE_TEST_CREATIVE_TEST_5","weight":1,"title":"Title Edit","text":"","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	Should Be Equal As Strings    ${resp.status_code}    400
+	Set Test Variable	${500-400} 	"500-400"
+	Should Be Equal As Strings			${error_code}	${500-400}
+
+TC_0079 Verify user getting correct error messge for native creative when its text is empty
+	[Documentation]
+	...				/* Native Error Codes */
+	...				NATIVE_STATUS_INVALUD("500-205", "Status can only in [0-3]") > ststus is wrong	 #set value for key "status":"4" in JSON
+	#[Tags]
+	CREATIVE Get Error Code   uri=/creative/native	xpath=reason_code	 JSON={"scampaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":4,"nativeAdId":1,"assetType":"MoPub","adName":"DARREN_FILE_TEST_CREATIVE_TEST_5","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	Should Be Equal As Strings    ${resp.status_code}    400
+	Set Test Variable	${500-400} 	"500-400"
+	Should Be Equal As Strings			${error_code}	${500-400}
+
+
+
+TC_008 Verify user is able to read Creative upon sending GET request
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/creative/native/161
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_009 Verify user is able to Update creative for banner
+	[Documentation]		User must be able to send POST request
+	#[Tags]
+	CREATIVE POST Request for Creative   uri=/creative/banner/1312		JSON={"campaignId":${campaign_id},"videoDTO":{"id":1312,"weight":1,"name":"DARREN_VIDEO_TEST_CREATIVE_3_UP","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[],"videoBundleId":1252}}
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_0091 Verify user is able to Update creative for video
+	[Documentation]		User must be able to send POST request
+	#[Tags]
+	CREATIVE POST Request for Creative   uri=/creative/video/1312		JSON={"campaignId":${campaign_id},"videoDTO":{"id":1312,"weight":1,"name":"DARREN_VIDEO_TEST_CREATIVE_3_UP","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[],"videoBundleId":1252}}
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_0092 Verify user is able to Update creative for native
+	[Documentation]		User must be able to send POST request
+	#[Tags]
+	CREATIVE POST Request for Creative   uri=/creative/native/1312		JSON={"campaignId":${campaign_id},"videoDTO":{"id":1312,"weight":1,"name":"DARREN_VIDEO_TEST_CREATIVE_3_UP","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[],"videoBundleId":1252}}
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_010 Verify user is able to list ads using groupID
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/ads?adgroupId=32992
+	Should Be Valid JSON  {"apiResponse":{"code":"000-000","desc":"Sucess"},"transactionId":"bb707bfb-1c6a-42a5-bbf1-37b602cae837","adInfoDTOs":[],"errors":[]}
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_011 Verify user is able to list ads using groupID
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/ads?creativeDetailId=161&type=native
+	Should Be Valid JSON  {"apiResponse":{"code":"000-000","desc":"Sucess"},"transactionId":"9c8d98d8-b335-4046-93de-9a4f3a66afc0","adInfoDTOs":[],"errors":[]}
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+#CREATE ADs
+
+TC_012 Verify user is able to Create Ad of type banner
+	[Documentation]		User must be able to send POST request
+	#[Tags]
+	CREATIVE POST Request for Creative   uri=/ad/banner		JSON=${JSON_AD_BANNER} 		#JSON={"adgroupId":1053,"creativeId":26459,"bannerDTO":{"adName":" Darren_AD_CREATE_TEST_2","weight":1,"bannerType":1,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"secure":false,"deleteFromUI":false,"status":0,"positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[]}}
+	#old 26504
+	#Should Be Equal	${response}	${resp}
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_013 Verify user is able to Create Ad of type video
+	[Documentation]		User must be able to send POST request
+	#[Tags]
+	CREATIVE POST Request for Creative   uri=/ad/video		JSON=${JSON_AD_VIDEO}		#JSON={"adgroupId":29329,"creativeId":26500,"videoDTO":{"weight":1,"name":"DARREN_VIDEO_TEST_AD_3","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[]}}
+	#Should Be Equal	${response}	${resp}
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_014 Verify user is able to Create Ad of type native
+	[Documentation]		User must be able to send POST request
+	#[Tags]
+	CREATIVE POST Request for Creative   uri=/ad/native		JSON=${JSON_AD_NATIVE}		#JSON={"adgroupId":${campaign_id},"creativeId":161,"nativeDTO":{"status":1,"assetType":"MoPub","adName":"Darren_AD_CREATE_TEST_100","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	#Should Be Equal	${response}	${resp}
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_015 Verify user is able to Read Ad of type native
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/ad/native/161
+	Should Be Equal As Strings    ${resp.status_code}    200
+    Should Be Valid Json	${body}
+
+TC_0151 Verify user is able to Read Ad of type video
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/ad/video/1840
+	Should Be Equal As Strings    ${resp.status_code}    200
+    Should Be Valid Json	${body}
+
+TC_0152 Verify user is able to Read Ad of type video
+	[Documentation]		User must be able to send GET request
+	#[Tags]
+	CREATIVE GET Request for CampaignID	uri=/ad/banner/30442
+	Should Be Equal As Strings    ${resp.status_code}    200
+    Should Be Valid Json	${body}
+
+TC_016 Verify user is able to Delete Creative of type banner
+	[Documentation]		User must be able to send POST request
+	#[Tags]
+	CREATIVE POST Request for DELETE Creative   uri=/creative/banner/1312
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_0161 Verify user is able to Delete Creative of type video
+	[Documentation]		User must be able to send POST request
+	#[Tags]
+	CREATIVE POST Request for DELETE Creative   uri=/creative/video/1313
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_0162 Verify user is able to Delete Creative of type native
+	[Documentation]		User must b.e able to send POST request
+	#[Tags]
+	CREATIVE POST Request for DELETE Creative   uri=/creative/native/1314
+	Should Be Equal As Strings    ${resp.status_code}    200
+
+TC_017 Verify banner creative JSON response keys corespond to expected
+	#[Tags]
+	CREATIVE Get JSON keys - banner	uri=/creative/banner	JSON={"campaignId":${campaign_id},"bannerDTO":{"adName":" BANNER_GESTURE_CREATIVE_BANNER_2_new","weight":1,"bannerType":0,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://destinationUrl.con","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+
+TC_0171 Verify video creative JSON response keys corespond to expected
+	#[Tags]js 	jsv
+	CREATIVE Get JSON keys - video	uri=/creative/video	JSON={"campaignId":${campaign_id},"videoDTO":{"id":1312,"weight":1,"name":"DARREN_VIDEO_TEST_CREATIVE_3_UP","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[],"videoBundleId":1252}}
+
+TC_0172 Verify native creative JSON response keys corespond to expected
+	#[Tags]
+	CREATIVE Get JSON keys - native	uri=/creative/native	JSON={"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"DARREN_FILE_TEST_CREATIVE_TEST_5","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+
+TC_018 Verify banner ad JSON response keys corespond to expected
+	[Tags]
+	CREATIVE Get JSON keys - banner  uri=/creative/banner  JSON={"campaignId":${campaign_id},"bannerDTO":{"adName":"TEST_CREATE_CR_BANNER_MED-1130","weight":1,"bannerType":0,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://destinationUrl.con","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+	AD Get JSON key - banner 	uri=/ad/banner	 JSON={"adgroupId":${agid_banner},"creativeId":${creative_id},"bannerDTO":{"adName":"TEST_CREATE_AD_BANNER_MED-1130","weight":1,"bannerType":1,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"secure":false,"deleteFromUI":false,"status":0,"positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[]}}
+
+TC_0181 Verify video ad JSON response keys corespond to expected
+	[Tags]
+	CREATIVE Get JSON keys - video 	uri=/creative/video	 JSON={"campaignId":${campaign_id},"videoDTO":{"id":1312,"weight":1,"name":"TEST_CREATE_CR_VIDEO_MED-1130","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[],"videoBundleId":1252}}
+	AD Get JSON key - video 	uri=/ad/video	 JSON={"adgroupId":${agid_video},"creativeId":${creative_id},"videoDTO":{"weight":1,"name":"TEST_CREATE_AD_VIDEO_MED-1130","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[]}}
+
+TC_0182 Verify native ad JSON response keys corespond to expected
+	#[Tags]
+	CREATIVE Get JSON keys - native 	uri=/creative/native	 JSON={"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"TEST_CREATE_CREATIVE_NATIVE_MED-1130","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	AD Get JSON key - native 	uri=/ad/native	 JSON={"adgroupId":${agid_native},"creativeId":${creative_id},"nativeDTO":{"status":1,"assetType":"MoPub","adName":"TEST_CREATE_AD_NATIVE_MED-1130","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+
+
+#? - delete natives, video, banners after TEST (create BATCH)
+
+***
+TC_019
+	[Tags]	upload
+		# rtb.txt  file_operations.txt  (01_brx_sanity.txt)
+	#Retrieve The Banner Images Root Directory
+	#Retrieve Direct Path For Banner
+	${file}=	Retrieve BRX Data File		file_name=flag_USA_320x50.png
+	Log      Binary Data: ${file}
+	${file_b}=	Convert To Binary	${file}
+		#SSH Login As Valid User    SSH_HOST=${DB_HOST_10}     TIMEOUT=5
+		#${stdout}=	Execute Command 	curl -i -X POST -F "${file}" http://10.18.8.46:8080/hydra/v1/file/image/banner\?detailId\=25233
+	#icon:   curl -i -X POST -F "file=@1.png" http://10.18.8.46:8080/hydra/v1/file/icon/native\?detailId\=123
+	#banner: curl -i -X POST -F "file=@flag_USA_320x50.png" http://10.18.8.46:8080/hydra/v1/file/image/banner\?detailId\=25233
+	#video:	 curl -i -X POST -F "file=@Reach_15.mp4" http://10.18.8.46:8080/hydra/v1/file/video/video\?detailId\=432
+	#Should Be Equal As Strings    ${resp.status_code}	${response_code}
+	CREATIVE POST Request for file	uri=/hydra/v1/file/icon/native?detailId=123&file=	path=${file_b}
+	Should Contain 	${stdout}	200
+***

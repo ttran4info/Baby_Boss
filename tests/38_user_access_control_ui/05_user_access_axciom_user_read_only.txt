@@ -1,0 +1,253 @@
+*** Settings ***
+Resource            access_control_imports.txt
+Force Tags         	UI    BATCH7			EXCLUDE
+Test Setup			Run Keywords               Start UI     	Adjust Screen Size		Login As Acxiom
+Test Teardown      Run Keywords               Close All Browsers
+
+*** Variables ***
+${user_name}						123456@Acxiom.com	
+${user_pass}						test1234
+${advertiser_name_4info}			00_4INFO_ACCESS
+${advertiser_name_catalina}			00_CATALINA_ACCESS
+${advertiser_name_acxiom}			00_ACXIOM_ACCESS
+${advertiser_id_acxiom}				2161
+${campaign_name_acxiom}				Acxiom_Campaign
+${campaign_id_acxiom}				3466
+${parent_name_acxiom}				Acxiom_Parent
+${advertiser_name_mix}				00_MIX_ACCESS
+${campaign_name_mix_acxiom}					Acxiom_Only_Campaign
+${campaign_name_mix_catalina}				Catalina_Only_Campaign
+${campaign_name_mix_Acxiom_catalina}		Acxion_Catalina_Campaign
+
+*** Keywords ***
+Start UI 
+	Start AdHaven UI    ${URL}    ${BROWSER}
+Adjust Screen Size
+	Set Window Size     1200    800
+Login As Acxiom
+	Login with "${user_name}" and "${user_pass}"
+	Capture Page Screenshot With Timestamp	
+Go to Campaign "from read only user"	
+	Click Link         					${TAB_DEMAND}
+	Sleep   2s
+	Click Link 							${advertiser_name_acxiom}
+	Sleep   2s
+	Click Link							${campaign_name_acxiom}
+
+Validate Campaign Disabled
+	Element Should Be Disabled			id=name
+	Element Should Be Disabled			id=extCampaignId
+	Element Should Be Disabled			id=existingAdvertiser
+	Element Should Be Disabled			id=newAdvertiser
+	Element Should Be Disabled			id=partnerId
+	Element Should Be Disabled			id=partnerName
+	Element Should Be Disabled			id=insertionOrder
+	Element Should Be Disabled			id=selectTimeZone
+	Element Should Be Disabled			id=startDateFormatted
+	Element Should Be Disabled			id=selectStartTime
+	Element Should Be Disabled			id=endDateFormatted
+	Element Should Be Disabled			id=selectEndTime
+	Element Should Be Disabled			id=totalBudgetDisplay
+	Element Should Be Disabled			id=measurementId
+	Element Should Be Disabled			id=taxonomyLevel0
+	Element Should Be Disabled			id=taxonomyLevel1
+	Element Should Be Disabled			id=controlGroupSize
+	Element Should Be Disabled			id=saveBtn
+	Element Should Be Disabled			id=btnArchiveTwo
+	Element Should Be Disabled			id=btnCancelTwo
+	Element Should Not Be Visible		id=groupSelect				#This is access control
+	Element Should Not Be Visible		id=datasourceAttrDiv		#For now we are checking the Datasource field under reporting
+	Element Should Not Be Visible		id=campaignDemographics		#Audience Insight
+	Element Should Not Be Visible	 	id=datasourceAI		
+	Element Should Be Disabled			id=chkIsPaused
+
+Validate Parent Disabled
+	Element Should Be Disabled	id=name
+	Element Should Be Disabled	id=externalId
+	Element Should Be Disabled	id=selectTimeZone
+	Element Should Be Disabled	id=startDateFormatted
+	Element Should Be Disabled	id=selectStartTime
+	Element Should Be Disabled	id=endDateFormatted
+	Element Should Be Disabled	id=selectEndTime
+	Element Should Be Disabled	id=unitsSoldIODisplay
+	Element Should Be Disabled	id=chkHouseholdFrequencyCappedDailyUnits
+	Element Should Be Disabled	id=householdFrequencyCapDailyUnits
+	Element Should Be Disabled	id=householdFrequencyCapDays
+	Element Should Be Disabled	id=chkHouseholdFrequencyCappedOverallUnits
+	Element Should Be Disabled	id=householdFrequencyCapOverallUnits
+	Element Should Be Disabled	id=chkFrequencyCappedDailyUnits
+	Element Should Be Disabled	id=frequencyCapDailyUnits
+	Element Should Be Disabled	id=frequencyCapDays
+	Element Should Be Disabled	id=chkFrequencyCappedOverallUnits
+	Element Should Be Disabled	id=frequencyCapOverallUnits
+	Element Should Be Disabled	id=chkIpFrequencyCappedDailyUnits
+	Element Should Be Disabled	id=ipFrequencyCapDailyUnits
+	Element Should Be Disabled	id=ipFrequencyCapDays
+	Element Should Be Disabled	id=chkIpFrequencyCappedOverallUnits
+	Element Should Be Disabled	id=ipFrequencyCapOverallUnits
+	Element Should Be Disabled	id=isConversionTracked		
+	Element Should Be Disabled	id=measurementId
+	Element Should Be Disabled	id=dataPartnerId
+	Element Should Be Disabled	id=optimization1
+	Element Should Be Disabled	id=optimization2
+	Element Should Be Disabled	id=optimization3
+	Log		Reporting should be Hidden
+	Element Should Not Be Visible		id=datasourceAttrDiv		#For now we are checking the Datasource field under reporting
+	#Element Should Not Be Visible		id=adgroupReporting
+	Element Should Be Disabled	id=chkHouseHoldSegment
+	Element Should Be Disabled	id=chkDeviceIdSegment
+	Element Should Be Disabled	id=chkGeofence
+	Element Should Be Disabled	id=chkCookie
+	Element Should Be Disabled	id=saveBtn	
+Validate Child Disabled
+	# Make sure 4info Margin (RTB), Max. Bid Price: and Current Margin are not Enabled on child ad group page
+	Element Should Be Disabled			id=isPaused
+	Element Should Be Disabled			id=name
+	Element Should Be Disabled			id=startDateFormatted
+	Element Should Be Disabled			id=endDateFormatted
+	Element Should Be Disabled			id=unitsSoldDisplay
+	Element Should Be Disabled			id=mobile
+	Element Should Be Disabled			id=online
+	Element Should Be Disabled			id=domain
+	Element Should Be Disabled			id=chkTrafficType
+	Element Should Be Disabled			id=chkCategory
+	Element Should Be Disabled			id=chkPlacement
+	Element Should Be Disabled			id=chkDayofWeek
+	Element Should Be Disabled			id=chkTimeofDay
+	Element Should Be Disabled			id=chkCountry
+	Element Should Be Disabled			id=chkRequestState
+	Element Should Be Disabled			id=chkRequestDMA
+	Element Should Be Disabled			id=chkRequestZip
+	Element Should Be Disabled			id=chkHouseholdState
+	Element Should Be Disabled			id=chkHouseholdDMA
+	Element Should Be Disabled			id=chkHouseholdZip
+	Element Should Be Disabled			id=chkCarrier
+	Element Should Be Disabled			id=chkDeviceOS
+	Element Should Be Disabled			id=chkDeviceType
+	Element Should Be Disabled			id=chkDeviceManufacturer
+	Element Should Be Disabled			id=chkAppNexusOperatingSystem
+	Element Should Be Disabled			id=chkAppNexusBrowser
+	Element Should Be Disabled			id=chkLocationType
+	Element Should Be Disabled			id=chkLanguage
+	Element Should Be Disabled			id=chkDeal
+	Element Should Be Disabled			id=chkVideoStreamingPosition
+	Element Should Be Disabled			id=saveBtn
+	#Element Should Be Enabled			id=btnDeleteGroup
+	#Element Should Be Enabled			id=btnCancelAddGroup
+	Element Should Not Be Visible		${AG_4INFO_MARGIN_TEXTBOX}
+	Element Should Not Be Visible		${AG_4INFO_MAX_BID_PRICE_TEXTBOX}	
+Validate Creative Disabled
+	Element Should Be Disabled	id=adTypeId1
+	Element Should Be Disabled	id=adTypeId2
+	Element Should Be Disabled	id=adTypeId4
+	Element Should Be Disabled	id=bannerTypeId1
+	Element Should Be Disabled	id=bannerTypeId1
+	Element Should Be Disabled	id=bannerTypeId1
+	Element Should Be Disabled	id=bannerAdCommand.destinationType
+	Element Should Be Disabled	id=bannerAdCommand.destinationUrlView
+	Element Should Be Disabled	id=thirdPartyImpressionTrackingUrl
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes1
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes2
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes3
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes4
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes5
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes6
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes7
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes8
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes9
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes10
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes11
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes12
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes13
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes14
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes15
+	Element Should Be Disabled	id=bannerAdCommand.bannerSizes16		
+*** Test Cases ***
+
+Acxiom - Campaign Edit (Read Only User) - messsage validation 
+  	Go to Campaign "from read only user"
+  	Sleep   2s
+  	Click Link 				Edit
+  	Sleep 	2s
+	Page Should Contain     Your access level only allows you to see read-only version of this page. Please contact your 4INFO Account Manager for edit capabilities.
+	Capture Page Screenshot With Timestamp
+	[Tags]	
+	
+#This validation require above test case to run	
+Acxiom - Campaign Edit (Read Only User) - Fields are disabled
+	Validate Campaign Disabled
+	[Tags]	
+
+Acxiom - Parent Adgroup (Read Only User) - messsage validation 
+  	Go to Campaign "from read only user"
+  	Sleep   2s
+	Click Link							${parent_name_acxiom}
+	Page Should Contain     Your access level only allows you to see read-only version of this page. Please contact your 4INFO Account Manager for edit capabilities.
+	[Tags]		MED-1001
+
+Acxiom - Parent Adgroup Edit (Read Only User) - Fields are disabled
+	Go to Campaign "from read only user"
+	Validate Parent Disabled
+
+Acxiom - Child Adgroup (Read Only User) - messsage validation 
+  	Go to Campaign "from read only user"
+  	Sleep   2s
+	Click Link							${parent_name_acxiom}
+	Sleep 	2s
+	Click Link							${child_name_acxiom}
+	Page Should Contain     Your access level only allows you to see read-only version of this page. Please contact your 4INFO Account Manager for edit capabilities.
+	[Tags]		MED-1001
+
+Acxiom - Child Adgroup (Read Only User) - Fields Disabled
+	Go to Campaign "from read only user"
+	Sleep 	2s
+	Click Link							${parent_name_acxiom}
+	Sleep 	2s	
+	Click Link							${child_name_acxiom}
+	Sleep 	2s	
+	Validate Child Disabled
+	[Tags]
+Acxiom - Creative (Read Only User) - Fields Disabled
+	Go to Campaign "from read only user"
+	Sleep 	2s
+	Click Link							${parent_name_acxiom}
+	Sleep 	2s	
+	Click Link							${child_name_acxiom}
+	Sleep 	2s	
+	Click Link							Add/edit creatives
+	Validate Creative Disabled
+	[Tags]		
+Acxiom - Advertiser Level (Read Only)- Campaign Link disable
+	Click Link         					${TAB_DEMAND}
+	Sleep   2s
+	Element Should Not Be Visible	id=createCamp
+
+Acxiom - Campaign Level (Read Only)- Campaign Link disable
+	Go to Campaign "from read only user"
+	Sleep   2s				
+	Element Should Not Be Visible	id=createCamp
+	
+Acxiom - Parent Level (Read Only)- Campaign Link disable
+	Go to Campaign "from read only user"
+	Sleep   2s
+	Click Link						${parent_name_acxiom}
+	Sleep   2s						
+	Element Should Not Be Visible	id=createCamp
+Acxiom - Child Level (Read Only)- Campaign Link disable
+	Go to Campaign "from read only user"
+	Sleep   2s
+	Click Link						${parent_name_acxiom}
+	Sleep   2s	
+	Click Link						${child_name_acxiom}
+	Sleep   2s						
+	Element Should Not Be Visible	id=createCamp	
+	
+Acxiom -Verify user is not able to create a new Campaign using a fake link MED-1003(1)
+	[Documentation]		Test currently FAILS but should PASS
+	...					https://jira.adhaven.com/browse/MED-1003
+	...					verifying direct links are not working for read only (ro) users
+	Go To             ${QA_URL}/campaignsAddEdit.html
+	Sleep  2s
+	Capture Page Screenshot With Timestamp
+	Validate Campaign Disabled
+	

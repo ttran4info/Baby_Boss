@@ -1,0 +1,361 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16     PAUSE_UNPAUSE_AD     OffshoreQA   HYDRA
+Suite Setup     Run Keyword        Clean-up_generated_date
+Suite Teardown  Run Keyword        Clean-up_generated_date
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-Pause/UnpauseAd
+#API NAME :Pause Unpause Ad
+#METHOD : Patch
+#API :/hydra/v1/ad/{type}/{detailId}/{status}
+
+
+***Variables***
+${Pause}        1
+${Unpause}      2
+${QA_TEST_ADVERTISER}           QA_AUTOMATION_TEST_ADVERTISER_16
+${CAMPAIGN_NAME}             QA_AUTOMATION_TEST_CAMPAIGN_TEST_16
+${CREATIVE_NAME}                QA_AUTOMATION_TEST_CREATIVE_16_CR
+${CHILD_NAME}                   QA_AUTOMATION_TEST_CHILD_TEST_16
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  QA_AUTOMATION_TEST_PARENT_TEST_16
+
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+
+*** Keywords ***
+Pause_Unpause Request for Ad
+    [Arguments]     ${id}=       ${type}=     ${expected_status_code}=200     ${success}=NA      ${status}=   ${auth}=${HYDRA_AUTH}
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    Set Test Variable      ${uri}       /hydra/v1/ad/${type}/${id}/${status}
+    ${headers}    Create Dictionary     Content-Type=application/json    Accept=application/json     Authorization=${auth}
+    ${resp}=   Patch Request   docker     ${uri}       headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json     ${body}
+    Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+Clean-up_generated_date
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+*** Test Cases ***
+
+TC_00_TEST_DATA_GENERATE
+    Get Start Date
+    Log To Console                              "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${todaysDate}      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=${Empty}
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${todaysDate}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${todaysDate}     child_end_date_time=${END_DATE_TIME_CHILD}
+###########################
+    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+##########################
+
+    Log To Console         "Created native data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoUpload       child_parent_campaign_id=${parent_id}    child_start_date_time=${todaysDate}     child_end_date_time=${END_DATE_TIME_CHILD}
+##########################
+    ${Video_Upload_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId1}                  ${Video_Upload_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerRich         child_parent_campaign_id=${parent_id}    child_start_date_time=${todaysDate}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_3rdParty_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId1}                  ${Banner_3rdParty_Child_AdGroup_ID}
+    [Tags]
+############################################################################################################
+#  NATIVE
+############################################################################################################
+TC_01.01_Pause the Native Ad
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0101"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+##########################
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native                        adName="${CREATIVE_NAME}_NATIVE0101"    adgroupId=${nativeAdgroupId}       creativeId=${nativeCreativeId}
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=native    status=${Pause}
+    Json Value Should Equal         ${body}         /success            true
+    Json Value Should Equal         ${body}         /reason_code        "000-000"
+    [Tags]
+
+TC_01.02_Pause the Native Ad(Archived Native ad)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0102"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+##########################
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native                        adName="${CREATIVE_NAME}_NATIVE0102"    adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}    status=3
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=native     status=${Pause}      expected_status_code=400
+    Log     ${body}
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-701"
+    Json Value Should Equal         ${body}         /reason_desc        "Archived Ad"
+    [Tags]
+
+TC_01.03_Pause the Native Ad(Invalid Ad id)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0103"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+##########################
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native                        adName="${CREATIVE_NAME}_NATIVE0103"    adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ${type_Ad_id}=    Evaluate          ${type_Ad_id}+1
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=native    status=${Pause}     expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-703"
+    Json Value Should Equal         ${body}         /reason_desc        "Invalid Ad Id"
+    [Tags]
+
+TC_01.04_Pause the Native Ad(Invalid status)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0104"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+##########################
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native                        adName="${CREATIVE_NAME}_NATIVE0104"    adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=native    status=5      expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "400-999"
+    Json Value Should Equal         ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal         ${body}         /errors            [{"field": "status", "message": "Invalid Status", "object": "status", "reason_code": "500-601", "reason_desc": "Invalid Status"}]
+    [Tags]
+
+
+TC_01.05_Pause the Native Ad(Archived)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0105"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+##########################
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native                        adName="${CREATIVE_NAME}_NATIVE0105"    adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}     status=3
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=native     status=${Unpause}      expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-701"
+    Json Value Should Equal         ${body}         /reason_desc        "Archived Ad"
+    [Tags]
+
+
+TC_01.06_UnPause the Native Ad(Unpause the Ad)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0106"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+##########################
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native                        adName="${CREATIVE_NAME}_NATIVE0106"    adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}    status=2
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=native     status=${Unpause}      expected_status_code=200
+    Json Value Should Equal         ${body}         /success            true
+    Json Value Should Equal         ${body}         /reason_code        "000-000"
+    [Tags]
+
+
+
+
+
+
+############################################################################################################
+#  VIDEO
+############################################################################################################
+
+TC_02.01_Pause the Video Ad
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0201"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1    name="${CREATIVE_NAME}_VIDEO0201"
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=video    status=${Pause}
+    Json Value Should Equal         ${body}         /success            true
+    Json Value Should Equal         ${body}         /reason_code        "000-000"
+    [Tags]
+
+TC_02.02_Pause the Video Ad(Archived Video ad)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0202"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}  name="${CREATIVE_NAME}_VIDEO0202"    videoType=1    status=3
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=video     status=${Pause}      expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-701"
+    Json Value Should Equal         ${body}         /reason_desc        "Archived Ad"
+    [Tags]
+
+TC_02.03_Pause the Video Ad(Invalid Ad id)
+
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0203"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}  name="${CREATIVE_NAME}_VIDEO0203"    videoType=1
+    ${type_Ad_id}=    Evaluate          ${type_Ad_id}+1
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=video    status=${Pause}     expected_status_code=400
+    Json Value Should Equal            ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-703"
+    Json Value Should Equal         ${body}         /reason_desc        "Invalid Ad Id"
+    [Tags]
+
+TC_02.04_Pause the Video Ad(Invalid status)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0204"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}  name="${CREATIVE_NAME}_VIDEO0204"    videoType=1
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=video    status=5      expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "400-999"
+    Json Value Should Equal         ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal         ${body}         /errors            [{"field": "status", "message": "Invalid Status", "object": "status", "reason_code": "500-601", "reason_desc": "Invalid Status"}]
+    [Tags]
+
+TC_03.05_Pause the Video Ad(Archived)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0205"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}  name="${CREATIVE_NAME}_VIDEO0205"    videoType=1    status=3
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=video     status=${Unpause}      expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-701"
+    Json Value Should Equal         ${body}         /reason_desc        "Archived Ad"
+    [Tags]
+
+
+TC_03.06_UnPause the Video Ad(Unpause)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0206"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}  name="${CREATIVE_NAME}_VIDEO0206"    videoType=1       status=2
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=video     status=${Unpause}      expected_status_code=200
+    Json Value Should Equal         ${body}         /success            true
+    Json Value Should Equal         ${body}         /reason_code        "000-000"
+    [Tags]
+############################################################################################################
+#  BANNER
+############################################################################################################
+TC_03.01_Pause the banner Ad
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0301"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}              adName="${CREATIVE_NAME}_BANNER0301"      bannerType=0
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=banner    status=${Pause}
+    Json Value Should Equal         ${body}         /success            true
+    Json Value Should Equal         ${body}         /reason_code        "000-000"
+    [Tags]
+
+TC_03.02_Pause the banner Ad(Archived banner ad)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0302"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}              adName="${CREATIVE_NAME}_BANNER0302"      bannerType=0            status=3
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=banner     status=${Pause}      expected_status_code=400
+    Log     ${body}
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-701"
+    Json Value Should Equal         ${body}         /reason_desc        "Archived Ad"
+    [Tags]
+
+TC_03.03_Pause the banner Ad(Invalid Ad id)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0303"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}              adName="${CREATIVE_NAME}_BANNER0303"      bannerType=0
+    ${type_Ad_id}=    Evaluate          ${type_Ad_id}+1
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=banner    status=${Pause}     expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-703"
+    Json Value Should Equal         ${body}         /reason_desc        "Invalid Ad Id"
+    [Tags]      banneri
+
+TC_03.04_Pause the banner Ad(Invalid status)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0304"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}              adName="${CREATIVE_NAME}_BANNER0304"      bannerType=0
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=banner    status=5      expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "400-999"
+    Json Value Should Equal         ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal         ${body}         /errors            [{"field": "status", "message": "Invalid Status", "object": "status", "reason_code": "500-601", "reason_desc": "Invalid Status"}]
+    [Tags]
+
+
+
+TC_03.05_Pause the banner Ad(Archived)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0305"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}              adName="${CREATIVE_NAME}_BANNER0305"      bannerType=0      status=3
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=banner     status=${Unpause}      expected_status_code=400
+    Json Value Should Equal         ${body}         /success            false
+    Json Value Should Equal         ${body}         /reason_code        "500-701"
+    Json Value Should Equal         ${body}         /reason_desc        "Archived Ad"
+    [Tags]
+
+
+TC_03.06_UnPause the banner Ad(Unpause)
+
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0306"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}              adName="${CREATIVE_NAME}_BANNER0306"      bannerType=0    status=2
+    Pause_Unpause Request for Ad             id=${type_Ad_id}      type=banner     status=${Unpause}      expected_status_code=200
+    Json Value Should Equal         ${body}         /success            true
+    Json Value Should Equal         ${body}         /reason_code        "000-000"
+    [Tags]

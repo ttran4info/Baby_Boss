@@ -1,0 +1,68 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      	BATCH16	
+
+
+***Variables***
+
+${appnexus_pending_id}		64104880
+${appnexus_approved_id}		59557444
+${appnexus_rejected_id}		59356937
+
+*** Keywords ***
+Appnexus Get Token new user  
+	[Arguments]		${uri}=    ${expected_status_code}=200   
+    Create Session   	appnexus    	http://api-test.adnxs.com
+    ${headers}      Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable	${body}			{"auth":{"username":"4info_bidder_user","password":"JhbVDCJk"}}
+    
+    ${resp}=	Post Request	appnexus		/auth		data=${body}		headers=${headers}		
+	${token}=    	extract_matching_regex	'${resp.content}'	"token":"(.+?)",
+	Set Test Variable 	 ${resp}  	${resp}
+	Set Test Variable	 ${token}	${token}
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+
+Appnexus status request
+	[Arguments]		${uri}=    ${expected_status_code}=200
+	Appnexus Get Token new user
+	${headers}    Create Dictionary     Authorization=${token}
+	Set Test Variable   ${headers}     ${headers}
+	${resp}=	Get Request		appnexus		${uri}		headers=${headers}
+	Log   Resp: ${resp}
+	Log    Code: ${resp.status_code}
+	Log    Response: '${resp.content}'
+	Set Suite Variable		${response_body}		${resp.content}
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+	
+		
+*** Test Cases ***
+
+
+TC_01 Checking appnexus for pending creative
+	[Tags]
+	[Documentation]		Checking appnexus Pendinf status
+	Appnexus status request		uri=/creative/2049/${appnexus_pending_id}
+	${appnexus_status}=    		extract_matching_regex		${response_body}		"audit_status":"(.*)","allow_audit"
+	Should Be Equal As Strings				${appnexus_status}		pending
+
+	
+	
+	
+TC_02 Checkig appnexus for approved/audited creative
+	[Tags]
+	[Documentation]		Checking appnexus approved status
+	Appnexus status request		uri=/creative/2049/${appnexus_approved_id}
+	${appnexus_status}=    		extract_matching_regex		${response_body}		"audit_status":"(.*)","allow_audit"
+	Should Be Equal As Strings				${appnexus_status}		audited
+	
+	
+
+TC_03 Checking appnexus for rejected creative
+	[Tags]
+	[Documentation]		Checking appnexus rejected status	
+	Appnexus status request		uri=/creative/2049/${appnexus_rejected_id}
+	${appnexus_status}=    		extract_matching_regex		${response_body}		"audit_status":"(.*)","allow_audit"
+	Should Be Equal As Strings				${appnexus_status}		rejected
+	
+	
+	

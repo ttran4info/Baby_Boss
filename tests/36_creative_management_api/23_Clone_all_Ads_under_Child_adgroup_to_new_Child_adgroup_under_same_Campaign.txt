@@ -1,0 +1,215 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16     HYDRA          CLN_ADS_UNDER_CHILD
+Suite Setup         Run Keyword         CleanUp Test suite data
+Suite Teardown      Run Keyword         CleanUp Test suite data
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-CloneallAdsunderChildadgrouptonewChildadgroupundersameCampaign
+#API NAME : Clone all Ads under Child adgroup to new Child adgroup under same Campaign
+#METHOD : PUT
+#API :/hydra/v1/ad/clone/{originalAdgroupId}/{clonedAdgroupId}
+
+
+*** Variables ***
+${QA_TEST_ADVERTISER}           QA_AUTOMATION_TEST_ADVERTISER_23
+${CAMPAIGN_NAME}             QA_AUTOMATION_TEST_CAMPAIGN_TEST_23
+${CREATIVE_NAME}                QA_AUTOMATION_TEST_CREATIVE_23
+${CHILD_NAME}                   QA_AUTOMATION_TEST_CHILD_TEST_23
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  QA_AUTOMATION_TEST_PARENT_TEST_23
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+
+
+*** Keywords ***
+Clone all Ads under Child adgroup to new Child adgroup
+    [Arguments]      ${originalAdgroupId}=
+    ...              ${clonedAdgroupId}=
+    ...              ${expected_status_code}=200
+    ...              ${auth}=${HYDRA_AUTH}
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    Set Test Variable    ${uri}      /hydra/v1/ad/clone/${originalAdgroupId}/${clonedAdgroupId}
+    ${headers}       Create Dictionary     Content-Type=application/json    Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    ${resp}=    RequestsLibrary.Put Request     docker     ${uri}        headers=${headers}
+    Set Test Variable    ${resp}    ${resp}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Set Suite Variable       ${response_content}     ${resp.content}
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json    ${response_content}
+CleanUp Test suite data
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+
+*** Test cases ***
+TC_00_TEST_DATA_GENERATE
+    Get Start Date
+    Log To Console                              "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${todaysDate}      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59     campaign_access_control=${Empty}
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${todaysDate}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native1            child_parent_campaign_id=${parent_id}    child_start_date_time=${todaysDate}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${nativeAdgroupId1}                  ${Native_Child_AdGroup_ID}
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native2            child_parent_campaign_id=${parent_id}    child_start_date_time=${todaysDate}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${nativeAdgroupId2}                  ${Native_Child_AdGroup_ID}
+    Log To Console         "Created native data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoUpload1       child_parent_campaign_id=${parent_id}    child_start_date_time=${todaysDate}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Video_Upload_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId1}                  ${Video_Upload_Child_AdGroup_ID}
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoUpload2       child_parent_campaign_id=${parent_id}    child_start_date_time=${todaysDate}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Video_Upload_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId2}                  ${Video_Upload_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerRich1         child_parent_campaign_id=${parent_id}    child_start_date_time=${todaysDate}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_3rdParty_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId1}                  ${Banner_3rdParty_Child_AdGroup_ID}
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerRich2         child_parent_campaign_id=${parent_id}    child_start_date_time=${todaysDate}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_3rdParty_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId2}                  ${Banner_3rdParty_Child_AdGroup_ID}
+
+TC_01.01_Clone Ads under Child adgroup to new child adgroup(Native Ads)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0101"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId1}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0101"
+
+    Clone all Ads under Child adgroup to new Child adgroup       originalAdgroupId=${nativeAdgroupId1}
+    ...     clonedAdgroupId=${nativeAdgroupId2}
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Json Value Should Equal     ${body}         /success            true
+    [Tags]
+
+
+TC_01.02_Clone Ads under Child adgroup to new child adgroup(Native invalid original Ad id)
+    Clone all Ads under Child adgroup to new Child adgroup       originalAdgroupId=1043111
+    ...     clonedAdgroupId=${nativeAdgroupId2}
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /reason_code        "500-602"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Adgroup Id"
+    Json Value Should Equal     ${body}         /success            false
+    [Tags]
+
+
+TC_01.03_Clone Ads under Child adgroup to new child adgroup(Native invalid clonedAdgroupId)
+    Clone all Ads under Child adgroup to new Child adgroup       originalAdgroupId=${nativeAdgroupId1}
+    ...     clonedAdgroupId=10912120
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /reason_code        "500-603"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Cloned Adgroup Id"
+    Json Value Should Equal     ${body}         /success            false
+    [Tags]
+
+
+TC_02.01_Clone Ads under Child adgroup to new child adgroup(Video Ads)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0101"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0101"
+
+    Clone all Ads under Child adgroup to new Child adgroup       originalAdgroupId=${videoAdgroupId1}
+    ...     clonedAdgroupId=${videoAdgroupId2}
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Json Value Should Equal     ${body}         /success            true
+    [Tags]
+
+TC_02.02_Clone Ads under Child adgroup to new child adgroup(Video invalid original Ad id)
+    Clone all Ads under Child adgroup to new Child adgroup       originalAdgroupId=10431121
+    ...     clonedAdgroupId=${videoAdgroupId2}
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /reason_code        "500-602"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Adgroup Id"
+    Json Value Should Equal     ${body}         /success            false
+    [Tags]
+
+TC_02.03_Clone Ads under Child adgroup to new child adgroup(Video invalid clonedAdgroupId)
+    Clone all Ads under Child adgroup to new Child adgroup       originalAdgroupId=${videoAdgroupId1}
+    ...     clonedAdgroupId=10912120
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /reason_code        "500-603"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Cloned Adgroup Id"
+    Json Value Should Equal     ${body}         /success            false
+    [Tags]
+
+
+
+TC_03.01_Clone Ads under Child adgroup to new child adgroup(Banner Ads)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0101"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}                                  adName="${CREATIVE_NAME}_BANNER0101"      bannerType=0
+
+    Clone all Ads under Child adgroup to new Child adgroup       originalAdgroupId=${bannerAdgroupId1}
+    ...     clonedAdgroupId=${bannerAdgroupId2}
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Json Value Should Equal     ${body}         /success            true
+    [Tags]
+
+TC_03.02_Clone Ads under Child adgroup to new child adgroup(Banner invalid original Ad id)
+    Clone all Ads under Child adgroup to new Child adgroup       originalAdgroupId=10431121
+    ...     clonedAdgroupId=${bannerAdgroupId2}
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /reason_code        "500-602"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Adgroup Id"
+    Json Value Should Equal     ${body}         /success            false
+    [Tags]
+
+TC_03.03_Clone Ads under Child adgroup to new child adgroup(Banner invalid clonedAdgroupId)
+    Clone all Ads under Child adgroup to new Child adgroup       originalAdgroupId=${bannerAdgroupId1}
+    ...     clonedAdgroupId=10912120
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /reason_code        "500-603"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Cloned Adgroup Id"
+    Json Value Should Equal     ${body}         /success            false
+    [Tags]
+
+
+TC_04.01_Clone Ads under Child adgroup to new child adgroup(Clone in different campaign adgroup)
+    Clone all Ads under Child adgroup to new Child adgroup       originalAdgroupId=1089
+    ...     clonedAdgroupId=1081
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /reason_code        "500-604"
+    Json Value Should Equal     ${body}         /reason_desc        "Ads cannot be cloned under different Campaigns"
+    Json Value Should Equal     ${body}         /success            false
+    [Tags]

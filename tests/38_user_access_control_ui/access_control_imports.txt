@@ -1,0 +1,12 @@
+*** Settings ***
+Resource    advertisers.txt 
+Resource    ui_default_ads_template.txt 
+Resource	pegasus.txt
+Resource	ui_pegasus.txt
+Library		Selenium2Library
+Library		Collections
+Library		retrieve_number.py
+Library		retrieve_list.py
+Library		compare_permissions.py
+Library		verify_campaign_ids.py
+Library		remove_pyc.py

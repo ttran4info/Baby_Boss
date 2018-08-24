@@ -1,0 +1,4 @@
+*** Settings ***
+Resource    advertisers.txt 
+Library		Selenium2Library
+Library		Collections

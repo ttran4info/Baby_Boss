@@ -1,0 +1,2036 @@
+*** Settings ***
+Resource            campaign_management_api_imports.txt
+Force Tags          BATCH17     UM      CM2.0       CM2.4
+Suite Setup         Run Keyword    Suite Teardown for UM2.4
+Suite Teardown      Run Keyword    Suite Teardown for UM2.4
+
+
+
+#API 2.4. Update a user
+#https://wiki.4info.com/display/Software/User+management+API
+#This request will be called on Admin tab - user edit page
+#...user-management-api/admin/users?username=zzz-test-username
+#rhino.user_permissions
+#rhino.user_product_permissions
+#users = rhino.users
+
+
+*** Variables ***
+
+
+*** Keywords ***
+Suite Teardown for UM2.4
+    Delete New User via DB    username=regression@temp
+    Delete New User via DB    username=regression@yahoo
+
+
+
+*** Test Cases ***
+#--------------------------------------------------------------------------------------
+CM2.4_TC_0.0_Create pre requisite users
+    Create Required Users with Required Groups, Products and Permissions for Update a user
+    [Tags]
+
+
+CM2.4_TC_0.1.1_Update a group 1 user(group id=1, product=1, permission=2) using last modified by group 1 user - Accept
+    Set Test Variable    ${username}    user-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_0.1.2_Update a group 1 user(group id=1, product=3, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 3}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+
+CM2.4_TC_0.1.3_Update a group 1 user(group id=2, product=1, permission=3) using last modified by group 1 user - Accept
+    Set Test Variable    ${username}    user-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_0.2.1_Update a group 1 user(group id=1, product=2, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-b-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_0.3.1_Update a group 1 user(group id=1, product=1, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-c-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_0.3.2_Update a group 1 user(group id=2, product=1, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-c-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_0.4.1_Update a group 1 user(group id=2, product=1, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_0.4.2_Update a group 1 user(group id=2, product=2, permission=1) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1], "groupId": 2, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_0.4.3_Update a group 1 user(group id=2, product=1, permission=3) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [3], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_0.5.1_Update a group 1 user(group id=3, product=1, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-e-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 3, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    # Suite Teardown for UM2.4
+    [Tags]
+
+
+
+CM2.4_TC_0.6.1_Update a group 1 user(group id=1, product=1, permission=3) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-1230-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${permissionsList}    [{"permissions": [3], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_0.6.2_Update a group 1 user(group id=1, product=2, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-1230-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_0.6.3_Update a group 1 user(group id=2, product=1, permission=3) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-1230-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [3], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_0.7.1_Update a group 1 user(group id=1, product=1, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    User-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_0.7.2_Update a group 1 user(group id=1, product=3, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    User-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1], "groupId": 1, "productId": 3}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_0.7.3_Update a group 1 user(group id=2, product=1, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    User-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+
+CM2.4_TC_0.8.1_Update a group 1 user(group id=1, product=2, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    User-b-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_0.9.1_Update a group 1 user(group id=1, product=1, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    User-c-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_0.9.2_Update a group 1 user(group id=2, product=1, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    User-c-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_0.10.1_Update a group 1 user(group id=2, product=1, permission=2) using last modified by non group 1 user - Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_0.10.2_Update a group 1 user(group id=2, product=2, permission=1) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1], "groupId": 2, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_0.10.3_Update a group 1 user(group id=2, product=1, permission=3) using last modified by non group 1 user - Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [3], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_0.11.1_Update a group 1 user(group id=3, product=1, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-e-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 3, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Get User Permissions from DB    username=${lastModifiedBy}
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+#--------------------------------------------------------------------------------------
+CM2.4_TC_01.1_Update_User (authority:Admin, accept)
+    [Documentation]    Create user with authority USER, check response content, update user authority ADMIN, check content
+    Set Test Variable    ${username}    011regression@temp.com
+    Set Test Variable    ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable    ${password}    abcABC123!
+    Set Test Variable    ${firstName}    regression
+    Set Test Variable    ${lastName}    temp
+    Set Test Variable    ${authority}    ADMIN
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER3}     # ${QA_DEFAULT_USER}
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_01.2_Update_User (authority:USER, accept)
+    [Documentation]     Create user with authority ADMIN, check response content, update user authority USER, check content
+    Set Test Variable    ${username}    012regression@temp.com
+    Set Test Variable    ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable    ${password}    abcABC123!
+    Set Test Variable    ${firstName}     regression
+    Set Test Variable    ${lastName}    temp
+    Set Test Variable    ${authority}    ADMIN
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable    ${campaigngrouplist_groupid}    15
+    # Set Test Variable    ${campaigngrouplist_permission}    "READ", "WRITE"
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER3}
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${authority}    USER
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_01.3_Update_User (Authority: Unknown, don't accept)
+    [Documentation]    Create user with authority ADMIN, check response content, update user authority UNKNOWN, expect 400
+    Set Test Variable    ${username}    013regression@temp.com
+    Set Test Variable   ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable    ${password}    abcABC123!
+    Set Test Variable    ${firstName}    regression
+    Set Test Variable    ${lastName}    temp
+    Set Test Variable    ${authority}    USER
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable    ${campaigngrouplist_groupid}    15
+    # Set Test Variable    ${campaigngrouplist_permission}    "READ", "WRITE"
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER3}
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${authority}    UNKNOWN
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-099"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "Authority has to be USER or ADMIN."
+    [Tags]
+
+
+CM2.4_TC_01.4_Update_User (Authority: 99, don't accept)
+    [Documentation]    Create user with authority ADMIN, check response content, update user authority UNKNOWN, expect 400
+    Set Test Variable    ${username}    014regression@temp.com
+    Set Test Variable    ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable    ${password}    abcABC123!
+    Set Test Variable    ${firstName}    regression
+    Set Test Variable    ${lastName}    temp
+    Set Test Variable    ${authority}    USER
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable    ${campaigngrouplist_groupid}    15
+    # Set Test Variable    ${campaigngrouplist_permission}    "READ", "WRITE"
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER3}
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${authority}    99
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-099"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "Authority has to be USER or ADMIN."
+    [Tags]      Known_bug   CM-161      Exclude
+    #we stop checking for invalid data type
+
+
+CM2.4_TC_01.5_Update_User (authority Missing, Don't accept)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             066regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${authority}    MISSING
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+
+
+CM2.4_TC_02.1_Update_User (Status: Active, accept)
+    [Documentation]    Create user with status inactive, check response content, update user status active, check content
+    Set Test Variable    ${username}    021regression@temp.com
+    Set Test Variable    ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable    ${password}    abcABC123!
+    Set Test Variable    ${firstName}    regression
+    Set Test Variable    ${lastName}    temp
+    Set Test Variable    ${authority}    USER
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable    ${campaigngrouplist_groupid}    15
+    # Set Test Variable    ${campaigngrouplist_permission}    "READ", "WRITE"
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER3}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    [Tags]
+
+
+
+CM2.4_TC_02.2_Update_User (Status: InActive, accept)
+    [Documentation]    Create user with status active, check response content, update user status inactive, check content
+    Set Test Variable    ${username}    022regression@temp.com
+    Set Test Variable    ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable    ${password}    abcABC123!
+    Set Test Variable    ${firstName}    regression
+    Set Test Variable    ${lastName}    temp
+    Set Test Variable    ${authority}    USER
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable    ${campaigngrouplist_groupid}    15
+    # Set Test Variable    ${campaigngrouplist_permission}    "READ", "WRITE"
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER3}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${status}    0    # will be 1=active 0 = inactive
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    [Tags]
+
+
+CM2.4_TC_02.3_Update_User (Status: Unknown, don't accept)
+    [Documentation]     Create user with status inactive, check response content, update user status active, check content
+    Set Test Variable       ${username}                             023regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${status}    unknown    # will be 1=active 0 = inactive
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"400-001"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Invalid Request."
+    [Tags]          #Known_bug  CM-262    EXCLUDE
+    #we stop checking for invalid datatype
+
+
+CM2.4_TC_02.4_Update_User (Status: 9, don't accept)
+    [Documentation]     Create user with status inactive, check response content, update user status active, check content
+    Set Test Variable       ${username}    024regression@temp.com
+    Set Test Variable       ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable       ${password}    abcABC123!
+    Set Test Variable       ${firstName}    regression
+    Set Test Variable       ${lastName}    temp
+    Set Test Variable       ${authority}    USER
+    Set Test Variable       ${permissionsList}    [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}    15
+    # Set Test Variable     ${campaigngrouplist_permission}    "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}    ${QA_CATALINA_USER3}
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${status}    9    # will be 1=active 0 = inactive
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+CM2.4_TC_03.1_Update_User (permissions: 1 (READ), accept)
+    [Documentation]     Create user with productpermission 2, update user productpermision 1, check content
+    Set Test Variable       ${username}                             031regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable       ${permissionsList}              [{"permissions": [1], "groupId": 15, "productId": 1}]
+
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    [Tags]
+
+
+CM2.4_TC_03.2_Update_User (permissions: 2 (WRITE), accept)
+    [Documentation]     Create user with productpermission 1, update user productpermision 2, check content
+    Set Test Variable       ${username}                             032regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1], "groupId": 15, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable       ${permissionsList}              [{"permissions": [2], "groupId": 15, "productId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_03.3_Update_User (permissions: 1,2 (READ,WRITE), accept)
+    [Documentation]     Create user with productpermission 1, update user productpermision 1,2, check content
+    Set Test Variable       ${username}                             033regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM2.4_TC_03.4_Update_User (permissions: 99, don't accept)
+    [Documentation]     Create user with productpermission 1, update user productpermision 1,2, check content
+    Set Test Variable       ${username}                             034regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${permissionsList}              99
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable       ${permissionsList}              [{"permissions": [99], "groupId": 15, "productId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    [Tags]  exclude   Known_bug     CM-123
+
+
+CM2.4_TC_03.5_Update_User (permissions: unknown, don't accept)
+    [Documentation]     Create user with productpermission 1, update user productpermision 1,2, check content
+    Set Test Variable       ${username}                             035regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${permissionsList}              unknown
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${permissionsList}    [{"permissions": ["unknown"], "groupId": 15, "productId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    [Tags]  exclude   Known_bug     CM-123
+
+
+CM2.4_TC_03.6_Update_User (groupId: 15,16 Permission:READ/READ,WRITE)
+    [Documentation]     Create user with campaigngrouplist_permission READ, update user READ,WRITE
+    Set Test Variable       ${username}                             036regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1], "groupId": 15, "productId": 1}]
+ #    Set Test Variable     ${permissionsList}              1
+    # Set Test Variable     ${campaigngrouplist_groupid}            15,16
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ";"READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable       ${permissionsList}              [{"permissions": [1], "groupId": 15, "productId": 1}, {"permissions": [1, 2], "groupId": 16, "productId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    # ...                 response_code=400
+    # ...                 success=false
+
+    # Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    # Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]    EXCLUDE   # No user present with both 15&16 permissions
+
+
+CM2.4_TC_03.7_Update_User (permissions missing, don't accept)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             037regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+        Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${permissionsList}    [{"groupId": 15, "productId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Permissions cannot be null or empty."
+    [Tags]
+
+
+CM2.4_TC_04.1_Update_User (groupId: 1, accept)
+    [Documentation]     Create user with campaignGroupList_groupId 15, update user campaignGroupList_groupId 1
+    Set Test Variable       ${username}                             041regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+ #    Set Test Variable     ${permissionsList}              1
+    # Set Test Variable     ${campaigngrouplist_groupid}            1
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    [Tags]
+
+
+CM2.4_TC_04.2_Update_User (groupId: 15)
+    [Documentation]     Create user with campaignGroupList_groupId 1, update user campaignGroupList_groupId 15
+    Set Test Variable       ${username}                             042regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    [Tags]
+
+
+CM2.4_TC_04.3_Update_User (groupId: 15, with a user who has an access for group id 1, don't accept)
+    [Documentation]     Create user with campaignGroupList_groupId 15, update user campaignGroupList_groupId 1,15
+    Set Test Variable       ${username}                             043regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            1,15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ", "WRITE";"READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${lastModifiedBy}    User-123-regression@temp.com
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_04.4_Update_User (groupId: 99)
+    [Documentation]     Create user with campaignGroupList_groupId 15, update user campaignGroupList_groupId 99 (response 400)
+    Set Test Variable       ${username}                             044regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            99
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 99, "productId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-101"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "Group id is not in 'groups' table."
+    # Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    # Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+
+    [Tags]
+
+
+CM2.4_TC_04.5_Update_User (groupId: abc)
+    [Documentation]     Create user with campaignGroupList_groupId 15, update user campaignGroupList_groupId 99 (response 400)
+    Set Test Variable       ${username}                             045regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            abc
+    Set Test Variable       ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": "abc", "productId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal    ${updated_body}    /reason_code    "400-001"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "Invalid Request."
+
+    [Tags]
+
+
+CM2.4_TC_04.6_Update_User (groupId missing, don't accept)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             046regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+        Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "productId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Group Id cannot be null."
+    [Tags]
+
+
+CM2.4_TC_05.1_Update_User (productId: 1, accept)
+    [Documentation]     Create user with campaigngrouplist_permission READ,WRITE, update user READ
+    Set Test Variable       ${username}                             15regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 2}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    [Tags]
+
+
+CM2.4_TC_05.2_Update_User (productId: 99, Don't accept)
+    [Documentation]     Create user with campaigngrouplist_permission READ,WRITE, update user READ
+    Set Test Variable       ${username}                             16regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 2}]
+    # Set Test Variable     ${permissionsList}              1
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 99}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    # Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    # Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-003"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "Product id is not found."
+    [Tags]
+
+
+CM2.4_TC_05.3_Update_User (productId missing, don't accept)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             053regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "groupId": 1}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Product Id cannot be null."
+    [Tags]
+
+
+CM2.4_TC_06.1_Update_User (user name blank, don't accepts)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             061regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${username1}    ${Empty}
+
+    Update a user       userName=${username1}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Should Match Regexp     ${updated_body}     "reason_code":"700-012"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Username cannot be modified once created."
+    [Tags]
+
+
+CM2.4_TC_06.2_Update_User (user name missing, don't accept)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             062regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${username}    MISSING
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Username can contain alphanumeric charaters, -, . and @ only"
+    [Tags]
+
+
+
+CM2.4_TC_06.3_Update_User (no first name)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             063regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${firstName}    MISSING
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]
+
+
+CM2.4_TC_06.4_Update_User (no last name)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             064regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${lastName}    MISSING
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-099"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+
+    [Tags]
+
+
+CM2.4_TC_06.5_Update_User (no password - success unchange)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             065regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${password}    MISSING
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]   # Known_bug    CM-1928
+
+
+
+
+
+CM2.4_TC_06.6_Update_User (no status)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             067regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${status}    MISSING
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+CM2.4_TC_06.7_Update_User (permissionsList missing, don't accept)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}                             068regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${permissionsList}    "MISSING"
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    # Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    # Should Match Regexp     ${updated_body}     "reason_desc":"Permissions list cannot be null or empty."
+    [Tags]
+
+
+CM2.4_TC_07.1_Update_User (no permission)
+    [Documentation]     Create user, update user
+    Set Test Variable       ${username}    071regression@temp.com
+    Set Test Variable       ${status}      1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}    abcABC123!
+    Set Test Variable       ${firstName}    regression
+    Set Test Variable       ${lastName}     temp
+    Set Test Variable       ${authority}     USER
+    Set Test Variable       ${permissionsList}    [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER2}
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "700-014"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM2.4_TC_07.2_Update_User no changes, same information
+    [Documentation]     Create user with authority USER, check response content, update user authority ADMIN, check content
+    Set Test Variable       ${username}                             072regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            ADMIN
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    [Tags]
+
+
+CM2.4_TC_29_Update_User (always lower case user name)
+    [Documentation]     We'll try to update user name with some Caps
+    Set Test Variable       ${username}                             29reGression@teMp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            ADMIN
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    Set Test Variable       ${campaigngrouplist_groupid}            15
+    Set Test Variable       ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Create Update User via API          user_name=${username}
+    ...             status=${status}
+    ...             password=${password}
+    ...             firstName=${firstName}
+    ...             lastName=${lastName}
+    ...             authority=${authority}
+    ...             permissionsList=${permissionsList}
+    ...             campaigngrouplist_groupid=${campaigngrouplist_groupid}
+    ...             campaigngrouplist_permission=${campaigngrouplist_permission}
+    ...             lastModifiedBy=${lastModifiedBy}
+    ...             uri=/user-management-api/admin/users?username=${user_name}
+
+    [Tags]   EXCLUDE    # This test scenario is not relevant to update user.
+
+
+CM_2.4_TC_30_When the logged in user is updating their own details, it should not be allowed
+    #Create Required Users with Required Groups, Products and Permissions
+    Set Test Variable       ${username}           user123-regression@4info.com
+    Set Test Variable       ${status}             1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}           abcABC123!
+    Set Test Variable       ${firstName}          regression
+    Set Test Variable       ${lastName}           temp
+    Set Test Variable       ${authority}          ADMIN
+    Set Test Variable       ${permissionsList}    {"permissions": [1], "groupId": 1, "productId": 1}
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${username}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${updated_body}    /reason_code    "400-001"
+    Json Value Should Equal    ${updated_body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+
+CM_2.4_TC_31_When group 1 user with admin rights tries to update another group 1 user created by differnt admin user, accept
+    #[Documentation]     When group 1 user with admin rights tries to update another group 1 user created by differnt admin user, accept.
+    Set Test Variable    ${username}           user-a-regression@temp.com
+    Set Test Variable    ${status}             1           # will be 1=active 0 = inactive
+    Set Test Variable    ${password}           abcABC123!
+    Set Test Variable    ${firstName}          regression
+    Set Test Variable    ${lastName}           temp
+    Set Test Variable    ${authority}          ADMIN
+    Set Test Variable    ${permissionsList}     [{"permissions": [1], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}      user-123-regression@temp.com
+    Get User Permissions from DB    username=${username}
+    Get User Permissions from DB    username=${lastModifiedBy}
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM_2.4_TC_32_When group 1 user with admin rights tries to update another group 1 user created by differnt admin user, accept
+    #[Documentation]     When group 1 user with admin rights tries to update another group 1 user created by differnt admin user, accept.
+    Set Test Variable    ${username}           31reGression@teMp.com
+    Set Test Variable    ${status}             1           # will be 1=active 0 = inactive
+    Set Test Variable    ${password}           abcABC123!
+    Set Test Variable    ${firstName}          regression
+    Set Test Variable    ${lastName}           temp
+    Set Test Variable    ${authority}          ADMIN
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 1}]
+    ###username='abc@4info.net', group_id='1', product_id='1', permissions_id='2'
+    Set Test Variable    ${lastModifiedBy}     abc@4info.com
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${permissionsList}    [{"permissions": [1], "groupId": 1, "productId": 1}]
+    ###username='admin@4info.net', group_id='1', product_id='1', permissions_id='3'
+    Set Test Variable    ${lastModifiedBy}     ${QA_DEFAULT_USER}
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]

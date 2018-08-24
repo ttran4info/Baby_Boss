@@ -1,0 +1,165 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16		HYDRA    DELETECR
+Suite Setup     Run Keyword        Clean-up_generated_date
+Suite Teardown    Run Keyword        Clean-up_generated_date
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-DeleteCreativeHydra)Documentation-ReadCreative
+#API NAME :DELETE Creatives
+#METHOD : DELETE
+#API :/hydra/v1/creative/{type}/{detailId}
+
+***Variables***
+${native_uri}        native
+${video_uri}         video
+${banner_uri}        banner
+${Creative_name}    TestREGRESSION_CREATIVE_06
+${CREATIVE_NAME}     TestREGRESSION_CREATIVE_06
+${CAMPAIGN_NAME}     Test_Campaign_HYDRA_06
+${QA_TEST_ADVERTISER}       Test_ADV_HYDRA_06
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+*** Keywords ***
+Clean-up_generated_date
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+
+Creative DELETE Request for campaign
+    [Arguments]     ${uri}=     ${expected_status_code}=200     ${success}=NA      ${auth}=${HYDRA_AUTH}
+    #Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1/creative/
+    #${headers}    Create Dictionary    Content-type=application/json    Accept=application/json     Authorization=${auth}
+    #${resp}=    Delete Request     docker   ${uri}          headers=${headers}
+    #Log    Response: '${resp.content}'
+    #Set Suite Variable       ${body}     ${resp.content}
+    #Should Be Valid Json     ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+    #Run Keyword Unless  '${success}'=='NA'          Should Match Regexp     ${body}     "success":${success}
+	Set Test Variable	${url}		hydra/v1/creative/${uri}
+	HYDRA API      auth=${auth}
+	...			   uri=${url}										#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=DELETE								#GET, POST, PUT
+    ...            expected_status_code=${expected_status_code}		#normally 200 for working condition, 400 for failure
+    ...            success=${success}									#true if response is 200, false if response is 400
+
+**Test Cases***
+
+#########################################################################
+#####    Native TCs
+#########################################################################
+TC_00_TEST_DATA_GENERATE
+    Log To Console                              "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59     campaign_access_control=${Empty}
+    ${campaignId}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaignId}
+    [Tags]
+
+
+TC_001 Delete Native creative(Normal Method)
+    [Documentation]             Input : Delete the creative  (Normal Method
+    ...                         Output : Delete Should be Successful. and give response code
+    Generate JSON For Creative Native           adName="${Creative_name}001"     campaign_id=${Campaign_Id}
+    CREATIVE POST Request for Creative          uri=${native_uri}
+    ...                                         JSON=${data}
+    ...                                         expected_status_code=200
+    Creative DELETE Request for campaign        uri=${native_uri}/${DTO_id}
+    ...                                         expected_status_code=200
+    ...                                         success=true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+
+TC_002 Delete Native creative(Invalid Creative id)
+    [Documentation]             Input : Delete the creative  Invalid Creative id
+    ...                         Output : Delete Should be unuccessful. and give response code 400
+    Generate JSON For Creative Native           adName="${Creative_name}002"     campaign_id=${Campaign_Id}
+    CREATIVE POST Request for Creative          uri=${native_uri}
+    ...                                         JSON=${data}
+    ...                                         expected_status_code=200
+    ${DTO_id}=      Evaluate                    ${DTO_id}+1
+    Creative DELETE Request for campaign        uri=${native_uri}/${DTO_id}
+    ...                                         expected_status_code=400
+    ...                                         success=false
+    Json Value Should Equal     ${body}         /reason_code         "500-802"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Creative Id"
+    [Tags]
+
+
+
+####################################################################################
+#####    Video TCs
+#########################################################################
+
+TC_003 Delete Video creative(Normal Method)
+    [Documentation]             Input : Delete the creative  (Normal Method
+    ...                         Output : Delete Should be Successful. and give response code 200
+    Generate JSON For Creative Video            name="${Creative_name}003"         campaign_id=${Campaign_Id}
+    CREATIVE POST Request for Creative          uri=${video_uri}
+    ...                                         JSON=${data}
+    ...                                         expected_status_code=200
+    Creative DELETE Request for campaign        uri=${video_uri}/${DTO_id}
+    ...                                         expected_status_code=200
+    ...                                         success=true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_004 Delete Video creative(Invalid Creative id)
+    [Documentation]             Input : Delete the creative  Invalid Creative id
+    ...                         Output : Delete Should be unsccessful. and give response code 400
+    Generate JSON For Creative Video            name="${Creative_name}004"         campaign_id=${Campaign_Id}
+    CREATIVE POST Request for Creative          uri=${video_uri}
+    ...                                         JSON=${data}
+    ...                                         expected_status_code=200
+    ${DTO_id}=      Evaluate                    ${DTO_id}+1
+    Creative DELETE Request for campaign        uri=${video_uri}/${DTO_id}
+    ...                                         expected_status_code=400
+    ...                                         success=false
+    Json Value Should Equal     ${body}         /reason_code         "500-802"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Creative Id"
+    [Tags]
+
+
+
+####################################################################################
+#####    Banner TCs
+#########################################################################
+
+TC_005 Delete Banner creative(Normal Method)
+    [Documentation]             Input : Delete the creative  (Normal Method
+    ...                         Output : Delete Should be Successful. and give response code 200
+    Generate JSON For Creative Banner          adName="${Creative_name}005"             campaign_id=${Campaign_Id}
+    CREATIVE POST Request for Creative          uri=${banner_uri}
+    ...                                         JSON=${data}
+    ...                                         expected_status_code=200
+    Creative DELETE Request for campaign        uri=${banner_uri}/${DTO_id}
+    ...                                         expected_status_code=200
+    ...                                         success=true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_006 Delete Banner creative(Invalid Creative id)
+    [Documentation]             Input : Delete the creative  Invalid Creative id
+    ...                         Output : Delete Should be unsuccessful. and give response code 400
+    Generate JSON For Creative Banner          adName="${Creative_name}006"             campaign_id=${Campaign_Id}
+    CREATIVE POST Request for Creative          uri=${banner_uri}
+    ...                                         JSON=${data}
+    ...                                         expected_status_code=200
+    ${DTO_id}=      Evaluate                    ${DTO_id}+1
+    Creative DELETE Request for campaign        uri=${banner_uri}/${DTO_id}
+    ...                                         expected_status_code=400
+    ...                                         success=false
+    Json Value Should Equal     ${body}         /reason_code         "500-802"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Creative Id"
+    [Tags]
+
+

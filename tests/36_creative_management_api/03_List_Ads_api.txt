@@ -1,0 +1,335 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16      HYDRA     ListAds
+Suite Setup         Run Keyword         CleanUp Test suite data
+Suite Teardown      Run Keyword         CleanUp Test suite data
+***Variables***
+# ${campaign_id}        2041
+# ${adgroup_id}        36739
+
+${QA_TEST_ADVERTISER}           QA_AUTOMATION_TEST_ADVERTISER_03
+${CAMPAIGN_NAME_UI}             QA_AUTOMATION_TEST_CAMPAIGN_TEST_03
+${CREATIVE_NAME}                QA_AUTOMATION_TEST_CREATIVE_03_CR
+${CHILD_NAME}                   QA_AUTOMATION_TEST_CHILD_TEST_03
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  QA_AUTOMATION_TEST_PARENT_TEST_03
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+
+*** Keywords ***
+Ad GET Request for adgroupId
+    [Arguments]        ${uri}=         ${expected_status_code}=200        ${success}=NA
+    #Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    #${headers}    Create Dictionary     Accept=application/json        Authorization=${HYDRA_AUTH}
+    #${resp}=    Get Request        docker    ${uri}            headers=${headers}
+    #Set Test Variable        ${resp}        ${resp}
+    #${resp}    RequestsLibrary.Get Request    docker   ${uri}    headers=${headers}
+    #Log    Response: '${resp.content}'
+    #Run Keyword If     '${expected_status_code}'=='200'        Set Suite Variable       ${body}     ${resp.content}
+    #Run Keyword If     '${expected_status_code}'=='200'        Should Be Valid Json      ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+    #Run Keyword Unless     '${success}'=='NA'            Should Match Regexp        ${body}        "success":${success}
+	HYDRA API      uri=${uri}										#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=${expected_status_code}		#normally 200 for working condition, 400 for failure
+    ...            success=${success}									#true if response is 200, false if response is 400
+
+CleanUp Test suite data
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+
+*** Test Cases ***
+ #TC_000_Cleanup All Creative Inside Campaign
+#     Remove All Creative From Campaign By Name            campaign_name=Campaing4CreativeAPI
+
+#CREATIVE API
+
+TC_00_TEST_DATA_GENERATE
+    Log To Console                              "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=${Empty}
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+###########################
+    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+##########################
+
+    Log To Console         "Created native data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoUpload       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+##########################
+    ${Video_Upload_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId1}                  ${Video_Upload_Child_AdGroup_ID}
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoVAST         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Video_VAST_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId2}                  ${Video_VAST_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoWrapper      child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Video_Wrapper_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId3}                  ${Video_Wrapper_Child_AdGroup_ID}
+
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerStatic       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_Static_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId0}                  ${Banner_Static_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerRich         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_3rdParty_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId1}                  ${Banner_3rdParty_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Banner3rd          child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_RM_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId2}                  ${Banner_RM_Child_AdGroup_ID}
+    [Tags]
+
+
+TC_001 Verify list of Ads can be retrived by Ad Group id
+    [Documentation]         User must be able to send GET request for Ads
+    [Tags]
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0101"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0101"
+    ${id}                  Get JSON Value          ${body}             /adDetailDTO/nativeDTO/id
+    Set Test Variable       ${id}           ${id}
+    Ad GET Request for adgroupId     uri=/hydra/v1/ads?adgroupId=${nativeAdgroupId}
+    #Should Be Valid JSON     ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    200
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/id                ${id}
+
+TC_002 Verify list of Ads can not be retrived when Ad Group id is not in db
+    [Documentation]        User should not get Ads when get ad does not have correct id
+    [Tags]
+    Ad GET Request for adgroupId     uri=/hydra/v1/ads?adgroupId=${nativeAdgroupId}
+    #Should Be Valid JSON     ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    200    success=false
+    #Should Be Equal As Strings   ${reason_code}    "500-400"
+    #Should Be Equal As Strings   ${reason_desc}    "Invalid data in request."
+
+
+TC_003 Verify list of Ads can not be retrived when Ad Group id is not passed in request
+    [Documentation]        User should not be able to get Ads when group id is not passed
+    [Tags]
+    Ad GET Request for adgroupId     uri=/hydra/v1/ads?adgroupId
+    #Should Be Valid JSON     ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    200    success=false
+    #Should Be Equal As Strings   ${reason_code}    "500-400"
+    #Should Be Equal As Strings   ${reason_desc}    "Invalid data in request."
+
+TC_004 Verify list of Ads Details for Banner Ads
+    [Documentation]        User must be able to send GET request for Banner Ads and get Ad Details
+    [Tags]
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0304"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0304"      bannerType=0
+    ${id}                  Get JSON Value          ${body}             /adDetailDTO/bannerDTO/id
+    Set Test Variable       ${id}           ${id}
+
+    Ad GET Request for adgroupId     uri=/hydra/v1/ads?adgroupId=${bannerAdgroupId1}
+    #Should Be Valid JSON     ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    200
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/id                        ${id}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/status                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/name                      "QA_AUTOMATION_TEST_CREATIVE_03_CR_BANNER0304"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/type                        "banner"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/weight                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeId                ${bannerCreativeId1}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeName                "${CREATIVE_NAME}_BANNER0304"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupId            ${parent_id}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupName            "${parent_name}"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupId            ${bannerAdgroupId1}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupName            "QA_AUTOMATION_TEST_CHILD_TEST_03_BannerRich"
+    # Json Value Should Equal        ${body}        /adInfoDTOs/0/previewLink                "bannerPreview.jsp?url=https://4info.pc.cdn.bitgravity.com/ad/banner/qa/55147/1504092611/image.jpg&width=320&height=50"
+
+TC_005 Verify list of Ads Details for 3rd party Ads
+    [Documentation]        User must be able to GET request for 3rd party Ads and get Ad Details
+    [Tags]     EXCLUDE    #For Single run it is passing but in jenkins it is failing
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0305"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0305"      bannerType=0
+    ${id}                  Get JSON Value          ${body}             /adDetailDTO/bannerDTO/id
+    Set Test Variable       ${id}           ${id}
+
+    Ad GET Request for adgroupId     uri=/hydra/v1/ads?adgroupId=${bannerAdgroupId1}
+    #Should Be Valid JSON     ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    200
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/id                        ${id}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/status                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/name                      "QA_AUTOMATION_TEST_CREATIVE_03_CR_BANNER0305"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/type                      "banner"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/weight                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeId                ${bannerCreativeId1}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeName              "${CREATIVE_NAME}_BANNER0305"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupId           ${parent_id}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupName         "${parent_name}"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupId            ${bannerAdgroupId1}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupName          "QA_AUTOMATION_TEST_CHILD_TEST_03_BannerRich"
+    # Json Value Should Equal        ${body}        /adInfoDTOs/0/previewLink                "bannerPreview.jsp?url=https://4info.pc.cdn.bitgravity.com/ad/banner/qa/55147/1504092611/image.jpg&width=320&height=50"
+
+
+TC_006 Verify list of Ads Details for RM Ads
+    [Documentation]        User must be able to GET request for Rich Media Ads and get Ad Details
+    [Tags]      EXCLUDE
+    Ad GET Request for adgroupId     uri=/hydra/v1/ads?creativeDetailId=68685&type=banner
+    #Should Be Valid JSON     ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    200
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/id                        68691
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/status                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/name                        "QA RM"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/size                        "320x50"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/type                        "banner"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/subType                    "1"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/weight                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeId                68685
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeName                "QA RM"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupId            37219
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupName            "TESTING QA"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupId            37221
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupName            "RM"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/modifiedDt                1485101017000
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/createdDt                    1481137608000
+    #Should Match Regexp            ${body}        celtra
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/markup                    "https://4info.pc.cdn.bitgravity.com/ad/banner/prod/49152/1484941116/rm_491523340096383222294144.html"
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/id                        70474
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/status                    2
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/name                        "QA RM"
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/size                        "320x50"
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/type                        "banner"
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/subType                    "1"
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/weight                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/creativeId                68685
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/creativeName                "QA RM"
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/parentAdgroupId            37219
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/parentAdgroupName            "TESTING QA"
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/childAdgroupId            37221
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/childAdgroupName            "RM"
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/modifiedDt                1485223374000
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/createdDt                    1484940429000
+    #Json Value Should Equal        ${body}        /adInfoDTOs/1/previewLink                "<div class=\"celtra-ad-v3\">\r\n <script>\r\n var celtraGps = (function(){\r\n var coordinates = \"[4INFO_LAT_LON]\".split(\",\");\r\n return {\r\n lat: (coordinates.length == 2) ? coordinates[0] : \"\",\r\n lon: (coordinates.length == 2) ? coordinates[1] : \"\"\r\n };\r\n })();\r\n </script>\r\n <!-- gpsLat = eval celtraGps.lat -->\r\n <!-- gpsLng = eval celtraGps.lon -->\r\n <!-- externalPlacementId = raw [4INFO_PLACEMENT_ID] -->\r\n <!-- externalSiteId = raw [4INFO_APPSITE_ID] -->\r\n <!-- externalSiteName = raw [4INFO_APPSITE_NAME] -->\r\n <!-- externalSupplierName = raw [4INFO_PUBLISHER_NAME] -->\r\n <!-- zipCode = raw [4INFO_ZIP] -->\r\n <!-- customIdentifiers[CatalinaHHID] = raw [4info_hhid_md5] -->\r\n <!-- customIdentifiers[4INFODeviceID] = raw [4info_device_id_md5] -->\r\n <img src=\"data:image/png,celtra\" style=\"display: none\" onerror=\"\r\n (function(img) {\r\n var params = {'clickUrl':'[4INFO_click]','expandDirection':'undefined','preferredClickThroughWindow':'','clickEvent':'advertiser','externalAdServer':'Catalina4INFO','tagVersion':'3'};\r\n [].slice.apply(img.parentNode.childNodes).forEach(function(n) { var decfs = { urldecode: decodeURIComponent, htmldecode: function(v) { var d = document.createElement('div'); d.innerHTML = v; return d.textContent; }, eval: function(v) { return eval(v); }, raw: function(v) { return v; } }; var m; if (n.nodeType == 8 &amp;&amp; (m = n.textContent.match(/^&#92;s+([&#92;w.]+)(&#92;[.+&#92;])?&#92;s+=&#92;s+(&#92;w+)&#92;s+(.*)$/i))) { try { params[m[1]+(m[2] || '')] = decfs[m[3]](m[4].replace(/^&#92;s+|&#92;s+$/g, '')); } catch (e) {} } });\r\n var req = document.createElement('script');\r\n req.id = params.scriptId = 'celtra-script-' + (window.celtraScriptIndex = (window.celtraScriptIndex||0)+1);\r\n params.clientTimestamp = new Date/1000;\r\n params.clientTimeZoneOffsetInMinutes = new Date().getTimezoneOffset();\r\n var src = (window.location.protocol == 'https:' ? 'https' : 'http') + '://ads.celtra.com/3aa3377b/web.js?';\r\n for (var k in params) {\r\n src += '&amp;' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);\r\n }\r\n req.src = src;\r\n img.parentNode.insertBefore(req, img.nextSibling);\r\n })(this);\r\n \"/>\r\n</div>\r\n<img src=\"http://secure-gl.imrworldwide.com/u/ad?ca=49175&cr=creative&ce=CatalinaIncMobile&ci=nlsnci602&am=3&aa=1&at=view&rt=banner&r=[RANDOM]\" style=\"display:none\"/>\r\n<script src=\"https://cdn.doubleverify.com/dvtp_src.js?ctx=3830527&cmp=2016102401&sid=2016102402&plc=2016102403&num=&adid=&advid=3957852&adsrv=0&region=30&btreg=&btadsrv=&crt=&crtname=&chnl=&unit=&pid=&uid=&tagtype=&app=&sup=&DVP_EXID=&DVP_CDID=&DVP_DMGRV=&DVP_LAT=&DVP_LONG=&dvp_cmpid=[4info_campaign_id]&dvp_plcid=[4info_placement_id]&dvp_invsrc=[4info_inventory_source]&dvp_appsid=[4info_appsite_id]&dvtagver=6.1.src\" type=\"text/javascript\"></script>"
+    Json Value Should Equal        ${body}        /adInfoDTOs/1/markup                    "https://4info.pc.cdn.bitgravity.com/ad/banner/prod/49152/1484941116/rm_491523340096383222294144.html"
+
+TC_007 Verify list of Ads Details for Native Ads
+    [Documentation]        User must be able to GET request for Native Ads and get Ad Details
+    [Tags]
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0107"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0107"
+    ${id}                  Get JSON Value          ${body}             /adDetailDTO/nativeDTO/id
+    Set Test Variable       ${id}           ${id}
+
+    Ad GET Request for adgroupId     uri=/hydra/v1/ads?creativeDetailId=${nativeCreativeId}&type=native
+    #Should Be Valid JSON     ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    200
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/id                        ${id}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/status                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/name                      "${CREATIVE_NAME}_NATIVE0107"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/size                      ""
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/type                      "native"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/subType                   "MoPub"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/weight                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeId                ${nativeCreativeId}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeName                "${CREATIVE_NAME}_NATIVE0107"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupId            ${parent_id}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupName            "${parent_name}"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupId            ${nativeAdgroupId}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupName            "QA_AUTOMATION_TEST_CHILD_TEST_03_Native"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/previewLink                ""
+
+TC_008 Verify list of Ads Details for Vast Video
+    [Documentation]        User must be able to GET request for VAST video Ads and get Ad Details
+    [Tags]
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}     name="${CREATIVE_NAME}_VIDEO0208"
+    ...                                     videoType=2
+    ...                                     vastTag="https://dt7qfu63wpsad.cloudfront.net/campaigns/1312/EWCO6773H.xml"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    Create ad for Video                         adgroupId=${videoAdgroupId2}           creativeId=${videoCreativeId1}      videoType=2
+    ...                        name="${CREATIVE_NAME}_VIDEO_VAST"
+
+    ${id}                  Get JSON Value          ${body}             /adDetailDTO/videoDTO/id
+    Set Test Variable       ${id}           ${id}
+
+    Ad GET Request for adgroupId     uri=/hydra/v1/ads?creativeDetailId=${videoCreativeId1}&type=video
+    #Should Be Valid JSON     ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    200
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/id                        ${id}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/status                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/name                        "${CREATIVE_NAME}_VIDEO_VAST"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/size                        ""
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/type                        "video"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/subType                    "2"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/weight                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeId                ${videoCreativeId1}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeName               "${CREATIVE_NAME}_VIDEO0208"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupId            ${parent_id}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupName            "${parent_name}"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupId           ${videoAdgroupId2}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupName            "QA_AUTOMATION_TEST_CHILD_TEST_03_VideoVAST"
+
+
+TC_009 Verify list of Ads Details for Wrapper Video
+    [Documentation]        User must be able to GET request for Wrapper video Ads and get Ad Details
+    [Tags]
+    Generate JSON For Creative Video       campaign_id=${Campaign_Id}     name="${CREATIVE_NAME}_VIDEO0209"
+    ...     videoType=3
+    ...     vastWrapperUrl="https://rtr.innovid.com/r1.595a687ead3f66.25515401;cb=[timestamp]?dipn=deviceid&deviceid=4info_device_id&ivc_deviceid_raw=4info_device_id"
+    ...     clickThroughUrl="https://www.4info.com"
+
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    Create ad for Video                         adgroupId=${videoAdgroupId2}           creativeId=${videoCreativeId1}      videoType=3
+    ...                        name="${CREATIVE_NAME}_VIDEO0209"
+
+    ${id}                  Get JSON Value          ${body}             /adDetailDTO/videoDTO/id
+    Set Test Variable       ${id}           ${id}
+
+    Ad GET Request for adgroupId     uri=/hydra/v1/ads?creativeDetailId=${videoCreativeId1}&type=video
+
+
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/id                        ${id}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/status                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/name                        "${CREATIVE_NAME}_VIDEO0209"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/size                        ""
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/type                        "video"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/subType                    "2"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/weight                    1
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeId                ${videoCreativeId1}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/creativeName               "${CREATIVE_NAME}_VIDEO0209"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupId            ${parent_id}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/parentAdgroupName            "${parent_name}"
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupId           ${videoAdgroupId2}
+    Json Value Should Equal        ${body}        /adInfoDTOs/0/childAdgroupName            "QA_AUTOMATION_TEST_CHILD_TEST_03_VideoVAST"
+

@@ -1,0 +1,837 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16     FILE_UPLOAD     OffshoreQA       HYDRA
+Suite Setup         Run Keyword         CleanUp Test suite data
+Suite Teardown      Run Keyword         CleanUp Test suite data
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-FileCDNAPIs
+#API NAME :Upload File And Attach to Creative/Ad API
+#METHOD : POST
+#API :1) /hydra/v1/file/icon/native?detailId=${DetailsId}&file={fileObject}
+#     2) /hydra/v1/file/image/banner?detailId=${DetailsId}&file={fileObject}
+#     3) /hydra/v1/file/video/video?detailId=${DetailsId}&file={fileObject}
+#     4) /hydra/v1/file/image/banner?detailId=${DetailsId}&file={fileObject}
+
+***Variables***
+
+
+${native_uri}        native
+${video_uri}         video
+${banner_uri}        banner
+${VAST_TAG_XML}      https://dt7qfu63wpsad.cloudfront.net/campaigns/1312/EWCO6773H.xml
+
+
+${nativeAdgroupId}              null
+${videoAdgroupId1}              null
+${videoAdgroupId2}              null
+${videoAdgroupId3}              null
+${bannerCreativeId0}            null
+${bannerAdgroupId1}             null
+${bannerAdgroupId2}             null
+${Campaign_Id}                  000000
+
+
+${QA_TEST_ADVERTISER}           QA_AUTOMATION_TEST_ADVERTISER
+${CAMPAIGN_NAME_UI}             QA_AUTOMATION_TEST_CAMPAIGN_TEST_13
+${CREATIVE_NAME}                QA_AUTOMATION_TEST_CREATIVE_36_CR
+${CHILD_NAME}                   QA_AUTOMATION_TEST_CHILD_TEST
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  QA_AUTOMATION_TEST_PARENT_TEST
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+
+*** Keywords ***
+CleanUp Test suite data
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+
+Video File Upload validate with DB
+    [Arguments]          ${id}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    SELECT * FROM rhino.video_details where video_ad_id=${id};
+    ${video_upload_details_iphone}=        Create Dictionary            playback_url=${queryResults[0][7]}
+    ...                                                                 thumbnail_url=${queryResults[0][8]}
+    ...                                                                 format_id=${queryResults[0][2]}
+    ${playback_url_iphone}=         Get From Dictionary     ${video_upload_details_iphone}    playback_url
+    ${thumbnail_url_iphone}=        Get From Dictionary     ${video_upload_details_iphone}    thumbnail_url
+    ${format_id_iphone}=            Get From Dictionary     ${video_upload_details_iphone}    format_id
+
+    ${video_upload_details_ipad}=           Create Dictionary           playback_url=${queryResults[1][7]}
+    ...                                                                 thumbnail_url=${queryResults[1][8]}
+    ...                                                                 format_id=${queryResults[1][2]}
+    Log     ${video_upload_details_ipad}
+    ${playback_url_ipad}=           Get From Dictionary     ${video_upload_details_ipad}    playback_url
+    ${thumbnail_url_ipad}=          Get From Dictionary     ${video_upload_details_ipad}    thumbnail_url
+    ${format_id_ipad}=              Get From Dictionary     ${video_upload_details_ipad}    format_id
+
+    ${video_upload_details_Android}=        Create Dictionary           playback_url=${queryResults[2][7]}
+    ...                                                                 thumbnail_url=${queryResults[2][8]}
+    ...                                                                 format_id=${queryResults[2][2]}
+    Log     ${video_upload_details_Android}
+    ${playback_url_android}=                Get From Dictionary     ${video_upload_details_Android}    playback_url
+    ${thumbnail_url_android}=               Get From Dictionary     ${video_upload_details_Android}    thumbnail_url
+    ${format_id_android}=                   Get From Dictionary     ${video_upload_details_Android}    format_id
+
+    ${video_upload_details_Zune}=           Create Dictionary               playback_url=${queryResults[3][7]}
+    ...                                                                     thumbnail_url=${queryResults[3][8]}
+    ...                                                                     format_id=${queryResults[3][2]}
+    Log     ${video_upload_details_Zune}
+    ${playback_url_Zune}=                   Get From Dictionary     ${video_upload_details_Zune}    playback_url
+    ${thumbnail_url_Zune}=                  Get From Dictionary     ${video_upload_details_Zune}    thumbnail_url
+    ${format_id_Zune}=                      Get From Dictionary     ${video_upload_details_Zune}    format_id
+    Disconnect From Database
+
+    Should Match Regexp         ${playback_url_iphone}                    https://4info.pc.cdn.bitgravity.com/ad/.+/iphone.+mp4
+    Should Match Regexp         ${thumbnail_url_iphone}                   https://4info.pc.cdn.bitgravity.com/ad/video.+/thumbnail.jpg
+    Should Match Regexp         ${playback_url_ipad}                      https://4info.pc.cdn.bitgravity.com/ad/.+/ipad.+mp4
+    Should Match Regexp         ${thumbnail_url_ipad}                     https://4info.pc.cdn.bitgravity.com/ad/video.+/thumbnail.jpg
+    Should Match Regexp         ${playback_url_android}                   https://4info.pc.cdn.bitgravity.com/ad/.+/android.+mp4
+    Should Match Regexp         ${thumbnail_url_android}                  https://4info.pc.cdn.bitgravity.com/ad/video.+/thumbnail.jpg
+    Should Match Regexp         ${playback_url_Zune}                      https://4info.pc.cdn.bitgravity.com/ad/.+/zune.+wmv
+    Should Match Regexp         ${thumbnail_url_Zune}                     https://4info.pc.cdn.bitgravity.com/ad/video.+/thumbnail.jpg
+
+Video thumbnail Upload validate with DB
+    [Arguments]         ${id}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select third_party_wrapper_url, source_url, thumbnail_url from rhino.video_ad where id=${id};
+    ${thumbnail_upload_details}=        Create Dictionary               third_party_wrapper_url=${queryResults[0][0]}
+    ...                                                                 source_url=${queryResults[0][1]}
+    ...                                                                 thumbnail_url=${queryResults[0][2]}
+    ${third_party_wrapper_url}=         Get From Dictionary     ${thumbnail_upload_details}    third_party_wrapper_url
+    ${source_url}=                      Get From Dictionary     ${thumbnail_upload_details}    source_url
+    ${thumbnail_url}=                   Get From Dictionary     ${thumbnail_upload_details}    thumbnail_url
+
+
+    Should Match Regexp         ${third_party_wrapper_url}              https://rtr.innovid.com/r1.595a687ead3f66.25515401;cb=.+?dipn=deviceid&deviceid=4info_device_id&ivc_deviceid_raw=4info_device_id
+    Should Match Regexp         ${source_url}                           https://www.4info.com
+    Should Match Regexp         ${thumbnail_url}                        https://4info.pc.cdn.bitgravity.com/ad/video/qa.+file
+
+Video VAST Upload validate with DB
+    [Arguments]         ${id}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select third_party_vast, thumbnail_url from rhino.video_ad where id=${id};
+    ${VAST_upload_details}=        Create Dictionary               third_party_vast=${queryResults[0][0]}
+    ...                                                                 thumbnail_url=${queryResults[0][1]}
+    ${third_party_vast}=         Get From Dictionary     ${VAST_upload_details}    third_party_vast
+    ${thumbnail_url}=            Get From Dictionary     ${VAST_upload_details}    thumbnail_url
+
+
+    Should Match Regexp         ${third_party_vast}              https://dt7qfu63wpsad.cloudfront.net/campaigns/1312/EWCO6773H
+    # Should Match Regexp         ${thumbnail_url}                 https://4info.pc.cdn.bitgravity.com/ad/video/qa.+file
+
+Banner File Upload DB Verification
+    [Arguments]         ${id}=            ${destination}=www.4info.com      ${bannerURL}=https://4info.pc.cdn.bitgravity.com/ad/banner/qa
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select url, destination_url from rhino.banner_details where id=${id};
+    ${VAST_upload_details}=        Create Dictionary               Banner_url=${queryResults[0][0]}
+    ...                                                                 destination_url=${queryResults[0][1]}
+    ${Banner_url}=         Get From Dictionary     ${VAST_upload_details}    Banner_url
+    ${destination_url}=            Get From Dictionary     ${VAST_upload_details}    destination_url
+
+    # Should Match Regexp         ${Banner_url}              ${bannerURL}
+    Should Match Regexp         ${destination_url}         ${destination}
+
+*** Test Cases ***
+
+TC_00_TEST_DATA_GENERATE
+    Log To Console                              "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59     campaign_access_control=${Empty}
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+###########################
+    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+##########################
+
+    Log To Console         "Created native data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoUpload       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+##########################
+    ${Video_Upload_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId1}                  ${Video_Upload_Child_AdGroup_ID}
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoVAST         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Video_VAST_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId2}                  ${Video_VAST_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoWrapper      child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Video_Wrapper_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId3}                  ${Video_Wrapper_Child_AdGroup_ID}
+
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerStatic       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_Static_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId0}                  ${Banner_Static_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerRich         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_3rdParty_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId1}                  ${Banner_3rdParty_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Banner3rd          child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_RM_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId2}                  ${Banner_RM_Child_AdGroup_ID}
+    [Tags]
+
+############################################################################
+#Native TCs
+############################################################################
+
+TC01_01_upload_icon_To Native Ad (Normal Method image in jpg format)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0101"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0101"
+    Upload File And Attach Request    id=${nativeCreativeId}
+    ...     type=native
+    ...     filetype=icon
+    ...     filename=headphones80x80.jpg
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC01_02_upload_icon_To Native Ad (invalid image size image in jpg format)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0102"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0102"
+
+    Upload File And Attach Request    id=${nativeCreativeId}
+    ...     type=native
+    ...     filetype=icon
+    ...     filename=headphones624x624.jpg
+    ...     expected_status_code=400
+
+    Json Value Should Equal    ${body}    /success            false
+    Json Value Should Equal    ${body}    /reason_code        "400-999"
+    Json Value Should Equal    ${body}    /reason_desc        "Validation Failure"
+    Should Match Regexp        ${body}    field":"nativeDTO.iconMultipartFile
+    Should Match Regexp        ${body}    message".+"The uploaded file does not have the required dimension.+80x80
+    [Tags]
+
+
+TC01_03_upload_image_To Native Ad (Normal Method image in jpg format)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0103"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0103"
+
+    Upload File And Attach Request     id=${nativeCreativeId}
+    ...     type=native
+    ...     filetype=image
+    ...     filename=File1200x627.jpg
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC01_04_upload_image_To Native Ad (invalid image size image in jpg format)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0104"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0104"
+
+    Upload File And Attach Request     id=${nativeCreativeId}
+    ...     type=native
+    ...     filetype=image
+    ...     filename=headphones624x624.jpg
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp         ${body}         "field".+nativeDTO.imageMultipartFile"
+    Should Match Regexp         ${body}         The uploaded file does not have the required dimension :1200x627
+    [Tags]
+
+
+TC01_05_upload_icon_To Native Ad (Normal Method image in png format)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0105"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0105"
+
+    Upload File And Attach Request     id=${nativeCreativeId}
+    ...     type=native
+    ...     filetype=icon
+    ...     filename=headphones80x80.png
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC01_06_upload_icon_To Native Ad (invalid image size image in png format)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0106"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0106"
+
+    Upload File And Attach Request     id=${nativeCreativeId}
+    ...     type=native
+    ...     filetype=icon
+    ...     filename=headphones624x624.png
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}    /success            false
+    Json Value Should Equal     ${body}    /reason_code        "400-999"
+    Json Value Should Equal     ${body}    /reason_desc        "Validation Failure"
+    Should Match Regexp         ${body}    "field".+"nativeDTO.iconMultipartFile"
+    Should Match Regexp         ${body}    The uploaded file does not have the required dimension :80x80
+    [Tags]
+
+TC01_07_upload_image_To Native Ad (Normal Method image in png format)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0107"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0107"
+
+    Upload File And Attach Request     id=${nativeCreativeId}
+    ...     type=native
+    ...     filetype=image
+    ...     filename=File1200x627.png
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC01_08_upload_image_To Native Ad (invalid image size image in png format)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0108"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0108"
+
+    Upload File And Attach Request     id=${nativeCreativeId}
+    ...     type=native
+    ...     filetype=image
+    ...     filename=headphones624x624.png
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp         ${body}         "field".+"nativeDTO.imageMultipartFile"
+    Should Match Regexp         ${body}         The uploaded file does not have the required dimension :1200x627
+    [Tags]
+
+
+TC01_09_upload_icon_To Native Ad (invalid image size image in txt format)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0109"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0109"
+
+    Upload File And Attach Request     id=${nativeCreativeId}
+    ...     type=native
+    ...     filetype=icon
+    ...     filename=headphones.txt
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure
+    Should Match Regexp         ${body}         The uploaded file does not have the required file extension of
+    [Tags]    known_bug      CM-1871
+
+
+TC01_10_upload_image_To Native Ad (invalid image size image in txt format)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0110"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0110"
+
+    Upload File And Attach Request     id=${nativeCreativeId}
+    ...     type=native
+    ...     filetype=image
+    ...     filename=headphones.txt
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure
+    Should Match Regexp         ${body}         The uploaded file does not have the required file extension of
+    [Tags]     known_bug      CM-1871
+
+
+TC01_11_upload_image_To Native Creative (Mp4 file)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0111"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+
+    Upload File And Attach Request          id=${DTO_id}
+    ...     type=native     filetype=icon
+    ...     filename=headphones80x80.png
+    ...     expected_status_code=200
+
+    Upload File And Attach Request          id=${DTO_id}
+    ...     type=native
+    ...     filetype=image
+    ...     filename=File1200x627.png
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Creative GET Request for campaign    uri=/hydra/v1/creatives?campaignId=2138&type=Native
+    [Tags]
+
+
+
+####################### VIDEO #################################################
+TC02_01_upload_icon_To Video Ad (Normal Method video in MP4 format with valid size)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0201"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0201"
+
+    Upload File And Attach Request     id=${videoCreativeId1}
+    ...     type=video
+    ...     filetype=video
+    ...     filename=Video450KB.mp4
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Video File Upload validate with DB     id=${videoCreativeId1}
+    [Tags]      EXCLUDE
+
+
+TC02_02_upload_image_To Video Ad (Normal Method video in MP4 format with valid size)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0202"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0202"
+
+    Upload File And Attach Request     id=${videoCreativeId1}
+    ...     type=video
+    ...     filetype=image
+    ...     filename=Video450KB.mp4
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]    EXCLUDE
+
+
+TC02_03_upload_image_To Video Ad (video in image format)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0203"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0203"
+
+    Upload File And Attach Request     id=${videoCreativeId1}
+    ...     type=video
+    ...     filetype=image
+    ...     filename=headphones80x80.jpg
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC02_04_upload_image_To Video Ad (mp3 file)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0204"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0204"
+
+    Upload File And Attach Request     id=${videoCreativeId1}
+    ...     type=video
+    ...     filetype=image
+    ...     filename=Video450KB.mp3
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC02_05_upload_image_To Video Ad (video in image format)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0205"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0205"
+
+    Upload File And Attach Request     id=${videoCreativeId1}
+    ...     type=video
+    ...     filetype=image
+    ...     filename=headphones80x80.jpg
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}    /success            false
+    Json Value Should Equal     ${body}    /reason_code        "000-000"
+    Json Value Should Equal     ${body}    /reason_desc        "Validation Failure"
+    Should Match Regexp         ${body}    The uploaded file does not have the required file extension of
+    [Tags]    known_bug   CM-1871
+
+
+TC02_06_upload_image_To Video Creative (Mp4 file)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0206"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0206"
+
+    Upload File And Attach Request     id=${videoCreativeId1}
+    ...     type=video
+    ...     filetype=video
+    ...     filename=Video450KB.mp4
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Video File Upload validate with DB     id=${DTO_id}
+    [Tags]    EXCLUDE
+
+
+TC02_07_upload_image_To Video Creative (Mp3 file)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0207"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0207"
+
+    Upload File And Attach Request     id=${videoCreativeId1}
+    ...     type=video
+    ...     filetype=video
+    ...     filename=Video450KB.mp3
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Video File Upload validate with DB     id=${DTO_id}
+    [Tags]
+
+
+TC02_09_upload_image_To wrapper URL Video Creative
+    Generate JSON For Creative Video       campaign_id=${Campaign_Id}     name="${CREATIVE_NAME}_VIDEO0209"
+    ...     videoType=3
+    ...     vastWrapperUrl="https://rtr.innovid.com/r1.595a687ead3f66.25515401;cb=[timestamp]?dipn=deviceid&deviceid=4info_device_id&ivc_deviceid_raw=4info_device_id"
+    ...     clickThroughUrl="https://www.4info.com"
+
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+
+    Upload File And Attach Request     id=${DTO_id}
+    ...     type=video
+    ...     filetype=thumbnail
+    ...     filename=File1200x627.jpg
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Video thumbnail Upload validate with DB     id=${DTO_id}
+    [Tags]
+
+
+TC02_10_upload_image_To VAST URL Video Creative
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}     name="${CREATIVE_NAME}_VIDEO0210"
+    ...                                     videoType=2
+    ...                                     vastTag="https://dt7qfu63wpsad.cloudfront.net/campaigns/1312/EWCO6773H.xml"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+
+    Upload File And Attach Request          id=${DTO_id}
+    ...     type=video
+    ...     filetype=thumbnail
+    ...     filename=File1200x627.jpg
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Video VAST Upload validate with DB     id=${DTO_id}
+    [Tags]
+
+
+#########################BANNER##########################################
+
+TC03_01_upload_icon_To Banner Ad (invalid image size image in jpg format)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0301"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0301"      bannerType=0
+
+
+    Upload File And Attach Request          id=${bannerCreativeId1}
+    ...     type=banner
+    ...     filetype=icon
+    ...     filename=headphones624x624.jpg
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp         ${body}         field".+"bannerDTO.imageMultipartFile
+    Should Match Regexp         ${body}         The uploaded file does not have the required dimension :120x20
+    [Tags]
+
+
+TC03_02_upload_image_To Banner Ad (Normal Method image in jpg format)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0302"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0302"      bannerType=0
+
+
+    Upload File And Attach Request          id=${bannerCreativeId1}
+    ...     type=banner
+    ...     filetype=image
+    ...     filename=File120x20.jpg
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Banner File Upload DB Verification          id=${bannerCreativeId1}   destination=www.4info.com
+    [Tags]
+
+
+TC03_03_upload_image_To Banner Ad (invalid image size image in jpg format)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0303"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0303"      bannerType=0
+
+
+    Upload File And Attach Request          id=${bannerCreativeId1}
+    ...     type=banner
+    ...     filetype=image
+    ...     filename=headphones624x624.jpg
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp         ${body}         field".+"bannerDTO.imageMultipartFile
+    Should Match Regexp         ${body}         The uploaded file does not have the required dimension :120x20
+    [Tags]
+
+
+TC03_04_upload_icon_To Banner Ad (Normal Method image in png format)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0304"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0304"      bannerType=0
+
+
+    Upload File And Attach Request          id=${bannerCreativeId1}
+    ...     type=banner
+    ...     filetype=icon
+    ...     filename=File120x20.jpg
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Banner File Upload DB Verification          id=${bannerCreativeId1}     bannerURL=None
+    [Tags]
+
+
+TC03_05_upload_icon_To Banner Ad (invalid image size image in png format)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0305"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0305"      bannerType=0
+
+
+    Upload File And Attach Request          id=${bannerCreativeId1}
+    ...     type=banner
+    ...     filetype=icon
+    ...     filename=headphones624x624.png
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp         ${body}         field".+"bannerDTO.imageMultipartFile
+    Should Match Regexp         ${body}         The uploaded file does not have the required dimension :120x20
+    [Tags]
+
+
+TC03_06_upload_image_To Banner Ad (Normal Method image in png format)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0306"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0306"      bannerType=0
+
+
+    Upload File And Attach Request          id=${bannerCreativeId1}
+    ...     type=banner
+    ...     filetype=image
+    ...     filename=File120x20.png
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC03_07_upload_image_To Banner Ad (invalid image size image in png format)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0307"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0307"      bannerType=0
+
+
+    Upload File And Attach Request          id=${bannerCreativeId1}
+    ...     type=banner
+    ...     filetype=image
+    ...     filename=headphones624x624.png
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp           ${body}              "field.+bannerDTO.imageMultipartFile
+    Should Match Regexp           ${body}              The uploaded file does not have the required dimension :120x20
+    [Tags]
+
+
+TC03_08_upload_image_To Banner Ad (invalid image size image in txt format)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0308"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    # Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0308"      bannerType=0
+
+
+    Upload File And Attach Request          id=${bannerCreativeId1}
+    ...     type=banner
+    ...     filetype=image
+    ...     filename=headphones.txt
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure
+    Should Match Regexp         ${body}         The uploaded file does not have the required file extension of
+    [Tags]           known_bug     CM-1871
+
+
+TC03_09_upload_image_To Banner Creative(Static image)
+    Generate JSON For Creative Banner    campaign_id=${Campaign_Id}     adName="TestREGRESSION_CREATIVE_18_banner_0309"
+    ...                             formatId=2
+    ...                             destinationUrl="https://4info.com"    #120x20
+
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+
+    Upload File And Attach Request          id=${DTO_id}
+    ...                                     type=banner
+    ...                                     filetype=image
+    ...                                     filename=CAR168x28.jpg
+    ...                                     expected_status_code=200
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Banner File Upload DB Verification          id=${DTO_id}         destination=4info.com
+    [Tags]

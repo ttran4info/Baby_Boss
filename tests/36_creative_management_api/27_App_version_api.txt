@@ -1,0 +1,32 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16     APP_VERSION     OffshoreQA       HYDRA
+
+#Wiki https://wiki.4info.com/display/Software/Creative+Management+API%28Hydra%29+Documentation#CreativeManagementAPI(Hydra)Documentation-AppVersionAPI
+#API NAME :APP Version check API
+#METHOD : Get
+#API :/hydra/app_version
+
+
+***Variables***
+
+
+*** Keywords ***
+App version check API
+    [Arguments]          ${expected_status_code}=200        ${auth}=${HYDRA_AUTH}
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    Set Test Variable      ${uri}       /hydra/app_version
+    ${headers}    Create Dictionary     Accept=text/plain     Authorization=${auth}
+    ${resp}=    Get Request     docker  ${uri}          headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+
+***Test Cases***
+TC_01_check API Version
+    App version check API
+    Should Match Regexp         ${body}         hydra version
+    Should Match Regexp         ${body}         Version : 1.0-SNAPSHOT
+    Should Match Regexp         ${body}         Last GIT Commmit
+    Should Match Regexp         ${body}         Build on
+    [Tags]

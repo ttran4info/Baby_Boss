@@ -1,0 +1,158 @@
+*** Settings ***
+Resource            campaign_management_api_imports.txt
+Force Tags         	BATCH17     UM    CM2.0    CM2.2
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+
+#API 2.2. Get user detail
+#https://wiki.4info.com/pages/viewpage.action?pageId=27394734
+#This request will be called on Admin tab - user edit page
+#...user-management-api/admin/users?username=:username
+
+#users = rhino.users
+
+CM2.2_TC_01_Get user detail - Admin user
+	[Documentation]		Get user detail,Use API to check for user-> ${QA_DEFAULT_USER} details
+	Set Test Variable	${username}			${QA_DEFAULT_USER}
+	Set Test Variable	${status}			1
+	Set Test Variable	${authority}		ADMIN
+	Set Test Variable	${firstName}		admin
+	#Set Test Variable	${lastName}
+	# Set Test Variable	${productpermissionlist}		[{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}, {"permissions": [1, 3], "groupId": 1, "productId": 2}]
+	Set Test Variable	${productpermissionlist}    [{"groupId":1,"productId":1,"permissions":[1,2,3]},{"groupId":1,"productId":2,"permissions":[1,3]},{"groupId":3,"productId":1,"permissions":[1,2,1,2]}]
+	# Set Test Variable	${campaignGroupList_groupId}		1
+	# Set Test Variable	${campaignGroupList_permission}		["READ", "WRITE"]
+	# Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}&currentUsername=${username}
+	USER MANAGEMENT API	uri=${uri_link}
+	Json Value Should Equal		${body}		/user/userName    "${username}"
+	Json Value Should Equal		${body}		/user/status    ${status}
+	Json Value Should Equal		${body}		/user/authority    "${authority}"
+	Json Value Should Equal		${body}		/user/firstName    "${firstName}"
+	Json Value Should Equal		${body}		/user/lastName    "net"
+    Json Value Should Equal		${body}		/user/permissionsList/0/groupId    616
+    Json Value Should Equal		${body}		/user/permissionsList/0/productId    1
+    Json Value Should Equal		${body}		/user/permissionsList/0/permissions    [3]
+    Json Value Should Equal		${body}		/user/permissionsList/1/groupId    12
+    Json Value Should Equal		${body}		/user/permissionsList/1/productId    1
+    Json Value Should Equal		${body}		/user/permissionsList/1/permissions    [3]
+	[Tags]		ADMIN_USER     CM-2327   known_bug
+
+CM2.2_TC_02_Get user detail - Catalina user
+	[Documentation]		Get user detail,Use API to check for user-> ${QA_CATALINA_USER} details
+	Set Test Variable	${username}			${QA_CATALINA_USER}
+	Set Test Variable	${status}			1
+	Set Test Variable	${authority}		USER
+	Set Test Variable	${firstName}		regression
+	Set Test Variable	${lastName}			qa
+	Set Test Variable	${productpermissionlist}		[{"permissions": [1], "groupId": 15, "productId": 2}, {"permissions": [1, 2], "groupId": 15, "productId": 1}]
+	# Set Test Variable	${campaignGroupList_groupId}		15
+	# Set Test Variable	${campaignGroupList_permission}		["READ", "WRITE"]
+	# Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}&currentUsername=${username}
+	USER MANAGEMENT API	uri=${uri_link}
+	Json Value Should Equal		${body}		/user/userName							"${username}"
+	Json Value Should Equal		${body}		/user/status							${status}
+	Json Value Should Equal		${body}		/user/authority							"${authority}"
+	Json Value Should Equal		${body}		/user/firstName							"${firstName}"
+	Json Value Should Equal		${body}		/user/lastName							"${lastName}"
+	Json Value Should Equal		${body}		/user/permissionsList				${productpermissionlist}
+	# Json Value Should Equal		${body}		/user/campaignGroupList/0/groupId		${campaignGroupList_groupId}
+	# Json Value Should Equal		${body}		/user/campaignGroupList/0/permissions	${campaignGroupList_permission}
+	[Tags]		CATALINA_USER
+
+CM2.2_TC_03_Get user detail - Catalina and QA user
+	[Documentation]		Get user detail,Use API to check for user-> ${QA_CATALINA_AND_QA_USER} details
+	Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable	${status}			1
+	Set Test Variable	${authority}		USER
+	Set Test Variable	${firstName}		regression
+	Set Test Variable	${lastName}			catalina
+	Set Test Variable	${productpermissionlist}		[{"permissions": [1], "groupId": 16, "productId": 2}, {"permissions": [1, 2], "groupId": 16, "productId": 1}, {"permissions": [1], "groupId": 15, "productId": 2}, {"permissions": [1, 2], "groupId": 15, "productId": 1}]
+	Set Test Variable	${campaignGroupList_groupId}		15,16
+	Set Test Variable	${campaignGroupList_permission}		["READ", "WRITE"]
+	# Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}&currentUsername=${username}
+	USER MANAGEMENT API	uri=${uri_link}
+	Json Value Should Equal		${body}		/user/userName						"${username}"
+	Json Value Should Equal		${body}		/user/status							${status}
+	Json Value Should Equal		${body}		/user/authority						"${authority}"
+	Json Value Should Equal		${body}		/user/firstName						"${firstName}"
+	Json Value Should Equal		${body}		/user/lastName						"${lastName}"
+	Json Value Should Equal		${body}		/user/permissionsList			${productpermissionlist}
+	# Json Value Should Equal		${body}		/user/campaignGroupList/0/groupId			16
+	# Json Value Should Equal		${body}		/user/campaignGroupList/0/permissions		${campaignGroupList_permission}
+	# Json Value Should Equal		${body}		/user/campaignGroupList/1/groupId			15
+	# Json Value Should Equal		${body}		/user/campaignGroupList/1/permissions		${campaignGroupList_permission}
+	[Tags]		CATALINA_USER		QA_USER
+
+CM2.2_TC_04_Get user detail - QA user
+	[Documentation]		Get user detail,Use API to check for user-> ${QA_QA_USER} details
+	Set Test Variable	${username}			${QA_QA_USER}
+	Set Test Variable	${status}			1
+	Set Test Variable	${authority}		USER
+	Set Test Variable	${firstName}		regression
+	Set Test Variable	${lastName}			qa
+	Set Test Variable	${productpermissionlist}		[{"permissions": [1], "groupId": 16, "productId": 2}, {"permissions": [1, 2], "groupId": 16, "productId": 1}]
+	Set Test Variable	${campaignGroupList_groupId}		16
+	Set Test Variable	${campaignGroupList_permission}		["READ", "WRITE"]
+	# Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}&currentUsername=${username}
+	USER MANAGEMENT API	uri=${uri_link}
+	Json Value Should Equal		${body}		/user/userName							"${username}"
+	Json Value Should Equal		${body}		/user/status							${status}
+	Json Value Should Equal		${body}		/user/authority							"${authority}"
+	Json Value Should Equal		${body}		/user/firstName							"${firstName}"
+	Json Value Should Equal		${body}		/user/lastName							"${lastName}"
+	Json Value Should Equal		${body}		/user/permissionsList				${productpermissionlist}
+	# Json Value Should Equal		${body}		/user/campaignGroupList/0/groupId		${campaignGroupList_groupId}
+	# Json Value Should Equal		${body}		/user/campaignGroupList/0/permissions	${campaignGroupList_permission}
+	[Tags]		QA_USER
+
+CM2.2_TC_05_Get user detail - Invalid user response 400, reason code 700-001
+	[Documentation]		Get user detail,Use API to check for user-> invalid@user.com details
+	Set Test Variable	${username}			invalid@user.com
+	# Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}&currentUsername=${username}
+	USER MANAGEMENT API	uri=${uri_link}			expected_status_code=400		success=false
+	Should Match Regexp		${body}			"reason_code":"700-001"
+	Should Match Regexp		${body}			"reason_desc":"Username is not found."
+	[Tags]		INVALID_USER
+
+
+CM2.2_TC_06_Get user detail - 0 user still contain all info
+	[Documentation]		Get user detail,Use API to check for user-> ${QA_0_USER} details
+	Set Test Variable	${username}			${QA_INACTIVE_USER}
+	Set Test Variable	${status}			0
+	Set Test Variable	${authority}		USER
+	Set Test Variable	${firstName}		regression
+	Set Test Variable	${lastName}			inactive
+	Set Test Variable	${productpermissionlist}		[{"permissions": [1], "groupId": 15, "productId": 2}, {"permissions": [1], "groupId": 15, "productId": 1}]
+	Set Test Variable	${campaignGroupList_groupId}		15
+	Set Test Variable	${campaignGroupList_permission}		["READ"]
+	# Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}&currentUsername=${username}
+	USER MANAGEMENT API	uri=${uri_link}
+	Json Value Should Equal		${body}		/user/userName    "${username}"
+	Json Value Should Equal		${body}		/user/status    ${status}
+	Json Value Should Equal		${body}		/user/authority							"${authority}"
+	Json Value Should Equal		${body}		/user/firstName							"${firstName}"
+	Json Value Should Equal		${body}		/user/lastName							"${lastName}"
+	Json Value Should Equal		${body}		/user/permissionsList				${productpermissionlist}
+	# Json Value Should Equal		${body}		/user/campaignGroupList/0/groupId		${campaignGroupList_groupId}
+	# Json Value Should Equal		${body}		/user/campaignGroupList/0/permissions	${campaignGroupList_permission}
+	[Tags]
+
+
+CM2.2_TC_07_Get user detail - Password field not seen
+	[Documentation]		Get user detail, make sure we are not getting the password field
+	Set Test Variable	${username}			${QA_INACTIVE_USER}
+	# Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?username=${username}&currentUsername=${username}
+	USER MANAGEMENT API	uri=${uri_link}
+	Should Not Match Regexp		${body}		password
+	[Tags]

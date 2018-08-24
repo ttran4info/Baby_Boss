@@ -1,0 +1,648 @@
+*** Settings ***
+Resource            access_control_imports.txt
+Force Tags         	UI    BATCH7  Nov14						
+Suite Setup			Run Keywords               Start UI     	Adjust Screen Size
+Suite Teardown      Run Keywords               Close All Browsers
+
+*** Variables ***
+${advertiser_name}		QA_REGRESSION
+${campaign_name}		4_CAT
+
+*** Keywords ***
+Start UI 
+	Start AdHaven UI    ${URL}    ${BROWSER}
+	Login with "${QA_CATALINA_USER}" and "${QA_DEFAULT_PASSWORD}"
+	Capture Page Screenshot With Timestamp
+	Page Should Contain Element         ${4INFO_LOGO}	#${WELCOME_USER_MSG}
+	Page Should Contain            		${USER_LOGGED_IN}
+Adjust Screen Size
+	Set Window Size     1200    800
+Go to Catalina campaign page
+	Sleep 	3s
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Sleep   2s
+	Click Link							${campaign_name} 	
+		
+Go to Manage Creatives page
+	Sleep 	3s
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Sleep   2s
+	Click Link							${campaign_name} 	
+	Click Link							Manage Creative Templates
+Go to Add/Edit Creative - banner
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Sleep   2s
+	Click Link							${campaign_name} 	
+	Click Link							banner 3	
+	Click Link							Add/Edit ads
+Go to Add/Edit Creative - native
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Sleep   2s
+	Click Link							${campaign_name} 	
+	Click Link							native
+	Click Link							Add/Edit ads
+Go to Add/Edit Creative - video
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Sleep   2s
+	Click Link							${campaign_name} 	
+	Click Link							video upload
+	Click Link							Add/Edit ads	
+	
+*** Test Cases ***
+
+#Turn this one into default start
+#TC_01 CaTalina User Can Login
+#	Login with "${QA_CATALINA_USER}" and "${QA_DEFAULT_PASSWORD}"
+#	Capture Page Screenshot With Timestamp
+#	Page Should Contain Element         ${4INFO_LOGO}	#${WELCOME_USER_MSG}
+#	Page Should Contain            		${USER_LOGGED_IN}
+#	[Tags]			
+TC_02 Catalina User Can Access Tabs For Supply, Demand, Admin, And Audience Tab
+	Page Should Contain         		Supply 
+	Page Should Contain         		Demand 
+	Page Should Contain         		Audience
+	Page Should Contain         		Admin
+	[Tags]		
+TC_03 Catalina User Cannot Access Tabs SMB
+	Page Should Not Contain         	id=tabSMB
+	Element Should Not Be Visible       id=tabSMB
+	[Tags]		
+	
+TC_04 Catalina User Has Access Catalina Campaigns in Demand Tab
+	Click Link         					Demand
+	Capture Page Screenshot With Timestamp
+	Execute Javascript  ${SCROLL_DOWN}
+	Page Should Contain   		 		${advertiser_name} 
+	Click Link                   		${advertiser_name} 
+	Capture Page Screenshot With Timestamp
+	Page Should Contain      			${campaign_name}
+	Click Link 							${campaign_name}
+	Page Should Contain 				Campaign ID: 2041
+	Location Should Contain				partnerId=670&campaignId=2041
+	[Tags]		
+TC_05 Catalina User Does Not Have Access to 4INFO Advertiser
+	Click Link         					Demand
+	Capture Page Screenshot With Timestamp
+	Page Should Not Contain 			z Parihar
+	[Tags]		
+TC_06 Catalina User Has Access To Admin Tab But Can Only Change Password
+	Click Link 							${TAB_ADMIN}
+	Capture Page Screenshot With Timestamp
+	Page Should Not Contain   			123@4info.com
+	Page Should Not Contain				Manage Users
+	Page Should Not Contain Link		Users
+	Page Should Contain 				Change Password
+	Page Should Contain 				Existing Password *
+	Page Should Contain 				New Password *
+	Page Should Contain 				Confirm Password *
+	Page Should Contain Element 		id=existingPassword
+	Page Should Contain Button 			Save
+	[Tags]		
+TC_07 Catalina User Can Create Campaigns And Validate Required Fields on UI
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Sleep   2s
+    Click Link       					${CREATE_NEW_CAMPAIGN_LINK}
+    Sleep   2s
+	Page Should Contain 				Name *
+	Page Should Contain 				External Campaign Id *
+	Page Should Contain 				IO *
+	Page Should Contain 				Advertisers*
+	Page Should Contain 				Start Date/Time * 
+	Page Should Contain 				End Date/Time * 
+	Page Should Contain 				Vertical *
+	Page Should Contain Button			Save
+	Page Should Contain Button			Cancel
+	Click Button						Cancel
+	
+TC_08 Validate Catalina Campaign Create Does Not Have Access Control And Audience Insight Fields
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Sleep   2s
+    Click Link       					${CREATE_NEW_CAMPAIGN_LINK}
+    Sleep   2s
+	Page Should Contain 				Name *
+	# Make sure Access Control is not visible (id=groupSelect)
+	Element Should Not Be Visible		id=groupSelect
+	Element Should Not Be Visible		id=campaignDemographics
+	Element Should Not Be Visible	 	id=datasourceAI			
+
+TC_09 Validate Catalina Can Create Ad Group And Validate Required Fields in UI
+	Click Link         					Demand
+	Sleep   2s
+	Click Link 							${advertiser_name}  	
+	Sleep   2s
+	Click Link							${campaign_name}	
+	Click Link							Create parent ad group
+	Sleep   2s
+	Page Should Contain 				Name 
+	Page Should Contain					External ID *
+	# Make sure Reporting is not visible (id=groupSelect)
+	Element Should Not Be Visible		xpath=/html/body/div[1]/div/div[3]/div[4]/form/div[4]/div[1]/h3
+	#Element Should Not Be Visible		id=adgroupReporting
+	Select Checkbox						${AG_HH_DATASOURCE_CHECKBOX}
+	Element Should Not Be Visible		${AG_HH_DATASOURCE_BOOST_CHECKBOX}
+
+TC_10 Validate Catalina Can Create Child Ad Group And Validate Required Fields in UI
+		#Login with "hp@catalina.com" and "1234info"
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 	
+	Sleep   2s
+	Click Link							${campaign_name}
+	Click Link							banner Static 	#Creative Id fix
+	Sleep   2s
+	Click Link							${CREATE_CHILD_ADGROUP_LINK}
+	# Make sure 4info Margin (RTB), Max. Bid Price: and Current Margin are not visible on child ad group page
+	Element Should Not Be Visible		${AG_4INFO_MARGIN_TEXTBOX}
+	Element Should Not Be Visible		${AG_4INFO_MAX_BID_PRICE_TEXTBOX}
+		
+#	[Tags]			
+	
+TC_11 Validate Catalina user Can acccess Manage Ceatives link
+		#Login with "hp@catalina.com" and "1234info"
+	Go to Manage Creatives page
+	Capture Page Screenshot With Timestamp
+	Page Should Contain					Type
+	
+TC_12 Validate Catalina user Can acccess creative of type Banner
+		#Login with "hp@catalina.com" and "1234info"
+	Go to Manage Creatives page
+	Sleep	2s
+	Capture Page Screenshot With Timestamp
+	Click Element 	${BANNER_CR_67420}	#//td[contains(.,"67420")]
+	Sleep	4s
+	Capture Page Screenshot With Timestamp
+	Page Should Contain		Banner ID:
+	
+TC_13 Validate Catalina user Can acccess Banner preview	
+		#Login with "hp@catalina.com" and "1234info"
+	Go to Manage Creatives page
+	Sleep	2s
+	Execute Javascript  ${SCROLL_DOWN}
+	#Zoom Out
+	#Capture Page Screenshot With Timestamp
+	#Sleep  2s
+	Click Element							${PREVIEW_TOP_LINK}
+	Sleep	2s
+	Capture Page Screenshot With Timestamp
+	Page Should Contain Element			${BANNER_PREVIEW_LINK}
+
+TC_14 Validate Catalina user Can change Banner options without file reupload
+	[Documentation]  Is secure should not affect "Destination URL*" & field validation won't be applied for http/https
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element		${BANNER_CR_67420}
+	Sleep  2s
+	Execute Javascript  ${SCROLL_DOWN}
+	Execute Javascript  ${SCROLL_DOWN}
+	Input Text							${DESTINATION_URL}		https://4info.com
+	Click Element		${IS_SECURE}	
+		#Double Click Element		${IS_SECURE}
+		#Alert Should Be Present				Change will be overwrited to all ads. Do you want continue?
+		#Execute Javascript  					window.history.go(-1);	#${ALERT_OK}
+	Click Button		${SAVE}
+	Click Element		${BANNER_CR_67420}
+	Execute Javascript  ${SCROLL_DOWN}
+	Execute Javascript  ${SCROLL_DOWN}
+	Capture Page Screenshot With Timestamp
+	Set Selenium Implicit Wait	2s
+	Page Should Contain Element	${IS_SECURE_CHECKED}
+	Unselect Checkbox			${IS_SECURE_CHECKED}
+	
+TC_15 Validate Catalina user Can create new Banner ad using existing creatives
+	Go to Add/Edit Creative - banner
+	Sleep 	4s
+	Click Element						//select[@id="creativeInfoListDropdown"]  #id=creativeInfoListDropdown
+	Click Element						//option[contains(.,"67420")]
+	Capture Page Screenshot With Timestamp
+	Execute Javascript  				${SCROLL_DOWN}
+	Sleep 	2s
+	Click Element						id=bannerTypeId1
+	#Input Text						    ${EXTERNAL_ID}	qa
+	Input Text							id=bannerDTO.adName		test
+	#Input Text							${DESTINATION_URL}		http://4info.com
+	Click Button 						${SAVE}
+	
+TC_16 Validate Catalina user Can delete the Banner ad 			#archive the ad
+		[Documentation]	this test work in opair with previous "user Can create new Banner"
+		#Login with "hp@catalina.com" and "1234info"
+		#Go to Add/Edit Creative - banner
+	Go to Manage Creatives page	
+	Sleep	2s
+	Click Element						${TEST_AD}
+	Execute Javascript  				${SCROLL_DOWN}
+	Click Button 						id=archiveBtn
+	Alert Should Be Present				Are you sure you want to delete Ad?
+	Execute Javascript  				window.history.go(-1);	#${ALERT_OK}
+	#Close All Browsers
+	#Run Keywords       Start UI     	Adjust Screen Size
+	#Login with "hp@catalina.com" and "1234info"
+	#Go to Add/Edit Creative - banner
+		#Click Link							Go back
+		Sleep	2s
+	Page Should Not Contain				${TEST_AD}
+	
+TC_17 Validate Catalina user Can create new Native ad using existing creatives	
+	Go to Add/Edit Creative - native
+	Sleep	2s
+	Click Element						id=creativeInfoListDropdown
+	Mouse Over 							//option[contains(.,"434")]
+	Click Element						//option[contains(.,"434")]
+	Capture Page Screenshot With Timestamp
+		Execute Javascript  				${SCROLL_DOWN}
+		Sleep 	2s
+	Input Text							${AD_NAME_NATIVE}		test native
+	Input Text							${EXTERNAL_ID_NATIVE}	BVP123456789
+	Click Button 						${SAVE}
+	[Tags]		
+TC_18 Validate Catalina user Can delete the Native ad
+	Go to Add/Edit Creative - native
+	Sleep	2s
+	Click Element						${TEST_AD_NATIVE}
+	Execute Javascript  			    ${SCROLL_DOWN}
+	Sleep	2s
+	Click Button 						id=archiveBtn
+	Alert Should Be Present				Are you sure you want to delete Ad?
+	Execute Javascript  				${ALERT_OK}
+	Click Link							Go back
+	Sleep	2s
+	Page Should Not Contain				${TEST_AD_NATIVE}
+	[Tags]		
+TC_19 Validate Catalina user Can create new Video ad using existing creatives
+	Go to Add/Edit Creative - video
+	Sleep  2s
+	Click Element						id=creativeInfoListDropdown
+	Mouse Over 							//option[contains(.,"4212")]
+	Click Element						//option[contains(.,"4212")]
+	Sleep	2s
+	#Execute Javascript  				${SCROLL_DOWN}
+	Click Element						id=videoTypeId1
+	Capture Page Screenshot With Timestamp
+	Input Text							${AD_NAME_VIDEO}		test video
+	Input Text							${EXTERNAL_ID_VIDEO}	BVP123456789
+	Click Button 						${SAVE}
+	[Tags]			
+TC_20 Validate Catalina user Can delete the Video ad
+	Go to Add/Edit Creative - video
+	Sleep	2s
+	Click Element						${TEST_AD_VIDEO}
+	Execute Javascript  			    ${SCROLL_DOWN}
+	Sleep	2s
+	Click Button 						id=archiveBtn
+	Alert Should Be Present				Are you sure you want to delete Ad?
+	Execute Javascript  				${ALERT_OK}
+	Click Link							Go back
+	Sleep	2s
+	Page Should Not Contain				${TEST_AD_VIDEO}
+	[Tags]		
+TC_21 Verify user can make changes to existing banner creatives
+	#Login with "hp@catalina.com" and "1234info"
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element						${BANNER_CR_67420}
+	Sleep  2s
+	Execute Javascript  			    ${SCROLL_DOWN}
+	Select Checkbox						${POSITION_UNKNOWN}	#id=chkSecure
+	Click Button 						${SAVE}
+	Click Element						${BANNER_CR_67420}
+	Sleep  2s
+	Execute Javascript  			    ${SCROLL_DOWN}
+	Set Selenium Implicit Wait 	2s
+	Checkbox Should Be Selected			${POSITION_UNKNOWN}	#id=chkSecure
+	Unselect Checkbox					${POSITION_UNKNOWN}	#id=chkSecure
+
+TC_22 Verify user can make changes to existing video creatives
+	#Login with "hp@catalina.com" and "1234info"
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element						${VIDEO_CR_4212}
+	Execute Javascript  			    ${SCROLL_DOWN}
+	Sleep  2s
+	Select Checkbox						${AUDIO_ONOFF}	#//input[@class="chk"]
+	Click Button 						${SAVE}
+	Click Element						${VIDEO_CR_4212}
+	Sleep  2s
+	Execute Javascript  			    ${SCROLL_DOWN}
+	Checkbox Should Be Selected			${AUDIO_ONOFF}	#//input[@class="chk"]
+	Unselect Checkbox					${AUDIO_ONOFF}	#//input[@class="chk"]
+	
+TC_23 Verify user can make changes to existing native creatives
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element						${NATIVE_CR_434}
+	Sleep  4s
+	Execute Javascript  			    ${SCROLL_DOWN}
+	Sleep  2s
+	Execute Javascript  			    ${SCROLL_DOWN}
+	Input Text							${DESTINATION_URL_NATIVE}		https://4info.com
+	Select Checkbox						id=chkSecure	#//input[@class="chk"]
+	Click Button 						${SAVE}
+	Click Element						${NATIVE_CR_434}
+	Sleep  2s
+	Execute Javascript  			    ${SCROLL_DOWN}
+	Sleep  2s
+	Execute Javascript  			    ${SCROLL_DOWN}
+	Checkbox Should Be Selected			//input[@class="chk"]
+	Unselect Checkbox					//input[@class="chk"]
+	Click Button 						${SAVE}
+	
+#Destination URL* 
+#banner TCs:	
+TC_24 Validate banner Destination URl is saved correctly when checked Is secure
+	[Documentation]  Is secure should not affect "Destination URL*" & field validation won't be applied for http/https
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element		${BANNER_CR_67420}
+	Sleep  4s
+	Capture Page Screenshot With Timestamp
+	Execute Javascript  ${SCROLL_DOWN}
+	#Execute Javascript  ${SCROLL_DOWN}
+	Input Text							${DESTINATION_URL}		https://4info.com
+	Select Checkbox						${IS_SECURE}
+	Click Button 						${SAVE}
+	Click Element		${BANNER_CR_67420}
+	Sleep  2s
+	Execute Javascript  ${SCROLL_DOWN}
+	${URL}=	Get Value	${DESTINATION_URL}
+	Should Be Equal As Strings	${URL}	https://4info.com
+	Unselect Checkbox					//input[@class="chk"]
+	Click Button 						${SAVE}
+	
+TC_25 Validate banner Destination URl validation gives an error for not secure URL if checked Is secure
+	[Documentation]  Is secure should not affect "Destination URL*" & field validation won't be applied for http/https
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element		${BANNER_CR_67420}
+	Sleep  4s
+	Capture Page Screenshot With Timestamp
+	Execute Javascript  ${SCROLL_DOWN}
+	Input Text							${DESTINATION_URL}		http://4info.com
+	Select Checkbox						${IS_SECURE}
+	Click Button 						${SAVE}	
+	Page ShoulD Contain 	Please enter a https URL
+	Click Element		id=cancelBtn	
+	
+#native TCs:	
+TC_26 Validate native Destination URl is saved correctly when checked Is secure
+	[Documentation]  Should save https in Destination URL field
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element		${NATIVE_CR_434}
+	Sleep  4s
+	Capture Page Screenshot With Timestamp
+	Execute Javascript  ${SCROLL_DOWN}
+	#Execute Javascript  ${SCROLL_DOWN}
+	Input Text							${DESTINATION_URL_NATIVE}		https://4info.com
+	Select Checkbox						${IS_SECURE}
+	Click Button 						${SAVE}
+	Click Element		${NATIVE_CR_434}
+	Sleep  4s
+	Execute Javascript  ${SCROLL_DOWN}
+	${URL}=	Get Value	${DESTINATION_URL_NATIVE}
+	Set Selenium Implicit Wait		5s
+	Should Be Equal As Strings	${URL}	https://4info.com
+	Unselect Checkbox					//input[@class="chk"]
+	Click Button 						${SAVE}
+	
+TC_27 Validate native Destination URl validation gives an error for not secure URL if checked Is secure
+	[Documentation]  Should currently fail: TC to be modified once issue resolved. Is secure should not affect "Destination URL*" & field to be applied for http/https ...	
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element		${NATIVE_CR_434}
+	Sleep  4s
+	Capture Page Screenshot With Timestamp
+	Execute Javascript  ${SCROLL_DOWN}
+	#Execute Javascript  ${SCROLL_DOWN}
+	Input Text							${DESTINATION_URL_NATIVE}		http://4info.com
+	Select Checkbox						${IS_SECURE}
+	Click Button 						${SAVE}
+	#${DEST_URL_MESG}=	Get Value	//span[@class="error"]
+	#Should Be Equal As Strings	${DEST_URL_MESG}	Please enter a https URL	
+	Page ShoulD Contain 	Please enter a https URL
+	Click Element		id=cancelBtn	
+	
+#video TCs:	
+TC_28 Validate video Destination URl is saved correctly when checked Is secure 
+	[Documentation]  Should save https in Destination URL field
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element		${VIDEO_CR_4212}
+	Sleep  4s
+	Capture Page Screenshot With Timestamp
+	Execute Javascript  ${SCROLL_DOWN}
+	Input Text							${DESTINATION_URL_VIDEO}		https://4info.com
+	Select Checkbox						${IS_SECURE_VIDEO}
+	Click Button 						${SAVE}
+	Click Element		${VIDEO_CR_4212}
+	Execute Javascript  ${SCROLL_DOWN}
+	Sleep  2s
+	${URL}=	Get Value	${DESTINATION_URL_VIDEO}
+	Should Be Equal As Strings	${URL}	https://4info.com
+	Unselect Checkbox					//input[@class="chk"]
+	Click Button 						${SAVE}	
+	
+TC_29 Validate video Destination URl validation gives an error for not secure URL if checked Is secure
+	[Documentation]  Should currently fail: TC to be modified once issue resolved. Is secure should not affect "Destination URL*" & field to be applied for http/https ...	
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element		${VIDEO_CR_4212}
+	Sleep  4s
+	Capture Page Screenshot With Timestamp
+	Execute Javascript  ${SCROLL_DOWN}
+	Input Text							${DESTINATION_URL_VIDEO}		http://4info.com
+	Select Checkbox						${IS_SECURE_VIDEO}
+	Click Button 						${SAVE}	
+	Page ShoulD Contain 	Please enter a https URL
+	Click Element		id=cancelBtn		
+	
+#Clickable Ads 
+#banner TCs:	
+TC_30 Validate banner Ads table elements are clickable 
+	[Tags]				
+	#Login with "${QA_CATALINA_USER}" and "${QA_DEFAULT_PASSWORD}"	
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element		${BANNER_CR_67420}
+	Set Selenium Implicit Wait	10s
+	Capture Page Screenshot With Timestamp
+	Execute Javascript  ${SCROLL_DOWN}	
+	Click Element		${BANNER_AD_67425}
+	Select Window	new
+	Sleep  2s
+	Page Should Contain	Banner ID: 67425          		
+	#Execute Javascript  				window.history.go(-1);
+	
+#native TCs:	
+TC_31 Validate native Ads table elements are clickable 
+	
+	Select Window	main
+	Go to Manage Creatives page
+	Set Selenium Implicit Wait 	5s
+	#Sleep  2s
+	Click Element		${NATIVE_CR_434}
+	#Sleep  2s
+	Execute Javascript  ${SCROLL_DOWN}
+	#Set Selenium Implicit Wait 	5s	
+	Click Element		${NATIVE_AD_435}
+	#${TITLE}= 	Get Window Titles
+	Select Window	new
+	Capture Page Screenshot With Timestamp
+	Page Should Contain	Native ID: 435
+	
+#video TCs:	
+TC_32 Validate video Ads table elements are clickable
+	Select Window	main
+	Go to Manage Creatives page
+	Sleep  2s
+	Click Element		${VIDEO_CR_4212}
+	Sleep  2s
+	Execute Javascript  ${SCROLL_DOWN}	
+	Click Element		${VIDEO_AD_4218}
+	Sleep  2s
+	Select Window	new
+	Page Should Contain	Video ID: 4218	
+
+#Sortable columns
+TC_33 Validate Creative tables' elements are clickable
+	#Login with "hp@catalina.com" and "1234info"
+	Select Window	main
+	Go to Manage Creatives page
+	#ID
+		Click Element	//th[contains(.,"ID")]	#//th[@ class="sorting_asc"]
+												#css=.sorting:nth-of-type(2)											
+	Element Should Not Be Visible	Element Should Be Visible	//th[@class="sorting_asc" and @aria-label="ID: activate to sort column descending"]
+	Click Element	//th[@ class="sorting_desc"]
+	Element Should Not Be Visible	Element Should Not Be Visible	//th[@class="sorting_desc" and @aria-label="ID: activate to sort column ascending"]
+	#NAME
+		Click Element	//th[contains(.,"NAME")]
+	Element Should Be Visible	//th[@class="sorting_asc" and @aria-label="NAME: activate to sort column descending"]
+	Click Element	//th[contains(.,"NAME")]	          				
+	Element Should Be Visible	//th[@class="sorting_desc" and @aria-label="NAME: activate to sort column ascending"]	
+	#TYPE
+		Click Element	//th[contains(.,"TYPE")]
+	Element Should Be Visible	//th[@class="sorting_asc" and @aria-label="TYPE: activate to sort column descending"]
+	Click Element	//th[contains(.,"TYPE")]	          				
+	Element Should Be Visible	//th[@class="sorting_desc" and @aria-label="TYPE: activate to sort column ascending"]
+	#SUBTYPE
+		Click Element	//th[contains(.,"SUBTYPE")]
+	Element Should Be Visible	//th[@class="sorting_asc" and @aria-label="SUBTYPE: activate to sort column descending"]
+	Click Element	//th[contains(.,"SUBTYPE")]	          				
+	Element Should Be Visible	//th[@class="sorting_desc" and @aria-label="SUBTYPE: activate to sort column ascending"]
+	#SIZE
+		Click Element	//th[contains(.,"SIZE")]
+	Element Should Be Visible	//th[@class="sorting_asc" and @aria-label="SIZE: activate to sort column descending"]
+	Click Element	//th[contains(.,"SIZE")]	          				
+	Element Should Be Visible	//th[@class="sorting_desc" and @aria-label="SIZE: activate to sort column ascending"]
+	#DATE ADDED
+			Click Element	//th[contains(.,"DATE ADDED")]
+	Element Should Be Visible	//th[@class="sorting_asc" and @aria-label="DATE ADDED: activate to sort column descending"]
+	Click Element	//th[contains(.,"DATE ADDED")]	          				
+	Element Should Be Visible	//th[@class="sorting_desc" and @aria-label="DATE ADDED: activate to sort column ascending"]
+	#DATE LAST EDITED
+			Click Element	//th[contains(.,"DATE LAST EDITED")]
+	Element Should Be Visible	//th[@class="sorting_asc" and @aria-label="DATE LAST EDITED: activate to sort column descending"]
+	Click Element	//th[contains(.,"DATE LAST EDITED")]	          				
+	Element Should Be Visible	//th[@class="sorting_desc" and @aria-label="DATE LAST EDITED: activate to sort column ascending"]
+	#ADS
+		Click Element	xpath=//th[contains(.,"ADS")]		#css=.sorting:nth-of-type(8)
+	Element Should Be Visible	xpath=//th[@class="sorting_asc" and @aria-label="# ADS: activate to sort column descending"]
+	Click Element	xpath=//th[contains(.,"ADS")]	          				
+	Element Should Be Visible	xpath=//th[@class="sorting_desc" and @aria-label="# ADS: activate to sort column ascending"]
+	Execute Javascript 	${SCROLL_RIGHT}
+	Sleep	2
+	#LINKS	          				
+		 # Click Element	xpath=//th[contains(.,"LINKS")]		#css=.sorting:nth-of-type(9)	
+	Element Should Be Visible	xpath=//th[@class="sorting_disabled sorting" and @aria-label="LINKS: activate to sort column ascending"]
+	Click Element	xpath=//th[contains(.,"LINKS")]	          				
+	Element Should Be Visible	xpath=//th[@class="sorting_disabled sorting_asc" and @aria-label="LINKS: activate to sort column descending"]		          				
+
+#Verify search with video creative ID is not broken
+	#Login with "hp@catalina.com" and "1234info"
+	#Go to Manage Creatives page		 
+#   Input Text				${SEARCH}	 		${VIDEO_CR_ID}   				
+#	Mouse Over				${VIDEO_CR_ID_RESULT}
+#	Click Element			${VIDEO_CR_ID_RESULT}
+#	Sleep  2s
+#	Element Should Be Vible	${VIDEO_CR_ID}
+       				          			
+#Verify search with ad ID is not broken		          				
+#	Input Text				${SEARCH}	 		${VIDEO_AD_ID}   				
+#	Mouse Over				${VIDEO_CR_AD_RESULT}
+#	Click Element			${VIDEO_CR_AD_RESULT}
+#	Sleep  2s
+#	Element Should Be Vible	${VIDEO_AD_ID}	https://4info.com
+	
+TC_34 Verify Destination URL validation for Video wrapper
+	[Documentation]		Tes currenly failing as fix was not implemented should not fail once deployed
+	#Login with "hp@catalina.com" and "1234info"
+	Select Window	main
+	Go to Manage Creatives page
+	Click Element	//td[contains(.,"4210")]
+	Execute Javascript  ${SCROLL_DOWN}
+	Input Text 	id=videoDTO.clickThroughUrl		http://4info.com
+	Select Checkbox	//input[@class="chk"]
+	Click Element	${SAVE}
+		#Page Should Contain	Please enter a https URL
+		#Click Element	//td[contains(.,"4771")]
+		#Sleep  2s
+		#Element Should Be Visible	//input[@id="videoDTO.clickThroughUrl" and @value="https://4info.com"]
+	#Currently not there:
+	Page Should Contain	Please enter a https URL
+	Unselect Checkbox		//input[@class="chk"]			
+	Click Element	${SAVE}
+		
+TC_35 Verify Destination URL validation for Native
+	Select Window	main
+	Go to Manage Creatives page
+	Set Selenium Implicit Wait 	5s
+	Click Element	//td[contains(.,"native")]
+	Execute Javascript  ${SCROLL_DOWN}
+		Sleep  2s
+	Input Text 	id=nativeDTO.clickDestinationUrl	http://4info.com
+	Select Checkbox	//input[@class="chk"]
+	Click Element	${SAVE}
+	Page Should Contain	Please enter a https URL
+	Unselect Checkbox		//input[@class="chk"]			
+	Click Element	${SAVE}	
+
+TC_36 Verify Destination URL validation for Banner
+		#Login with "hp@catalina.com" and "1234info"
+	Select Window	main
+	Go to Manage Creatives page
+	Click Element	//td[contains(.,"Banner")]
+	Execute Javascript  ${SCROLL_DOWN}
+		Sleep  2s
+	Input Text 	id=bannerDTO.destinationUrl	http://4info.com
+	Select Checkbox	//input[@class="chk"]
+	Click Element	${SAVE}
+	Page Should Contain	Please enter a https URL
+	Unselect Checkbox		//input[@class="chk"]			
+	Click Element	${SAVE}
+	
+TC_37 Verify Manage Creative Templates table contains data
+	#Login with "hp@catalina.com" and "1234info"
+	Go to Catalina campaign page
+	Click Link	Manage Creative Templates
+	Element Should Not Be Visible 	No data available in table
+	
+TC_38 Verify Audit trail table contains data
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	Element Should Not Be Visible 	No data available in table
+	
+TC_39Verify Report History table contains data
+	Go to Catalina campaign page
+	Click Link	Report History
+	Element Should Not Be Visible 	No data available in table
+	
+TC_40 Verify Summary table contains data
+	Go to Catalina campaign page
+	Click Link	Summary
+	Element Should Not Be Visible 	No data available in table
+	

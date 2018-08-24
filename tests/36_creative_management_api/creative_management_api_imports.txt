@@ -1,0 +1,27 @@
+
+*** Settings ***
+
+#########Resource
+Resource	 	um_api.txt
+Resource    	adhaven_general.txt
+Resource    	creative_api.txt
+Resource        file_operations.txt
+Resource      	common_config.txt
+Resource      	rtb.txt
+Resource    	pac_api.txt
+Resource		log_reader.txt
+Resource		database.txt
+#Resource		utilities_json.txt
+#Resource        pegasus_specific_imports.txt
+
+########Library
+Library     	HttpLibrary.HTTP
+Library 		requests
+Library			DatabaseLibrary
+Library			Collections
+Library			BuiltIn
+Library			String
+#Library 		RequestsKeywords.py
+Library 	    Selenium2Library
+#Library			OperatingSystem
+#Library			Process

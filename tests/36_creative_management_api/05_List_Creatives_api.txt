@@ -1,0 +1,182 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16		HYDRA   OffshoreQA    LIST_CREATIVES
+Suite Setup     Run Keyword     Clean Up Advertiser Hydra 05
+Suite Teardown  Run Keyword     Clean Up Advertiser Hydra 05
+
+#Wiki https:https://wiki.4info.com/display/Software/Creative+Management+API%28Hydra%29+Documentation#CreativeManagementAPI(Hydra)Documentation-ReadCreative
+#API NAME :GET Creatives
+#METHOD : Get
+#API :/hydra/v1/creatives?campaignId=${campaign_id}&type=Native
+
+
+***Variables***
+${native_uri}        native
+${video_uri}         video
+${banner_uri}        banner
+${Creative_name}     TestREGRESSION_CREATIVE_05
+${Regexp_dateCreated}        "dateCreatedCM2":"\\d{2}[/.]\\d{2}[/.]\\d{4}\\s+\\d{2}[/.:]\\d{2}[/.:]\\d{2}\\s+([AaPp][Mm])",
+${Regexp_dateModified}       "dateModifiedCM2":"\\d{2}[/.]\\d{2}[/.]\\d{4}\\s+\\d{2}[/.:]\\d{2}[/.:]\\d{2}\\s+([AaPp][Mm])"
+
+
+${QA_TEST_ADVERTISER}       00_QATEST_advertiser_hydra_05
+${CAMPAIGN_NAME}            00_QATEST_campaign
+${START_DATE_TIME}          12:00 AM
+${END_DATE_TIME}            11:59 PM
+${parent_name}              00_QATEST_parent
+# ${START_DATE}               ${REGRESSION_START_DATE}
+${END_DATE_TIME_CAMPAIGN}      ${REGRESSION_END_DATE}
+${END_DATE_TIME_PARENT}         ${REGRESSION_END_DATE}
+
+*** Keywords ***
+Clean Up Advertiser Hydra 05
+	Cleanup Advertiser From DB			advertiser_name=${QA_TEST_ADVERTISER}
+    #Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME}
+    #Delete New Advertiser via DB        name=${QA_TEST_ADVERTISER}
+    #Cleanup Creative All By Name        ${Creative_name}
+
+Get Today's Date
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 1 day
+    Set Suite Variable    ${todaysDate}   ${mm}/${dd}/${yyyy}
+    Set Suite Variable       ${START_DATE}      ${todaysDate}
+    Log To Console          ${todaysDate}
+    ${yyyy}    ${mm}    ${dd}=    Get Time    year,month,day    UTC + 3 day
+    Set Suite Variable    ${START_DATE_TIME_PARENT}   ${mm}/${dd}/${yyyy}
+
+
+***Test Cases***
+
+TC_00_Generate_data_for_Tests
+    Create Advertiser                   uri=/pac-api/partner/advertiser      data={"name": "${QA_TEST_ADVERTISER}"}
+    Get Today's Date
+    Create New Campaign via API         campaign_name=${CAMPAIGN_NAME}    campaign_advertiser_id=${advertiser_id}     campaign_start_date_time=${START_DATE} 01:00    campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59     campaign_access_control=${Empty}
+    Log    Advertiser_id=${advertiser_id}
+    Log    Campaign_id=${Campaign_Id}
+    Set Suite Variable    ${campaign_id}          ${Campaign_Id}
+    [Tags]
+
+####################################################################################
+#####    Native TCs
+#########################################################################
+TC_01.01 Verify list of native_uri Creatives can be retrived by campaign(Without file upload)
+    [Documentation]     User must be able to send GET request for Creatives
+    Generate JSON For Creative Native       campaign_id=${campaign_id}
+    ...                                     status=1
+    ...                                     adName="${Creative_name}_101"
+    CREATIVE POST Request for Creative      uri=${native_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Creative GET Request for campaign       uri=/hydra/v1/creatives?campaignId=${campaign_id}&type=native
+    ...                                     expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp         ${body}             {"id":${DTO_id},"status":1,"name":"${Creative_name}_101","type":"native"
+    Should Match Regexp         ${body}         ${Regexp_dateCreated}
+    Should Match Regexp         ${body}         ${Regexp_dateModified}
+    Should Match Regexp         ${body}         "fileUpload":false
+    [Tags]
+
+TC_01.02 Verify list of native_uri Creatives can be retrived by campaign(Without file upload)
+    [Documentation]     User must be able to send GET request for Creatives
+    Generate JSON For Creative Native       campaign_id=${campaign_id}
+    ...                                     status=1
+    ...                                     adName="${Creative_name}_102"
+    CREATIVE POST Request for Creative      uri=${native_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Upload File And Attach Request          id=${DTO_id}      type=native     filetype=icon     filename=headphones80x80.png    expected_status_code=200
+    Upload File And Attach Request          id=${DTO_id}      type=native     filetype=image    filename=File1200x627.png       expected_status_code=200
+    Creative GET Request for campaign    uri=/hydra/v1/creatives?campaignId=${campaign_id}&type=Native
+    ...                                  expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp         ${body}             {"id":${DTO_id},"status":1,"name":"${Creative_name}_102","type":"native"
+    Should Match Regexp         ${body}         ${Regexp_dateCreated}
+    Should Match Regexp         ${body}         ${Regexp_dateModified}
+    Should Match Regexp         ${body}         "fileUpload":true
+    [Tags]
+
+
+####################################################################################
+#####    Video TCs
+#########################################################################
+TC_02.01 Verify list of Video Creatives can be retrived by campaign(Without file upload)
+    [Documentation]     User must be able to send GET request for Creatives
+    Generate JSON For Creative Video       campaign_id=${campaign_id}
+    ...                                     status=1
+    ...                                    name="${Creative_name}_201"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Creative GET Request for campaign    uri=/hydra/v1/creatives?campaignId=${campaign_id}&type=Video
+    ...                                  expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp     ${body}         {"id":${DTO_id},"status":1,"name":"${Creative_name}_201","type":"video"
+    Should Match Regexp     ${body}         ${Regexp_dateCreated}
+    Should Match Regexp     ${body}         ${Regexp_dateModified}
+    Should Match Regexp         ${body}         "fileUpload":false
+    [Tags]
+
+
+TC_02.02 Verify list of Video Creatives can be retrived by campaign(With file upload)
+    [Documentation]     User must be able to send GET request for Creatives
+    Generate JSON For Creative Video       campaign_id=${campaign_id}
+    ...                                     status=1
+    ...                                    name="${Creative_name}_202"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Upload File And Attach Request          id=${DTO_id}      type=video     filetype=video     filename=Video450KB.mp4   expected_status_code=200
+    Creative GET Request for campaign    uri=/hydra/v1/creatives?campaignId=${campaign_id}&type=Video
+    ...                                  expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp     ${body}         {"id":${DTO_id},"status":1,"name":"${Creative_name}_202","type":"video"
+    Should Match Regexp     ${body}         ${Regexp_dateCreated}
+    Should Match Regexp     ${body}         ${Regexp_dateModified}
+    Should Match Regexp         ${body}         "fileUpload":true
+    [Tags]
+
+####################################################################################
+#####    Banner TCs
+#########################################################################
+TC_03.01 Verify list of Banner Creatives can be retrived by campaign(Without file upload)
+    [Documentation]     User must be able to send GET request for Creatives
+    Generate JSON For Creative Banner       campaign_id=${campaign_id}
+    ...                                     status=1
+    ...                                     adName="${Creative_name}_301"
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Creative GET Request for campaign    uri=/hydra/v1/creatives?campaignId=${campaign_id}&type=Banner
+    ...                                  expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp     ${body}         {"id":${DTO_id},"status":1,"name":"${Creative_name}_301","type":"banner"
+    Should Match Regexp     ${body}         ${Regexp_dateCreated}
+    Should Match Regexp     ${body}         ${Regexp_dateModified}
+    Should Match Regexp         ${body}         "fileUpload":false
+    [Tags]
+
+
+
+TC_03.02 Verify list of Banner Creatives can be retrived by campaign(With file upload)
+    [Documentation]     User must be able to send GET request for Creatives
+    Generate JSON For Creative Banner       campaign_id=${campaign_id}
+    ...                                     status=1
+    ...                                     adName="${Creative_name}_302"
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Upload File And Attach Request          id=${DTO_id}      type=banner        filetype=image     filename=File120x20.jpg    expected_status_code=200
+    Creative GET Request for campaign    uri=/hydra/v1/creatives?campaignId=${campaign_id}&type=Banner
+    ...                                  expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp     ${body}         {"id":${DTO_id},"status":1,"name":"${Creative_name}_302","type":"banner"
+    Should Match Regexp     ${body}         ${Regexp_dateCreated}
+    Should Match Regexp     ${body}         ${Regexp_dateModified}
+    Should Match Regexp         ${body}         "fileUpload":true
+    [Tags]
+

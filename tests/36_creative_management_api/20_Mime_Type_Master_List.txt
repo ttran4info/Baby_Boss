@@ -1,0 +1,42 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16		HYDRA          MIME_MASTER_TYPE
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-MimeTypeMasterList
+#API NAME :Mime Type Master List
+#METHOD : Get
+#API :/hydra/v1/ad/mime-type
+
+
+***Variables***
+${Regexp_Video_mp4}                id":\\d,"name":"video/mp4
+${Regexp_appl_x_shockwave}         id":\\d,"name":"application.+x-shockwave-flash
+${Regexp_appl_javascript}          id":\\d,"name":"application.javascript
+${Regexp_video_3gpp}               id":\\d,"name":"video.3gpp
+
+
+*** Keywords ***
+
+GET Mime Type Master List Request for campaign
+    [Arguments]     ${uri}=/hydra/v1/ad/mime-type    ${expected_status_code}=200     ${success}=NA       ${auth}=${HYDRA_AUTH}
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    Set Test Variable       ${uri}      ${uri}
+    ${headers}    Create Dictionary     Accept=application/json     Authorization=${auth}
+    ${resp}=    Get Request     docker  ${uri}          headers=${headers}
+    Set Test Variable       ${resp}     ${resp}
+    ${resp}    RequestsLibrary.Get Request    docker   ${uri}    headers=${headers}
+    Log    Response: '${resp.content}'
+    Run Keyword If  '${expected_status_code}'=='200'        Set Suite Variable       ${body}     ${resp.content}
+    Run Keyword If  '${expected_status_code}'=='200'        Should Be Valid Json     ${body}
+    Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+
+*** Test Cases ***
+TC01_Get Mime Type Master List (Normal)
+    GET Mime Type Master List Request for campaign
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp     ${body}     ${Regexp_Video_mp4}
+    Should Match Regexp     ${body}     ${Regexp_appl_x_shockwave}
+    Should Match Regexp     ${body}     ${Regexp_appl_javascript}
+    [Tags]

@@ -1,0 +1,40 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16     HYDRA          CN_MICRO_MASTER
+
+#Wiki https://wiki.4info.com/display/Software/Creative+Management+API%28Hydra%29+Documentation#CreativeManagementAPI(Hydra)Documentation-CommonMacroMasterList
+#API NAME :Common Macro Master List
+#METHOD : Get
+#API :/hydra/v1/ad/macros
+
+
+
+***Variables***
+
+
+*** Keywords ***
+Get Request for Common Macro Master List
+    [Arguments]      ${expected_status_code}=200     ${success}=NA       ${auth}=${HYDRA_AUTH}
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    Set Test Variable      ${uri}       /hydra/v1/ad/macros
+    ${headers}    Create Dictionary     Accept=application/json     Authorization=${auth}   #Basic Y3BoYW1ANGluZm8uY29tOjVmYjlmYzA2ZTRmODhhNzg2YmEwYTU5MDE1NDVkNzQy
+    ${resp}=    Get Request     docker  ${uri}          headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json     ${body}
+    Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless  '${success}'=='NA'          Should Match Regexp     ${body}     "success":${success}
+
+
+
+*** Test Cases ***
+TC_01.01_Get Common Macro Master List
+    Get Request for Common Macro Master List
+    Json Value Should Equal     ${body}         /success              true
+    Json Value Should Equal     ${body}         /reason_desc         "Success"
+    Json Value Should Equal     ${body}         /options/0/name      "[4info_click]"
+    Json Value Should Equal     ${body}         /options/1/name      "[4info_tp_dest]"
+    Json Value Should Equal     ${body}         /options/2/name      "[4info_tp_dest_enc2]"
+    Json Value Should Equal     ${body}         /options/3/name      "[4info_tp_dest_enc]"
+    Json Value Should Equal     ${body}         /options/4/name      "[timestamp]"
+    [Tags]

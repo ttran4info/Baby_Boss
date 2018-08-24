@@ -1,0 +1,38 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16     HYDRA          EXTEND_ATTR_LIST
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-ExtendedAttributesMasterList
+#API NAME :Extended Attributes Master List
+#METHOD : Get
+#API :/hydra/v1/ad/extended-attr
+
+
+***Variables***
+
+
+*** Keywords ***
+Get Request for Extended Attributes List
+    [Arguments]      ${expected_status_code}=200     ${success}=NA       ${auth}=${HYDRA_AUTH}
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    Set Test Variable      ${uri}       /hydra/v1/ad/extended-attr
+    ${headers}    Create Dictionary     Accept=application/json     Authorization=${auth}   #Basic Y3BoYW1ANGluZm8uY29tOjVmYjlmYzA2ZTRmODhhNzg2YmEwYTU5MDE1NDVkNzQy
+    ${resp}=    Get Request     docker  ${uri}          headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json     ${body}
+    Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless  '${success}'=='NA'          Should Match Regexp     ${body}     "success":${success}
+
+
+
+*** Test Cases ***
+TC_01.01_Get Extended Attributes List
+    Get Request for Extended Attributes List
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Json Value Should Equal     ${body}         /options/0/name      "Audio Ad (Auto Play)"
+    Json Value Should Equal     ${body}         /options/1/name      "Audio Ad (User Initiated)"
+    Json Value Should Equal     ${body}         /options/2/name      "Expandable (Automatic)"
+    Json Value Should Equal     ${body}         /options/3/name      "Expandable (User Initiated - Click)"
+    [Tags]

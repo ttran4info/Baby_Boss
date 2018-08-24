@@ -1,0 +1,3144 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16		CREATE_AD     OffshoreQA
+Suite Setup		Cleanup Creatives by Hardcoding
+#should not use this keyword for cleanup
+#Suite Setup     Cleanup Creative All By Name      TestREGRESSION_CREATIVE_12
+#Suite Teardown  Cleanup Creative All By Name      TestREGRESSION_CREATIVE_12
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-CreateAd
+#API NAME :Create Ad
+#METHOD : POST
+#API :/hydra/v1/ad/{type}
+
+
+***Variables***
+
+
+*** Keywords ***
+#Should not hardcoding
+Cleanup Creatives by Hardcoding
+	Cleanup All Ads From Campaign ID					campaign_id=1594
+	Cleanup All Creative Templates From Campaign ID		campaign_id=1594
+	Cleanup All Ads From Campaign ID					campaign_id=265
+	Cleanup All Creative Templates From Campaign ID		campaign_id=265
+
+	
+Create ad for Native
+    [Arguments]
+    ...             ${adgroupId}=29329
+    ...             ${creativeId}=7017
+    ...             ${externalId}="external_id"
+    ...             ${status}=1
+    ...             ${nativeAdId}=1
+    ...             ${assetType}="MoPub"
+    ...             ${adName}="TestREGRESSION_CREATIVE_12_NATIVE_AD"
+    ...             ${weight}=1
+    ...             ${title}="Title Edit"
+    ...             ${text}="Text Edit"
+    ...             ${ctatext}="More ..."
+    ...             ${clickDestinationUrl}="http://4info.com"
+    ...             ${secure}=false
+    ...             ${deleteFromUI}=false
+    ...             ${impressionTracing}=[]
+    ...             ${expected_status_code}=200
+    ...             ${auth}=${HYDRA_AUTH}
+    Set Test Variable    ${uri}      /hydra/v1/ad/native
+    Create Session   creative    http://${HYDRA}:8080
+    ${headers}       Create Dictionary     Content-Type=application/json    Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable      ${data}     {"adgroupId":${adgroupId},"creativeId":${creativeId},"nativeDTO":{"externalId":${externalId},"status":${status},"nativeAdId":${nativeAdId},"assetType":${assetType},"adName":${adName},"weight":${weight},"title":${title},"text":${text},"ctatext":${ctatext},"clickDestinationUrl":${clickDestinationUrl},"secure":${secure},"deleteFromUI":${deleteFromUI},"impressionTracing":${impressionTracing}}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log     Request: ${data}
+    ${resp}    RequestsLibrary.Post Request    creative    ${uri}    data=${data}    headers=${headers}
+    Set Test Variable    ${resp}    ${resp}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Set Suite Variable       ${response_content}     ${resp.content}
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json    ${response_content}
+    # yword Unless         '${expected_status_code}' == '200'         Should Match Regexp             ${response_content}                ${success_false_regex}
+
+
+Create ad for Video
+    [Arguments]
+    ...             ${adgroupId}=1135
+    ...             ${creativeId}=12670
+    ...             ${externalId}="TestREGRESSION_CREATIVE_12_VIDEO_AD"
+    ...             ${weight}=1
+    ...             ${name}="TestREGRESSION_CREATIVE_12_VIDEO_AD"
+    ...             ${thumbnailFileUrl}="https://4info.pc.cdn.bitgravity.com/ad/video/qa/1372/thumbnail.jpg"
+    ...             ${duration}=12
+    ...             ${clickThroughUrl}="http://caonima.com"
+    ...             ${redirectionCount}=1
+    ...             ${secure}=false
+    ...             ${deleteFromUI}=false
+    ...             ${status}=3
+    ...             ${videoType}="1"
+    ...             ${playbackUrl}="https://4info.pc.cdn.bitgravity.com/ad/video/qa/1372/iphone_encoded_video_1372_video_goldbar.mp4"
+    ...             ${skipAfterTime}=0
+    ...             ${skippable}=false
+    ...             ${extendedAttributes}=[3,4],
+    ...             ${thirdPartyVASTTracker}=[]
+    ...             ${mimeTypes}=[1,2]
+    ...             ${expected_status_code}=200
+    ...             ${auth}=${HYDRA_AUTH}
+    Set Test Variable    ${uri}      /hydra/v1/ad/video
+    Create Session   creative    http://${HYDRA}:8080
+    ${headers}       Create Dictionary     Content-Type=application/json    Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable      ${data}     {"adgroupId":${adgroupId},"creativeId":${creativeId},"videoDTO":{"externalId":${externalId},"weight":${weight},"name":${name},"thumbnailFileUrl":${thumbnailFileUrl},"duration":${duration},"clickThroughUrl":${clickThroughUrl},"redirectionCount":${redirectionCount},"secure":${secure},"deleteFromUI":${deleteFromUI},"status":${status},"videoType":${videoType},"playbackUrl":${videoType},"skipAfterTime":${skipAfterTime},"skippable":${skippable},"extendedAttributes":${extendedAttributes},"thirdPartyVASTTracker":${thirdPartyVASTTracker},"mimeTypes":${mimeTypes}}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log     Request: ${data}
+    ${resp}    RequestsLibrary.Post Request    creative    ${uri}    data=${data}    headers=${headers}
+    Set Test Variable    ${resp}    ${resp}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Set Suite Variable       ${response_content}     ${resp.content}
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json    ${response_content}
+
+Create ad for Banner
+    [Arguments]
+    ...         ${adgroupId}=1136
+    ...         ${creativeId}=85914
+    ...         ${externalId}=""
+    ...         ${adName}="Banner Wired"
+    ...         ${weight}=1
+    ...         ${bannerType}=0
+    ...         ${formatId}=5
+    ...         ${imageFileUrl}="https://4info.pc.cdn.bitgravity.com/ad/banner/qa/50984/1487972487/banner_71567_image_Lying_320x50_NEW_copy.jpeg"
+    ...         ${thirdPartyImpression}=""
+    ...         ${destinationUrl}="http://4info.com"
+    ...         ${externalCreativeId}="62228313"
+    ...         ${externalPreviewLink}=0
+    ...         ${secure}=false
+    ...         ${deleteFromUI}=false
+    ...         ${status}=0
+    ...         ${positionList}=[]
+    ...         ${richMediaTypeList}=[]
+    ...         ${optOutIconLocation}="tr"
+    ...         ${extendedAttributes}=[]
+    ...         ${expected_status_code}=200
+    ...         ${auth}=${HYDRA_AUTH}
+    Set Test Variable    ${uri}      /hydra/v1/ad/banner
+    Create Session   creative    http://${HYDRA}:8080
+    ${headers}       Create Dictionary     Content-Type=application/json    Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable      ${data}       {"adgroupId":${adgroupId},"creativeId":${creativeId},"bannerDTO":{"externalId":${externalId},"adName":${adName},"weight":${weight},"bannerType":${bannerType},"formatId":${formatId},"imageFileUrl":${imageFileUrl},"thirdPartyImpression":${thirdPartyImpression},"destinationUrl":${destinationUrl},"externalCreativeId":${externalCreativeId},"externalPreviewLink":${externalPreviewLink},"secure":${secure},"deleteFromUI":${deleteFromUI},"status":${status},"positionList":${positionList},"richMediaTypeList":${richMediaTypeList},"optOutIconLocation":${optOutIconLocation},"extendedAttributes":${extendedAttributes}}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log     Request: ${data}
+    ${resp}    RequestsLibrary.Post Request    creative    ${uri}    data=${data}    headers=${headers}
+    Set Test Variable    ${resp}    ${resp}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+    Set Suite Variable       ${response_content}     ${resp.content}
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json    ${response_content}
+***Test Cases***
+TC_01_01.01_Create native Ad(Normal Method)
+    Create ad for Native    adName="TestREGRESSION_CREATIVE_12_native_ad_010101"
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_01.02_Create native Ad(Invalid adgroupid)
+    Create ad for Native                adgroupId=2000000009
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010102"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_01.03_Create native Ad(adgroupid as a string)
+    Create ad for Native                adgroupId="29329"
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010103"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_01.04_Create native Ad(adgroupid as invalid string)
+    Create ad for Native                adgroupId="ABC"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Request"
+    [Tags]      known_bug   CM-1338
+
+TC_01_01.05_Create native Ad(null adgroupid)
+    Create ad for Native                adgroupId=null
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "adgroupId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_01_01.06_Create native Ad(blank adgroupid)
+    Create ad for Native                adgroupId=""
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "adgroupId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_01_01.07_Create native Ad(adgroupid MISSING)
+    Create ad for Native                adgroupId=MISSING
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "adgroupId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+
+
+
+TC_01_02.01_Create native Ad(Invalid creativeId)
+    Create ad for Native                creativeId=2000000009
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010201"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]   known_bug     CM-1235    EXCLUDE    # NonUI
+
+TC_01_02.02_Create native Ad(creativeId as a string)
+    Create ad for Native                creativeId="167"
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010202"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_02.03_Create native Ad(creativeId as invalid string)
+    Create ad for Native                creativeId="ABC"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Request"
+    [Tags]      known_bug   CM-1338
+
+TC_01_02.04_Create native Ad(null creativeId)
+    Create ad for Native                creativeId=null
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_01_02.05_Create native Ad(blank creativeId)
+    Create ad for Native                creativeId=""
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_01_02.06_Create native Ad(creativeId MISSING)
+    Create ad for Native                creativeId=MISSING
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+
+TC_01_03.01_Create native Ad(External id is in integer)
+    Create ad for Native                externalId=123
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010301"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_01_03.02_Create native Ad(External id is blank)
+    Create ad for Native                externalId=""
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010302"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_01_03.03_Create native Ad(External id is null)
+    Create ad for Native                externalId=null
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010303"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_01_03.04_Create native Ad(External id is MISSING)
+    Create ad for Native                externalId=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010304"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_01_04.01_Create native Ad(status is 2)
+    Create ad for Native                status=2
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010401"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_01_04.02_Create native Ad(status is 3)
+    Create ad for Native                status=3
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010402"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_01_04.03_Create native Ad(status is 4 invalid)
+    Create ad for Native                status=4
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.status", "message": "Status can only be in [0-3]", "object": "adDetailDTO", "reason_desc": "Status can only be in [0-3]"}]
+    [Tags]
+
+TC_01_04.04_Create native Ad(status is 0)
+    Create ad for Native                status=0
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010404"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_04.05_Create native Ad(status is blank)
+    Create ad for Native                status=""
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010405"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_01_04.06_Create native Ad(status is null)
+    Create ad for Native                status=null
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010406"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_04.07_Create native Ad(status is missing)
+    Create ad for Native                status=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010407"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+
+TC_01_05.01_Create native Ad(nativeadId is valid but in string)
+    Create ad for Native                nativeAdId="1"
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010501"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_05.02_Create native Ad(nativeadId is invalid string)
+    Create ad for Native                nativeAdId="ABC"
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010502"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors        "nativeid should be valid"
+    [Tags]      known_bug   CM-1338
+
+TC_01_05.03_Create native Ad(nativeadId is null)
+    Create ad for Native                nativeAdId=null
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010503"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_05.04_Create native Ad(nativeadId is blank)
+    Create ad for Native                nativeAdId=""
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010504"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_05.05_Create native Ad(nativeadId is MISSING)
+    Create ad for Native                nativeAdId=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010505"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+
+TC_01_06.01_Create native Ad(assetType is integer)
+    Create ad for Native                assetType=1
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010601"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_06.02_Create native Ad(assetType is null)
+    Create ad for Native                assetType=null
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.assetType", "message": "AssetType can not be null or empty", "object": "adDetailDTO", "reason_desc": "AssetType can not be null or empty"}]
+    [Tags]
+
+TC_01_06.03_Create native Ad(assetType is blank)
+    Create ad for Native                assetType=""
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.assetType", "message": "AssetType can not be null or empty", "object": "adDetailDTO", "reason_desc": "AssetType can not be null or empty"}]
+    [Tags]
+
+TC_01_06.04_Create native Ad(assetType is MISSING)
+    Create ad for Native                assetType="MISSING"
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.assetType", "message": "AssetType can not be null or empty", "object": "adDetailDTO", "reason_desc": "AssetType can not be null or empty"}]
+    [Tags]
+
+
+TC_01_07.01_Create native Ad(adName is integer)
+    Create ad for Native                adName=123
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010701"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_07.02_Create native Ad(adName is null)
+    Create ad for Native                adName=null
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.adName", "message": "AdName can not be null or empty", "object": "adDetailDTO", "reason_desc": "AdName can not be null or empty"}]
+    [Tags]
+
+TC_01_07.03_Create native Ad(adName is blank)
+    Create ad for Native                adName=""
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.adName", "message": "AdName can not be null or empty", "object": "adDetailDTO", "reason_desc": "AdName can not be null or empty"}]
+    [Tags]
+
+TC_01_07.04_Create native Ad(adName is MISSING)
+    Create ad for Native                adName="MISSING"
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.adName", "message": "AdName can not be null or empty", "object": "adDetailDTO", "reason_desc": "AdName can not be null or empty"}]
+    [Tags]
+
+
+
+
+TC_01_08.01_Create native Ad(weight is 0)
+    Create ad for Native                weight=0
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010801"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_08.02_Create native Ad(weight is 1)
+    Create ad for Native                weight=1
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010802"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_08.03_Create native Ad(weight is big number)
+    Create ad for Native                weight=123
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010803"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_08.04_Create native Ad(weight is blank)
+    Create ad for Native                weight=""
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010804"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_08.05_Create native Ad(weight is null)
+    Create ad for Native                weight=null
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010805"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_08.06_Create native Ad(weight is float)
+    Create ad for Native                weight=12.3
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010806"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_08.07_Create native Ad(weight is missing)
+    Create ad for Native                weight=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010807"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_08.08_Create native Ad(weight is in invalid string)
+    Create ad for Native                weight="qwe"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             "weight should be valid"
+    [Tags]      known_bug   CM-1338
+
+TC_01_08.09_Create native Ad(weight is in string)
+    Create ad for Native                weight="123"
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010809"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_01_09.01_Create native Ad(title is integer)
+    Create ad for Native                title=123
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_010901"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_09.02_Create native Ad(title is null)
+    Create ad for Native                title=null
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.title", "message": "Title can not be null or empty", "object": "adDetailDTO", "reason_desc": "Title can not be null or empty"}]
+    [Tags]
+
+TC_01_09.03_Create native Ad(title is blank)
+    Create ad for Native                title=""
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.title", "message": "Title can not be null or empty", "object": "adDetailDTO", "reason_desc": "Title can not be null or empty"}]
+    [Tags]
+
+TC_01_09.04_Create native Ad(title is MISSING)
+    Create ad for Native                title=MISSING
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.title", "message": "Title can not be null or empty", "object": "adDetailDTO", "reason_desc": "Title can not be null or empty"}]
+    [Tags]
+
+
+
+
+TC_01_10.01_Create native Ad(text is integer)
+    Create ad for Native                title=123
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011001"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_10.02_Create native Ad(text is null)
+    Create ad for Native                title=null
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.title", "message": "Title can not be null or empty", "object": "adDetailDTO", "reason_desc": "Title can not be null or empty"}]
+    [Tags]
+
+TC_01_10.03_Create native Ad(text is blank)
+    Create ad for Native                title=""
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.title", "message": "Title can not be null or empty", "object": "adDetailDTO", "reason_desc": "Title can not be null or empty"}]
+    [Tags]
+
+TC_01_10.04_Create native Ad(text is MISSING)
+    Create ad for Native                title=MISSING
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "nativeDTO.title", "message": "Title can not be null or empty", "object": "adDetailDTO", "reason_desc": "Title can not be null or empty"}]
+    [Tags]
+
+
+
+TC_01_011.01_Create native Ad(ctatext is integer)
+    Create ad for Native                ctatext=123
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011101"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_011.02_Create native Ad(ctatext is blank)
+    Create ad for Native                ctatext=""
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011102"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_011.03_Create native Ad(ctatext is null)
+    Create ad for Native                ctatext=null
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011103"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_011.04_Create native Ad(ctatext is MISSING)
+    Create ad for Native                ctatext=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011104"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+
+TC_01_12.01_Create native Ad(clickDestinationUrl is integer)
+    Create ad for Native                clickDestinationUrl=123
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011201"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_12.02_Create native Ad(clickDestinationUrl is blank)
+    Create ad for Native                clickDestinationUrl=""
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011202"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_12.03_Create native Ad(clickDestinationUrl is null)
+    Create ad for Native                clickDestinationUrl=null
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011203"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_12.04_Create native Ad(clickDestinationUrl is MISSING)
+    Create ad for Native                clickDestinationUrl=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011204"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+
+TC_01_13.01_Create native Ad(secure is True)
+    Create ad for Native                secure=true
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011301"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_13.02_Create native Ad(secure is False)
+    Create ad for Native                secure=false
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011302"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_13.03_Create native Ad(secure is 1)
+    Create ad for Native                secure=1
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011303"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_13.04_Create native Ad(secure is 0)
+    Create ad for Native                secure=0
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011304"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_13.05_Create native Ad(secure is 2)
+    Create ad for Native                secure=2
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011305"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_13.06_Create native Ad(secure is other integer)
+    Create ad for Native                secure=1233
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011306"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_13.07_Create native Ad(secure is String)
+    Create ad for Native                secure="True"
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011307"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_13.08_Create native Ad(secure is null)
+    Create ad for Native                secure=null
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011308"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_13.09_Create native Ad(secure is blank)
+    Create ad for Native                secure=""
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011309"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_13.10_Create native Ad(secure is MISSING)
+    Create ad for Native                secure=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011310"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_01_14.01_Create native Ad(deleteFromUI is True)
+    Create ad for Native                deleteFromUI=true
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011401"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_14.02_Create native Ad(deleteFromUI is False)
+    Create ad for Native                deleteFromUI=false
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011402"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_14.03_Create native Ad(deleteFromUI is 1)
+    Create ad for Native                deleteFromUI=1
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011403"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_14.04_Create native Ad(deleteFromUI is 0)
+    Create ad for Native                deleteFromUI=0
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011404"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_14.05_Create native Ad(deleteFromUI is 2)
+    Create ad for Native                deleteFromUI=2
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011405"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_14.06_Create native Ad(deleteFromUI is other integer)
+    Create ad for Native                deleteFromUI=12311
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011406"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_14.07_Create native Ad(deleteFromUI is String)
+    Create ad for Native                deleteFromUI="true"
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011407"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_14.08_Create native Ad(deleteFromUI is invalid String)
+    Create ad for Native                deleteFromUI="Qwe"
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011408"
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "400-001"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Request"
+    [Tags]   known_bug  CM-1338
+
+TC_01_14.09_Create native Ad(deleteFromUI is null)
+    Create ad for Native                deleteFromUI=null
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011409"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_14.10_Create native Ad(deleteFromUI is blank)
+    Create ad for Native                deleteFromUI=""
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011410"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_14.11_Create native Ad(deleteFromUI is MISSING)
+    Create ad for Native                deleteFromUI=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_native_ad_011411"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_01_15.01_Create native Ad(multiple error)
+    Create ad for Native                creativeId=null
+    ...                                 assetType=null
+    ...                                 adName=""
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}, {"field": "nativeDTO.assetType", "message": "AssetType can not be null or empty", "object": "adDetailDTO", "reason_desc": "AssetType can not be null or empty"}, {"field": "nativeDTO.adName", "message": "AdName can not be null or empty", "object": "adDetailDTO", "reason_desc": "AdName can not be null or empty"}]
+    [Tags]
+
+
+##############################################################################
+#Video Ad
+##############################################################################
+
+
+TC_02_01.01_Create Video Ad(Normal Method)
+    Create ad for Video    name="TestREGRESSION_CREATIVE_12_video_ad_020101"
+
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_01.02_Create Video Ad(Invalid adgroupid)
+    Create ad for Video                adgroupId=2000000009
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020102"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_01.03_Create Video Ad(adgroupid as a string)
+    Create ad for Video                adgroupId="1135"
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020103"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_01.04_Create Video Ad(adgroupid as invalid string)
+    Create ad for Video                adgroupId="ABC"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Request"
+    [Tags]      known_bug   CM-1338
+
+TC_02_01.05_Create Video Ad(null adgroupid)
+    Create ad for Video                adgroupId=null
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "adgroupId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_02_01.06_Create Video Ad(blank adgroupid)
+    Create ad for Video                adgroupId=""
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "adgroupId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_02_01.07_Create Video Ad(adgroupid MISSING)
+    Create ad for Video                adgroupId=MISSING
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "adgroupId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+
+
+
+TC_02_02.01_Create Video Ad(Invalid creativeId)
+    Create ad for Video                creativeId=2000000009
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020201"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]   known_bug     CM-1235    EXCLUDE    # NonUI
+
+TC_02_02.02_Create Video Ad(creativeId as a string)
+    Create ad for Video                creativeId="167"
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020202"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_02.03_Create Video Ad(creativeId as invalid string)
+    Create ad for Video                creativeId="ABC"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Request"
+    [Tags]      known_bug   CM-1338
+
+TC_02_02.04_Create Video Ad(null creativeId)
+    Create ad for Video                creativeId=null
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_02_02.05_Create Video Ad(blank creativeId)
+    Create ad for Video                creativeId=""
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_02_02.06_Create Video Ad(creativeId MISSING)
+    Create ad for Video                creativeId=MISSING
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+
+TC_02_03.01_Create Video Ad(External id is in integer)
+
+    Create ad for Video                externalId=123
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020301"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_03.02_Create Video Ad(External id is blank)
+
+    Create ad for Video                externalId=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020302"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_03.03_Create Video Ad(External id is null)
+
+    Create ad for Video                externalId=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020303"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_03.04_Create Video Ad(External id is MISSING)
+
+    Create ad for Video                externalId=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020304"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_02_04.01_Create Video Ad(weight is 0)
+    Create ad for Video                weight=0
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020401"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_04.02_Create Video Ad(weight is 1)
+    Create ad for Video                weight=1
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020402"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_04.03_Create Video Ad(weight is big number)
+    Create ad for Video                weight=123
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020403"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_04.04_Create Video Ad(weight is blank)
+    Create ad for Video                weight=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020404"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_04.05_Create Video Ad(weight is null)
+    Create ad for Video                weight=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020405"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_04.06_Create Video Ad(weight is float)
+    Create ad for Video                weight=12.3
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020406"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_04.07_Create Video Ad(weight is missing)
+    Create ad for Video                weight=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020407"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_04.08_Create Video Ad(weight is in invalid string)
+    Create ad for Video                weight="qwe"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             "weight should be valid"
+    [Tags]      known_bug   CM-1338
+
+TC_02_04.09_Create Video Ad(weight is in string)
+    Create ad for Video                weight="123"
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020409"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_02_05.01_Create Video Ad(name is integer)
+    Create ad for Video                name=123
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020501"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_05.02_Create Video Ad(name is null)
+    Create ad for Video                name=null
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "videoDTO.name", "message": "Name can not be null or empty", "object": "adDetailDTO", "reason_desc": "Name can not be null or empty"}]
+    [Tags]
+
+TC_02_05.03_Create Video Ad(name is blank)
+    Create ad for Video                name=""
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "videoDTO.name", "message": "Name can not be null or empty", "object": "adDetailDTO", "reason_desc": "Name can not be null or empty"}]
+    [Tags]
+
+TC_02_05.04_Create Video Ad(name is MISSING)
+    Create ad for Video                name=MISSING
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "videoDTO.name", "message": "Name can not be null or empty", "object": "adDetailDTO", "reason_desc": "Name can not be null or empty"}]
+    [Tags]
+
+
+
+TC_02_06.01_Create Video Ad(thumbnailFileUrl is integer)
+    Create ad for Video                thumbnailFileUrl=123
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020601"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_06.02_Create Video Ad(thumbnailFileUrl is blank)
+    Create ad for Video                thumbnailFileUrl=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020602"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_06.03_Create Video Ad(thumbnailFileUrl is null)
+    Create ad for Video                thumbnailFileUrl=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020603"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_06.04_Create Video Ad(thumbnailFileUrl is MISSING)
+    Create ad for Video                thumbnailFileUrl=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020604"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_02_07.01_Create Video Ad(duration is 0)
+    Create ad for Video                duration=0
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020701"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_07.02_Create Video Ad(duration is 1)
+    Create ad for Video                duration=1
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020702"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_07.03_Create Video Ad(duration is big number)
+    Create ad for Video                duration=123
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020703"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_07.04_Create Video Ad(duration is blank)
+    Create ad for Video                duration=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020704"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_07.05_Create Video Ad(duration is null)
+    Create ad for Video                duration=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020705"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_07.06_Create Video Ad(duration is float)
+    Create ad for Video                duration=12.3
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020706"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_07.07_Create Video Ad(duration is missing)
+    Create ad for Video                duration=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020707"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_07.08_Create Video Ad(duration is in invalid string)
+    Create ad for Video                duration="qwe"
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020708"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            "Duration should be integer value"
+    [Tags]      known_bug   CM-1338
+
+TC_02_07.09_Create Video Ad(duration is in string)
+    Create ad for Video                duration="123"
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020709"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_02_08.01_Create Video Ad(clickThroughUrl is integer)
+    Create ad for Video                clickThroughUrl=123
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020801"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_08.02_Create Video Ad(clickThroughUrl is blank)
+    Create ad for Video                clickThroughUrl=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020802"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_08.03_Create Video Ad(clickThroughUrl is null)
+    Create ad for Video                clickThroughUrl=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020803"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_08.04_Create Video Ad(clickThroughUrl is MISSING)
+    Create ad for Video                clickThroughUrl=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020804"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+
+
+TC_02_09.01_Create Video Ad(redirectionCount is 0)
+    Create ad for Video                redirectionCount=0
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020901"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_09.02_Create Video Ad(redirectionCount is 1)
+    Create ad for Video                redirectionCount=1
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020902"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_09.03_Create Video Ad(redirectionCount is 2)
+    Create ad for Video                redirectionCount=2
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020903"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_09.04_Create Video Ad(redirectionCount is 3)
+    Create ad for Video                redirectionCount=3
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020904"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_09.05_Create Video Ad(redirectionCount is 4)
+    Create ad for Video                redirectionCount=4
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020905"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_09.06_Create Video Ad(redirectionCount is other than 1/2/3/4)
+    Create ad for Video                redirectionCount=12
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020906"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_09.07_Create Video Ad(redirectionCount is float)
+    Create ad for Video                redirectionCount=12.12
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020907"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_09.08_Create Video Ad(redirectionCount is blank)
+    Create ad for Video                redirectionCount=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020908"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_09.09_Create Video Ad(redirectionCount is null)
+    Create ad for Video                redirectionCount=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020909"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_09.10_Create Video Ad(redirectionCount is missing)
+    Create ad for Video                redirectionCount=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020910"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_09.11_Create Video Ad(redirectionCount is invalid string)
+    Create ad for Video                redirectionCount="ABC"
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success                false
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}         /errors                 []
+    [Tags]        known_bug   CM-1338
+
+TC_02_09.12_Create Video Ad(redirectionCount is in string)
+    Create ad for Video                redirectionCount="1"
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_020912"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_02_10.01_Create Video Ad(secure is True)
+    Create ad for Video                secure=true
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021001"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_10.02_Create Video Ad(secure is False)
+    Create ad for Video                secure=false
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021002"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_10.03_Create Video Ad(secure is 1)
+    Create ad for Video                secure=1
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021003"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_10.04_Create Video Ad(secure is 0)
+    Create ad for Video                secure=0
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021004"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_10.05_Create Video Ad(secure is 2)
+    Create ad for Video                secure=2
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021005"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_10.06_Create Video Ad(secure is other integer)
+    Create ad for Video                secure=1233
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021006"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_10.07_Create Video Ad(secure is String)
+    Create ad for Video                secure="True"
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021007"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_10.08_Create Video Ad(secure is null)
+    Create ad for Video                secure=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021008"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_10.09_Create Video Ad(secure is blank)
+    Create ad for Video                secure=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021009"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_10.10_Create Video Ad(secure is MISSING)
+    Create ad for Video                secure=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021010"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+
+TC_02_11.01_Create Video Ad(deleteFromUI is True)
+    Create ad for Video                deleteFromUI=true
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021101"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_11.02_Create Video Ad(deleteFromUI is False)
+    Create ad for Video                deleteFromUI=false
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021102"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_11.03_Create Video Ad(deleteFromUI is 1)
+    Create ad for Video                deleteFromUI=1
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021103"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_11.04_Create Video Ad(deleteFromUI is 0)
+    Create ad for Video                deleteFromUI=0
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021104"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_11.05_Create Video Ad(deleteFromUI is 2)
+    Create ad for Video                deleteFromUI=2
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021105"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_11.06_Create Video Ad(deleteFromUI is other integer)
+    Create ad for Video                deleteFromUI=12311
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021106"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_11.07_Create Video Ad(deleteFromUI is String)
+    Create ad for Video                deleteFromUI="true"
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021107"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_11.08_Create Video Ad(deleteFromUI is invalid String)
+    Create ad for Video                deleteFromUI="Qwe"
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "400-001"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Request"
+    [Tags]   known_bug  CM-1338
+
+TC_02_11.09_Create Video Ad(deleteFromUI is null)
+    Create ad for Video                deleteFromUI=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021109"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_11.10_Create Video Ad(deleteFromUI is blank)
+    Create ad for Video                deleteFromUI=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021110"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_11.11_Create Video Ad(deleteFromUI is MISSING)
+    Create ad for Video                deleteFromUI=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021111"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_02_12.01_Create Video Ad(status is 2)
+    Create ad for Video                status=2
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021201"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_12.02_Create Video Ad(status is 3)
+    Create ad for Video                status=3
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021202"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_12.03_Create Video Ad(status is 4 invalid)
+    Create ad for Video                status=4
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "videoDTO.status", "message": "Status can only be in [0-3]", "object": "adDetailDTO", "reason_desc": "Status can only be in [0-3]"}]
+    [Tags]
+
+TC_02_12.04_Create Video Ad(status is 0)
+    Create ad for Video                status=0
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021204"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_12.05_Create Video Ad(status is blank)
+    Create ad for Video                status=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021205"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_12.06_Create Video Ad(status is null)
+    Create ad for Video                status=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021206"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_12.07_Create Video Ad(status is missing)
+    Create ad for Video                status=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021207"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_02_13.01_Create Video Ad(videoType is 0)
+    Create ad for Video                videoType=0
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021301"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_13.02_Create Video Ad(videoType is 1)
+    Create ad for Video                videoType=1
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021302"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_13.03_Create Video Ad(videoType is 2)
+    Create ad for Video                videoType=2
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021303"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_13.04_Create Video Ad(videoType is 3)
+    Create ad for Video                videoType=3
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021304"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_13.05_Create Video Ad(videoType is other than 1/2/3 )
+    Create ad for Video                videoType=4
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021305"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_13.06_Create Video Ad(videoType is float)
+    Create ad for Video                videoType=2.2
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021306"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_13.07_Create Video Ad(videoType is blank)
+    Create ad for Video                 videoType=""
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "videoDTO.videoType", "message": "Video Type can not be null or empty", "object": "adDetailDTO", "reason_desc": "Video Type can not be null or empty"}]
+    [Tags]
+
+TC_02_13.08_Create Video Ad(videoType is null)
+    Create ad for Video                 videoType=null
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "videoDTO.videoType", "message": "Video Type can not be null or empty", "object": "adDetailDTO", "reason_desc": "Video Type can not be null or empty"}]
+    [Tags]
+
+TC_02_13.09_Create Video Ad(videoType is missing)
+    Create ad for Video                videoType=MISSING
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "videoDTO.videoType", "message": "Video Type can not be null or empty", "object": "adDetailDTO", "reason_desc": "Video Type can not be null or empty"}]
+    [Tags]
+
+TC_02_13.10_Create Video Ad(videoType is invalid string)
+    Create ad for Video                videoType="ABC"
+    ...                                 expected_status_code=400
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]   known_bug   CM-1338
+
+
+TC_02_14.01_Create Video Ad(playbackUrl is integer)
+    Create ad for Video                playbackUrl=123
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021401"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_14.02_Create Video Ad(playbackUrl is blank)
+    Create ad for Video                playbackUrl=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021402"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_14.03_Create Video Ad(playbackUrl is null)
+    Create ad for Video                playbackUrl=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021403"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_14.04_Create Video Ad(playbackUrl is MISSING)
+    Create ad for Video                playbackUrl=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021404"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_02_15.01_Create Video Ad(skipAfterTime is 0)
+    Create ad for Video                skipAfterTime=0
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021501"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_15.02_Create Video Ad(skipAfterTime is 1)
+    Create ad for Video                skipAfterTime=1
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021502"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_15.03_Create Video Ad(skipAfterTime is float)
+    Create ad for Video                skipAfterTime=1.12
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021503"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_15.04_Create Video Ad(skipAfterTime is blank)
+    Create ad for Video                skipAfterTime=""
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021504"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_15.05_Create Video Ad(skipAfterTime is null)
+    Create ad for Video                skipAfterTime=null
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021505"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_15.06_Create Video Ad(skipAfterTime is missing)
+    Create ad for Video                skipAfterTime=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021506"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_15.07_Create Video Ad(skipAfterTime is invalid string)
+    Create ad for Video                skipAfterTime="ABC"
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success                false
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}         /errors                 []
+    [Tags]   known_bug   CM-1338
+
+TC_02_15.08_Create Video Ad(skipAfterTime is in string)
+    Create ad for Video                skipAfterTime="0"
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021508"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_02_16.01_Create Video Ad(skippable is false)
+    Create ad for Video                skippable=false
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021601"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_16.02_Create Video Ad(skippable is true)
+    Create ad for Video                skippable=true
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021602"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_16.03_Create Video Ad(skippable is 1)
+    Create ad for Video                skippable=1
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021603"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_16.04_Create Video Ad(skippable is 0)
+    Create ad for Video                skippable=0
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021604"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_16.05_Create Video Ad(skippable is other than 1/2)
+    Create ad for Video                skippable=123
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021605"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_16.06_Create Video Ad(skippable is in string)
+    Create ad for Video                skippable="1"
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]   known_bug   CM-1338
+
+TC_02_16.07_Create Video Ad(skippable is in invalid string)
+    Create ad for Video                skippable="ABC"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             "skippable should be in integer"
+    [Tags]      known_bug   CM-1338
+
+TC_02_16.08_Create Video Ad(skippable is MISSING)
+    Create ad for Video                skippable=MISSING
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021608"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_02_17.01_Create Video Ad(mimeTypes is 1,2 valid)
+    Create ad for Video                mimeTypes=[1,2]
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021701"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_17.02_Create Video Ad(mimeTypes is null)
+    Create ad for Video                mimeTypes=null
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors        [{"field": "videoDTO.mimeTypes", "message": "Mime types cannot be empty", "object": "adDetailDTO", "reason_desc": "Mime types cannot be empty"}, {"field": "videoDTO.mimeTypes", "message": "Mime types cannot be null", "object": "adDetailDTO", "reason_desc": "Mime types cannot be null"}]
+    [Tags]
+
+TC_02_17.03_Create Video Ad(mimeTypes is blank)
+    Create ad for Video                mimeTypes=[]
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors        [{"field": "videoDTO.mimeTypes", "message": "Mime types cannot be empty", "object": "adDetailDTO", "reason_desc": "Mime types cannot be empty"}]
+    [Tags]
+
+TC_02_17.04_Create Video Ad(mimeTypes is MISSING)
+    Create ad for Video                mimeTypes=MISSING
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            [{"field": "videoDTO.mimeTypes", "message": "Mime types cannot be empty", "object": "adDetailDTO", "reason_desc": "Mime types cannot be empty"}, {"field": "videoDTO.mimeTypes", "message": "Mime types cannot be null", "object": "adDetailDTO", "reason_desc": "Mime types cannot be null"}]
+    [Tags]
+
+
+
+TC_02_18.01_Create Video Ad(extendedAttributes is 1)
+    Create ad for Video                extendedAttributes=[1]
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021801"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_18.02_Create Video Ad(extendedAttributes is between 1 to 16)
+    Create ad for Video                extendedAttributes=[13]
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021802"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_18.03_Create Video Ad(extendedAttributes is 16)
+    Create ad for Video                extendedAttributes=[16]
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021803"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_18.04_Create Video Ad(extendedAttributes is more than 16)
+    Create ad for Video                extendedAttributes=[18]
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]   known_bug   CM-1102     Exclude    # NonUI
+
+TC_02_18.05_Create Video Ad(extendedAttributes is 0)
+    Create ad for Video                extendedAttributes=[0]
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]   known_bug   CM-1102     Exclude    # NonUI
+
+TC_02_18.06_Create Video Ad(extendedAttributes multiple selections)
+    Create ad for Video                extendedAttributes=[1,4,7,12]
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021806"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_18.07_Create Video Ad(extendedAttributes MISSING)
+    Create ad for Video                extendedAttributes=[MISSING]
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021807"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_02_19.01_Create Video Ad(thirdPartyVASTTracker valid)
+    Create ad for Video                thirdPartyVASTTracker=[{"destinationType":1,"thirdpartyTrackingUrl":"http://type1.com"}]
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021901"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_19.02_Create Video Ad(thirdPartyVASTTracker destinationType = 0)
+    Create ad for Video                thirdPartyVASTTracker=[{"destinationType":0,"thirdpartyTrackingUrl":"http://type1.com"}]
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]    known_bug  CM-1102     Exclude    # NonUI
+
+TC_02_19.03_Create Video Ad(thirdPartyVASTTracker destinationType more than 54)
+    Create ad for Video                thirdPartyVASTTracker=[{"destinationType":55,"thirdpartyTrackingUrl":"http://type1.com"}]
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]    known_bug  CM-1102     Exclude    # NonUI
+
+TC_02_19.04_Create Video Ad(thirdPartyVASTTracker thirdpartyTrackingUrl string)
+    Create ad for Video                thirdPartyVASTTracker=[{"destinationType":1,"thirdpartyTrackingUrl":"hello"}]
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021904"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_19.05_Create Video Ad(thirdPartyVASTTracker thirdpartyTrackingUrl integer)
+    Create ad for Video                thirdPartyVASTTracker=[{"destinationType":1,"thirdpartyTrackingUrl":123}]   #internally converted into string
+    ...    name="TestREGRESSION_CREATIVE_12_video_ad_021905"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_02_20.01_Create Video Ad(multiple error)
+    Create ad for Video                creativeId=null
+    ...                                 name=""
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "videoDTO.name", "message": "Name can not be null or empty", "object": "adDetailDTO", "reason_desc": "Name can not be null or empty"}, {"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+
+#################################################################################################
+#Banner
+#################################################################################################
+
+TC_03_01.01_Create Banner Ad(Normal Method)
+    Create ad for Banner    adName="TestREGRESSION_CREATIVE_12_banner_ad_030101"
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_01.02_Create Banner Ad(Invalid adgroupid)
+    Create ad for Banner                adgroupId=2000000009
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030102"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_01.03_Create Banner Ad(adgroupid as a string)
+    Create ad for Banner                adgroupId="1136"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030103"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_01.04_Create Banner Ad(adgroupid as invalid string)
+    Create ad for Banner                adgroupId="ABC"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Request"
+    [Tags]      known_bug   CM-1338
+
+TC_03_01.05_Create Banner Ad(null adgroupid)
+    Create ad for Banner                adgroupId=null
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "adgroupId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_03_01.06_Create Banner Ad(blank adgroupid)
+    Create ad for Banner                adgroupId=""
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "adgroupId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_03_01.07_Create Banner Ad(adgroupid MISSING)
+    Create ad for Banner                adgroupId=MISSING
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "adgroupId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+
+
+
+TC_03_02.01_Create Banner Ad(Invalid creativeId)
+    Create ad for Banner                creativeId=2000000009
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030201"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]   known_bug     CM-1235    EXCLUDE    # NonUI
+
+TC_03_02.02_Create Banner Ad(creativeId as a string)
+    Create ad for Banner                creativeId="1136"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030202"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_02.03_Create Banner Ad(creativeId as invalid string)
+    Create ad for Banner                creativeId="ABC"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Request"
+    [Tags]      known_bug   CM-1338
+
+TC_03_02.04_Create Banner Ad(null creativeId)
+    Create ad for Banner                creativeId=null
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_03_02.05_Create Banner Ad(blank creativeId)
+    Create ad for Banner                creativeId=""
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+TC_03_02.06_Create Banner Ad(creativeId MISSING)
+    Create ad for Banner                creativeId=MISSING
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}]
+    [Tags]
+
+
+TC_03_03.01_Create Banner Ad(External id is in integer)
+
+    Create ad for Banner                externalId=123
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030301"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_03_03.02_Create Banner Ad(External id is blank)
+
+    Create ad for Banner                externalId=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030302"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_03_03.03_Create Banner Ad(External id is null)
+
+    Create ad for Banner                externalId=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030303s"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_03_03.04_Create Banner Ad(External id is MISSING)
+
+    Create ad for Banner                externalId=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030304"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_03_04.01_Create Banner Ad(adName is integer)
+    Create ad for Banner                adName=123
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030401"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_04.02_Create Banner Ad(adName is null)
+    Create ad for Banner                adName=null
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "bannerDTO.adName", "message": "AdName can not be null or empty", "object": "adDetailDTO", "reason_desc": "AdName can not be null or empty"}]
+    [Tags]
+
+TC_03_04.03_Create Banner Ad(adName is blank)
+    Create ad for Banner                adName=""
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "bannerDTO.adName", "message": "AdName can not be null or empty", "object": "adDetailDTO", "reason_desc": "AdName can not be null or empty"}]
+    [Tags]
+
+TC_03_04.04_Create Banner Ad(adName is MISSING)
+    Create ad for Banner                adName="MISSING"
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "bannerDTO.adName", "message": "AdName can not be null or empty", "object": "adDetailDTO", "reason_desc": "AdName can not be null or empty"}]
+    [Tags]
+
+
+TC_03_05.01_Create Banner Ad(weight is 0)
+    Create ad for Banner                weight=0
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030501"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_05.02_Create Banner Ad(weight is 1)
+    Create ad for Banner                weight=1
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030502"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_05.03_Create Banner Ad(weight is big number)
+    Create ad for Banner                weight=123
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030503"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_05.04_Create Banner Ad(weight is blank)
+    Create ad for Banner                weight=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030504"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_05.05_Create Banner Ad(weight is null)
+    Create ad for Banner                weight=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030505"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_05.06_Create Banner Ad(weight is float)
+    Create ad for Banner                weight=12.3
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030506"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_05.07_Create Banner Ad(weight is missing)
+    Create ad for Banner                weight=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030507"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_05.08_Create Banner Ad(weight is in invalid string)
+    Create ad for Banner                weight="qwe"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030508"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors        "weight should be valid"
+    [Tags]    known_bug   CM-1338
+
+TC_03_05.09_Create Banner Ad(weight is in string)
+    Create ad for Banner                weight="123"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030509"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_03_06.01_Create Banner Ad(bannerType is 0)
+    Create ad for Banner                bannerType=0
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030601"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_06.02_Create Banner Ad(bannerType is 1)
+    Create ad for Banner                bannerType=1
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030602"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]    known_bug   CM-1337
+
+TC_03_06.03_Create Banner Ad(bannerType is 2)
+    Create ad for Banner                bannerType=2
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030603"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]       known_bug   CM-1337
+
+TC_03_06.04_Create Banner Ad(bannerType is 3)
+    Create ad for Banner                bannerType=3
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030604"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors        "banner type should be"
+    [Tags]          known_bug   CM-1337
+
+TC_03_06.05_Create Banner Ad(bannerType is other than 1/2/3)
+    Create ad for Banner                bannerType=4
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030605"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors        "banner type should be"
+    [Tags]         known_bug   CM-1337
+
+TC_03_06.06_Create Banner Ad(bannerType is float)
+    Create ad for Banner                bannerType=2.2
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030606"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]        known_bug   CM-1337
+
+TC_03_06.07_Create Banner Ad(bannerType is blank)
+    Create ad for Banner                 bannerType=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030607"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_06.08_Create Banner Ad(bannerType is null)
+    Create ad for Banner                 bannerType=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030608"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_06.09_Create Banner Ad(bannerType is missing)
+    Create ad for Banner                bannerType=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030609"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_06.10_Create Banner Ad(bannerType is in string)
+    Create ad for Banner                bannerType="ABC"
+    ...                                 expected_status_code=400
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]   known_bug   CM-1338
+
+
+
+
+
+TC_03_07.01_Create Banner Ad(formatId is 0)
+    Create ad for Banner                formatId=0
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "bannerDTO.formatId", "message": "Format id should in [1-16]", "object": "adDetailDTO", "reason_desc": "Format id should in [1-16]"}]
+    [Tags]
+
+TC_03_07.02_Create Banner Ad(formatId is 1)
+    Create ad for Banner                formatId=1
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030702"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_07.03_Create Banner Ad(formatId is 16)
+    Create ad for Banner                formatId=16
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030703"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_07.04_Create Banner Ad(formatId is 17 invalid)
+    Create ad for Banner                formatId=17
+    ...                                     expected_status_code=400
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "bannerDTO.formatId", "message": "Format id should in [1-16]", "object": "adDetailDTO", "reason_desc": "Format id should in [1-16]"}]
+    [Tags]
+
+TC_03_07.05_Create Banner Ad(formatId is blank)
+    Create ad for Banner                formatId=""
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "bannerDTO.formatId", "message": "Format id should in [1-16]", "object": "adDetailDTO", "reason_desc": "Format id should in [1-16]"}]
+    [Tags]
+
+TC_03_07.06_Create Banner Ad(formatId is null)
+    Create ad for Banner                formatId=null
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "bannerDTO.formatId", "message": "Format id should in [1-16]", "object": "adDetailDTO", "reason_desc": "Format id should in [1-16]"}]
+    [Tags]
+
+TC_03_07.07_Create Banner Ad(formatId is MISSING)
+    Create ad for Banner                    formatId=MISSING
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "bannerDTO.formatId", "message": "Format id should in [1-16]", "object": "adDetailDTO", "reason_desc": "Format id should in [1-16]"}]
+    [Tags]
+
+
+
+TC_03_08.01_Create Banner Ad(imageFileUrl is integer)
+    Create ad for Banner                imageFileUrl=123
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030801"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_08.02_Create Banner Ad(imageFileUrl is blank)
+    Create ad for Banner                imageFileUrl=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030802"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_08.03_Create Banner Ad(imageFileUrl is null)
+    Create ad for Banner                imageFileUrl=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030803"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_08.04_Create Banner Ad(imageFileUrl is MISSING)
+    Create ad for Banner                imageFileUrl=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030804"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_03_09.01_Create Banner Ad(thirdPartyImpression is integer)
+    Create ad for Banner                thirdPartyImpression=123
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030901"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_09.02_Create Banner Ad(thirdPartyImpression is null)
+    Create ad for Banner                thirdPartyImpression=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030902"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_09.03_Create Banner Ad(thirdPartyImpression is blank)
+    Create ad for Banner                thirdPartyImpression=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030903"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_09.04_Create Banner Ad(thirdPartyImpression is MISSING)
+    Create ad for Banner                thirdPartyImpression=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030904"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_09.05_Create Banner Ad(thirdPartyImpression contains special chars)
+    Create ad for Banner                thirdPartyImpression="www.4info#$%#.com"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030905"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_09.06_Create Banner Ad(thirdPartyImpression contains hyphen)
+    Create ad for Banner                thirdPartyImpression="www.4info-inc.com"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030906"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_09.07_Create Banner Ad(thirdPartyImpression contains underscore)
+    Create ad for Banner                thirdPartyImpression="www.4info_inc.com"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_030907"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_03_10.01_Create Banner Ad(destinationUrl is integer)
+    Create ad for Banner                destinationUrl=123
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031001"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_10.02_Create Banner Ad(destinationUrl is blank)
+    Create ad for Banner                destinationUrl=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031002"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_10.03_Create Banner Ad(destinationUrl is null)
+    Create ad for Banner                destinationUrl=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031003"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_10.04_Create Banner Ad(destinationUrl is MISSING)
+    Create ad for Banner                destinationUrl=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031004"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_03_11.01_Create Banner Ad(externalPreviewLink is 0)
+    Create ad for Banner                externalPreviewLink=0
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031101"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_11.02_Create Banner Ad(externalPreviewLink is 1)
+    Create ad for Banner                externalPreviewLink=1
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031102"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_11.03_Create Banner Ad(externalPreviewLink is negative)
+    Create ad for Banner                externalPreviewLink=-1
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031103"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]   "Success"
+
+TC_03_11.04_Create Banner Ad(externalPreviewLink is blank)
+    Create ad for Banner                externalPreviewLink=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031104"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_11.05_Create Banner Ad(externalPreviewLink is null)
+    Create ad for Banner                externalPreviewLink=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031105"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_11.06_Create Banner Ad(externalPreviewLink is MISSING)
+    Create ad for Banner                externalPreviewLink=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031106"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_03_12.01_Create Banner Ad(externalCreativeId is valid)
+    Create ad for Banner                externalCreativeId=7017
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031201"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_12.02_Create Banner Ad(externalCreativeId is invalid)
+    Create ad for Banner                externalCreativeId=7017111
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031202"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_12.03_Create Banner Ad(externalCreativeId is blank)
+    Create ad for Banner                externalCreativeId=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031203"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_12.04_Create Banner Ad(externalCreativeId is null)
+    Create ad for Banner                externalCreativeId=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031203"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_12.05_Create Banner Ad(externalCreativeId is missing)
+    Create ad for Banner                externalCreativeId=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031204"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_12.06_Create Banner Ad(externalCreativeId is in string)
+    Create ad for Banner                externalCreativeId="7017"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031205"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+
+TC_03_13.01_Create Banner Ad(secure is True)
+    Create ad for Banner                secure=true
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031301"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_13.02_Create Banner Ad(secure is False)
+    Create ad for Banner                secure=false
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031302"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_13.03_Create Banner Ad(secure is 1)
+    Create ad for Banner                secure=1
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031303"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_13.04_Create Banner Ad(secure is 0)
+    Create ad for Banner                secure=0
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031304"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_13.05_Create Banner Ad(secure is 2)
+    Create ad for Banner                secure=2
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031305"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_13.06_Create Banner Ad(secure is other integer)
+    Create ad for Banner                secure=1233
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031306"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_13.07_Create Banner Ad(secure is String)
+    Create ad for Banner                secure="True"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031307"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_13.08_Create Banner Ad(secure is null)
+    Create ad for Banner                secure=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031308"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_13.09_Create Banner Ad(secure is blank)
+    Create ad for Banner                secure=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031309"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_13.10_Create Banner Ad(secure is MISSING)
+    Create ad for Banner                secure=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031310"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_03_14.01_Create Banner Ad(deleteFromUI is True)
+    Create ad for Banner                deleteFromUI=true
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031401"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_14.02_Create Banner Ad(deleteFromUI is False)
+    Create ad for Banner                deleteFromUI=false
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031402"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_14.03_Create Banner Ad(deleteFromUI is 1)
+    Create ad for Banner                deleteFromUI=1
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031403"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_14.04_Create Banner Ad(deleteFromUI is 0)
+    Create ad for Banner                deleteFromUI=0
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031404"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_14.05_Create Banner Ad(deleteFromUI is 2)
+    Create ad for Banner                deleteFromUI=2
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031405"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_14.06_Create Banner Ad(deleteFromUI is other integer)
+    Create ad for Banner                deleteFromUI=12311
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031406"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_14.07_Create Banner Ad(deleteFromUI is String)
+    Create ad for Banner                deleteFromUI="true"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031407"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_14.08_Create Banner Ad(deleteFromUI is invalid String)
+    Create ad for Banner                deleteFromUI="Qwe"
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "400-001"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid Request"
+    [Tags]   known_bug  CM-1338
+
+TC_03_14.09_Create Banner Ad(deleteFromUI is null)
+    Create ad for Banner                deleteFromUI=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031409"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_14.10_Create Banner Ad(deleteFromUI is blank)
+    Create ad for Banner                deleteFromUI=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031401"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_14.11_Create Banner Ad(deleteFromUI is MISSING)
+    Create ad for Banner                deleteFromUI=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031411"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_15.01_Create Banner Ad(multiple error)
+    Create ad for Banner                creativeId=null
+    ...                                 status=4
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "creativeId", "message": "may not be null", "object": "adDetailDTO", "reason_desc": "may not be null"}, {"field": "bannerDTO.status", "message": "Status can only be in [0-3]", "object": "adDetailDTO", "reason_desc": "Status can only be in [0-3]"}]
+    [Tags]
+
+
+
+TC_03_16.01_Create Banner Ad(status is 2)
+    Create ad for Banner                status=2
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031601"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_16.02_Create Banner Ad(status is 3)
+    Create ad for Banner                status=3
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031602"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_16.03_Create Banner Ad(status is 4 invalid)
+    Create ad for Banner                status=4
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             [{"field": "bannerDTO.status", "message": "Status can only be in [0-3]", "object": "adDetailDTO", "reason_desc": "Status can only be in [0-3]"}]
+    [Tags]
+
+TC_03_16.04_Create Banner Ad(status is 0)
+    Create ad for Banner                status=0
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031604"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_16.05_Create Banner Ad(status is blank)
+    Create ad for Banner                status=""
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031605"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_16.06_Create Banner Ad(status is null)
+    Create ad for Banner                status=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031606"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_16.07_Create Banner Ad(status is missing)
+    Create ad for Banner                status=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031607"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_03_17.01_Create Banner Ad(positionList is 0)
+    Create ad for Banner                positionList=[0]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031701"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_17.02_Create Banner Ad(positionList is 1)
+    Create ad for Banner                positionList=[1]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031702"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_17.03_Create Banner Ad(positionList is 2)
+    Create ad for Banner                positionList=[2]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031703"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_17.04_Create Banner Ad(positionList is 3)
+    Create ad for Banner                positionList=[3]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031704"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors             "positionList should be in 0 - 3"
+    [Tags]     known_bug   CM-1163
+
+TC_03_17.05_Create Banner Ad(positionList is combination of 0,1,2)
+    Create ad for Banner                positionList=[0,1,2]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031705"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_17.06_Create Banner Ad(positionList is null)
+    Create ad for Banner                positionList=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031706"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_17.07_Create Banner Ad(positionList is blank)
+    Create ad for Banner                positionList=[]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031707"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_17.08_Create Banner Ad(positionList is MISSING)
+    Create ad for Banner                positionList=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031708"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+
+TC_03_18.01_Create Banner Ad(richMediaTypeList is 0)
+    Create ad for Banner                richMediaTypeList=[0]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031801"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_18.02_Create Banner Ad(richMediaTypeList is 1)
+    Create ad for Banner                richMediaTypeList=[1]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031802"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_18.03_Create Banner Ad(richMediaTypeList is 2)
+    Create ad for Banner                richMediaTypeList=[2]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031803"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_18.04_Create Banner Ad(richMediaTypeList is combination of 0,1,2)
+    Create ad for Banner                richMediaTypeList=[0,1]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031804"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_18.04_Create Banner Ad(richMediaTypeList is more than 2)
+    Create ad for Banner                richMediaTypeList=[5]
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            "richMediaTypeList should be in 0 to 2 "
+    [Tags]   known_bug    CM-1162
+
+TC_03_18.05_Create Banner Ad(richMediaTypeList is null)
+    Create ad for Banner                richMediaTypeList=[]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031805"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_18.06_Create Banner Ad(richMediaTypeList is blank)
+    Create ad for Banner                richMediaTypeList=[]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031806"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_18.07_Create Banner Ad(richMediaTypeList is MISSING)
+    Create ad for Banner                richMediaTypeList=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031807"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_03_19.01_Create Banner Ad(optOutIconLocation is tr)
+    Create ad for Banner                optOutIconLocation="tr"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031901"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_19.02_Create Banner Ad(optOutIconLocation is tl)
+    Create ad for Banner                optOutIconLocation="tl"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031902"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_19.03_Create Banner Ad(optOutIconLocation is br)
+    Create ad for Banner                optOutIconLocation="br"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031903"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_19.04_Create Banner Ad(optOutIconLocation is bl)
+    Create ad for Banner                optOutIconLocation="tl"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031904"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_19.05_Create Banner Ad(optOutIconLocation is bt)
+    Create ad for Banner                optOutIconLocation="bt"
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031905"
+    ...                                 expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]    known_bug   CM-1161
+
+TC_03_19.06_Create Banner Ad(optOutIconLocation is integer)
+    Create ad for Banner                optOutIconLocation=123
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031906"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]   known_bug   CM-1102     Exclude    # NonUI
+
+TC_03_19.07_Create Banner Ad(optOutIconLocation is null)
+    Create ad for Banner                optOutIconLocation=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031907"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]    known_bug   CM-1102     Exclude    # NonUI
+
+TC_03_19.08_Create Banner Ad(optOutIconLocation is MISSING)
+    Create ad for Banner                optOutIconLocation=MISSING
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_031908"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]    known_bug   CM-1102     Exclude    # NonUI
+
+
+TC_03_20.01_Create Banner Ad(extendedAttributes is 1)
+    Create ad for Banner                extendedAttributes=[1]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_032001"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_20.02_Create Banner Ad(extendedAttributes is between 1 to 16)
+    Create ad for Banner                extendedAttributes=[12]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_032002"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_20.03_Create Banner Ad(extendedAttributes is 16)
+    Create ad for Banner                extendedAttributes=[16]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_032003"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_20.04_Create Banner Ad(extendedAttributes is more than 16)
+    Create ad for Banner                extendedAttributes=[19]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_032004"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]    known_bug   CM-1102     Exclude    # NonUI
+
+TC_03_20.05_Create Banner Ad(extendedAttributes is 0)
+    Create ad for Banner                extendedAttributes=[0]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_032005"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]   known_bug   CM-1102     Exclude    # NonUI
+
+
+TC_03_20.07_Create Banner Ad(extendedAttributes null)
+    Create ad for Banner                extendedAttributes=null
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_032007"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_20.08_Create Banner Ad(extendedAttributes multiple)
+    Create ad for Banner                extendedAttributes=[1,4,6,8,10]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_032008"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC_03_20.09_Create Banner Ad(extendedAttributes MISSING)
+    Create ad for Banner                extendedAttributes=[MISSING]
+    ...    adName="TestREGRESSION_CREATIVE_12_banner_ad_032009"
+    ...                                 expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+

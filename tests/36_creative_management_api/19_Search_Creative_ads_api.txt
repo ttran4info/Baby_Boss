@@ -1,0 +1,206 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16		SEARCH_CR_AD_API       OffshoreQA          HYDRA
+#Should not use this keyword "Cleanup Creative All By Name"
+#Suite Setup     Cleanup Creative All By Name      TestREGRESSION_CREATIVE_19
+#Suite Teardown  Cleanup Creative All By Name      TestREGRESSION_CREATIVE_19
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-SearchAPI
+#API NAME :Search Creative/Ad API
+#METHOD : POST
+#API :/hydra/v1/search?groupId={groupId}
+
+
+***Variables***
+
+
+*** Keywords ***
+Search Request for creative and ads
+    [Arguments]         ${keyword}="REGRESSION"
+    ...                 ${selection}="all"
+    ...                 ${groupId}=1
+    ...                 ${expected_status_code}=200
+    ...                 ${auth}=${HYDRA_AUTH}
+    Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    ${headers}       Create Dictionary     Content-Type=application/json    Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+     Set Test Variable      ${uri}       /hydra/v1/search?groupId=${groupId}
+    Set Test Variable      ${data}       {"keyword" :${keyword},"selection" : ${selection}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log     Request: ${data}
+    ${resp}    RequestsLibrary.Post Request    creative   ${uri}    data=${data}    headers=${headers}
+    Set Test Variable    ${resp}    ${resp}
+    Set Suite Variable       ${response_content}     ${resp.content}
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json    ${response_content}
+    Run Keyword Unless         '${expected_status_code}' == '200'           Should Match Regexp             ${response_content}                ${success_false_regex}
+
+
+
+***Test Cases***
+TC_01_Search API for Creative and ads(search in creative)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword="REGRESSION"
+    ...                         selection="creatives"
+
+    Json Value Should Equal     ${body}         /keyword            "REGRESSION"
+    Json Value Should Equal     ${body}         /selection        "creatives"
+    [Tags]
+
+
+TC_02_Search API for Creative and ads(search in all)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword="REGRESSION"
+    ...                         selection="all"
+    Json Value Should Equal     ${body}         /keyword            "REGRESSION"
+    Json Value Should Equal     ${body}         /selection        "all"
+    [Tags]
+
+
+TC_03_Search API for Creative and ads(search in ads)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword="REGRESSION"
+    ...                         selection="ads"
+
+    Json Value Should Equal     ${body}         /keyword            "REGRESSION"
+    Json Value Should Equal     ${body}         /selection        "ads"
+    [Tags]
+
+
+TC_04_Search API for Creative and ads(keyword is null with ads)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword=null
+    ...                         selection="ads"
+
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            [{"field": "keyword", "message": "Search key cannot be empty", "object": "searchDTO", "reason_desc": "Search key cannot be empty"}]
+    [Tags]
+
+
+TC_05_Search API for Creative and ads(keyword is blank with ads)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword=""
+    ...                         selection="ads"
+
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            [{"field": "keyword", "message": "Search key cannot be empty", "object": "searchDTO", "reason_desc": "Search key cannot be empty"}]
+    [Tags]
+
+
+TC_06_Search API for Creative and ads(keyword is MISSING with ads)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword=MISSING
+    ...                         selection="ads"
+
+    Json Value Should Equal     ${body}         /reason_code            "500-502"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request"
+    [Tags]
+
+
+TC_07_Search API for Creative and ads(keyword is null with creatives)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword=null
+    ...                         selection="creatives"
+
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            [{"field": "keyword", "message": "Search key cannot be empty", "object": "searchDTO", "reason_desc": "Search key cannot be empty"}]
+    [Tags]
+
+
+TC_08_Search API for Creative and ads(keyword is blank with creatives)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword=""
+    ...                         selection="creatives"
+
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            [{"field": "keyword", "message": "Search key cannot be empty", "object": "searchDTO", "reason_desc": "Search key cannot be empty"}]
+    [Tags]
+
+
+TC_09_Search API for Creative and ads(keyword is blank with ads)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword=MISSING
+    ...                         selection="Creatives"
+
+    Json Value Should Equal     ${body}         /reason_code            "500-502"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request"
+    [Tags]
+
+
+TC_10_Search API for Creative and ads(keyword is null with all)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword=null
+    ...                         selection="all"
+
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            [{"field": "keyword", "message": "Search key cannot be empty", "object": "searchDTO", "reason_desc": "Search key cannot be empty"}]
+    [Tags]
+
+
+TC_11_Search API for Creative and ads(keyword is blank with all)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword=""
+    ...                         selection="all"
+
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            [{"field": "keyword", "message": "Search key cannot be empty", "object": "searchDTO", "reason_desc": "Search key cannot be empty"}]
+    [Tags]
+
+
+TC_12_Search API for Creative and ads(keyword is blank with ads)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword=MISSING
+    ...                         selection="all"
+
+    Json Value Should Equal     ${body}         /reason_code            "500-502"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request"
+    [Tags]
+
+
+TC_13_Search API for Creative and ads(keyword is valid with selection is null)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword="REGRESSION"
+    ...                         selection=null
+
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            [{"field": "selection", "message": "Selection criteria cannot be empty", "object": "searchDTO", "reason_desc": "Selection criteria cannot be empty"}]
+    [Tags]
+
+
+TC_14_Search API for Creative and ads(keyword is valid with selection is blank)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword="REGRESSION"
+    ...                         selection=""
+
+    Json Value Should Equal     ${body}         /reason_code            "400-999"
+    Json Value Should Equal     ${body}         /reason_desc            "Validation Failure"
+    Json Value Should Equal     ${body}         /errors            [{"field": "selection", "message": "Selection criteria cannot be empty", "object": "searchDTO", "reason_desc": "Selection criteria cannot be empty"}]
+    [Tags]
+
+
+TC_15_Search API for Creative and ads(keyword is valid with selection is MISSING)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword="REGRESSION"
+    ...                         selection=MISSING
+
+    Json Value Should Equal     ${body}         /reason_code            "500-502"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request"
+    [Tags]
+
+
+TC_16_Search API for Creative and ads(keyword is MISSING with selection is MISSING)
+    Search Request for creative and ads      groupId=1
+    ...                         keyword=MISSING
+    ...                         selection=MISSING
+
+    Json Value Should Equal     ${body}         /reason_code            "500-502"
+    Json Value Should Equal     ${body}         /reason_desc            "Invalid Request"
+    [Tags]

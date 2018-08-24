@@ -1,0 +1,408 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16		HYDRA       CLONE_CREATIVE     EXCLUDE
+#Should not use this keyword for cleanup
+#Suite Setup     Cleanup Creative All By Name      TestREGRESSION_CREATIVE_08
+#Suite Teardown  Cleanup Creative All By Name      TestREGRESSION_CREATIVE_08
+
+
+
+#Wiki https://wiki.4info.com/display/Software/Creative+Management+API%28Hydra%29+Documentation#CreativeManagementAPI(Hydra)Documentation-CloneaCreativeTemplate
+#API NAME :Clone Creative
+#METHOD : PUT
+#API :/hydra/v1/creative/clone/{type}/{detailId}/{campaignId}
+
+
+***Variables***
+
+${native_uri}        native
+${video_uri}         video
+${banner_uri}        banner
+${name}             TestREGRESSION_CREATIVE_08_TC_
+${Ad_NAME_START_WITH_SPACE}     ${Space}TestREGRESSION_CREATIVE_08
+
+*** Keywords ***
+Clone The Cretive Template
+    [Arguments]
+    ...         ${type}=
+    ...         ${detailId}=
+    ...         ${campaign_id}=3743
+    ...         ${name}="TestREGRESSION_CREATIVE_08"
+    ...         ${expected_status_code}=200
+    ...         ${auth}=${HYDRA_AUTH}
+    Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1/creative
+    Set Test Variable           ${uri}      /clone/${type}/${detailId}/${campaign_id}
+    ${headers}       Create Dictionary     Content-Type=application/json    Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable           ${data}     {"name":${name}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log     Request: ${data}
+    ${resp}    RequestsLibrary.Put Request    creative   ${uri}    data=${data}    headers=${headers}
+    Set Test Variable    ${resp}    ${resp}
+    Set Suite Variable       ${response_content}     ${resp.content}
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json    ${response_content}
+
+
+***Test Cases***
+TC_01_01_Clone Creative native(Normal Method)
+    [Documentation]             input : Clone creative with Normal Method
+    ...                         Output: Clone creative should be Successfull
+    Set Test Variable    ${AdName}    ${name}01_01
+    Generate JSON For Creative Native       adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${native_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}_CLONE"
+    ...                                     type=native
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    [Tags]
+
+TC_01_02_Clone Creative native(invalid detailId)
+    [Documentation]             input : Clone creative with invalid detailId
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}01_02
+    Generate JSON For Creative Native       adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${native_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}_CLONE"
+    ...                                     type=native
+    ...                                     detailId=123123131
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    [Tags]
+
+TC_01_03_Clone Creative native(invalid campaign id)
+    [Documentation]             input : Clone creative with invalid campaign id
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}01_03
+    Generate JSON For Creative Native       adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${native_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}_CLONE"
+    ...                                     type=native
+    ...                                     detailId=${DTO_id}
+    ...                                     campaign_id=12312314
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]
+
+TC_01_04_Clone Creative native(without Name)
+    [Documentation]             input : Clone creative with without Name
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}01_04
+    Generate JSON For Creative Native       adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${native_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              type=native
+    ...                                     name=MISSING
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}     /success            false
+    Should Match Regexp         ${body}      "message.+Name can not be null or empty"
+    [Tags]
+
+
+TC_01_05_Clone Creative native(Existing Name)
+    [Documentation]             input : Clone creative with Existing Name
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}01_05
+    Generate JSON For Creative Native       adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${native_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}"
+    ...                                     type=native
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp         ${body}         "message.+Duplicate creative name"
+    [Tags]
+
+TC_01_06_Clone Creative native(Name Starts with spaaces)
+    [Documentation]             input : Clone creative with Starts with spaaces
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}01_06
+    Generate JSON For Creative Native       adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${native_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${Ad_NAME_START_WITH_SPACE}_TC_01_06_CLONE"
+    ...                                     type=native
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp        ${body}          Only\\sletters,\\snumbers,\\sunderscores\\s.+hyphens\\s.+period.+and\\ssingle\\sspaces\\sare\\sallowed"
+    [Tags]
+
+TC_01_07_Clone Creative native(Name with special chars)
+    [Documentation]             input : Clone creative with with special chars
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}01_07
+    Generate JSON For Creative Native       adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${native_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}_@#$^&*()!"
+    ...                                     type=native
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp        ${body}          Only\\sletters,\\snumbers,\\sunderscores\\s.+hyphens\\s.+period.+and\\ssingle\\sspaces\\sare\\sallowed"
+    [Tags]
+
+
+TC_02_01_Clone Creative video(Normal Method)
+    [Documentation]             input : Clone creative with Normal Method
+    ...                         Output: Clone creative should be Successfull
+    Set Test Variable    ${AdName}    ${name}02_01
+    Generate JSON For Creative Video        name="${AdName}"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}_CLONE"
+    ...                                     type=video
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    [Tags]
+
+TC_02_02_Clone Creative video(invalid detailId)
+    [Documentation]             input : Clone creative with invalid detailId
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}02_02
+    Generate JSON For Creative Video        name="${AdName}"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}_CLONE"
+    ...                                     type=video
+    ...                                     detailId=12312331
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    [Tags]
+
+TC_02_03_Clone Creative video(invalid campaign id)
+    [Documentation]             input : Clone creative with invalid campaign id
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}02_03
+    Generate JSON For Creative Video        name="${AdName}"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}_CLONE"
+    ...                                     type=video
+    ...                                     detailId=${DTO_id}
+    ...                                     campaign_id=1231231
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]
+
+TC_02_04_Clone Creative video(without Name)
+    [Documentation]             input : Clone creative with without Name
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}02_04
+    Generate JSON For Creative Video        name="${AdName}"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="REGRESSION_CREATIVE0204_CLONE"
+    ...                                     type=video
+    ...                                     name=MISSING
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}     /success            false
+    Should Match Regexp         ${body}      "message.+Name can not be null or empty"
+    [Tags]
+
+
+TC_02_05_Clone Creative video(Existing Name)
+    [Documentation]             input : Clone creative with Existing Name
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}02_05
+    Generate JSON For Creative Video        name="${AdName}"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}"
+    ...                                     type=video
+    ...                                     detailId=${DTO_id}
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp         ${body}         Duplicate creative name
+    [Tags]
+
+TC_02_06_Clone Creative video(Name Starts with spaaces)
+    [Documentation]             input : Clone creative with Starts with spaaces
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}02_06
+    Generate JSON For Creative Video        name="${AdName}"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              type=video
+    ...                                     name="${Ad_NAME_START_WITH_SPACE}_TC_02_06_CLONE"
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp        ${body}          Only\\sletters,\\snumbers,\\sunderscores\\s.+hyphens\\s.+period.+and\\ssingle\\sspaces\\sare\\sallowed"
+    [Tags]
+
+
+TC_02_07_Clone Creative video(Name Contains special chars)
+    [Documentation]             input : Clone creative with Contains special chars
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}02_07
+    Generate JSON For Creative Video        name="${AdName}"
+    CREATIVE POST Request for Creative      uri=${video_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              type=video
+    ...                                     name="${AdName}_!$^&*"
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp        ${body}          Only\\sletters,\\snumbers,\\sunderscores\\s.+hyphens\\s.+period.+and\\ssingle\\sspaces\\sare\\sallowed"
+   [Tags]
+
+
+
+
+TC_03_01_Clone Creative banner(Normal Method)
+    [Documentation]             input : Clone creative with Normal Method
+    ...                         Output: Clone creative should be Successfull
+    Set Test Variable    ${AdName}    ${name}03_01
+    Generate JSON For Creative Banner        adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}_CLONE"
+    ...                                     type=banner
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    [Tags]
+
+TC_03_02_Clone Creative banner(invalid detailId)
+    [Documentation]             input : Clone creative with invalid detailId
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}03_02
+    Generate JSON For Creative Banner        adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}_CLONE"
+    ...                                     type=banner
+    ...                                     detailId=1231231
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    [Tags]
+
+TC_03_03_Clone Creative banner(invalid campaign id)
+    [Documentation]             input : Clone creative with invalid campaign id
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}03_03
+    Generate JSON For Creative Banner        adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}_CLONE"
+    ...                                     type=banner
+    ...                                     detailId=${DTO_id}
+    ...                                     campaign_id=1231231
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]
+
+TC_03_04_Clone Creative banner(without Name)
+    [Documentation]             input : Clone creative with (without Name
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}03_04
+    Generate JSON For Creative Banner        adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              type=banner
+    ...                                     name=MISSING
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}     /success            false
+    Should Match Regexp         ${body}      "message.+Name can not be null or empty"
+    [Tags]
+
+
+TC_03_05_Clone Creative banner(Existing Name)
+    [Documentation]             input : Clone creative with (Existing Name
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}03_05
+    Generate JSON For Creative Banner        adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              name="${AdName}"
+    ...                                     type=banner
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp         ${body}         Duplicate creative name
+    [Tags]
+
+
+TC_03_06_Clone Creative banner(Name Starts with spaces)
+    [Documentation]             input : Clone creative with Starts with spaces
+    ...                         Output: Clone creative should be unsuccessfull
+    Set Test Variable    ${AdName}    ${name}03_06
+    Generate JSON For Creative Banner        adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              type=banner
+    ...                                     name="${Ad_NAME_START_WITH_SPACE}_TC_03_06_CLONE"
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp        ${body}          Only\\sletters,\\snumbers,\\sunderscores\\s.+hyphens\\s.+period.+and\\ssingle\\sspaces\\sare\\sallowed"
+    [Tags]
+
+
+TC_03_07_Clone Creative banner(Name Contains special chars)
+    [Documentation]             input : Clone creative with Contains special chars
+    ...                         Output: Clone creative should be Successfull
+    Set Test Variable    ${AdName}    ${name}03_07
+    Generate JSON For Creative Banner       adName="${AdName}"
+    CREATIVE POST Request for Creative      uri=${banner_uri}
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Clone The Cretive Template              type=banner
+    ...                                     name="${AdName}_!^&*#$"
+    ...                                     detailId=${DTO_id}
+    ...                                     expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    Should Match Regexp        ${body}          Only\\sletters,\\snumbers,\\sunderscores\\s.+hyphens\\s.+period.+and\\ssingle\\sspaces\\sare\\sallowed"
+    [Tags]
+

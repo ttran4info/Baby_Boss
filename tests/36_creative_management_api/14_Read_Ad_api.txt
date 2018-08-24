@@ -1,0 +1,207 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16     READ_AD     OffshoreQA   HYDRA    EXCLUDE
+Suite Setup         Run Keyword          Clean Up Campaign, Advertiser and Cretives
+Suite Teardown      Run Keywords         Clean Up Campaign, Advertiser and Cretives
+
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-ReadAd
+#API NAME :Read Ad
+#METHOD : Get
+#API :/hydra/v1/ad/{type}/{detailId}
+
+
+***Variables***
+# ${AdDetailDTO_Id_Native}       161786
+# ${Adgroup_Id_Native}           1043
+# ${Creative_Id_native}          13241
+
+# ${AdDetailDTO_Id_Video}       391225
+# ${Adgroup_Id_Video}           1081
+# ${Creative_Id_Video}          22564
+
+${AdDetailDTO_Id_Banner}       92535
+${Adgroup_Id_Banner}           1089
+${Creative_Id_Banner}          80247
+${CREATIVE_NAME}               TestREGRESSION_CREATIVE_14
+${QA_TEST_ADVERTISER}          QATEST_advertiser
+${CAMPAIGN_NAME_UI}            QATEST_campaign
+${CHILD_NAME}                  QATEST_CHILD
+${parent_name}                 QATEST_parent
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+
+
+*** Keywords ***
+Read Request for Ad
+    [Arguments]     ${id}=       ${type}=     ${expected_status_code}=200     ${success}=NA       ${auth}=${HYDRA_AUTH}
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    Set Test Variable      ${uri}       /hydra/v1/ad/${type}/${id}
+    ${headers}    Create Dictionary     Accept=application/json     Authorization=${auth}   #Basic Y3BoYW1ANGluZm8uY29tOjVmYjlmYzA2ZTRmODhhNzg2YmEwYTU5MDE1NDVkNzQy
+    ${resp}=    Get Request     docker  ${uri}          headers=${headers}
+    Log    Response: '${resp.content}'
+    Run Keyword If  '${expected_status_code}'=='200'        Set Suite Variable       ${body}     ${resp.content}
+    Run Keyword If  '${expected_status_code}'=='200'        Should Be Valid Json     ${body}
+    Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless  '${success}'=='NA'          Should Match Regexp     ${body}     "success":${success}
+
+
+Clean Up Campaign, Advertiser and Cretives
+    #Cleanup Creative All By Name        TestREGRESSION_CREATIVE_14
+    #Delete child via DB                 name=${CHILD_NAME}%
+    #Delete New Parent Adgroup via DB    parentName=${parent_name}%
+    #Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+    #Delete New Advertiser via DB        name=${QA_TEST_ADVERTISER}%
+	#Clean up advertiser will take care of everything under advertiser
+	Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+
+***Test Cases***
+TC_00_Generate_data_for_tests
+    Log To Console       "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=${Empty}
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Adgroup_id_native}=       Get JSON Value          ${body}                             /childId
+    Set Suite Variable           ${Adgroup_id_native}         ${Adgroup_id_native}
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Native_creative_id}                      ${DTO_id}
+    Log To Console                              ${Native_creative_id}
+    Log To Console         "Created native data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoWrapper      child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Adgroup_id_video}=       Get JSON Value          ${body}                             /childId
+    Set Suite Variable           ${Adgroup_id_video}         ${Adgroup_id_video}
+    Generate JSON For Creative Video            campaign_id=${Campaign_Id}                 videoType=3
+    ...                                         name="${CREATIVE_NAME}_VIDEO_WRAPPER"
+    CREATIVE POST Request for Creative          uri=video       JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${Video_wrapper_creative_id}               ${DTO_id}
+
+    Log To Console         "Created Video data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerStatic       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Adgroup_id_baner}=       Get JSON Value          ${body}                             /childId
+    Set Suite Variable           ${Adgroup_id_baner}         ${Adgroup_id_baner}
+    Generate JSON For Creative Banner           campaign_id=${Campaign_Id}                  bannerType=0
+    ...                                         adName="${CREATIVE_NAME}_BANNER_STATIC"
+    CREATIVE POST Request for Creative          uri=banner           JSON=${data}           expected_status_code=200
+    Set Suite Variable                          ${Banner_Static_creative_id}                ${DTO_id}
+    # upload File to banner_static
+    Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+
+    Log To Console         "Created Banner data"
+    [Tags]    readapi
+
+
+TC_01.01_Read the Native Ad
+    Create ad for Native        adgroupId=${Adgroup_id_native}
+    ...                         creativeId=${Native_creative_id}
+    Read Request for Ad             id=${type_Ad_id}      type=native
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp         ${body}         "id":${type_Ad_id}
+    Should Match Regexp         ${body}         "adName":"REGRESSION_CREATIVE_NATIVE_AD"
+    [Tags]      readapi
+
+
+TC_01.02_Read the Native Ad(Detail Verification)
+    Create ad for Native            adgroupId=${Adgroup_id_native}
+    ...                             creativeId=${Native_creative_id}
+    Read Request for Ad             id=${type_Ad_id}          type=native
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/id                       ${type_Ad_id}
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/status                   1
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/externalId               "BVP4Info1230"
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/assetType                "MoPub"
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/adName                   "REGRESSION_CREATIVE_NATIVE_AD"
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/weight                   1
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/title                    "Title Edit"
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/text                     "Text Edit"
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/ctatext                  "More ..."
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/clickDestinationUrl      "https://www.4info.com"
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/secure                   true
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/deleteFromUI             false
+    Json Value Should Equal     ${body}     /adDetailDTO/nativeDTO/impressionTracing        []
+    [Tags]         readapi
+
+
+TC_02.01_Read the Video Ad
+    Create ad for Video                 adgroupId=${Adgroup_id_video}
+    ...                                 creativeId=${Video_wrapper_creative_id}
+    ...                                 videoType="3"
+    Read Request for Ad             id=${type_Ad_id}        type=video
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Should Match Regexp         ${body}         REGRESSION_CREATIVE_VIDEO_AD
+    Should Match Regexp         ${body}         "id":${type_Ad_id}
+    [Tags]
+
+
+TC_02.02_Read the Video Ad(Detail Verification)
+    Create ad for Video     adgroupId=${Adgroup_id_video}
+    ...                     creativeId=${Video_wrapper_creative_id}
+    ...                     videoType="3"
+    Read Request for Ad             id=${type_Ad_id}        type=video
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/id                            ${type_Ad_id}
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/externalId                    "BVP4Info1230"
+    Should Match Regexp         ${body}     https://4info.pc.cdn.bitgravity.com/ad/video/qa.+thumbnail.jpg"
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/name                          "REGRESSION_CREATIVE_VIDEO_AD"
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/weight                        1
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/duration                      12
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/clickThroughUrl               "http://caonima.com"
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/redirectionCount              1
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/secure                        false
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/deleteFromUI                  false
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/status                        1
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/videoType                     "3"
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/mimeTypes                     [1, 2]
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/skipAfterTime                 0
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/skippable                     false
+    Json Value Should Equal     ${body}     /adDetailDTO/videoDTO/extendedAttributes            [3, 4]
+    [Tags]
+
+
+TC_03.01_Read the Banner Ad
+    Create ad for Banner
+    Read Request for Ad             id=${type_Ad_id}        type=banner
+    Json Value Should Equal     ${body}         /success            true
+    Should Match Regexp         ${body}         REGRESSION_CREATIVE_BANNER_AD
+    Should Match Regexp         ${body}         "id":${type_Ad_id}
+
+TC_03.02_Read the Banner Ad(Detail Verification)
+    Create ad for Banner
+    Read Request for Ad             id=${type_Ad_id}        type=banner
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/id                            ${type_Ad_id}
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/externalId                    "BVP4Info1230"
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/adName                        "REGRESSION_CREATIVE_BANNER_AD"
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/weight                        1
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/bannerType                    0
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/formatId                      5
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/imageFileUrl                  "https://4info.pc.cdn.bitgravity.com/ad/banner/qa/50984/1487972487/banner_71567_image_Lying_320x50_NEW_copy.jpeg"
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/thirdPartyImpression          ""
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/destinationUrl                "https://www.4info.com"
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/externalPreviewLink           0
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/auditStatus                   0
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/secure                        false
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/deleteFromUI                  false
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/status                        1
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/positionList                  []
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/optOutIconLocation            "tr"
+    Json Value Should Equal     ${body}     /adDetailDTO/bannerDTO/extendedAttributes            []
+
+    [Tags]

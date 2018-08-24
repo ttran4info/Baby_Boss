@@ -1,0 +1,1371 @@
+*** Settings ***
+Resource            campaign_management_api_imports.txt
+Force Tags          BATCH17     UM    CM2.0    CM2.3
+Suite Setup         Delete New User via DB    username=regression@temp
+Suite Teardown      Delete New User via DB    username=regression@temp
+
+
+#API 2.3. Create a user
+#https://wiki.4info.com/display/Software/User+management+API
+#This request will be called on Admin tab - user edit page
+#.../user-management-api/admin/users
+#Body is a json {"userName":"zzz-test-username","status":"Active","password":"somepassword","firstName":"fn","lastName":"ln","authority":"USER","productPermissionList":[1],"campaignGroupList":[{"groupId":1,"permissions":["READ"]}],"lastModifiedBy":""}
+#users = rhino.users
+
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+
+#--------------------------------------------------------------------------------------
+CM2.3_TC_0.0_Create pre requisite users
+    Delete New User via DB    username=user-123-regression@temp.com
+    Delete New User via DB    username=user-1234-regression@yahoo.com
+    Create Required Users with Required Groups, Products and Permissions
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.1.1_Create a group 1 user(group id=1, product=1, permission=2) using last modified by group 1 user - Accept
+    #Create Required Users with Required Groups, Products and Permissions
+    Set Test Variable    ${username}    user-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.1.2_Create a group 1 user(group id=1, product=3, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 3}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+
+CM2.3_TC_0.1.3_Create a group 1 user(group id=2, product=1, permission=3) using last modified by group 1 user - Accept
+    Set Test Variable    ${username}    user-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.2.1_Create a group 1 user(group id=1, product=2, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-b-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.3.1_Create a group 1 user(group id=1, product=1, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-c-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.3.2_Create a group 1 user(group id=2, product=1, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-c-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.4.1_Create a group 1 user(group id=2, product=1, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.4.2_Create a group 1 user(group id=2, product=2, permission=1) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1], "groupId": 2, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.4.3_Create a group 1 user(group id=2, product=1, permission=3) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [3], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.5.1_Create a group 1 user(group id=3, product=1, permission=2) using last modified by group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-e-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 3, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.6.1_Create a group 1 user(group id=1, product=1, permission=3) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-1230-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [3], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.6.2_Create a group 1 user(group id=1, product=2, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-1230-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.6.3_Create a group 1 user(group id=2, product=1, permission=3) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-1230-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [3], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.7.1_Create a group 1 user(group id=1, product=1, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-a-regression@temp.com
+    Delete New User via DB    username=${username}
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.7.2_Create a group 1 user(group id=1, product=3, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1], "groupId": 1, "productId": 3}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.7.3_Create a group 1 user(group id=2, product=1, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    User-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+
+CM2.3_TC_0.8.1_Create a group 1 user(group id=1, product=2, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    User-b-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.9.1_Create a group 1 user(group id=1, product=1, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    User-c-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.9.2_Create a group 1 user(group id=2, product=1, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    User-c-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.10.1_Create a group 1 user(group id=2, product=1, permission=2) using last modified by non group 1 user - Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.10.2_Create a group 1 user(group id=2, product=2, permission=1) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1], "groupId": 2, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.10.3_Create a group 1 user(group id=2, product=1, permission=3) using last modified by non group 1 user - Accept
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [3], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+CM2.3_TC_0.11.1_Create a group 1 user(group id=3, product=1, permission=2) using last modified by non group 1 user - Don't Accept
+    Set Test Variable    ${username}    user-e-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 3, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-1234-regression@yahoo.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Teardown]      Delete New User via DB    username=${username}
+    [Tags]    #  CM-2056
+
+
+#--------------------------------------------------------------------------------------
+
+CM_2.3_TC_01.1_Create_User (authority:Admin)
+    [Documentation]    Create user, check response content, delete user via DB access
+    Set Test Variable    ${username}    1regression@temp.com
+    Set Test Variable    ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable    ${password}    abcABC123!
+    Set Test Variable    ${firstName}    regression
+    Set Test Variable    ${lastName}    temp
+    Set Test Variable    ${authority}    ADMIN
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable    ${campaigngrouplist_groupid}    15
+    # Set Test Variable    ${campaigngrouplist_permission}    "READ", "WRITE"
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+    [Tags]
+
+
+CM_2.3_TC_01.2_Create_User (authority:USER)
+    [Documentation]    Create user, check response content, delete user via DB access
+    Set Test Variable    ${username}    2regression@temp.com
+    Set Test Variable    ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable    ${password}    abcABC123!
+    Set Test Variable    ${firstName}    regression
+    Set Test Variable    ${lastName}    temp
+    Set Test Variable    ${authority}    USER
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable    ${campaigngrouplist_groupid}    15
+    # Set Test Variable    ${campaigngrouplist_permission}    "READ", "WRITE"
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+    [Tags]
+
+
+CM_2.3_TC_01.3_Create_User (Authority: Unknown) (response 400)
+    [Documentation]     Create user with unknown authority, check response content all null, response code 400, delete user via DB access
+    Set Test Variable       ${username}                             3regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            UNKNOWN
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+
+CM_2.3_TC_01.4_Create_User (Authority: 99) (response 400)
+    [Documentation]     Create user with unknown authority, check response content all null, response code 400, delete user via DB access
+    Set Test Variable       ${username}                             3regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            99
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+
+CM_2.3_TC_01.5_Create_User (always upper case authority)
+    [Documentation]     Create user with mix uper and lower case, check response content, delete user via DB access
+    Set Test Variable       ${username}                             28regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            UsEr
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+CM_2.3_TC_01.6_Create_User (Creator of a user has permission READ, Don't accept)
+    [Documentation]    A user who has READ permission tries to create a new user,${Space}
+    ...                Expected : 400 response code with appropriate error message
+    Set Test Variable    ${username}    1regression@temp.com
+    Set Test Variable    ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable    ${password}    abcABC123!
+    Set Test Variable    ${firstName}    regression
+    Set Test Variable    ${lastName}    temp
+    Set Test Variable    ${authority}    USER
+    Set Test Variable    ${permissionsList}    [{"permissions": [1], "groupId": 15, "productId": 1}]
+    # Set Test Variable    ${campaigngrouplist_groupid}    15
+    # Set Test Variable    ${campaigngrouplist_permission}    "READ", "WRITE"
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-014"
+    Should Match Regexp     ${body}     "reason_desc":"The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM_2.3_TC_01.7_Create_User (Creator of a user has permission WRITE, Don't accept)
+    [Documentation]    A user who has WRITE permission tries to create a new user,${Space}
+    ...                Expected : 400 response code with appropriate error message
+    Set Test Variable    ${username}    1regression@temp.com
+    Set Test Variable    ${status}    1    # will be 1=active 0 = inactive
+    Set Test Variable    ${password}    abcABC123!
+    Set Test Variable    ${firstName}    regression
+    Set Test Variable    ${lastName}    temp
+    Set Test Variable    ${authority}    USER
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 15, "productId": 1}]
+    # Set Test Variable    ${campaigngrouplist_groupid}    15
+    # Set Test Variable    ${campaigngrouplist_permission}    "READ", "WRITE"
+    Set Test Variable    ${lastModifiedBy}    ${QA_CATALINA_USER2}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-014"
+    Should Match Regexp     ${body}     "reason_desc":"The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+
+CM_2.3_TC_01.8_Create_User (no authority)
+    [Documentation]     Create user without user name, check response content
+    Set Test Variable       ${username}           22regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            MISSING
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Set Test Variable       ${uri_link}     /user-management-api/admin/users
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Authority has to be USER or ADMIN."
+    #Should Match Regexp        ${body}     "reason_desc": "must match \\\\"\\(\\?i\\)\\(USER|ADMIN\\)\\\\""
+    [Tags]      NEGATIVE
+
+
+CM_2.3_TC_02.1_Create_User (Status: Active 1)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}           4regression@temp.com
+    Set Test Variable       ${status}                               1               #1=active,  0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Sleep    120s
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+    [Tags]
+
+
+CM_2.3_TC_02.2_Create_User (Status: Inactive 0)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}           5regression@temp.com
+    Set Test Variable       ${status}                               0           #1=active,  0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+    [Tags]
+
+
+CM_2.3_TC_02.3_Create_User (Status: Unknown 99)
+    [Documentation]     Create user with unknown status, check response content all null, response code 400, delete user via DB access
+    Set Test Variable       ${username}          6regression@temp.com
+    Set Test Variable       ${status}                               99      #1=active,  0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+CM_2.3_TC_02.4_Create_User (Status: Unknown string)
+    [Documentation]     Create user with unknown status, check response content all null, response code 400, delete user via DB access
+    Set Test Variable       ${username}           024regression@temp.com
+    Set Test Variable       ${status}                               Unknown     #1=active,  0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Status must be 0 or 1"
+    [Tags]  Known_bug   CM-262      Exclude
+    #we stop checking for invalid data type, ie" int vs string
+
+
+CM_2.3_TC_02.5_Create_User (no status)
+    [Documentation]     Create user without user name, check response content
+    Set Test Variable       ${username}                23regression@temp.com
+    Set Test Variable       ${status}                               MISSING         # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Set Test Variable       ${uri_link}     /user-management-api/admin/users
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]      NEGATIVE
+
+
+CM_2.3_TC_03.1_Create_User (ProductPermissionList - 1)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}            7regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+    [Tags]
+
+
+CM_2.3_TC_03.2_Create_User (ProductPermissionList - 1,2)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}             8regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+    [Tags]
+
+
+CM_2.3_TC_04.1_Create_User (groupId: 1)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}           9regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            1
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+    [Tags]
+
+
+CM_2.3_TC_04.2_Create_User (groupId: 15)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}          10regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+    [Tags]
+
+
+CM_2.3_TC_04.3_Create_User (groupId: 15,16)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}          11regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}, {"permissions": [1, 2], "groupId": 16, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15,16
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE";"READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_AND_QA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+    [Tags]    EXCLUDE    # No user available who has admin access for both groups 15 & 16
+
+
+CM_2.3_TC_04.4_Create_User (groupId: 99, response 400)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}              12regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 99, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            99
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-101"
+    Should Match Regexp     ${body}     "reason_desc":"Group id is not in 'groups' table."
+    [Tags]
+
+
+CM_2.3_TC_04.5_Create_User (groupId: abc, response 400)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}              13regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": "abc", "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            abc
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"400-001"
+    Should Match Regexp     ${body}     "reason_desc":"Invalid Request."
+    [Tags]
+
+
+CM_2.3_TC_04.6_Create_User (group id missing, don't accept)
+    [Documentation]     Create user without user name, check response content
+    Set Test Variable       ${username}          24regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Set Test Variable       ${uri_link}     /user-management-api/admin/users
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Group Id cannot be null."
+    [Tags]      NEGATIVE
+
+
+CM_2.3_TC_05.1_Create_User (permissions: READ)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}            14regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+
+
+CM_2.3_TC_05.2_Create_User (permissions: WRITE)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}            15regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+
+
+CM_2.3_TC_05.3_Create_User (permissions: READ,WRITE)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}         16regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+
+
+CM_2.3_TC_05.4_Create_User (permissions: UNKNOWN)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}          162regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": "UNKNOWN", "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "UNKNOWN"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"400-001"
+    Should Match Regexp     ${body}     "reason_desc":"Invalid Request."
+    [Tags]
+
+
+CM_2.3_TC_06.1_Create_User (groupId: 15,16 Permission:READ/READ,WRITE)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}         17regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [2], "groupId": 16, "productId": 1}, {"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15,16
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE";"WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ttran@4info.com    #  ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    #Delete New User via DB     username=${username}
+    [Tags]
+
+CM_2.3_TC_06.2_Create_User (group permissions missing)
+    [Documentation]     Create user without user name, check response content
+    Set Test Variable       ${username}           25regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Set Test Variable       ${uri_link}     /user-management-api/admin/users
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Permissions cannot be null or empty."
+    [Tags]      NEGATIVE
+
+
+CM_2.3_TC_07.1_Create_User (no user name) - response error 400
+    [Documentation]     Create user without user name, check response content
+    Set Test Variable       ${username}           MISSING
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Set Test Variable   ${uri_link}     /user-management-api/admin/users
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Username can contain alphanumeric charaters, -, . and @ only"
+    [Tags]      NEGATIVE
+
+
+CM_2.3_TC_08.1_Create_User (no first name)- response error 400
+    [Documentation]     Create user without user name, check response content
+    Set Test Variable       ${username}            19regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            MISSING
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Set Test Variable   ${uri_link}     /user-management-api/admin/users
+    #Set Test Variable      ${data}     {"userName":"${user_name}","status":"${status}","password":"${password}","firstName":"","lastName":"${lastName}","authority":"${authority}","productPermissionList":[${permissionsList}],"lastModifiedBy":"${lastModifiedBy}"}
+    #Post UI element accesses from page URL uri=${uri_link}     data=${data}        expected_status_code=400
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]      NEGATIVE
+
+
+CM_2.3_TC_09.1_Create_User (no last name) (should not create user)
+    [Documentation]     Create user without user name, check response content
+    Set Test Variable       ${username}        20regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         MISSING
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Set Test Variable   ${uri_link}     /user-management-api/admin/users
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]      NEGATIVE
+
+
+CM_2.3_TC_010.1_Create_User (password missing, don't accept)
+    [Documentation]     Create user without user name, check response content
+    Set Test Variable       ${username}          21regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             MISSING
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Set Test Variable       ${uri_link}     /user-management-api/admin/users
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-007"
+    Should Match Regexp     ${body}     "reason_desc":"Password can not be empty"
+    [Tags]      NEGATIVE
+
+
+CM_2.3_TC_11.1_Create_User (duplicate user name)
+    [Documentation]     Create user, check response content, delete user via DB access
+    Set Test Variable       ${username}           26regression@temp.com
+    Set Test Variable       ${status}                               1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}                             abcABC123!
+    Set Test Variable       ${firstName}                            regression
+    Set Test Variable       ${lastName}                         temp
+    Set Test Variable       ${authority}                            USER
+    Set Test Variable       ${permissionsList}              [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-002"
+    Should Match Regexp     ${body}     "reason_desc":"Username already exists."
+    [Tags]
+
+
+CM_2.3_TC_11.2_Create_User (always lower case username)
+    [Documentation]     Create user with mix uper and lower case, check response content, delete user via DB access
+    Set Test Variable       ${username}          s27RegressioN@Temp.com
+    Set Test Variable       ${status}            1           # will be 1=active 0 = inactive
+    Set Test Variable       ${password}          abcABC123!
+    Set Test Variable       ${firstName}         regression
+    Set Test Variable       ${lastName}          temp
+    Set Test Variable       ${authority}         USER
+    Set Test Variable       ${permissionsList}     [{"permissions": [1, 2], "groupId": 15, "productId": 1}]
+    # Set Test Variable     ${campaigngrouplist_groupid}            15
+    # Set Test Variable     ${campaigngrouplist_permission}         "READ", "WRITE"
+    Set Test Variable       ${lastModifiedBy}                       ${QA_CATALINA_USER3}    # ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${password}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+

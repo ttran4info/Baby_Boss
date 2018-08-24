@@ -1,0 +1,61 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      	BATCH16		
+
+
+***Variables***
+${campaign_id}		2146
+${JSON_CR_BANNER}	{"campaignId":${campaign_id},"bannerDTO":{"adName":"BANNER_CREATIVEID_TEST","weight":1,"bannerType":0,"formatId":5,"externalPreviewLink":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://4info.com","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+
+
+*** Test Cases ***
+
+
+TC_001 Verify user is able to create Creative upon sending POST request for banner
+	[Documentation]		User must be able to send POST request
+	[Tags]    	
+	CREATIVE POST Request for Creative   uri=/creative/banner	 JSON=${JSON_CR_BANNER}			#JSON={"campaignId":${campaign_id},"bannerDTO":{"adName":" BANNER_GESTURE_CREATIVE_BANNER_2_new","weight":1,"bannerType":0,"formatId":5,"externalPreviewLink":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://4info.com","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+	Should Be Equal As Strings    ${resp.status_code}    200	
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${response_content}     ${resp.content}
+    ${creative_id}= 		Get Json Value			${response_content} 	/creativeDetailDTO/bannerDTO/id
+    Set Suite Variable		${creative_id}		${creative_id}
+    
+TC_005 Verify updating image
+	[Documentation] 	User should be able to add banner image
+	[Tags]	upload		
+		# rtb.txt  file_operations.txt  (01_brx_sanity.txt)
+	Retrieve The Banner Images Root Directory
+	Retrieve Direct Path For Banner	banner_type=UPLOAD	file_name=flag_USA_320x50.png
+	#${file}=	Retrieve BRX Data File		file_name=banner.jpg
+	#Log      Binary Data: ${file}
+	#${file_b}=	Convert To Binary	${file}
+		#SSH Login As Valid User    SSH_HOST=${DB_HOST}     TIMEOUT=5
+		${stdout}=	Run 	curl -i -X POST -F "file=@/${banner_file}" "http://qa-hydra-10:8080/hydra/v1/file/image/banner\?detailId\=${creative_id}"
+	#icon:   curl -i -X POST -F "file=@1.png" http://10.18.8.46:8080/hydra/v1/file/icon/native\?detailId\=123
+	#banner: curl -i -X POST -F "file=@banner.jpg" http://qa-hydra-10:8080//hydra/v1/file/image/banner?detailId=69087
+	#video:	 curl -i -X POST -F "file=@Reach_15.mp4" http://10.18.8.46:8080/hydra/v1/file/video/video\?detailId\=432
+	#Should Be Equal As Strings    ${resp.status_code}	${response_code}
+	#CREATIVE POST Request for file	uri=/hydra/v1/file/icon/native?detailId=123&file=	path=${file_b}
+	#Should Contain 	${stdout}	200
+		
+
+TC_003 Verify list of creatives for a particular campaign can be retrieved with correct campaignId
+	[Documentation]		User must be able to send GET request
+	[Tags]   
+	CREATIVE GET Request for CampaignID	uri=/creatives?campaignId=${campaign_id}	
+	Should Be Valid JSON 	${body}
+	Should Be Equal As Strings    ${resp.status_code}    200
+	#Json Value Should Not Equal		${body}			/creativeInfoDTOs/0/id/		${creative_id}
+	Should Match Regexp			${body}			"id":${creative_id}
+	
+TC_004 Verify list of creatives for a particular campaign can be retrieved with correct campaignId & type
+	[Documentation]		User must be able to send GET request
+	[Tags]    
+	CREATIVE GET Request for CampaignID	uri=/creatives?campaignId=${campaign_id}&type=banner	
+	Should Be Valid JSON  ${body}
+	Should Be Equal As Strings    ${resp.status_code}    200
+	Should Match Regexp			${body}			"id":${creative_id}
+	
+	
+	

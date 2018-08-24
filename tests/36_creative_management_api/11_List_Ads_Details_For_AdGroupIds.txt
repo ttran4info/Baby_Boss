@@ -1,0 +1,116 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16     LIST_ADS_ADGROUP     OffshoreQA     HYDRA
+# Suite Setup     Cleanup Creative All By Name      TestREGRESSION_CREATIVE_11
+# Suite Teardown  Cleanup Creative All By Name      TestREGRESSION_CREATIVE_11
+
+#Wiki https://wiki.4info.com/display/Software/Creative+Management+API%28Hydra%29+Documentation#CreativeManagementAPI(Hydra)Documentation-AdAPIs
+#API NAME :List Ads Details For AdgroupIds
+#METHOD : POST
+#API :/hydra/v1/ads
+
+
+***Variables***
+
+
+*** Keywords ***
+Get List Ads Details For AdGroupIds
+    [Arguments]
+    ...         ${adGroupIds}=29329,29330,29333,34940,29739
+    ...         ${uri}=/hydra/v1/ads
+    ...         ${expected_status_code}=200
+    ...         ${auth}=${HYDRA_AUTH}
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    ${headers}       Create Dictionary     Content-Type=application/json    Accept=application/json    Authorization=${auth}
+
+    Set Test Variable       ${data}     {"adGroupIds":[${adGroupIds}]}
+    Log     ${data}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Log     ${missing_count}
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log         ${data}
+    ${resp}=    RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Set Suite Variable       ${response_status_code}      ${resp.status_code}
+    Should Be Equal As Strings   ${resp.status_code}   ${expected_status_code}
+
+
+Get List Ads Details For AdGroupIds Response Validation 200
+    [Arguments]      ${adGroupIds}=
+    ...              ${uri}=
+    ...              ${success}=
+    Json Value Should Equal     ${body}     /success                            ${success}
+    Json Value Should Equal     ${body}     /reason_code                        "000-000"
+    Json Value Should Equal     ${body}     /reason_desc                        "Success"
+    Should Match Regexp         ${body}     "adGroupId":${adGroupIds}
+    Json Value Should Equal     ${body}     /errors                             []
+
+
+*** Test Case ***
+TC01_Get_List_Ads_Details_For_AdGroupIds(Normal Method)
+    [Documentation]              input: List Ads api using Normal Method
+    ...                          Output: List Ads Should be shown
+    Get List Ads Details For AdGroupIds     adGroupIds=29329
+    ...                                     expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Run Keyword If          '${response_status_code}'=='200'      Get List Ads Details For AdGroupIds Response Validation 200    adGroupIds=[29329,29330,29333,34940,29739]
+    ...                                     uri=/hydra/v1/ads
+    ...                                     success=true
+    [Tags]
+
+TC02_Get_List_Ads_Details_For_AdGroupIds(Multiple AdGroupIds)
+    [Documentation]              input: List Ads api using Multiple AdGroupIds
+    ...                          Output: List Ads Should be shown
+    Get List Ads Details For AdGroupIds    adGroupIds=29329,29330
+    ...                                    expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+TC03_Get_List_Ads_Details_For_AdGroupIds(Invalid adGroupIds)
+    [Documentation]              input: List Ads api using Invalid adGroupIds
+    ...                          Output: List Ads Should be shown
+    Get List Ads Details For AdGroupIds    adGroupIds=1212211112
+    ...                                    expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    Json Value Should Equal     ${body}         /adDTO           [{"adGroupId": 1212211112, "total": 0, "type": null, "ads": []}]
+    [Tags]
+
+TC03_Get_List_Ads_Details_For_AdGroupIds(null adGroupIds)
+    [Documentation]              input: List Ads api using null adGroupIds
+    ...                          Output: List Ads Should not be shown
+    Get List Ads Details For AdGroupIds    adGroupIds=null
+    ...                                    expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "500-500"
+    [Tags]
+
+TC04_Get_List_Ads_Details_For_AdGroupIds(blank adGroupIds)
+    [Documentation]              input: List Ads api using blank adGroupIds
+    ...                          Output: List Ads Should not be shown
+    Get List Ads Details For AdGroupIds    adGroupIds=
+    ...                                    expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]
+
+TC05_Get_List_Ads_Details_For_AdGroupIds(MISSING adGroupIds)
+    [Documentation]              input: List Ads api using MISSING adGroupIds
+    ...                          Output: List Ads Should not be shown
+    Get List Ads Details For AdGroupIds    adGroupIds=MISSING
+    ...                                    expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "400-999"
+    Json Value Should Equal     ${body}         /reason_desc        "Validation Failure"
+    [Tags]
+
+TC06_Get_List_Ads_Details_For_AdGroupIds(uri invalid)
+    [Documentation]              input: List Ads api using uri invalid
+    ...                          Output: List Ads Should not be shown
+    Get List Ads Details For AdGroupIds    uri=/hydra/v1/ad
+    ...                                    expected_status_code=404
+    [Tags]

@@ -1,0 +1,333 @@
+*** Settings ***
+Resource            access_control_imports.txt
+Force Tags         	UI    BATCH7				EXCLUDE
+Test Setup			Run Keywords               Start UI     	Adjust Screen Size		Login with "${user_name}" and "${user_password}"		Capture Page Screenshot With Timestamp
+Test Teardown      Run Keywords               Close All Browsers
+
+*** Variables ***
+${user_name}			readonly@4info.com
+${admin_user}			admin_user@4info.com
+${user_password}		1234info
+${current_advertiser}	xpath=//*[contains(text(),'z-Test Dmitry')]			
+${ro_user_campaign}		xpath=//*[contains(text(),'from read only user')]
+${edit_campaign_link}	xpath=//*[contains(text(),'Edit')]
+${create_campaign_link}	xpath=//a[contains(.,'Campaigns')]
+${parent_adgroup}		xpath=//a[@class="parentAdgroup"]
+${child_adgroup}		xpath=//a[contains(.,'EXP child 1')]
+${add_edit_creatives}	xpath=//a[@title="Add/edit creatives"]
+${create_child_adgroup}	id=createChildAdgroup
+${type_video}			id=adTypeId2
+${log_out}				id=lnkLogout
+${Save}					id=saveBtn
+${Archive}				id=btnDeleteGroup
+${Admin_Tab}			id=tabAdmin
+${admin_serach}			id=usersDataTableSearch
+${create_user}			id=createAdv
+${enter_username}		id=username
+${user_first_name}		id=firstName
+${user_last_name}		id=lastName
+${new_password}			id=password 
+${confirm_password}		id=newUserConfirmPassword
+${choose_group}			id=chkGroup1
+${save_user}			id=advertiserSubmit
+${Manage_Creatives}		//a[@class="blueItalic" and contains(.," Manage Creatives")]
+${WARNING_MESSAGE}		Your access level only allows you to see read-only version of this page. Please contact your 4INFO Account Manager for edit capabilities.
+
+*** Keywords ***
+Start UI 
+	Start AdHaven UI    ${URL}    ${BROWSER}
+Adjust Screen Size
+	Set Window Size     1200    800
+Go to Campaign "from read only user"	
+	#go to Advertizer
+	Click Link			${current_advertiser}     
+	Execute Javascript  ${SCROLL_DOWN}
+	#go to Campaign "from read only user"
+	Click Link			${ro_user_campaign}
+	#go to Edit Campaign link
+	Click Link			${edit_campaign_link}		#//a[contains(.,'Edit')]/@href
+
+*** Test Cases ***
+1 Read only user has read only access - messsage validation (campaign level) MED-1001
+	#[Tags] 		
+  	Go to Campaign "from read only user"
+	Page Should Contain     ${WARNING_MESSAGE}
+
+2 Verify user is not able to change campaign name for existing Advertisers if has READ only permission MED-1002
+	#[Tags] 	
+	Go to Campaign "from read only user"
+	Element Should Be Disabled	id=name
+		
+3 Verify user is not able to create a new Campaign if has READ only permission (link disabled) MED-1003
+	[Documentation]		Test currently FAILS but should PASS
+	...					https://jira.adhaven.com/browse/MED-1003
+	Click Element	${create_campaign_link}
+	Sleep 	4s
+	Capture Page Screenshot With Timestamp
+	Element Should Not Be Visible	id=breadCrumbs
+
+4 Verify user is not able to create a new Campaign using a fake link MED-1003(1)
+	[Documentation]		Test currently FAILS but should PASS
+	...					https://jira.adhaven.com/browse/MED-1003
+	...					verifying direct links are not working for read only (ro) users
+	Click Element	${create_campaign_link}
+	Sleep 	4s
+	${LOCATION}=	Get Location		#http://qa-ui-10:8080/adhaven-ui/campaignsAddEdit.html
+	Click Element	${log_out}
+	#Close All Browsers
+	#Open Browser    ${URL}    ${BROWSER}
+	Login with "${user_name}" and "${user_password}"
+	Go To           ${LOCATION}
+	Sleep  2s
+	Capture Page Screenshot With Timestamp
+	Element Should Not Be Visible	id=breadCrumbs
+	
+5 Verify user is not able to get Admin rights using a fake link MED-1003(2)
+	[Documentation]		Test currently FAILS but should PASS
+	...					https://jira.adhaven.com/browse/MED-1003
+	#Close All Browsers
+	#Open Browser       ${URL}    ${BROWSER}
+	Click Element	${log_out}
+	Login with "${admin_user}" and "${user_password}"
+	Click Element 				 ${Admin_Tab}
+	${LOCATION}=	Get Location
+	Click Element	${log_out}
+	Login with "${user_name}" and "${user_password}"
+	Go To           ${LOCATION}
+	Element Should Not Be Visible		${admin_serach}		
+
+6 Verify warning message appears on parent level if user has only READ permission
+	[Documentation]		https://jira.adhaven.com/browse/MED-1004
+	Click Link		${current_advertiser}   
+	Execute Javascript  ${SCROLL_DOWN}
+	#go to Campaign "from read only user"
+	Click Link		${ro_user_campaign}
+	Click Link		${parent_adgroup}		
+	Page Should Contain     ${WARNING_MESSAGE}
+		
+7 Verify warning message appears on child level if user has only READ permission
+	[Documentation]		https://jira.adhaven.com/browse/MED-1004
+	Click Link		${current_advertiser}   
+	Execute Javascript  ${SCROLL_DOWN}
+	#go to Campaign "from read only user"
+	Click Link		${ro_user_campaign}	
+	Click Element	${child_adgroup}					
+	Page Should Contain     ${WARNING_MESSAGE}
+		
+	
+8 Verify all fields & buttons are disabled (except Cancel) on Create campaign level if user has only READ permission
+	[Documentation]		https://jira.adhaven.com/browse/MED-1007
+	[Tags]	
+	Go to Campaign "from read only user"
+	Element Should Be Disabled	id=name
+	Element Should Be Disabled	id=partnerId
+	Element Should Be Disabled	id=insertionOrder
+	Element Should Be Disabled	id=selectTimeZone
+	Element Should Be Disabled	id=startDateFormatted
+	Element Should Be Disabled	id=endDateFormatted
+	Element Should Be Disabled	id=taxonomyLevel0
+	Element Should Be Enabled	id=btnCancel
+	Element Should Be Disabled	id=btnArchive
+	Element Should Be Disabled	id=saveBtnTop
+	Element Should Be Enabled	id=btnCancelTwo
+	Element Should Be Disabled	id=btnArchiveTwo
+	Element Should Be Disabled	id=saveBtn
+
+9 Verify all buttons are disabled on Parent Ad group level (except Cancel) if user has only READ permission
+	[Documentation]		https://jira.adhaven.com/browse/MED-1008
+	Click Link					${current_advertiser}  
+	Execute Javascript 		    ${SCROLL_DOWN}
+	#go to Campaign "from read only user"
+	Click Link					${ro_user_campaign}
+	Click Element					${parent_adgroup}
+	Element Should Be Disabled	id=saveBtn
+	Element Should Be Disabled	id=btnDeleteGroup
+	Element Should Be Enabled	id=btnCancel
+	Element Should Be Disabled	id=btnPauseChildGroup
+	
+10 Verify all buttons are disabled on Child Ad group level if user has only READ permission
+	[Documentation]		https://jira.adhaven.com/browse/MED-1009
+	Click Link					${current_advertiser}   
+	Execute Javascript 			${SCROLL_DOWN}
+	#go to Campaign "from read only user"
+	Click Link					${ro_user_campaign}
+	Click Element				${child_adgroup}
+	Element Should Be Disabled	id=saveBtn
+	Element Should Be Disabled	id=btnDeleteGroup
+	Element Should Be Enabled	id=btnCancelAddGroup
+
+11 Verify all fields are disabled on Parent Ad group level if user has only READ permission
+	[Documentation]		https://jira.adhaven.com/browse/MED-1010
+	Click Link			${current_advertiser}   
+	Execute Javascript  ${SCROLL_DOWN}
+	#go to Campaign "from read only user"
+	Click Link			${ro_user_campaign}
+	Click Link			${parent_adgroup}
+	Element Should Be Disabled	id=name
+	Element Should Be Disabled	id=selectTimeZone
+	Element Should Be Disabled	id=startDateFormatted
+	Element Should Be Disabled	id=selectStartTime
+	Element Should Be Disabled	id=endDateFormatted
+	Element Should Be Disabled	id=selectEndTime	
+	Element Should Be Disabled	id=unitsSoldIODisplay
+	Element Should Be Disabled	id=measurementId
+	Element Should Be Disabled	id=dataPartnerId
+	Element Should Be Disabled	id=datasourceAI
+	Element Should Be Disabled	id=chkHouseHoldSegment
+	
+12 Verify all fields are disabled on Child Ad group level if user has only READ permission
+	[Documentation]		https://jira.adhaven.com/browse/MED-1011
+	Click Link			${current_advertiser}   
+	Execute Javascript  ${SCROLL_DOWN}
+	#go to Campaign "from read only user"
+	Click Link			${ro_user_campaign}
+	Click Element		${child_adgroup}
+	Element Should Be Disabled	id=isPaused
+	Element Should Be Disabled	id=name
+	Element Should Be Disabled	id=selectTimeZone
+	Element Should Be Disabled	id=startDateFormatted
+	Element Should Be Disabled	id=selectStartTime
+	Element Should Be Disabled	id=endDateFormatted
+	Element Should Be Disabled	id=selectEndTime
+	Element Should Be Disabled	id=costPerUnitString
+	Element Should Be Disabled	id=unitsSoldDisplay
+	Element Should Be Disabled	id=txtBudget
+	Element Should Be Disabled	id=marginRTB
+	Element Should Be Disabled	id=bidValueCPUString
+	Element Should Be Disabled	id=isBehavioralTargeted
+	Element Should Be Disabled	id=mobile
+	Element Should Be Disabled	id=online
+	Element Should Be Disabled	id=domain
+	Element Should Be Disabled	id=chkTrafficType
+	Element Should Be Disabled	id=chkCategory
+	Element Should Be Disabled	id=chkPlacement
+	
+13 Verify read only user is not able to make changes in existing parent ad group (create child ad group)
+	[Documentation]		https://jira.adhaven.com/browse/MED-1012
+	Click Link			${current_advertiser}   
+	Execute Javascript  ${SCROLL_DOWN}
+	#go to Campaign "from read only user"
+	Click Link			${ro_user_campaign}
+	Click Link			${parent_adgroup}
+	Click Link			${create_child_adgroup}
+	Sleep 	2s
+	Page Should Contain Element		${create_child_adgroup}
+	
+14 Verify read only user is not able to make changes in existing child ad group
+	[Documentation]		https://jira.adhaven.com/browse/MED-1013
+	...					https://jira.adhaven.com/browse/MED-1020
+	...					https://jira.adhaven.com/browse/MED-1026
+	Click Link			${current_advertiser}   
+	Execute Javascript  ${SCROLL_DOWN}
+	#go to Campaign "from read only user"
+	Click Link			${ro_user_campaign}
+	Click Element		${child_adgroup}
+	Page Should Contain			Edit Child Ad Group
+	#MED-1013
+	Page Should Contain     	${WARNING_MESSAGE}
+	Element Should Be Disabled	${Save}
+	#MED-1020
+	Element Should Be Disabled	${Archive}
+	#MED-1026
+#	Click Element				${add_edit_creatives}
+#	Sleep  2s
+#	Page Should Contain     	Create New Ad
+#	Click Element				${type_video}
+#	Element Should Be Disabled	${type_video}
+#	Element Should Be Disabled	${Save}
+	Click Element		id=isPaused
+	Click Element		${Save}
+	Checkbox Should Not Be Selected	id=isPaused
+	
+15 Verify read only user is not able to modify options on Edit Creative page
+	[Documentation]		https://jira.adhaven.com/browse/MED-1021
+	...					added JIRA https://jira.adhaven.com/browse/MED-1261
+	Click Link			${current_advertiser}   
+	Execute Javascript  ${SCROLL_DOWN}
+	#go to Campaign "from read only user"
+	Click Link			${ro_user_campaign}
+	Click Element		${child_adgroup}
+	Click Element		${add_edit_creatives}
+	# UI has changed thus commented out validations below & replaced with 
+	Element Should Be Enabled	id=creativeInfoListDropdown
+#	Element Should Be Disabled	id=adTypeId1
+#	Element Should Be Disabled	id=adTypeId2
+#	Element Should Be Disabled	id=adTypeId4
+#	Element Should Be Disabled	id=bannerTypeId1
+#	Element Should Be Disabled	id=bannerTypeId1
+#	Element Should Be Disabled	id=bannerTypeId1
+#	Element Should Be Disabled	id=bannerAdCommand.destinationType
+#	Element Should Be Disabled	id=bannerAdCommand.destinationUrlView
+#	Element Should Be Disabled	id=thirdPartyImpressionTrackingUrl
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes1
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes2
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes3
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes4
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes5
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes6
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes7
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes8
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes9
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes10
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes11
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes12
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes13
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes14
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes15
+#	Element Should Be Disabled	id=bannerAdCommand.bannerSizes16
+	
+16 Only READ permission gets saved when user is created
+	[Documentation]		MED-1104, Login as admin, go to admin tab and select a user, set the permission to read only. Press save to make sure we can save user setting when configure as read-only.
+	#Close All Browsers
+	#Open Browser       ${URL}    ${BROWSER}
+	Click Element	${log_out}
+	Login with "${admin_user}" and "${user_password}"
+	Click Element 				 ${Admin_Tab}
+	Input Text		   			 id=usersDataTableSearch	${user_name}
+	#Press Key  				 id=usersDataTableSearch	\\13
+	Click Element				 xpath=//tr/td[2]
+	Sleep 	2s 				 
+	Click Element				${create_user}	
+	Set Selenium Speed 	1s		
+	Input Text		   			 ${enter_username}		${user_name}
+	Input Text		   			 ${user_first_name}		readonly	
+	Input Text		   			 ${user_last_name}		user					
+	Input Text		   			 ${new_password}		1234info	
+	Input Text		   			 ${confirm_password}	1234info	
+	Click Element				 ${choose_group}			
+	Click Element				 ${save_user}
+	Click Element				 ${log_out}
+	Login with "${admin_user}" and "${user_password}"
+	Click Element 				 ${Admin_Tab}
+	Input Text		   			 id=usersDataTableSearch	${user_name}
+	Click Element				 xpath=//tr/td[2]
+	Sleep 	2s 				 			
+	Execute Javascript 			 ${SCROLL_DOWN}
+	Capture Page Screenshot With Timestamp	
+	#Basic
+	Page Should Contain Radio Button  xpath=//input[@id='varId2' and @value='2']
+	#READ only
+	Checkbox Should Be Selected	id=pchkGroup1roleId2permissionId1
+	[Tags]		UM-UI	UM-UI1
+17 Verify user is not able to create Creatives of type Banner, Video or Native
+	[Documentation]		TC currently fails, should PASS
+	...					https://jira.adhaven.com/browse/MED-1262
+	Click Link			${current_advertiser}   
+	Execute Javascript  ${SCROLL_DOWN}
+	Click Link			${ro_user_campaign}
+	Click Link			${Manage_Creatives}
+	Element Should Be Disabled	id=BannerTypeRadio
+	Element Should Be Disabled	id=VideoTypeRadio
+	Element Should Be Disabled	id=NativeTypeRadio
+	
+#18 Verify ro user is not able to make chages at existing Banner Creative
+	#[Documentation]		TC currently fails, should PASS
+	#...					https://jira.adhaven.com/browse/MED-1262
+	#Click Link			${current_advertiser}   
+	#Execute Javascript  ${SCROLL_DOWN}
+	#Click Link			${ro_user_campaign}
+	#Click Link			${Manage_Creatives}
+	
+#19 Verify ro user is not able to make chages at existing Banner Creative
+
+#20 Verify ro user is not able to make chages at existing Banner Creative

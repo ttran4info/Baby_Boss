@@ -1,0 +1,116 @@
+*** Settings ***
+Resource            campaign_management_api_imports.txt
+Force Tags         	BATCH17    UM    CM2.0    CM2.1
+
+*** Variables ***
+
+
+*** Keywords ***
+
+*** Test Cases ***
+
+#Get all users list
+#https://wiki.4info.com/pages/viewpage.action?pageId=27394734
+#API 2.1.This request will return a list of users, which will be displayed in new UI admin list page.
+#...user-management-api/admin/users
+#users = rhino.users
+
+CM2.1_TC_01_Get all users list - check for admin user
+	[Documentation]		Get all users list,Use API to check for user-> ${QA_DEFAULT_USER} exist
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?currentUsername=${QA_DEFAULT_USER}&groupId=1&productId=1
+	USER MANAGEMENT API	uri=${uri_link}
+	Should Match Regexp		${body}		{"userName":"${QA_DEFAULT_USER}","status":"Active","firstName":"admin","lastName":"net",
+	[Tags]		ADMIN_USER
+
+
+CM2.1_TC_02.1_Get all users list - check for catalina user for group id 15 and product id 1 which has READ and WRITE permission
+	[Documentation]		Get all users list,Use API to check for user-> ${QA_CATALINA_USER} exist
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?currentUsername=${QA_CATALINA_USER}&groupId=15&productId=1
+	USER MANAGEMENT API	uri=${uri_link}
+	...    expected_status_code=400
+	...    success=false
+	#Should Match Regexp		${body}		{"userName":"${QA_CATALINA_USER}","status":"Active","firstName":"regression","lastName":"qa",
+	Json Value Should Equal     ${body}     /reason_code    "700-014"
+    Json Value Should Equal     ${body}     /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+	[Tags]		CATALINA_USER
+
+
+CM2.1_TC_03_Get all users list - check for catalina and qa user who has READ and WRITE permissions
+	[Documentation]		Get all users list,Use API to check for user-> ${QA_CATALINA_AND_QA_USER} exist
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?currentUsername=${QA_CATALINA_AND_QA_USER}&groupId=1&productId=1
+	USER MANAGEMENT API	uri=${uri_link}
+	...    expected_status_code=400
+	...    success=false
+	# Should Match Regexp		${body}		{"userName":"${QA_CATALINA_AND_QA_USER}","status":"Active","firstName":"regression","lastName":"catalina",
+	Json Value Should Equal     ${body}     /reason_code    "700-014"
+    Json Value Should Equal     ${body}     /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+	[Tags]		CATALINA_USER	QA_USER
+
+
+CM2.1_TC_04_Get all users list - check for qa who has READ and WRITE permissions
+	[Documentation]		Get all users list,Use API to check for user-> ${QA_QA_USER} exist
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?currentUsername=${QA_QA_USER}&groupId=16&productId=1
+	USER MANAGEMENT API	uri=${uri_link}
+	...    expected_status_code=400
+	...    success=false
+	# Should Match Regexp		${body}		{"userName":"${QA_QA_USER}","status":"Active","firstName":"regression","lastName":"qa",
+	Json Value Should Equal     ${body}     /reason_code    "700-014"
+    Json Value Should Equal     ${body}     /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+	[Tags]		QA_USER
+
+
+#same as TC_51_01 (exclude)
+CM2.1_TC_05_Get all users list - check for status ACTIVE
+	[Documentation]		Get all users list,Use API to check for user-> ${QA_DEFAULT_USER} exist
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?currentUsername=${QA_DEFAULT_USER}&groupId=1&productId=1
+	USER MANAGEMENT API	uri=${uri_link}
+	Should Match Regexp		${body}		{"userName":"${QA_DEFAULT_USER}","status":"Active","firstName":"admin","lastName":"",
+	[Tags]		ADMIN_USER		EXCLUDE
+
+
+CM2.1_TC_06_Get all users list - check for status INACTIVE
+	[Documentation]		Get all users list,Use API to check for inactive user-> cat@cat.com
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?currentUsername=bslitt@4info.com&groupId=1&productId=1
+	USER MANAGEMENT API	uri=${uri_link}
+	...    expected_status_code=400
+	...    success=false
+	# Should Match Regexp		${body}		"userName":"bslitt@4info.com","status":"Inactive","firstName":"Brian","lastName":"Slitt"
+	Json Value Should Equal     ${body}     /reason_code    "700-014"
+    Json Value Should Equal     ${body}     /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+	[Tags]
+
+
+#same as TC_51_01 (exclude)
+CM2.1_TC_07_Get all users list - check for authority ADMIN
+	[Documentation]		Get all users list,Use API to check for user-> ${QA_DEFAULT_USER} exist
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?currentUsername=${QA_DEFAULT_USER}&groupId=1&productId=1
+	USER MANAGEMENT API	uri=${uri_link}
+	Should Match Regexp		${body}		{"userName":"${QA_DEFAULT_USER}","status":"Active","firstName":"admin","lastName":"",
+	[Tags]		ADMIN_USER		EXCLUDE
+#same as TC_51_02 (exclude)
+
+
+CM2.1_TC_08_Get all users list - check for authority USER
+	[Documentation]		Get all users list,Use API to check for user-> ${QA_CATALINA_USER} exist
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?currentUsername=${QA_CATALINA_USER}&groupId=1&productId=1
+	USER MANAGEMENT API	uri=${uri_link}
+	...    expected_status_code=400
+	...    success=false
+	# Should Match Regexp		${body}		{"userName":"${QA_CATALINA_USER}","status":"Active","firstName":"regression","lastName":"qa",
+	Json Value Should Equal     ${body}     /reason_code    "700-014"
+    Json Value Should Equal     ${body}     /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+	[Tags]		CATALINA_USER
+
+
+CM2.1_TC_09_Get all users list - Compare to DB
+	[Documentation]		Get all users list,Use API and compare the total vs DB
+	Set Test Variable 	${uri_link}		user-management-api/admin/users?currentUsername=${QA_DEFAULT_USER}&groupId=1&productId=1
+	USER MANAGEMENT API	uri=${uri_link}
+	@{user_list}=					String.Split String 					${body}				},
+	${user_count_api}=				Get Length 								${user_list}
+	Log		Api List Lenght is -> ${user_count_api}
+	Get User List Total From DB
+	Should Be Equal As Integers		${user_count_api}	${user_count_db}
+	[Tags]
+
+

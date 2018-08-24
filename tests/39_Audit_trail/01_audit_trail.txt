@@ -1,0 +1,268 @@
+*** Settings ***
+Resource            audit_trail_imports.txt
+Force Tags         	UI    BATCH7 	AUDIT_TRAIL					
+Suite Setup			Run Keywords               Start UI     	Adjust Screen Size
+Suite Teardown      Run Keywords               Close All Browsers
+*** Variables ***
+${advertiser_name}		QA_REGRESSION
+${campaign_name}		4_CAT
+
+*** Keywords ***
+Start UI 
+	Start AdHaven UI    ${URL}    ${BROWSER}
+	Login with "${QA_CATALINA_USER}" and "${QA_DEFAULT_PASSWORD}"
+	Capture Page Screenshot With Timestamp
+	Page Should Contain Element         ${4INFO_LOGO}	#${WELCOME_USER_MSG}
+	Page Should Contain            		${USER_LOGGED_IN}
+Adjust Screen Size
+	Set Window Size     1200    800
+Go to Catalina campaign page
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Wait Until Page Contains			${campaign_name} 
+	Click Link							${campaign_name} 	
+		
+Go to Manage Creatives page
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Wait Until Page Contains			${campaign_name} 
+	Click Link							${campaign_name} 	
+	Click Link							Manage Creative Templates
+Go to Add/Edit Creative - banner
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Wait Until Page Contains			${campaign_name} 
+	Click Link							${campaign_name}
+	Click Link							banner 3	
+	Click Link							Add/Edit ads
+	Sleep   2s
+	Click Element 						id=clickTypeId
+	Sleep   2s
+Go to Add/Edit Creative - native
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Wait Until Page Contains			${campaign_name} 
+	Click Link							${campaign_name} 	
+	Click Link							native
+	Click Link							Add/Edit ads
+	Sleep   2s
+	Click Element 						id=clickTypeId
+	Sleep   2s	
+Go to Add/Edit Creative - video
+	Click Link         					Demand
+	Click Link 							${advertiser_name} 
+	Wait Until Page Contains			${campaign_name} 
+	Click Link							${campaign_name} 	
+	Click Link							video upload
+	Click Link							Add/Edit ads	
+	Sleep   2s
+	Click Element 						id=clickTypeId	
+	Sleep   2s
+*** Test Cases ***
+
+TC_01 Verify Audit does not create new entry if saving without change (parent ad group)
+	[Documentation]		Go to Campaign ${campaign_name}, Open parent adgroup, press save without any changes. Make sure no entry is added in audit trail.
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	${text_value_before}=	Get Text 		xpath=//div[@id='auditViewDataTable_info']
+	Capture Page Screenshot With Timestamp
+	Go to Catalina campaign page
+	Click Link	banner 3rd party		#parent adgroup
+	Sleep 	2s
+	Click Button		Save
+	Dismiss Alert						#back at the campaign level after saved
+	Click Link	Audit Trail
+	Sleep  2s
+	${text_value_after}=	Get Text 		xpath=//div[@id='auditViewDataTable_info']
+	Capture Page Screenshot With Timestamp
+	Should Be Equal As Strings		${text_value_before}		${text_value_after}
+	[Tags]	
+	
+TC_02 Verify Audit does not create new entry if saving without change (child ad group)
+	[Documentation]		Go to Campaign ${campaign_name}, Open child adgroup, press save without any changes. Make sure no entry is added in audit trail.
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	${text_value_before}=	Get Text 		xpath=//div[@id='auditViewDataTable_info']
+	Capture Page Screenshot With Timestamp
+	Go to Catalina campaign page
+	Click Link	banner 1		#child adgroup
+	Sleep 	2s
+	Click Button		Save
+	Click Link	Audit Trail
+	Sleep  2s
+	${text_value_after}=	Get Text 		xpath=//div[@id='auditViewDataTable_info']
+	Capture Page Screenshot With Timestamp
+	Should Be Equal As Strings		${text_value_before}		${text_value_after}
+	[Tags]	
+
+TC_03 Verify Audit does not create new entry if saving without change (banner ad)
+	[Documentation]		Go to Campaign ${campaign_name}, Open child adgroup, click on banner ad, press save without any changes. Make sure no entry is added in audit trail.
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	${text_value_before}=	Get Text 		xpath=//div[@id='auditViewDataTable_info']
+	Capture Page Screenshot With Timestamp
+	Go to Add/Edit Creative - banner
+	Capture Page Screenshot With Timestamp
+	Sleep 	2s
+	Click Button		Save
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	${text_value_after}=	Get Text 		xpath=//div[@id='auditViewDataTable_info']
+	Capture Page Screenshot With Timestamp
+	Should Be Equal As Strings		${text_value_before}		${text_value_after}
+	[Tags]
+	
+TC_04 Verify Audit does not create new entry if saving without change (native ad)
+	[Documentation]		Go to Campaign ${campaign_name}, Open child adgroup, click on native ad, press save without any changes. Make sure no entry is added in audit trail.
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	${text_value_before}=	Get Text 		xpath=//div[@id='auditViewDataTable_info']
+	Capture Page Screenshot With Timestamp
+	Go to Add/Edit Creative - native
+	Capture Page Screenshot With Timestamp
+	Click Button		Save
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	${text_value_after}=	Get Text 		xpath=//div[@id='auditViewDataTable_info']
+	Capture Page Screenshot With Timestamp
+	Should Be Equal As Strings		${text_value_before}		${text_value_after}
+	[Tags]
+	
+TC_05 Verify Audit does not create new entry if saving without change (video ad)
+	[Documentation]		Go to Campaign ${campaign_name}, Open child adgroup, click on video ad, press save without any changes. Make sure no entry is added in audit trail.
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	${text_value_before}=	Get Text 		xpath=//div[@id='auditViewDataTable_info']
+	Capture Page Screenshot With Timestamp
+	Go to Add/Edit Creative - video
+	Capture Page Screenshot With Timestamp
+	Sleep 	2s
+	Click Button		Save
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	${text_value_after}=	Get Text 		xpath=//div[@id='auditViewDataTable_info']
+	Capture Page Screenshot With Timestamp
+	Should Be Equal As Strings		${text_value_before}		${text_value_after}
+	[Tags]	
+	
+TC_06 Verify Audit Log show when modifying external id (parent ad)
+	[Documentation]		Go to Campaign ${campaign_name}, Open parent adgroup, modify external id. Make sure entry is added in audit trail.
+	${random_external_id}=         Generate Random String 		8		0123456789
+	Set Test Variable		${new_external_id}		BVT3${random_external_id}
+	
+	Go to Catalina campaign page
+	Click Link	banner 3rd party		#parent adgroup
+	Sleep 	2s
+	${external_id_value_before}=	Get Value 		id=externalId
+	Input Text			id=externalId			${new_external_id}		
+	Click Button		Save
+	Dismiss Alert						#back at the campaign level after saved
+	Click Link	Audit Trail
+	Sleep  2s
+	
+	${audit_entity_name}=			Get Table Cell		 	auditViewDataTable		2		2
+	${audit_entity_action}=			Get Table Cell		 	auditViewDataTable		2		4
+	${audit_prev_value}=			Get Table Cell		 	auditViewDataTable		2		5
+	${audit_current_value}=			Get Table Cell			auditViewDataTable		2		6
+	${audit_user_name}=				Get Table Cell			auditViewDataTable		2		7
+	Should Be Equal As Strings		${audit_entity_name}			Adgroup
+	Should Be Equal As Strings		${audit_entity_action}			External Id
+	Should Be Equal As Strings		${external_id_value_before}		${audit_prev_value}
+	Should Be Equal As Strings		${new_external_id}				${audit_current_value}
+	Should Be Equal As Strings		${QA_CATALINA_USER}				${audit_user_name}
+	Capture Page Screenshot With Timestamp
+	[Tags]	
+			
+TC_07 Verify Audit Log show when modifying external id (static Image ad)
+	[Documentation]		Go to Campaign ${campaign_name}, Open static image ad, modify external id. Make sure entry is added in audit trail.
+	${random_external_id}=         Generate Random String 		8		0123456789
+	Set Test Variable		${new_external_id}		BVP3${random_external_id}
+	
+	Go to Add/Edit Creative - banner
+	Capture Page Screenshot With Timestamp
+	
+	${external_id_value_before}=	Get Value 		id=bannerDTO.externalId
+	Sleep 	2s
+	Input Text			id=bannerDTO.externalId			${new_external_id}		
+	Click Button		Save
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	Capture Page Screenshot With Timestamp
+	
+	${audit_entity_name}=			Get Table Cell		 	auditViewDataTable		2		2
+	${audit_entity_action}=			Get Table Cell		 	auditViewDataTable		2		4
+	${audit_prev_value}=			Get Table Cell		 	auditViewDataTable		2		5
+	${audit_current_value}=			Get Table Cell			auditViewDataTable		2		6
+	${audit_user_name}=				Get Table Cell			auditViewDataTable		2		7
+	Should Be Equal As Strings		${audit_entity_name}			Static Image Ad
+	Should Be Equal As Strings		${audit_entity_action}			External Id
+	Should Be Equal As Strings		${external_id_value_before}		${audit_prev_value}
+	Should Be Equal As Strings		${new_external_id}				${audit_current_value}
+	Should Be Equal As Strings		${QA_CATALINA_USER}				${audit_user_name}
+	[Tags]		
+
+
+TC_08 Verify Audit Log show when modifying external id (native creative ad)
+	[Documentation]		Go to Campaign ${campaign_name}, Open native ad, modify external id. Make sure entry is added in audit trail.
+	${random_external_id}=         Generate Random String 		8		0123456789
+	Set Test Variable		${new_external_id}		BVP3${random_external_id}
+	
+	Go to Add/Edit Creative - native
+	Capture Page Screenshot With Timestamp
+	
+	${external_id_value_before}=	Get Value 		id=nativeDTO.externalId
+	Input Text			id=nativeDTO.externalId			${new_external_id}		
+	Click Button		Save
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	Capture Page Screenshot With Timestamp
+	
+	${audit_entity_name}=			Get Table Cell		 	auditViewDataTable		2		2
+	${audit_entity_action}=			Get Table Cell		 	auditViewDataTable		2		4
+	${audit_prev_value}=			Get Table Cell		 	auditViewDataTable		2		5
+	${audit_current_value}=			Get Table Cell			auditViewDataTable		2		6
+	${audit_user_name}=				Get Table Cell			auditViewDataTable		2		7
+	Should Be Equal As Strings		${audit_entity_name}			Native Ad
+	Should Be Equal As Strings		${audit_entity_action}			External Id
+	Should Be Equal As Strings		${external_id_value_before}		${audit_prev_value}
+	Should Be Equal As Strings		${new_external_id}				${audit_current_value}
+	Should Be Equal As Strings		${QA_CATALINA_USER}				${audit_user_name}
+	[Tags]		
+	
+TC_09 Verify Audit Log show when modifying external id (Video ad)
+	[Documentation]		Go to Campaign ${campaign_name}, Open video ad, modify external id. Make sure entry is added in audit trail.
+	${random_external_id}=         Generate Random String 		8		0123456789
+	Set Test Variable		${new_external_id}		BVP3${random_external_id}
+	
+	Go to Add/Edit Creative - video
+	Capture Page Screenshot With Timestamp
+	${external_id_value_before}=	Get Value 		id=videoDTO.externalId
+	Input Text			id=videoDTO.externalId			${new_external_id}		
+	Click Button		Save
+	Go to Catalina campaign page
+	Click Link	Audit Trail
+	Sleep  2s
+	Capture Page Screenshot With Timestamp
+	
+	${audit_entity_name}=			Get Table Cell		 	auditViewDataTable		2		2
+	${audit_entity_action}=			Get Table Cell		 	auditViewDataTable		2		4
+	${audit_prev_value}=			Get Table Cell		 	auditViewDataTable		2		5
+	${audit_current_value}=			Get Table Cell			auditViewDataTable		2		6
+	${audit_user_name}=				Get Table Cell			auditViewDataTable		2		7
+	Should Be Equal As Strings		${audit_entity_name}			Uploaded Video Ad
+	Should Be Equal As Strings		${audit_entity_action}			External Id
+	Should Be Equal As Strings		${external_id_value_before}		${audit_prev_value}
+	Should Be Equal As Strings		${new_external_id}				${audit_current_value}
+	Should Be Equal As Strings		${QA_CATALINA_USER}				${audit_user_name}
+	[Tags]	
+		

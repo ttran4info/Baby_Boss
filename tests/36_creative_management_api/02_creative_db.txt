@@ -1,0 +1,351 @@
+*** Settings ***
+
+Resource    adhaven_general.txt
+Resource    creative_management_api_imports.txt
+
+Force Tags      CREATIVE_DB		BATCH16 		HYDRA		EXCLUDE		OLD_NEED REVISIT
+Test Setup		Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+#Test Teardown	Run Keywords		Disconnect From Database
+
+*** Variables ***
+${campaign_id}		1780	
+***
+${JSON_creative_native}		{"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"DARREN_FILE_TEST_CREATIVE_TEST_5","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+${JSON_ad_native}	{"adgroupId":${campaign_id},"creativeId":${creative_id},"nativeDTO":{"status":1,"assetType":"MoPub","adName":"Darren_AD_CREATE_TEST_100","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+${JSON_creative_banner}		{"campaignId":${campaign_id},"bannerDTO":{"adName":" BANNER_GESTURE_CREATIVE_BANNER_2_new","weight":1,"bannerType":0,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://destinationUrl.con","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+${JSON_ad_banner}	{"adgroupId":1053,"creativeId":${creative_id},"bannerDTO":{"adName":" Darren_AD_CREATE_TEST_2","weight":1,"bannerType":1,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"secure":false,"deleteFromUI":false,"status":0,"positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[]}}
+${JSON_creative_video}		{"campaignId":${campaign_id},"videoDTO":{"weight":1,"name":"DARREN_VIDEO_TEST_CREATIVE_3_new","duration":1,"videoType":1,"clickThroughUrl":"sourceurl","redirectionCount":0,"secure":false,"deleteFromUI":false,"VASTTag":"tag","VASTWrapperUrl":"http://url.com","playbackUrl":"playbackurl","status":0,"skipAfterTime":0,"skippable":false,"thirdPartyVASTTracker":[{"destinationType":1,"thirdpartyTrackingUrl":"http://type1.com"},{"destinationType":12,"thirdpartyTrackingUrl":"http://type12.com"}],"extendedAttributes":[]}}
+${JSON_ad_video}	{"adgroupId":29329,"creativeId":${creative_id},"videoDTO":{"weight":1,"name":"DARREN_VIDEO_TEST_AD_3","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[]}}
+
+*** Test Cases ***
+
+TC_001 Verify DB data UI vs API writing data to the same tables
+	#[Tags]	cr001_1
+	#compare two rows for UI & API:
+	Get table data populated form UI 
+	#@{descr_1842}= 	Description 	select * from rhino.ads a, rhino.video_ad va, rhino.video_bundle vb where a.video_ad_id = va.video_bundle_id and a.video_ad_id = vb.id and va.id in (1842);
+    Get table data populated form API
+    #@{descr_1607}= 	Description 	  select * from rhino.ads a, rhino.video_ad va, rhino.video_bundle vb where a.video_ad_id = va.video_bundle_id and a.video_ad_id = vb.id and va.id in (1607);
+	#@{t1}=	Log Many   @{descr_1842}  
+	#@{t2}=	Log Many   @{descr_1607}
+	    Comment    Verify result table columns
+				#${output} =    Set Variable    ${descr_1842[0][2]}
+				#Log 	${output}	
+		${output} =    Set Variable    ${descr_1842[0][0]}
+	Should Be Equal As Strings    ${output}    id
+		${output} =    Set Variable    ${descr_1842[1][0]}
+	Should Be Equal As Strings    ${output}    url
+		${output} =    Set Variable    ${descr_1842[2][0]}
+	Should Be Equal As Strings    ${output}    duration
+		${output} =    Set Variable    ${descr_1842[3][0]}
+	Should Be Equal As Strings    ${output}    version
+		${output} =    Set Variable    ${descr_1842[4][0]}
+	Should Be Equal As Strings    ${output}    created_dt
+		${output} =    Set Variable    ${descr_1842[5][0]}
+	Should Be Equal As Strings    ${output}    modified_dt
+		${output} =    Set Variable    ${descr_1842[6][0]}
+	Should Be Equal As Strings    ${output}    video_ad_id
+		${output} =    Set Variable    ${descr_1842[7][0]}
+	Should Be Equal As Strings    ${output}    banner_ad_id
+		${output} =    Set Variable    ${descr_1842[8][0]}
+	Should Be Equal As Strings    ${output}    html5_ad_id
+		${output} =    Set Variable    ${descr_1842[9][0]}	
+		Should Be Equal As Strings    ${output}    text_ad_id
+		${output} =    Set Variable    ${descr_1842[10][0]}
+	Should Be Equal As Strings    ${output}    campaign_id
+		${output} =    Set Variable    ${descr_1842[11][0]}
+	Should Be Equal As Strings    ${output}    ad_group_id
+		${output} =    Set Variable    ${descr_1842[12][0]}
+	Should Be Equal As Strings    ${output}    status
+		${output} =    Set Variable    ${descr_1842[13][0]}
+	Should Be Equal As Strings    ${output}    native_ad_id
+		${output} =    Set Variable    ${descr_1842[14][0]}
+		
+	Should Be Equal As Strings    ${output}    id
+		${output} =    Set Variable    ${descr_1842[15][0]}
+	Should Be Equal As Strings    ${output}    name
+		${output} =    Set Variable    ${descr_1842[16][0]}
+	Should Be Equal As Strings    ${output}    video_bundle_id
+		${output} =    Set Variable    ${descr_1842[17][0]}
+	Should Be Equal As Strings    ${output}    campaign_creative_id
+		${output} =    Set Variable    ${descr_1842[18][0]}
+	Should Be Equal As Strings    ${output}    duration
+		${output} =    Set Variable    ${descr_1842[19][0]}
+	Should Be Equal As Strings    ${output}    version
+		${output} =    Set Variable    ${descr_1842[20][0]}
+	Should Be Equal As Strings    ${output}    third_party_impression
+		${output} =    Set Variable    ${descr_1842[21][0]}
+	Should Be Equal As Strings    ${output}    third_party_click
+		${output} =    Set Variable    ${descr_1842[22][0]}
+	Should Be Equal As Strings    ${output}    third_party_vast
+		${output} =    Set Variable    ${descr_1842[23][0]}
+	Should Be Equal As Strings    ${output}    third_party_wrapper_url
+		${output} =    Set Variable    ${descr_1842[24][0]}
+	Should Be Equal As Strings    ${output}    source_url
+		${output} =    Set Variable    ${descr_1842[25][0]}
+	Should Be Equal As Strings    ${output}    thumbnail_url
+		${output} =    Set Variable    ${descr_1842[26][0]}
+	Should Be Equal As Strings    ${output}    created_dt
+		${output} =    Set Variable    ${descr_1842[27][0]}
+	Should Be Equal As Strings    ${output}    modified_dt
+		${output} =    Set Variable    ${descr_1842[28][0]}
+	Should Be Equal As Strings    ${output}    status
+		${output} =    Set Variable    ${descr_1842[29][0]}
+	Should Be Equal As Strings    ${output}    redirect_count
+		${output} =    Set Variable    ${descr_1842[30][0]}
+	Should Be Equal As Strings    ${output}    is_secure
+		${output} =    Set Variable    ${descr_1842[31][0]}
+	Should Be Equal As Strings    ${output}    weight
+		${output} =    Set Variable    ${descr_1842[32][0]}
+	Should Be Equal As Strings    ${output}    external_id
+		${output} =    Set Variable    ${descr_1842[33][0]}
+		
+	Should Be Equal As Strings    ${output}    id	
+	   ${output} =    Set Variable    ${descr_1842[34][0]}
+	Should Be Equal As Strings    ${output}    name
+		${output} =    Set Variable    ${descr_1842[35][0]}
+	Should Be Equal As Strings    ${output}    type
+		${output} =    Set Variable    ${descr_1842[36][0]}
+	Should Be Equal As Strings    ${output}    status	
+			${output} =    Set Variable    ${descr_1842[37][0]}
+	Should Be Equal As Strings    ${output}    created_dt
+		${output} =    Set Variable    ${descr_1842[38][0]}
+	Should Be Equal As Strings    ${output}    modified_dt
+       # ${output} =    Set Variable    ${descr_1842[40][0]}
+		
+TC_002 verify ui and api data having the same amount of values in tables for native ads
+	#[Tags]  cr002_2
+	Get values populated by UI for native ads 
+    #@{ui_data} 		Query  select * from rhino.ads where native_ad_id in (58);
+    Get values populated by API for native ads
+    #@{api_data}		Query  select * from rhino.ads where native_ad_id in (107);
+    #Log Many    @{ui_data}
+    ${ui_l}=  Get Length 	@{ui_data}
+    #Length Should Be      @{ui_data}     14
+    #Log Many    @{api_data}
+    ${api_l}= 	Get Length 	@{api_data}
+    #Length Should Be      @{api_data}     14
+    Should Be Equal		${ui_l}	${api_l}  
+   
+TC_003 Validate rhino.ads with native_ad_id exists
+   	#[Tags]  cr003_1
+   	Get native_ad_id
+    #@{ui_data} 	Query  select * from rhino.ads where native_ad_id in (58);
+    #Log Many    @{ui_data}
+    :FOR     ${index}    IN      @{ui_data}
+        \        Log     ${index[13]} 
+     Should Match Regexp              '${ui_data[0][13]}'               58
+
+TC_0040 Verify user is able to create native creative and ad & Get native_ad id
+	#[Tags]  cr004
+	#Create Creative of type native
+	CREATIVE Get creative id for Native  xpath_0=creativeDetailDTO		xpath_1=nativeDTO	xpath=id	uri=/creative/native	 JSON={"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"DARREN_FILE_TEST_CREATIVE_TEST_5","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	#Create Ad of type native
+	AD Get ad id  xpath_0=adDetailDTO 	xpath_1=nativeDTO 	xpath=nativeAdId	 xpath_b=id		 uri=/ad/native		JSON={"adgroupId":${campaign_id},"creativeId":${creative_id},"nativeDTO":{"status":1,"assetType":"MoPub","adName":"Darren_AD_CREATE_TEST_100","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+    #@{ui_data}  Query  select * from rhino.ads where native_ad_id in (${ad_id});
+    Get ad id for native query
+    Log Many    @{ui_data}
+ 	:FOR     ${index}    IN      @{ui_data}
+     \        Log     ${index[13]}
+ 	Should Match Regexp              '${ui_data[0][13]}'               ${ad_id}
+
+TC_0041 Verify user is able to create baner creative and ad & Get banner_ad id
+	#[Tags]  cr004	cr004_s28
+	#Create Creative of type banner
+	CREATIVE Get creative id for Banner	 xpath_crDTO=creativeDetailDTO	xpath_bnDTO=bannerDTO  xpath=id	uri=/creative/banner	JSON={"campaignId":${campaign_id},"bannerDTO":{"adName":"BANNER_GESTURE_CREATIVE_BANNER_2_new","weight":1,"bannerType":0,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://destinationUrl.con","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+	#Create Ad of type banner
+	AD Get ad id  xpath_0=adDetailDTO 	xpath_1=bannerDTO 	xpath=bannerAdId	 xpath_b=id 	uri=/ad/banner		 JSON={"adgroupId":${campaign_id},"creativeId":${creative_idBn},"bannerDTO":{"adName":" Darren_AD_CREATE_TEST_2","weight":1,"bannerType":1,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"secure":false,"deleteFromUI":false,"status":0,"positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[]}}
+    Get ad id for banner query
+    #@{ui_data}  Query  select * from rhino.ads where banner_ad_id in (${ad_id});
+    Log Many    @{ui_data}
+ 	:FOR     ${index}    IN      @{ui_data}
+     \        Log     ${index[7]}
+ 	Should Match Regexp              '${ui_data[0][7]}'               ${ad_id} 
+
+TC_0042 Verify user is able to create video creative and ad & Get video_ad id
+	#[Tags]  cr004	cr004_s28
+	#Create Creative of type native
+	CREATIVE Get creative id for Video	 xpath_crDTO=creativeDetailDTO	xpath_viDTO=videoDTO	xpath=id	uri=/creative/video	 	JSON={"campaignId":${campaign_id},"videoDTO":{"weight":1,"name":"DARREN_VIDEO_TEST_CREATIVE_3_new","duration":1,"videoType":1,"clickThroughUrl":"sourceurl","redirectionCount":0,"secure":false,"deleteFromUI":false,"VASTTag":"tag","VASTWrapperUrl":"http://url.com","playbackUrl":"playbackurl","status":0,"skipAfterTime":0,"skippable":false,"thirdPartyVASTTracker":[{"destinationType":1,"thirdpartyTrackingUrl":"http://type1.com"},{"destinationType":12,"thirdpartyTrackingUrl":"http://type12.com"}],"extendedAttributes":[]}}
+	#Create Ad of type native
+	AD Get ad id  xpath_0=adDetailDTO 	xpath_1=videoDTO 	xpath=id	xpath_b=videoBundleId	 uri=/ad/video		JSON={"adgroupId":${campaign_id},"creativeId":${creative_idVi},"videoDTO":{"weight":1,"name":"DARREN_VIDEO_TEST_AD_3","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[]}}
+    Get ad id for video query
+    #@{ui_data}  Query  select * from rhino.ads a, rhino.video_ad va, rhino.video_bundle vb where a.video_ad_id = va.video_bundle_id and a.video_ad_id = vb.id and va.id in (${ad_id});
+    #select * from rhino.ads where video_ad_id in (${ad_id});
+    Log Many    @{ui_data}
+ 	:FOR     ${index}    IN      @{ui_data}
+     \        Log     ${index[15]}
+     \		  Log     ${index[6]}
+ 	Should Match Regexp              '${ui_data[0][14]}'               ${ad_id} 
+ 	Should Match Regexp              '${ui_data[0][6]}'               ${bundle_id}
+ 
+TC_005 Verify native ad data values get populated in DB table rhino.native_ad
+	#[Tags]  cr005
+	Create Native Creative & Ad
+	#@{ui_data}  Query	select * from rhino.native_ad where name IN (${native_ad_name});
+	Get native ad data query
+	:FOR     ${index}    IN      @{ui_data} 	
+ 	 \		  Log     ${index[0]}
+	 \		  Log     ${index[1]} 
+	 \		  Log     ${index[2]}
+	 \		  Log     ${index[3]}
+	 \		  Log     ${index[4]}
+	 Should Not Match Regexp              '${ui_data[0][0]}'               None	
+ 	 Should Not Match Regexp              '${ui_data[0][1]}'               None	
+ 	 Should Not Match Regexp              '${ui_data[0][2]}'               None	
+ 	 Should Not Match Regexp              '${ui_data[0][3]}'               None	
+ 	 Should Not Match Regexp              '${ui_data[0][4]}'               None	
+
+TC_0052 Verify banner ad data values get populated in DB table rhino.banner_ad
+	[Tags]  cr005		
+	Create Banner Creative & Ad
+	#@{ui_data}  Query	select * from rhino.banner_ad where name IN (${banner_ad_name});
+	Get banner ad data query
+	:FOR     ${index}    IN      @{ui_data}
+     \		  Log     ${index[0]}
+	 \		  Log     ${index[1]} 
+	# \		  Log     ${index[5]}
+	 \		  Log     ${index[8]}
+	 \		  Log     ${index[9]}
+	 \		  Log     ${index[10]}
+	 \		  Log     ${index[11]}
+	 \		  Log     ${index[13]}
+		 \		  Log     ${index[2]}
+		 \		  Log     ${index[3]}
+		 \		  Log     ${index[4]}
+		 \		  Log     ${index[5]}
+		 \		  Log     ${index[6]}
+		 \		  Log     ${index[7]}
+		 \		  Log     ${index[12]} 
+    Should Not Match Regexp              '${ui_data[0][0]}'               None
+    Should Not Match Regexp              '${ui_data[0][1]}'               None
+   # Should Not Match Regexp               ${ui_data[0][5]}                None
+    Should Not Match Regexp              '${ui_data[0][8]}'               None
+    Should Not Match Regexp              '${ui_data[0][9]}'               None
+    Should Not Match Regexp              '${ui_data[0][10]}'       	        	None
+    Should Not Match Regexp              '${ui_data[0][11]}'                    None
+    Should Not Match Regexp              '${ui_data[0][13]}'                    None   	 	
+		 Should Match Regexp              '${ui_data[0][2]}'               None
+		 Should Match Regexp              '${ui_data[0][3]}'               None
+		 Should Match Regexp              '${ui_data[0][4]}'               None
+		 Should Match Regexp              '${ui_data[0][5]}'               None
+		 Should Match Regexp              '${ui_data[0][6]}'               None
+		 Should Match Regexp              '${ui_data[0][7]}'               None
+		 Should Match Regexp              '${ui_data[0][12]}'              	    None
+		 	
+TC_0053 Verify video ad data values get populated in DB table rhino.video_ad
+	[Tags]  cr005		
+	Create Video Creative & Ad
+	#@{ui_data}  Query	select * from rhino.video_ad where name IN (${video_ad_name});
+	Get video ad data query
+	:FOR     ${index}    IN      @{ui_data}
+     \		  Log     ${index[0]}
+	 \		  Log     ${index[1]}
+	 \		  Log     ${index[2]}
+	 \		  Log     ${index[3]}
+	 \		  Log     ${index[4]}
+	 \		  Log     ${index[12]}
+	 \		  Log     ${index[13]}
+	 \		  Log     ${index[14]}
+ 	 \		  Log     ${index[15]}
+	 \		  Log     ${index[16]}
+	 \		  Log     ${index[17]}	  
+	    
+	     \		  Log     ${index[5]}
+	     \		  Log     ${index[6]}
+	     \		  Log     ${index[7]}
+	     \		  Log     ${index[8]}
+	     \		  Log     ${index[9]}
+	     \		  Log     ${index[10]}
+	     \		  Log     ${index[11]}
+	     \		  Log     ${index[18]} 
+ 	Should Not Match Regexp              '${ui_data[0][0]}'                None
+ 	Should Not Match Regexp              '${ui_data[0][1]}'                None
+ 	Should Not Match Regexp              '${ui_data[0][2]}'                None
+ 	Should Not Match Regexp              '${ui_data[0][3]}'                None
+ 	Should Not Match Regexp              '${ui_data[0][4]}'                None
+ 	Should Not Match Regexp              '${ui_data[0][12]}'               None
+ 	Should Not Match Regexp              '${ui_data[0][13]}'               None
+ 	Should Not Match Regexp              '${ui_data[0][14]}'               None
+ 	Should Not Match Regexp              '${ui_data[0][15]}'               None
+ 	Should Not Match Regexp              '${ui_data[0][16]}'               None 	
+ 	Should Not Match Regexp              '${ui_data[0][17]}'              None
+ 	#Should Match Regexp              '${ui_data[0][3]}'               None
+ 	Should Match Regexp              '${ui_data[0][5]}'               None
+ 	Should Match Regexp              '${ui_data[0][6]}'               None
+ 	Should Match Regexp              '${ui_data[0][7]}'               None
+ 	Should Match Regexp              '${ui_data[0][8]}'               None
+ 	Should Match Regexp              '${ui_data[0][9]}'               None
+ 	Should Match Regexp              '${ui_data[0][10]}'              None
+ 	Should Match Regexp              '${ui_data[0][11]}'              None
+ 	Should Match Regexp              '${ui_data[0][18]}'              None
+
+
+TC_009 Verify Native ad can be created with JSON request contains unicode data (廣告名稱)
+	#[Tags]  cr009
+	Create Native Creative & Ad		adName_creative=廣告名稱-NCr		adName_ad=廣告名稱-NAd
+
+TC_0091 Verify Banner ad can be created with JSON request contains unicode data (廣告名稱)
+	#[Tags]  cr009
+	Create Banner Creative & Ad		adName_creative=廣告名稱-BCr		adName_ad=廣告名稱-BAd
+
+TC_0092 Verify Video ad can be created with JSON request contains unicode data (廣告名稱)
+	#[Tags]  cr009
+	Create Video Creative & Ad		adName_creative=廣告名稱-VCr		adName_ad=廣告名稱-VAd
+
+***
+TC_010 Verify Native ad can NOT be created with JSON request contains wrnog data (responce 200, error 500)
+TC_010 Verify Banner ad can NOT be created with JSON request contains wrong data (responce 200, error 500)
+TC_010 Verify Video ad can NOT be created with JSON request contains wrong data (responce 200, error 500)
+
+
+TC_0010
+#Verify user is able to create native creative and ad & Get native_ad id
+	#[Tags]  cr0010
+	#Create Creative of type native
+	CREATIVE Get creative id for Native  xpath_0=creativeDetailDTO		xpath_1=nativeDTO	xpath=id	uri=/creative/native	 JSON={"campaignId":${campaign_id},"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"DARREN_FILE_TEST_CREATIVE_TEST_5","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	#Create Ad of type native
+	AD Get ad id  xpath_0=adDetailDTO 	xpath_1=nativeDTO 	xpath=nativeAdId	 xpath_b=id		 uri=/ad/native		 JSON={"adgroupId":${campaign_id},"creativeId":${creative_id},"nativeDTO":{"status":1,"assetType":"MoPub","adName":"Darren_AD_CREATE_TEST_100","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+    @{ui_data}  Query  select * from rhino.ads where native_ad_id in (${ad_id});
+    Log Many    @{ui_data}
+ 	:FOR     ${index}    IN      @{ui_data}
+     \        Log     ${index[13]}
+ 	Should Match Regexp              '${ui_data[0][13]}'               ${ad_id}
+
+
+
+
+
+TC_0000 verify blank fields
+	#[Tags]	cr003_2
+	 
+    @{OLD_L}=  Create List
+    	:FOR  ${element}  in   @{ui_data}+1
+	\	${value}=	Convert To List	${element}
+	\	Append To List	${OLD_L}	${value}
+	Log	UI Elements: ${OLD_L}
+	${OLD_LIST}=	Get Length  ${OLD_L}
+		
+    @{api_data}=	 	Query  select version, third_party_wrapper_url,source_url,thumbnail_url,weight,external_id from rhino.ads a, rhino.video_ad va, rhino.video_bundle vb where a.video_ad_id = va.video_bundle_id and a.video_ad_id = vb.id and va.id in (1607);
+   # ${NEW_VAR}=		Log Many 	@{api_data}  
+    @{NEW_L}=  Create List
+    	:FOR  ${element}  in   @{api_data}+1
+	\	${value}=	Convert To List	${element}
+	\	Append To List	${NEW_L}	${value}
+	Log	API Elements: ${NEW_L} 
+	${NEW_LIST}=	Get Length  ${NEW_L}
+	
+    Should Be Equal		@{NEW_LIST}	 @{OLD_LIST}
+    
+    
+             
+Validate Table rhino.batch_tracker_daily ROLLUP_TYPE Column Is Updated to varchar(100)   
+        @{query_results}     Query    desc rhino.batch_tracker_daily;
+        Log Many     @{query_results}
+        Length Should Be      ${query_results}     13
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        Should Match Regexp              '${queryResults[1][0]}'               ROLLUP_TYPE
+        Should Match Regexp              '${queryResults[1][1]}'               varchar
+        Should Match Regexp              '${queryResults[1][1]}'               100
+    
+ ***    		

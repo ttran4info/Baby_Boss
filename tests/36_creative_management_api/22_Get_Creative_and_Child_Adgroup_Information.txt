@@ -1,0 +1,222 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16     HYDRA     GET_CREATIVE_INFO
+Suite Setup         Run Keyword         CleanUp Test suite data
+Suite Teardown      Run Keyword         CleanUp Test suite data
+
+#Wiki https://wiki.4info.com/pages/viewpage.action?title=Creative+Management+API%28Hydra%29+Documentation&spaceKey=Software#CreativeManagementAPI(Hydra)Documentation-GetCreativeandChildAdgroupInformationforanAd
+#API NAME :Get Creative and Child Adgroup Information for an Ad
+#METHOD : GET
+#API :/hydra/v1/ad/creative-adgroup/{type}/{detailId}
+
+
+*** Variables ***
+${nativeAdgroupId}              null
+${videoAdgroupId1}              null
+${videoAdgroupId2}              null
+${videoAdgroupId3}              null
+${bannerCreativeId0}            null
+${bannerAdgroupId1}             null
+${bannerAdgroupId2}             null
+${Campaign_Id}                  000000
+
+
+${QA_TEST_ADVERTISER}           QA_AUTOMATION_TEST_ADVERTISER
+${CAMPAIGN_NAME_UI}             QA_AUTOMATION_TEST_CAMPAIGN_TEST_13
+${CREATIVE_NAME}                QA_AUTOMATION_TEST_CREATIVE_36_CR
+${CHILD_NAME}                   QA_AUTOMATION_TEST_CHILD_TEST
+${START_DATE_TIME}              12:00 AM
+${END_DATE_TIME}                11:59 PM
+${parent_name}                  QA_AUTOMATION_TEST_PARENT_TEST
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+${START_DATE_TIME_PARENT}       02/02/2019 00:00
+${END_DATE_TIME_PARENT}         11/11/2019 12:59
+${START_DATE_TIME_CHILD}        03/03/2019 00:00
+${END_DATE_TIME_CHILD}          10/10/2019 08:59
+*** Keywords ***
+CleanUp Test suite data
+    Cleanup Advertiser From DB          advertiser_name=${QA_TEST_ADVERTISER}
+
+
+
+*** Test Cases ***
+
+TC_00_TEST_DATA_GENERATE
+    Log To Console                              "Creating test Data"
+    Create Advertiser                           uri=/pac-api/partner/advertiser            data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API                 campaign_name=${CAMPAIGN_NAME_UI}          campaign_advertiser_id=${advertiser_id}   campaign_start_date_time=${START_DATE} 00:00      campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=${Empty}
+    ${campaign_id}=                             Get JSON Value                             ${body}     /campaign/id
+    Set Suite Variable                          ${Campaign_Id}                             ${campaign_id}
+    Create Parent Adgroup via API               parent_name=${parent_name}                 parent_campaign_id=${Campaign_Id}    parent_start_date_time=${START_DATE_TIME_PARENT}       parent_end_date_time=${END_DATE_TIME_PARENT}
+    ${Parent_id}=       Get JSON Value          ${body}                                    /parent/id
+    Set Suite Variable                          ${parent_id}                               ${Parent_id}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Native            child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+
+    ${Native_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${nativeAdgroupId}                  ${Native_Child_AdGroup_ID}
+
+
+    Log To Console         "Created native data"
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoUpload       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+
+    ${Video_Upload_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId1}                  ${Video_Upload_Child_AdGroup_ID}
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoVAST         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Video_VAST_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId2}                  ${Video_VAST_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_VideoWrapper      child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Video_Wrapper_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${videoAdgroupId3}                  ${Video_Wrapper_Child_AdGroup_ID}
+
+
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerStatic       child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_Static_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId0}                  ${Banner_Static_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_BannerRich         child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_3rdParty_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId1}                  ${Banner_3rdParty_Child_AdGroup_ID}
+
+    Create Child Adgroup via API                child_name=${CHILD_NAME}_Banner3rd          child_parent_campaign_id=${parent_id}    child_start_date_time=${START_DATE_TIME_CHILD}     child_end_date_time=${END_DATE_TIME_CHILD}
+    ${Banner_RM_Child_AdGroup_ID}                  Get JSON Value          ${body}             /childId
+    Set Suite Variable                          ${bannerAdgroupId2}                  ${Banner_RM_Child_AdGroup_ID}
+    [Tags]
+
+
+TC_01.01_Get Native Creative and Child Adgroup Information for an Ad
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0101"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0101"
+
+    Get Creative and Child Adgroup Information for an Ad
+    ...     type=native
+    ...     detailId=${type_Ad_id}
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}    /success                true
+    Json Value Should Equal     ${body}    /creative/id            ${nativeCreativeId}
+    Json Value Should Equal     ${body}    /creative/name          "${CREATIVE_NAME}_NATIVE0101"
+    Json Value Should Equal     ${body}    /childAdgroup/id        ${nativeAdgroupId}
+    Json Value Should Equal     ${body}    /childAdgroup/name           "${CHILD_NAME}_Native"
+    [Tags]
+
+
+TC_01.02_Get Native Creative and Child Adgroup Information for an Ad(Invalid Ad Id)
+    Generate JSON For Creative Native           campaign_id=${Campaign_Id}
+    ...                                         adName="${CREATIVE_NAME}_NATIVE0102"
+    CREATIVE POST Request for Creative          uri=native      JSON=${data}               expected_status_code=200
+    Set Suite Variable                          ${nativeCreativeId}                      ${DTO_id}
+    Create ad for Native            adgroupId=${nativeAdgroupId}                   creativeId=${nativeCreativeId}
+    ...                             adName="${CREATIVE_NAME}_NATIVE0102"
+    ${type_Ad_id}=                  Evaluate        ${type_Ad_id}+1
+    Get Creative and Child Adgroup Information for an Ad
+    ...     type=native
+    ...     detailId=${type_Ad_id}
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}    /reason_code            "500-703"
+    Json Value Should Equal     ${body}    /success                false
+    Json Value Should Equal     ${body}    /reason_desc            "Invalid Ad Id"
+    [Tags]
+
+
+TC_02.01_Get Video Creative and Child Adgroup Information for an Ad
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0201"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0201"
+
+    Get Creative and Child Adgroup Information for an Ad
+    ...     type=video
+    ...     detailId=${type_Ad_id}
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}    /success                true
+    Json Value Should Equal     ${body}    /creative/id            ${videoCreativeId1}
+    Json Value Should Equal     ${body}    /creative/name          "${CREATIVE_NAME}_VIDEO0201"
+    Json Value Should Equal     ${body}    /childAdgroup/id        ${videoAdgroupId1}
+    Json Value Should Equal     ${body}    /childAdgroup/name           "${CHILD_NAME}_VideoUpload"
+    [Tags]
+
+
+TC_02.02_Get Video Creative and Child Adgroup Information for an Ad(Invalid Ad Id)
+    Generate JSON For Creative Video        campaign_id=${Campaign_Id}
+    ...                                     name="${CREATIVE_NAME}_VIDEO0202"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${videoCreativeId1}         ${DTO_id}
+    Upload File And Attach Request              id=${videoCreativeId1}      type=video               filetype=video     filename=Excercise.mp4       expected_status_code=200
+
+    Create ad for Video                         adgroupId=${videoAdgroupId1}           creativeId=${videoCreativeId1}      videoType=1
+    ...                        name="${CREATIVE_NAME}_VIDEO0202"
+    ${type_Ad_id}=                  Evaluate        ${type_Ad_id}+1
+    Get Creative and Child Adgroup Information for an Ad
+    ...     type=video
+    ...     detailId=${type_Ad_id}
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}    /reason_code            "500-703"
+    Json Value Should Equal     ${body}    /success                false
+    Json Value Should Equal     ${body}    /reason_desc            "Invalid Ad Id"
+    [Tags]
+
+
+TC_03.01_Get Banner Creative and Child Adgroup Information for an Ad
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0301"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner               adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}                                  adName="${CREATIVE_NAME}_BANNER0301"      bannerType=0
+
+    Get Creative and Child Adgroup Information for an Ad
+    ...     type=banner
+    ...     detailId=${type_Ad_id}
+    ...     expected_status_code=200
+
+    Json Value Should Equal     ${body}    /success                true
+    Json Value Should Equal     ${body}    /creative/id            ${bannerCreativeId1}
+    Json Value Should Equal     ${body}    /creative/name          "${CREATIVE_NAME}_BANNER0301"
+    Json Value Should Equal     ${body}    /childAdgroup/id        ${bannerAdgroupId1}
+    Json Value Should Equal     ${body}    /childAdgroup/name           "${CHILD_NAME}_BannerRich"
+    [Tags]
+
+
+TC_03.02_Get Banner Creative and Child Adgroup Information for an Ad(Invalid Ad Id)
+    Generate JSON For Creative Banner        campaign_id=${Campaign_Id}
+    ...                                     adName="${CREATIVE_NAME}_BANNER0302"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Set Suite Variable                          ${bannerCreativeId1}         ${DTO_id}
+    Upload File And Attach Request              id=${DTO_id}      type=banner               filetype=image     filename=File120x20.jpg     expected_status_code=200
+    Create ad for Banner                 adgroupId=${bannerAdgroupId1}        creativeId=${bannerCreativeId1}         adName="${CREATIVE_NAME}_BANNER0302"      bannerType=0
+    ${type_Ad_id}=                  Evaluate        ${type_Ad_id}+1
+    Get Creative and Child Adgroup Information for an Ad
+    ...     type=banner     detailId=${type_Ad_id}
+    ...     expected_status_code=400
+
+    Json Value Should Equal     ${body}    /reason_code            "500-703"
+    Json Value Should Equal     ${body}    /success                false
+    Json Value Should Equal     ${body}    /reason_desc            "Invalid Ad Id"
+    [Tags]    EXCLUDE    #Excluded as it is passing localy and failing on jenkins Run

@@ -1,0 +1,104 @@
+*** Settings ***
+Resource        creative_management_api_imports.txt
+Force Tags      BATCH16		HYDRA   OffshoreQA    DELETE_CR_UNDER_CAMPAIGN
+Suite Setup     Clean Up Campaign, Advertiser and Cretives
+Suite Teardown  Clean Up Campaign, Advertiser and Cretives
+
+#https://wiki.4info.com/display/Software/Creative+Management+API%28Hydra%29+Documentation#CreativeManagementAPI(Hydra)Documentation-DeleteAllCreativesunderCampaign
+#API NAME :Delete All Creatives under Campaign
+#METHOD : Delete
+#API :/hydra/v1/creatives?campaignId=241
+
+
+*** Variables ***
+${QA_TEST_ADVERTISER}       00_QATEST_advertiser_hydra_10
+${CAMPAIGN_NAME_UI}         00_QATEST_campaign
+${CREATIVE_NAME}            TestREGRESSION_CREATIVE_10    #   00_QATEST_CREATIVE
+${START_DATE}                   01/01/2019
+${END_DATE_TIME_CAMPAIGN}       12/12/2019
+
+*** Keywords ***
+Clean Up Campaign, Advertiser and Cretives
+	#Cleanup advertiser will take care of cleaning everything from creative to campaign.
+	Cleanup Advertiser From DB			advertiser_name=${QA_TEST_ADVERTISER}
+    #Cleanup Creative All By Name        TestREGRESSION_CREATIVE_10
+    #Delete New Campaign via DB          campaign_name=${CAMPAIGN_NAME_UI}%
+    #Delete New Advertiser via DB        name=${QA_TEST_ADVERTISER}%
+
+
+
+*** Test Cases ***
+
+TC_00_Generate Data for Test Suite
+    Create Advertiser     uri=/pac-api/partner/advertiser
+    ...                   data={"name": "${QA_TEST_ADVERTISER}"}
+    Create New Campaign via API     campaign_name=${CAMPAIGN_NAME_UI}
+    ...                             campaign_advertiser_id=${advertiser_id}
+    ...                             campaign_start_date_time=${START_DATE} 00:00
+    ...                             campaign_end_date_time=${END_DATE_TIME_CAMPAIGN} 23:59      campaign_access_control=${Empty}
+    ${campaign_id}=       Get JSON Value      ${body}     /campaign/id
+    Set Suite Variable      ${campaign_id}        ${campaign_id}
+
+
+TC_01_Delete_All_creatives_under_campaign(Native)
+    [Documentation]         input : Valid Campaign Id
+    ...                     output : response should give 200 response code and creatives should delete successfully
+    Generate JSON For Creative Native       campaign_id=${campaign_id}
+    ...                                     adName="${CREATIVE_NAME}_TC_01"
+    CREATIVE POST Request for Creative      uri=native
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Creative DELETE under campaign Request for campaign       campaignId=${campaign_id}
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+
+
+TC_02_Delete_All_creatives_under_campaign(Video)
+    [Documentation]         input : Valid Campaign Id
+    ...                     output : response should give 200 response code and creatives should delete successfully
+    Generate JSON For Creative Video        campaign_id=${campaign_id}
+    ...                                     name="${CREATIVE_NAME}_TC_02"
+    CREATIVE POST Request for Creative      uri=video
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Creative DELETE under campaign Request for campaign       campaignId=${campaign_id}
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+
+TC_03_Delete_All_creatives_under_campaign(Banner)
+    [Documentation]         input : Valid Campaign Id
+    ...                     output : response should give 200 response code and creatives should delete successfully
+    Generate JSON For Creative Banner        campaign_id=${campaign_id}
+    ...                                      adName="${CREATIVE_NAME}_TC_03"
+    CREATIVE POST Request for Creative      uri=banner
+    ...                                     JSON=${data}
+    ...                                     expected_status_code=200
+    Json Value Should Equal     ${body}         /success            true
+    Creative DELETE under campaign Request for campaign       campaignId=${campaign_id}
+    Json Value Should Equal     ${body}         /success            true
+    Json Value Should Equal     ${body}         /reason_code        "000-000"
+    Json Value Should Equal     ${body}         /reason_desc        "Success"
+    [Tags]
+
+
+TC_04_Delete_All_creatives_under_campaign(invalid campaignId)
+    [Documentation]         input : Invalid Campaign Id
+    ...                     output : response should give 400 response code and creatives should not delete
+
+    Creative DELETE under campaign Request for campaign       campaignId=${campaign_id}9999        expected_status_code=400
+    Json Value Should Equal     ${body}         /success            false
+    Json Value Should Equal     ${body}         /reason_code        "500-605"
+    Json Value Should Equal     ${body}         /reason_desc        "Invalid campaign Id"
+    [Tags]
+

@@ -1,0 +1,187 @@
+*** Settings ***
+Resource            access_control_imports.txt
+Force Tags         	UI    BATCH7     			EXCLUDE
+Suite Setup			Run Keywords               Start UI     	Adjust Screen Size			Login As Acxiom
+Suite Teardown      Run Keywords               Close All Browsers
+
+*** Variables ***
+${user_name}						123@acxiom.com	
+${user_pass}						test1234
+${advertiser_name_4info}			00_4INFO_ACCESS
+${advertiser_name_catalina}			00_CATALINA_ACCESS
+${advertiser_name_acxiom}			00_ACXIOM_ACCESS
+${advertiser_id_acxiom}				2161
+${campaign_name_acxiom}				Acxiom_Campaign
+${campaign_id_acxiom}				3466
+${parent_name_acxiom}				Acxiom_Parent
+${advertiser_name_mix}				00_MIX_ACCESS
+${campaign_name_mix_acxiom}					Acxiom_Only_Campaign
+${campaign_name_mix_catalina}				Catalina_Only_Campaign
+${campaign_name_mix_axciom_catalina}		Acxion_Catalina_Campaign
+					
+*** Keywords ***
+Start UI 
+	Start AdHaven UI    ${URL}    ${BROWSER}
+Adjust Screen Size
+	Set Window Size     1200    800
+Login As Acxiom
+	Login with "${user_name}" and "${user_pass}"
+	Capture Page Screenshot With Timestamp	
+*** Test Cases ***
+
+Acxiom RW User Can Login
+	Page Should Contain					Logged in as:
+	Page Should Contain					${user_name}
+	Page Should Contain            		${WELCOME_USER_MSG}
+	Page Should Contain            		${USER_LOGGED_IN}		
+	
+Acxiom RW User Can Access Tabs For Supply, Demand, Admin, And Audience Tab
+	Page Should Contain         		Supply 
+	Page Should Contain         		Demand 
+	Page Should Contain         		Audience
+	Page Should Contain         		Admin
+
+Acxiom RW User Cannot Access Tabs SMB
+	Page Should Not Contain         	id=tabSMB
+	Element Should Not Be Visible       id=tabSMB
+	
+Acxiom RW User See Acxiom Campaigns
+	Page Should Contain 				${advertiser_name_mix}
+	Page Should Contain 				${advertiser_name_acxiom}
+	
+Acxiom RW User Does Not See 4INFO or CATALINA Advertisers
+	Page Should Not Contain 				${advertiser_name_4info}
+	Page Should Not Contain 				${advertiser_name_catalina}	
+
+Acxiom RW User Should Only see Acxiom Campaigns in Advertiser with Multiple Group
+	Click Link         					${advertiser_name_mix}
+	Capture Page Screenshot With Timestamp	
+	Page Should Contain 				${campaign_name_mix_acxiom}
+	Page Should Contain 				${campaign_name_mix_axciom_catalina}
+	Page Should Not Contain				${campaign_name_mix_catalina}	
+	
+Acxiom RW User Has Access Acxiom Campaigns in Demand Tab
+	Click Link         					${TAB_DEMAND}
+	Capture Page Screenshot With Timestamp
+	Page Should Contain   		 		${advertiser_name_acxiom}
+	Click Link                   		${advertiser_name_acxiom}
+	Capture Page Screenshot With Timestamp
+	Page Should Contain      			${campaign_name_acxiom}	
+	Click Link 							${campaign_name_acxiom}	
+	Page Should Contain 				Campaign ID: ${campaign_id_acxiom}
+	Location Should Contain				partnerId=${advertiser_id_acxiom}&campaignId=${campaign_id_acxiom}
+	[Tags]	
+
+Acxiom RW User Has Access To Admin Tab But Can Only Change Password
+	[Documentation]		Login as axiom user, click admin tab, make sure that user is only allow to change password.
+	Click Link 							${TAB_ADMIN}
+	Capture Page Screenshot With Timestamp
+	#Page Should Not Contain   			${user_name}
+	Page Should Not Contain				Manage Users
+	Page Should Not Contain Link		Users
+	Page Should Contain 				Change Password
+	Page Should Contain 				Existing Password *
+	Page Should Contain 				New Password *
+	Page Should Contain 				Confirm Password *
+	Page Should Contain Element 		id=existingPassword
+	Page Should Contain Button 			Save
+	[Tags]	UM-UI1	UM-UI
+
+Acxiom RW User Can Create Campaigns And Validate Required Fields on UI
+	Click Link         					${TAB_DEMAND}
+	Sleep   2s
+	Click Link 							${advertiser_name_acxiom}
+	Sleep   2s
+    Click Link       					${CREATE_NEW_CAMPAIGN_LINK}
+    Sleep   2s
+	Page Should Contain 				Name *
+	Page Should Contain 				External Campaign Id *
+	Page Should Contain 				IO *
+	Page Should Contain 				Advertisers*
+	Page Should Contain 				Start Date/Time * 
+	Page Should Contain 				End Date/Time * 
+	Page Should Contain 				Vertical *
+	Page Should Contain Button			Save
+	Page Should Contain Button			Cancel
+	Click Button						Cancel
+	[Tags]	
+
+Validate Acxiom RW Campaign Create Does Not Have Access Control And Audience Insight Fields
+	Click Link         					${TAB_DEMAND}
+	Click Link 							${advertiser_name_acxiom}
+	Sleep   2s
+    Click Link       					${CREATE_NEW_CAMPAIGN_LINK}
+    Sleep   2s
+	Page Should Contain 				Name *
+	# Make sure Access Control is not visible (id=groupSelect)
+	Element Should Not Be Visible		id=groupSelect
+	Element Should Not Be Visible		id=campaignDemographics
+	Element Should Not Be Visible	 	id=datasourceAI			
+	[Tags]	
+Validate Acxiom RW Can Create Parent Ad Group And Validate Required Fields in UI
+	Click Link         					${TAB_DEMAND}
+	Click Link 							${advertiser_name_acxiom}
+	Sleep   2s
+	Click Link							${campaign_name_acxiom}
+	Click Link							Create parent ad group
+	    Sleep   2s
+	Page Should Contain 				Name 
+	Page Should Contain					External ID *
+	Log		Reporting should be Hidden
+	Element Should Not Be Visible		id=datasourceAttrDiv		#For now we are checking the Datasource field under reporting
+	#Element Should Not Be Visible		id=adgroupReporting
+	
+	Log	 HH target should be enable but boost should not be visible
+	Select Checkbox						${AG_HH_DATASOURCE_CHECKBOX}
+	Element Should Not Be Visible		${AG_HH_DATASOURCE_BOOST_CHECKBOX}
+	[Tags]	
+Validate Acxiom RW Can Create Child Ad Group And Validate Required Fields in UI
+	Click Link         					${TAB_DEMAND}
+	Sleep   2s
+	Click Link 							${advertiser_name_acxiom}
+	Sleep   2s
+	Click Link							${campaign_name_acxiom}
+	Sleep 	2s
+	Click Link							${parent_name_acxiom}
+	Sleep 	2s						
+	Click Link							${CREATE_CHILD_ADGROUP_LINK}
+	Sleep 	2s
+	# Make sure 4info Margin (RTB), Max. Bid Price: and Current Margin are not Enabled on child ad group page
+	Element Should Be Enabled			id=isPaused
+	Element Should Be Enabled			id=name
+	Element Should Be Enabled			id=startDateFormatted
+	Element Should Be Enabled			id=endDateFormatted
+	Element Should Be Enabled			id=unitsSoldDisplay
+	Element Should Be Enabled			id=mobile
+	Element Should Be Enabled			id=online
+	Element Should Be Enabled			id=domain
+	Element Should Be Enabled			id=chkTrafficType
+	Element Should Be Enabled			id=chkCategory
+	Element Should Be Enabled			id=chkPlacement
+	Element Should Be Enabled			id=chkDayofWeek
+	Element Should Be Enabled			id=chkTimeofDay
+	Element Should Be Enabled			id=chkCountry
+	Element Should Be Enabled			id=chkRequestState
+	Element Should Be Enabled			id=chkRequestDMA
+	Element Should Be Enabled			id=chkRequestZip
+	Element Should Be Enabled			id=chkHouseholdState
+	Element Should Be Enabled			id=chkHouseholdDMA
+	Element Should Be Enabled			id=chkHouseholdZip
+	Element Should Be Enabled			id=chkCarrier
+	Element Should Be Enabled			id=chkDeviceOS
+	Element Should Be Enabled			id=chkDeviceType
+	Element Should Be Enabled			id=chkDeviceManufacturer
+	Element Should Be Enabled			id=chkAppNexusOperatingSystem
+	Element Should Be Enabled			id=chkAppNexusBrowser
+	Element Should Be Enabled			id=chkLocationType
+	Element Should Be Enabled			id=chkLanguage
+	Element Should Be Enabled			id=chkDeal
+	Element Should Be Enabled			id=chkVideoStreamingPosition
+	Element Should Be Enabled			id=saveBtn
+	#Element Should Be Enabled			id=btnDeleteGroup
+	#Element Should Be Enabled			id=btnCancelAddGroup
+	Element Should Not Be Visible		${AG_4INFO_MARGIN_TEXTBOX}
+	Element Should Not Be Visible		${AG_4INFO_MAX_BID_PRICE_TEXTBOX}
+	[Tags]	
+
+	
