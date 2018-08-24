@@ -1,0 +1,361 @@
+*** Settings ***
+Resource    wurfl_imports.txt
+Force Tags          SMB    BUILD_SANITY       QA_ONLY    BATCH4     WURFL        NEXAGE 	
+Suite Teardown       Close All Connections
+# z is used to separate begin/end for regex validation
+# For Nexage:    bid_id is the  "id": "8ea83c6c-a5ad-4df4-a73f-b8d121f977c0"
+# Sampler:  http://rtb.adhaven.com/bid-engine/sampler/2248/getRequestSample/
+# WURFL will no longer be tested in 7.2 due to this Jira : https://jira.adhaven.com/browse/ADH-6526
+
+*** Test Cases ***
+Nexage - Live Sample - LG VS980
+	Set Test Variable    ${data}        ${WURFL_03_01}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; VS980 4G Build/JDQ39B) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30							bid_id=e0c585c5-f0dc-475a-b37e-109b906537bc
+#	Should Match Regexp 			${output}  				zMobile Device Brand=LGz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=LGz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=VS980z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=VS980 4G
+	Should Match Regexp 			${output}  				Device OS version=4.2
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=LG
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=G2
+	
+Nexage - Live Sample - Amazon Kindle Fire HDX 8.9 LTE
+	Set Test Variable    ${data}        ${WURFL_03_02} 
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; KFAPWA Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30											bid_id=8ea83c6c-a5ad-4df4-a73f-b8d121f977c0
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Amazonz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Amazonz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=Kindle Fire HDX 8.9 LTEz
+	Should Match Regexp 			${output}  				Device OS=Other
+	Should Match Regexp 			${output}  				Device Model=KFAPWA
+	Should Match Regexp 			${output}  				Device OS version=4.2
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Amazon
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=Kindle Fire HDX 8.9
+	
+Nexage - Live Sample - Apple iPhone 7.1
+	Set Test Variable    ${data}        ${WURFL_03_03} 
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Mobile/11D167																			bid_id=e908965a-f811-460d-9498-790290579b81
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Applez
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Applez
+#	Should Match Regexp 			${output}  				zDevice Model From Request=iPhonez
+	Should Match Regexp 			${output}  				Device OS=iPhone OS
+	Should Match Regexp 			${output}  				Device Model=iPhone
+	Should Match Regexp 			${output}  				Device OS version=7.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Apple
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=
+
+Nexage - Live Sample - HP Touchpad
+	Set Test Variable    ${data}        ${WURFL_03_04}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (hp-tablet; Linux; hpwOS/3.0.5; U; en-US) AppleWebKit/534.6 (KHTML, like Gecko) wOSSystem/234.83 Safari/534.6 TouchPad/1.0								bid_id=d6b0d146-551f-4daa-a8ea-355db1b5a799
+#	Should Match Regexp 			${output}  				zMobile Device Brand=HPz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=HPz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=TouchPadz
+	Should Match Regexp 			${output}  				Device OS=Other
+	Should Match Regexp 			${output}  				Device Model=TouchPad
+	Should Match Regexp 			${output}  				Device OS version=3.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=HP
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=TouchPad
+
+Nexage - Live Sample - Motorola XT1030
+	Set Test Variable    ${data}        ${WURFL_03_05} 
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; Android 4.4; XT1030 Build/SU2-3) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36						bid_id=e3c67940-7b57-4c64-ad3d-ad55f4093709
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Motorolaz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Motorolaz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=XT1030z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=XT1030
+	Should Match Regexp 			${output}  				Device OS version=4.4
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Motorola
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Droid Mini
+
+Nexage - Live Sample - Motorola XT1080
+	Set Test Variable    ${data}        ${WURFL_03_06}   
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.4; es-; XT1080 Build/SU2-3) AppleWebKit/525.10+ (KHTML, like Gecko) Version/3.0.4 Mobile Safari/523.12.2								bid_id=a125b33c-e3d8-4ef1-ae46-bfc0ef6334ee
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Motorolaz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Motorolaz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=XT1080z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=XT1080
+	Should Match Regexp 			${output}  				Device OS version=4.4
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Motorola
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Droid Ultra
+
+Nexage - Live Sample - Trio Stealth 9.7 Pro
+	Set Test Variable    ${data}        ${WURFL_03_07}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.0.4; en-us; Stealth 9.7 Build/IMM76D) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30									bid_id=565966b9-cb2a-4f78-a32e-59462a95b18b
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Genericz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Trioz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=Stealth 9.7 Proz	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=Android 4 Tablet
+	Should Match Regexp 			${output}  				Device OS version=4.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Generic
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=
+	
+Nexage - Live Sample - Samsung SGH-M919
+	Set Test Variable    ${data}        ${WURFL_03_08} 
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.3; es-us; SGH-M919 Build/JSS15J) AppleWebKit/525.10+ (KHTML, like Gecko) Version/3.0.4 Mobile Safari/523.12.2						bid_id=af38dce5-34f5-4c27-a8ba-220571ed7423
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=SGH-M919z	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=SGH-M919
+	Should Match Regexp 			${output}  				Device OS version=4.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Galaxy S4
+	
+Nexage - Live Sample - Samsung SM-N900A
+	Set Test Variable    ${data}        ${WURFL_03_09}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.3; en-us; SAMSUNG-SM-N900A Build/JSS15J) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30				bid_id=84c97a31-5cf6-40f1-9299-33207669cc81
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=SM-N900Az	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=SM-N900A
+	Should Match Regexp 			${output}  				Device OS version=4.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Galaxy Note 3
+	
+Nexage - Live Sample - Samsung GT-P5113
+	Set Test Variable    ${data}        ${WURFL_03_10}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.0.3; en-us; GT-P5113 Build/IML74K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30										bid_id=39189494-0e3f-48a7-a465-177dd7bb3e4c
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=GT-P5113z	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=GT-P5113
+	Should Match Regexp 			${output}  				Device OS version=4.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=Galaxy Tab 2 10.1 WiFi
+	
+Nexage - Live Sample - Acer
+	Set Test Variable    ${data}        ${WURFL_03_11}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.0.3; en-us; A200 Build/IML74K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30									bid_id=ba70b20f-48bc-4362-846e-a62463fb9ba7
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Acerz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Acerz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=A200z	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=A200
+	Should Match Regexp 			${output}  				Device OS version=4.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Acer
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=Picasso_E
+	
+Nexage - Live Sample - iPod Touch
+	Set Test Variable    ${data}        ${WURFL_03_12}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (iPod touch; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Mobile/11D167																	bid_id=e4383754-7e3b-4a45-a858-5ba6573271da
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Applez
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Applez
+#	Should Match Regexp 			${output}  				zDevice Model From Request=iPod Touchz	
+	Should Match Regexp 			${output}  				Device OS=iPhone OS
+	Should Match Regexp 			${output}  				Device Model=iPod Touch
+	Should Match Regexp 			${output}  				Device OS version=7.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Apple
+	Should Match Regexp 			${output}  				Device Type=2
+	Should Match Regexp 			${output}  				Marketing Name=
+	
+Nexage - Live Sample - iRulu AL101
+	Set Test Variable    ${data}        ${WURFL_03_13}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.0.4; en-us; IRULU-AL101 Build/IMM76D) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30								bid_id=2509118b-e518-4d35-a53b-41f9f7005a58
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Genericz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=iRuluz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=AL101z	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=Android 4 Tablet
+	Should Match Regexp 			${output}  				Device OS version=4.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Generic
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=
+	
+Nexage - Live Sample - Samsung SPH-L720
+	Set Test Variable    ${data}        ${WURFL_03_14}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; Android 4.4.2; SPH-L720 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36				bid_id=5eecc237-6b64-444f-93d1-3a3be63acaff
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=SPH-L720z	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=SPH-L720
+	Should Match Regexp 			${output}  				Device OS version=4.4
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Galaxy S4
+	
+Nexage - Live Sample - Alcatel OT-960C
+	Set Test Variable    ${data}        ${WURFL_03_15}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 2.3.6; en-us; ONE_TOUCH_960C Build/GRK39F) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1				bid_id=46f42e96-f11a-4201-8ea3-3e5e48e3eb66
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Alcatelz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Alcatelz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=OT-960Cz	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=OT-960C
+	Should Match Regexp 			${output}  				Device OS version=2.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Alcatel
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=One Touch 960C
+	
+Nexage - Live Sample - Sony LT30at
+	Set Test Variable    ${data}        ${WURFL_03_16}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.1.2; en-us; LT30at Build/9.1.F.1.120) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30							bid_id=6a85a00e-27fc-465b-b764-16d8f80de536
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Sonyz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Sonyz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=LT30atz	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=LT30at
+	Should Match Regexp 			${output}  				Device OS version=4.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Sony
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Xperia T
+
+Nexage - Live Sample - Sony C6802
+	Set Test Variable    ${data}        ${WURFL_03_17}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		user_agent=Mozilla/5.0 (Linux; Android 4.4.2; C6802 Build/14.3.A.0.757) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36			bid_id=ecc14ca9-4cf6-42c6-9e06-acaf14c29b80
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Sonyz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Sonyz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=C6802z	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=C6802
+	Should Match Regexp 			${output}  				Device OS version=4.4
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Sony
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Xperia Z Ultra
+	
+Nexage - Live Sample - HTC One V
+	Set Test Variable    ${data}        ${WURFL_03_18}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.0.3; en-us; HTC One V Build/IML74K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30							bid_id=6d43425e-8cc0-4c2d-8ed8-a97107926c62
+#	Should Match Regexp 			${output}  				zMobile Device Brand=HTCz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=HTCz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=One Vz	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=One V
+	Should Match Regexp 			${output}  				Device OS version=4.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=HTC
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=
+	
+Nexage - Live Sample - Apple iPad
+	Set Test Variable    ${data}        ${WURFL_03_19}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (iPad; U; CPU iOS 7.0.6 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Safari/528.16																			bid_id=4f6f02b0-9c77-45b6-a393-d6c9413a0c8a
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Applez
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Applez
+#	Should Match Regexp 			${output}  				zDevice Model From Request=iPadz	
+	Should Match Regexp 			${output}  				Device OS=iPhone OS
+	Should Match Regexp 			${output}  				Device Model=iPad
+	Should Match Regexp 			${output}  				Device OS version=7.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Apple
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=
+	
+Nexage - Live Sample - Mediacom Smart Pad 810c
+	Set Test Variable    ${data}        ${WURFL_03_20}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.0.4; en-us; Xtreme Tab 7.0 Build/IMM76D) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30					bid_id=d1f31f6a-f0a2-49e1-8eb8-291ad41f1fd6
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Genericz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Mediacomz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=Smart Pad 810cz	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=Android 4.0
+	Should Match Regexp 			${output}  				Device OS version=4.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Generic
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=
+		
+Nexage - Live Sample - Google Nexus 7
+	Set Test Variable    ${data}        ${WURFL_03_21} 
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		user_agent=Mozilla/5.0 (Linux; Android 4.4.2; Nexus 7 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Safari/537.36							bid_id=54fe7cff-3861-4ec8-86e0-157b4c2290e3
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Googlez
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Googlez
+#	Should Match Regexp 			${output}  				zDevice Model From Request=Nexus 7z	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=Nexus 7
+	Should Match Regexp 			${output}  				Device OS version=4.4
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Google
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=
+	
+Nexage - Live Sample - Nextbook Premium7
+	Set Test Variable    ${data}        ${WURFL_03_22} 
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 2.3.1; en-us; NXM726HN Build/GINGERBREAD) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1					bid_id=dfb606bd-1dd9-4440-bdfd-0ba765362aa6
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Nextbookz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=Nextbookz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=Premium7z	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=NXM726HN
+	Should Match Regexp 			${output}  				Device OS version=2.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Nextbook
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=Premium 7
+	
+Nexage - Live Sample - LG VS870
+	Set Test Variable    ${data}        ${WURFL_03_23}
+    Validate RTB WURFL Detection        api_key=${RTB_NEXAGE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.1.2; en-us; VS870 4G Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30							bid_id=2cbe06e3-b662-4457-9c21-cddd2c0b5b17
+#	Should Match Regexp 			${output}  				zMobile Device Brand=LGz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=LGz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=VS870z	
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=VS870 4G
+	Should Match Regexp 			${output}  				Device OS version=4.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=LG
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Lucid 2
+		
+	
+	
+	
+	
+	
+	
+	
+	

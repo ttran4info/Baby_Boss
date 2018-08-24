@@ -1,0 +1,33 @@
+*** Settings ***
+Resource             exchange_specific_imports.txt
+Force Tags           AUCTIONPRICE    BATCH3		MOPUB			
+Suite Teardown      Close All Connections
+
+*** variables ***
+ ${app_id}					13488
+ ${agid_expected}			34990
+*** Test Cases ***
+
+Mopub - Logging Auction Price at 3 Cents
+	   Set Test Variable	${auction_price}	0.0317   
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}
+
+Mopub - Logging Auction Price at 3.17
+	   Set Test Variable	${auction_price}			3.17  
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}
+   
+Mopub - Logging Auction Price at 317
+	   Set Test Variable	${auction_price}			317   
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"x714109929","cat":["IAB24","social_networking"],"id":"${app_id}","name":"LikeBook (Free) - for Facebook with Myanmar Keyboard","publisher":{"id":"1d31b4cbe76c4667a7b158b8080a5432","name":"myOpenware"},"storeurl":"https://itunes.apple.com/us/app/likebook-free-for-facebook/id714109929?mt=8&uo=4","ver":"2.4"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"310-260","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"4540383a49aea4ced584a6a2a07f646c","dpidsha1":"8cc6619ea58728484da209f625be222e635cdd32","ifa":"${device_id}","geo":{"city":"Brooklyn","country":"USA","lat":38.842331,"lon":-77.091995,"metro":"501","region":"NY","zip":"11237"},"ip":"172.56.35.127","js":1,"language":"en","make":"Apple","model":"iPhone 5s (GSM)","os":"iOS","osv":"8.1.1","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435 [FBAN/FBIOS;FBAV/5.5;FBBV/114387;FBDV/iPhone6,1;FBMD/iPhone;FBSN/iPhone OS;FBSV/8.1.1;FBSS/2;FBCR/T-Mobile;FBID/phone;FBLC/en_US]"},"id":"6f382f0d-95c3-4499-939c-48363f03f982","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.0220,"displaymanager":"mopub","displaymanagerver":"3.3.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"901a0c26d9b34e3abb1e29b55ac8ef21"}]} 
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}

@@ -1,0 +1,27 @@
+*** Settings ***
+Resource   Device_ID_imports.txt
+Force Tags           DEVICE_ID    BATCH3 	PUBMATIC	
+
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ ${app_id_01}					12458
+ ${app_id_03}					12460
+${app_site_zip}			94110
+${online_zip}			94111 
+*** Test Cases ***
+# 
+Clear Device ext nex_ifa, Field 13 and 26
+	   ${random_device_id}=		Generate Clear Device ID         	  
+	   #Set Test Variable    ${data}   		   {"id":"16B537C7-CBA5-4E66-B4BB-35723A7AADF9","imp":[{"id":"1","tagid":"183942","banner":{"w":320,"h":50,"pos":1,"topframe":0,"battr":[3,8,10,1,6,5,44,9,13,14],"api":[3,5]}}],"app":{"id":"${app_id_01}","name":"theScore","ver":"4.6.2","bundle":"xiphone.thescore.com","domain":"https://itunes.apple.com/ca/app/thescore/id285692706?mt=8","cat":["IAB9","IAB12"],"paid":0,"storeurl":"https://itunes.apple.com/ca/app/thescore/id285692706?mt=8","publisher":{"id":"70819"}},"device":{"dpidsha1":"1D4126ED65889F108524935BBE5CC7FDD994A195","ip":"173.52.217.93","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","carrier":"Verizon Internet Services","language":"en-us","make":"Apple","model":"iPhone","os":"iOS","Osv":"8","osv":"8","js":1,"devicetype":1,"ifa": "${random_device_id}","geo":{"country":"US","region":"NY","city":"Suffern","metro":"501","lat":41.1086998,"lon":-74.1357346,"type":1,"zip":"${app_site_zip}"},"ext":{"idfa":"${random_device_id}","hash":1,"res":"320x568","pf":4}},"user":{"geo":{"lat":41.1086998,"lon":-74.1357346,"type":1,"country":"US","region":"NY","city":"Chestnut Ridge"}},"badv":["18exgfs.com","gohookup.com"]}
+	   Set Test Variable    ${data}			   {"id":"7C314ACC-5F0B-4440-9D9E-FE40C65DE04F","imp":[{"id":"1","tagid":"183952","banner":{"w":320,"h":50,"pos":3,"topframe":1,"battr":[3,8,10,1,6,5,44,51,9,13,14],"api":[5]}}],"app":{"id":"${app_id_01}","name":"theScore: Sports &amp; Scores","ver":"Varies with device","bundle":"xxcom.fivemobile.thescore","domain":"https://play.google.com/store/apps/details?id=com.fivemobile.thescore&hl=en","cat":["IAB9"],"paid":0,"storeurl":"https://play.google.com/store/apps/details?id=com.fivemobile.thescore&hl=en","publisher":{"id":"70819"},"ext":{"pmid":"70825"}},"device":{"ip":"70.197.195.38","ua":"Mozilla/5.0 (Linux; Android 4.4.4; XT1060 Build/KXA21.12-L1.26-4) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Mobile Safari/537.36","carrier":"Cellco Partnership DBA Verizon Wireless","language":"en-US","make":"Generic","os":"Android","Osv":"2","osv":"2","js":1,"ifa": "${random_device_id}","geo":{"country":"US","region":"MN","lat":45.1171188,"lon":-92.5336609,"type":1,"zip":"${app_site_zip}"},"ext":{"androidadvid":"f407e8a7-f055-4b58-bc80-574c829d47bd","hash":1,"res":"360x592","pf":5}},"user":{"geo":{"lat":45.1171188,"lon":-92.5336609,"type":1,"country":"US","region":"Wisconsin","city":"Pleasant Valley"}}}
+       RTB Request 				API=${RTB_PUBMATIC_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Response  	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				13=${random_device_id}
+		Should Match Regexp 			${output}  				46=150
+		[Tags]	
+
+
+	   

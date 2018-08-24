@@ -1,0 +1,28 @@
+*** Settings ***
+Resource             opt_out_imports.txt
+Force Tags           OPTOUT    BATCH9		DAA	 		
+
+*** Test Cases ***
+
+DAA - Push 1 Id
+	${random_device_id}=         Generate Clear Device ID
+    Create Session   optout    ${SMB_HOST}
+	${resp}=	Get Request		optout		/4info/v1/optout?${random_device_id}
+    Log    Response Content: '${resp.content}'
+    Log	   Response: ${resp}   
+	Should Match Regexp		'${resp}'		200
+    Log     Opt out ID: ${random_device_id}
+	Check And Remove Opt Out ID		device_id=${random_device_id}
+ 
+ DAA - Push 2 Id
+	${random_device_id}=         Generate Clear Device ID
+	${random_device_id2}=         Generate Clear Device ID
+    Create Session   optout    ${SMB_HOST}
+	${resp}=	Get Request		optout		/4info/v1/optout?${random_device_id},${random_device_id2}
+    Log    Response Content: '${resp.content}'
+    Log	   Response: ${resp}   
+	Should Match Regexp		'${resp}'		200
+    Log     Opt out ID: ${random_device_id}
+	Check And Remove Opt Out ID		device_id=${random_device_id}
+	Log     Opt out ID2: ${random_device_id2} 
+	Check And Remove Opt Out ID		device_id=${random_device_id2}  

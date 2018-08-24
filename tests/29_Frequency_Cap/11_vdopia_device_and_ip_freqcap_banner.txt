@@ -1,0 +1,50 @@
+*** Settings ***
+Resource             frequency_cap_imports.txt
+Force Tags           FREQUENCY_CAP    BATCH38	VDOPIA 	
+
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ ${app_id_01}					12490
+ ${app_id_03}					12469
+ ${device_fc_agid_vast}			36042
+ ${ip_fc_agid_vast}				36051 
+*** Test Cases ***
+# 
+
+Frequency Cap for clear Device ID (VAST), Stop serving after X times
+	   ${random_device_id}=         Generate Random String 		32		abcdef0123456789
+	   Set Test Variable    ${data}   		  {"app":{"storeurl":"https://play.google.com/store/apps/details?id=com.myyearbook.m&hl=en","domain":"m.myyearbook.com","cat":["IAB14"],"name":"MeetMeAndroid","publisher":{"domain":"myyearbook.com","id":"8406"},"id":"${app_id_01}","bundle":"xcom.myyearbook.m"},"cur":["USD"],"at":2,"allimps":0,"tmax":300,"id":"927a38b8-f13f-4f39-b3b0-2999a7dd82d0","imp":[{"bidfloor":0.67,"bidfloorcur":"USD","id":"1","video":{"boxingallowed":1,"sequence":1,"protocol":2,"linearity":1,"maxduration":30,"w":480,"h":320,"minduration":15,"mimes":["video/mp4"]},"instl":1}],"device":{"geo":{"country":"USA","metro":"0","lon":-118.2437,"region":"US-CA","type":2,"lat":34.0522},"ext":{"ifa":"${random_device_id}"},"dpidmd5":"348c8af5366df22e1404e5315f783251","osv":"5.0","os":"Android","ip":"70.211.65.76","js":1,"model":"Android 5.0","ua":"Mozilla/5.0 (Linux; Android 5.0.1; SM-N910V Build/LRX22C) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/40.0.0.0 Mobile Safari/537.36","make":"Generic","devicetype":1,"dpidsha1":"6e8ad4ca242648904976b043f15cc0e37b7ae873"},"user":{"id":"3d12eae0-3e5f-4acd-9aa5-718c06d2e620"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_VDOPIA_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_vast}		submit_client_impression_event=VAST
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_VDOPIA_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+  
+Frequency Cap for clear Device ID(VAST), Continue serving X times with new device
+	   ${random_device_id}=         Generate Random String 		32		ABCDEF0123456789
+	   Set Test Variable    ${data}   		  {"app":{"storeurl":"https://play.google.com/store/apps/details?id=com.myyearbook.m&hl=en","domain":"m.myyearbook.com","cat":["IAB14"],"name":"MeetMeAndroid","publisher":{"domain":"myyearbook.com","id":"8406"},"id":"${app_id_01}","bundle":"xcom.myyearbook.m"},"cur":["USD"],"at":2,"allimps":0,"tmax":300,"id":"927a38b8-f13f-4f39-b3b0-2999a7dd82d0","imp":[{"bidfloor":0.67,"bidfloorcur":"USD","id":"1","video":{"boxingallowed":1,"sequence":1,"protocol":2,"linearity":1,"maxduration":30,"w":480,"h":320,"minduration":15,"mimes":["video/mp4"]},"instl":1}],"device":{"geo":{"country":"USA","metro":"0","lon":-118.2437,"region":"US-CA","type":2,"lat":34.0522},"ext":{"ifa":"${random_device_id}"},"dpidmd5":"348c8af5366df22e1404e5315f783251","osv":"5.0","os":"Android","ip":"70.211.65.76","js":1,"model":"Android 5.0","ua":"Mozilla/5.0 (Linux; Android 5.0.1; SM-N910V Build/LRX22C) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/40.0.0.0 Mobile Safari/537.36","make":"Generic","devicetype":1,"dpidsha1":"6e8ad4ca242648904976b043f15cc0e37b7ae873"},"user":{"id":"3d12eae0-3e5f-4acd-9aa5-718c06d2e620"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_VDOPIA_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_vast}		submit_client_impression_event=VAST
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_VDOPIA_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   
+Frequency Cap for IP Stop serving after X times (VAST)
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"app":{"storeurl":"https://play.google.com/store/apps/details?id=com.myyearbook.m&hl=en","domain":"m.myyearbook.com","cat":["IAB14"],"name":"MeetMeAndroid","publisher":{"domain":"myyearbook.com","id":"8406"},"id":"${app_id_03}","bundle":"xcom.myyearbook.m"},"cur":["USD"],"at":2,"allimps":0,"tmax":300,"id":"927a38b8-f13f-4f39-b3b0-2999a7dd82d0","imp":[{"bidfloor":0.67,"bidfloorcur":"USD","id":"1","video":{"boxingallowed":1,"sequence":1,"protocol":2,"linearity":1,"maxduration":30,"w":480,"h":320,"minduration":15,"mimes":["video/mp4"]},"instl":1}],"device":{"geo":{"country":"USA","metro":"0","lon":-118.2437,"region":"US-CA","type":2,"lat":34.0522},"ext":{"ifa":"3d12eae0-3e5f-4acd-9aa5-718c06d2e620"},"dpidmd5":"348c8af5366df22e1404e5315f783251","osv":"5.0","os":"Android","ip":"${random_ip}","js":1,"model":"Android 5.0","ua":"Mozilla/5.0 (Linux; Android 5.0.1; SM-N910V Build/LRX22C) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/40.0.0.0 Mobile Safari/537.36","make":"Generic","devicetype":1,"dpidsha1":"6e8ad4ca242648904976b043f15cc0e37b7ae873"},"user":{"id":"3d12eae0-3e5f-4acd-9aa5-718c06d2e620"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_VDOPIA_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_vast} 	submit_client_impression_event=VAST
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_VDOPIA_API}          data=${data}		response_code=204        submit_client_impression_event=NO	   
+
+Frequency Cap for IP Continue serving X times with new IP(VAST)
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"app":{"storeurl":"https://play.google.com/store/apps/details?id=com.myyearbook.m&hl=en","domain":"m.myyearbook.com","cat":["IAB14"],"name":"MeetMeAndroid","publisher":{"domain":"myyearbook.com","id":"8406"},"id":"${app_id_03}","bundle":"xcom.myyearbook.m"},"cur":["USD"],"at":2,"allimps":0,"tmax":300,"id":"927a38b8-f13f-4f39-b3b0-2999a7dd82d0","imp":[{"bidfloor":0.67,"bidfloorcur":"USD","id":"1","video":{"boxingallowed":1,"sequence":1,"protocol":2,"linearity":1,"maxduration":30,"w":480,"h":320,"minduration":15,"mimes":["video/mp4"]},"instl":1}],"device":{"geo":{"country":"USA","metro":"0","lon":-118.2437,"region":"US-CA","type":2,"lat":34.0522},"ext":{"ifa":"3d12eae0-3e5f-4acd-9aa5-718c06d2e620"},"dpidmd5":"348c8af5366df22e1404e5315f783251","osv":"5.0","os":"Android","ip":"${random_ip}","js":1,"model":"Android 5.0","ua":"Mozilla/5.0 (Linux; Android 5.0.1; SM-N910V Build/LRX22C) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/40.0.0.0 Mobile Safari/537.36","make":"Generic","devicetype":1,"dpidsha1":"6e8ad4ca242648904976b043f15cc0e37b7ae873"},"user":{"id":"3d12eae0-3e5f-4acd-9aa5-718c06d2e620"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_VDOPIA_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_vast} 	submit_client_impression_event=VAST
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_VDOPIA_API}          data=${data}		response_code=204        submit_client_impression_event=NO	   
+  

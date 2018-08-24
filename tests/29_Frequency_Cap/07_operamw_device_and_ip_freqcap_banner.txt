@@ -1,0 +1,50 @@
+*** Settings ***
+Resource             frequency_cap_imports.txt
+Force Tags           FREQUENCY_CAP    BATCH37	OPERAMEDIA 
+
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ ${app_id_01}					12455
+ ${app_id_03}					12457
+ ${device_fc_agid_banner}		36041
+ ${ip_fc_agid_banner}			36047 
+*** Test Cases ***
+# 
+
+Frequency Cap for Device ID, Stop serving after X times
+	   ${random_device_id}=         Generate Random String 		32		abcdef0123456789
+	   Set Test Variable    ${data}   		  {"id":"bXZyp6xZsI1DtD2","app":{"id":"${app_id_01}","paid":1,"cat":[],"name":"Flysoft-iFunny Android Application","domain":"https:\/\/play.google.com\/store\/apps\/developer?id=Flysoft&hl=en","bundle":"xFlysoft&hl=en"},"tmax":500,"imp":[{"id":"1","bidfloor":0.923,"instl":0,"bidfloorcur":"USD","banner":{"w":320,"h":50}}],"device":{"dpidsha1":"1D4126ED65889F108524935BBE5CC7FDD994A195","os":"Android","model":"M7","geo":{"region":"CA","zip":"94103","lon":-122.4194,"metro":"807","type":1,"lat":37.7749,"city":"San Francisco","country":"USA"},"js":1,"dnt":0,"Js":1,"ext":{"aaid":"${random_device_id}"},"ip":"107.77.75.26","connectiontype":0,"ua":"Mozilla\/5.0 (Linux; Android 5.0.2; HTC One Build\/LRX22G) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/40.0.0.0 Mobile Safari\/537.36","carrier":"310-02","devicetype":1,"make":"HTC","ifa":"${random_device_id}"},"at":2,"user":{"id":"3eb67006e3c011aa68671a85e52022527ac9063118fbb7b1"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_OPERAMW_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_OPERAMW_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+  
+Frequency Cap for Device ID, Continue serving X times with new device
+	   ${random_device_id}=         Generate Random String 		32		ABCDEF0123456789
+	   Set Test Variable    ${data}   		  {"id":"bXtXo6xZsIwfD8s","app":{"id":"${app_id_01}","paid":1,"cat":[],"storeurl":"https:\/\/itunes.apple.com\/in\/app\/meetme-chat-meet-new-people\/id372648912?mt=8","name":"MeetMe IOS Application"},"tmax":500,"bcat":["IAB26-2"],"imp":[{"id":"1","bidfloor":0.769,"instl":0,"displaymanager":"admarvel","bidfloorcur":"USD","displaymanagerver":"3.2.2","banner":{"w":320,"api":[3],"h":50}}],"device":{"dpidsha1":"1D4126ED65889F108524935BBE5CC7FDD994A195","os":"iOS","model":"iPhone","Osv":"8.3","geo":{"region":"CA","zip":"91776","lon":-118.0924,"metro":"803","type":2,"lat":34.0891,"city":"San Gabriel","country":"USA"},"osv":"8.3","dnt":0,"ext":{"idfa":"${random_device_id}"},"ip":"108.93.73.39","connectiontype":2,"ua":"Mozilla\/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit\/600.1.4 (KHTML, like Gecko) Mobile\/12F70 QuantcastSDK\/iOS_1.4.7\/1ash4s7hukmtddti-p5028vkzyy4gw2bk","carrier":"310-02","devicetype":1,"make":"Apple","ifa":"${random_device_id}"},"at":2,"user":{"id":"eb350d2f635acb0a86CB4ABB452E4865B1826DFCCE98016E"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_OPERAMW_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_OPERAMW_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+
+	   
+Frequency Cap for IP Stop serving after X times
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"id":"bXZyp6xZsI1DtD2","app":{"id":"${app_id_03}","paid":1,"cat":[],"name":"Flysoft-iFunny Android Application","domain":"https:\/\/play.google.com\/store\/apps\/developer?id=Flysoft&hl=en","bundle":"xFlysoft&hl=en"},"tmax":500,"imp":[{"id":"1","bidfloor":0.923,"instl":0,"bidfloorcur":"USD","banner":{"w":320,"h":50}}],"device":{"os":"Android","model":"M7","geo":{"region":"CA","zip":"94103","lon":-122.4194,"metro":"807","type":1,"lat":37.7749,"city":"San Francisco","country":"USA"},"js":1,"dnt":0,"Js":1,"ext":{"aaid":"0745ef4d-2fdc-4c0d-b107-d0c8bfa98f13"},"ip":"${random_ip}","connectiontype":0,"ua":"Mozilla\/5.0 (Linux; Android 5.0.2; HTC One Build\/LRX22G) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/40.0.0.0 Mobile Safari\/537.36","carrier":"310-02","devicetype":1,"make":"HTC","ifa":"0745ef4d-2fdc-4c0d-b107-d0c8bfa98f13"},"at":2,"user":{"id":"3eb67006e3c011aa68671a85e52022527ac9063118fbb7b1"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_OPERAMW_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_OPERAMW_API}          data=${data}		response_code=204        submit_client_impression_event=NO	   
+
+Frequency Cap for IP Continue serving X times with new IP
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"id":"bXtXo6xZsIwfD8s","app":{"id":"${app_id_03}","paid":1,"cat":[],"storeurl":"https:\/\/itunes.apple.com\/in\/app\/meetme-chat-meet-new-people\/id372648912?mt=8","name":"MeetMe IOS Application"},"tmax":500,"bcat":["IAB26-2"],"imp":[{"id":"1","bidfloor":0.769,"instl":0,"displaymanager":"admarvel","bidfloorcur":"USD","displaymanagerver":"3.2.2","banner":{"w":320,"api":[3],"h":50}}],"device":{"os":"iOS","model":"iPhone","Osv":"8.3","geo":{"region":"CA","zip":"91776","lon":-118.0924,"metro":"803","type":2,"lat":34.0891,"city":"San Gabriel","country":"USA"},"osv":"8.3","dnt":0,"ext":{"idfa":"86CB4ABB-452E-4865-B182-6DFCCE98016E"},"ip":"${random_ip}","connectiontype":2,"ua":"Mozilla\/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit\/600.1.4 (KHTML, like Gecko) Mobile\/12F70 QuantcastSDK\/iOS_1.4.7\/1ash4s7hukmtddti-p5028vkzyy4gw2bk","carrier":"310-02","devicetype":1,"make":"Apple","ifa":"86CB4ABB-452E-4865-B182-6DFCCE98016E"},"at":2,"user":{"id":"eb350d2f635acb0a86CB4ABB452E4865B1826DFCCE98016E"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_OPERAMW_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_OPERAMW_API}          data=${data}		response_code=204        submit_client_impression_event=NO		   

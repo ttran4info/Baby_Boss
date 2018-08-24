@@ -1,0 +1,58 @@
+*** Settings ***
+Resource             exchange_specific_imports.txt
+Force Tags           PUBLISHER    BATCH3	ADAPTV 	
+Suite Teardown      Close All Connections
+
+*** variables ***
+ ${app_id}					13189
+ ${site_id}					13192
+ 
+*** Test Cases ***
+# Adaptv does not have app ID or site ID or Publisher ID or Name
+Adaptv - Logging publisher id & name
+	[Documentation]		When publisher id,name is available. Log it in field 73,74 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"id":"123456","name":"freetone","publisher":{"id":"8f2cdeb4f21b486f970dedc3bb1dcaac","name":"Tango"},"cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   #field 73 - pub id, field 74 - pub name
+	   Should Match Regexp 			${output}  				73=8f2cdeb4f21b486f970dedc3bb1dcaac
+	   Should Match Regexp 			${output}  				74=Tango
+
+	
+Adaptv - Logging publisher id not available, publisher name available
+	[Documentation]		When publisher name id not available, and publisher name is available, publisher id = md5 (publisher name) 
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"id":"123456","name":"freetone","publisher":{"id":"","name":"Tango"},"cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   #field 73 - pub id, field 74 - pub name
+	   Should Match Regexp 			${output}  				73=99ec9c94e5ac28a2574e5d166870c240
+	   Should Match Regexp 			${output}  				74=Tango
+
+	   		
+Adaptv - Logging publisher id is available, publisher name is not available
+	[Documentation]		When publisher id is available, but pub name is not available. pub name = exchange: pub id	
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"id":"123456","name":"freetone","publisher":{"id":"8f2cdeb4f21b486f970dedc3bb1dcaac"},"cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   #field 73 - pub id, field 74 - pub name
+	   Should Match Regexp 			${output}  				73=8f2cdeb4f21b486f970dedc3bb1dcaac
+	   Should Match Regexp 			${output}  				74=Oath One Video: 8f2cdeb4f21b486f970dedc3bb1dcaac
+
+
+Adaptv - Logging publisher id and name are not available id = md5(Oath One Video: not available), name = Oath One Video: not available
+	[Documentation]		When publisher name and id is not available log, log exchange name not available	
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"id":"123456","name":"freetone","cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   #field 73 - pub id, field 74 - pub name
+	   Should Match Regexp 			${output}  				73=f4384a91668e8a5f2b3922c55584046b
+	   Should Match Regexp 			${output}  				74=Oath One Video: not available
+	

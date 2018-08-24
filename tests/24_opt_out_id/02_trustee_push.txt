@@ -1,0 +1,35 @@
+*** Settings ***
+Resource             opt_out_imports.txt
+Force Tags           OPTOUT    BATCH9		TRUSTEE	 	
+
+*** Test Cases ***
+
+TRUSTEE - Push 3 Ids
+	${random_device_id1}=         Generate Clear Device ID
+	${random_device_id2}=         Generate Clear Device ID
+	${random_device_id3}=         Generate Clear Device ID
+    Create Session   optout    ${SMB_HOST}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable 	 ${data}		{"additionalIds":[{"idName":"idnametest1","idValue":"${random_device_id1}"},{"idName":"idnametest2","idValue":"${random_device_id2}"},{"idName":"idnametest10","idValue":"${random_device_id3}"}],"tpid":"b5defe55-db0a-3cc5-984b-13c9db0a5752","application":null,"platform":null,"country":null,"createdDate":"04-25-201410:56:12","changedDate":"04-25-201411:07:04","optinFlag":"false","adnetwork":"key.dodgynet.c"}
+	${resp}=	Post Request		optout		/4info/v1/optout 	data=${data}	headers=${headers} 
+    Log    Response Content: '${resp.content}'
+    Log	   Response: ${resp}   
+	Should Match Regexp		'${resp}'		200
+	Check And Remove Opt Out ID		device_id=${random_device_id1}
+ 	Check And Remove Opt Out ID		device_id=${random_device_id2}
+ 	Check And Remove Opt Out ID		device_id=${random_device_id3}
+ 	
+TRUSTEE - Push 1 Ids
+	${random_device_id1}=         Generate Clear Device ID
+	${random_device_id2}=         Generate Clear Device ID
+	${random_device_id3}=         Generate Clear Device ID
+    Create Session   optout    ${SMB_HOST}
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable 	 ${data}		{"additionalIds":[{"idName":"idnametest1","idValue":"${random_device_id1}"}],"tpid":"b5defe55-db0a-3cc5-984b-13c9db0a5752","application":null,"platform":null,"country":null,"createdDate":"04-25-201410:56:12","changedDate":"04-25-201411:07:04","optinFlag":"false","adnetwork":"key.dodgynet.c"}
+	${resp}=	Post Request		optout		/4info/v1/optout 	data=${data}	headers=${headers} 
+    Log    Response Content: '${resp.content}'
+    Log	   Response: ${resp}   
+	Should Match Regexp		'${resp}'		200
+	Check And Remove Opt Out ID		device_id=${random_device_id1}

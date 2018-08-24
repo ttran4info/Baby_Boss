@@ -1,0 +1,6 @@
+
+*** Settings ***
+Resource    aws.txt
+Resource    file_operations.txt
+Library 	adhaven_helper.py
+

@@ -1,0 +1,22 @@
+*** Settings ***
+Resource   Device_ID_imports.txt
+Force Tags           DEVICE_ID    BATCH3 	NEXAGE	
+
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ ${app_id_01}					12452
+ ${app_id_03}					12454
+*** Test Cases ***
+# 
+Clear Device ext nex_ifa, Field 13 and 26
+	   ${random_device_id}=		Generate Clear Device ID         	  
+	   Set Test Variable    ${data}   		  {"id":"73c07c26-a7e3-473a-9d21-eed3f3753372","at":2,"bcat":["IAB8-5","IAB8-18","IAB14-1","IAB26","IAB25","IAB24","NEX8-101"],"imp":[{"id":"73c07c26-a7e3-473a-9d21-eed3f3753372-1","instl":0,"banner":{"h":50,"w":320,"btype":[1],"battr":[3,4,5,8,9,12],"pos":0,"api":[3],"ext":{"nex_mraid":2}},"displaymanager":"millennial","displaymanagerver":"5.3.0-c3980670.a","bidfloor":0.02,"ext":{"nex_screen":0}}],"app":{"id":"${app_id_01}","name":"Weatherbug-WeatherBug-ANDROID","publisher":{"id":"17291","name":"Weatherbug"},"domain":"weatherbug.com","cat":["IAB19-8","IAB15-10"],"ext":{"nex_coppa":0,"nex_sdkv":"5.3.0-c3980670.a"},"bundle":"xxcom.aws.android","storeurl":"https://play.google.com/store/apps/details?id=com.aws.android&hl=en"},"device":{"didsha1":"3bb3f3247861f729926e9fe35740eb52f455436e","dpidsha1":"1D4126ED65889F108524935BBE5CC7FDD994A195","didmd5":"09c18cf5c6fe6583343542f3c5ee1f81","dpidmd5":"A8142CE3675E71F8C7A5E6B53D8A2AEF","dnt":0,"ip":"104.60.196.75","carrier":"WIFI","ua":"Dalvik/1.6.0 (Linux; U; Android 4.4.2; LGLS740 Build/KOT49I.LS740ZV5)","make":"LG","osv":"4.4.2","js":1,"os":"Android","connectiontype":2,"devicetype":1,"geo":{"lat":42.558395,"lon":-89.1599,"country":"USA","city":"ORFORDVILLE","zip":"53576","metro":"669","region":"WI","type":1},"ifa":"${random_device_id}","nex_tablet":0},"user":{"id":"0dccbf36-4f6c-4d38-ae08-bcc39ff069fb","geo":{"country":"USA","zip":"53576","type":3}}}
+	   RTB Request 				API=${RTB_NEXAGE_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Response  	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				13=${random_device_id}
+		Should Match Regexp 			${output}  				46=150
+		
+	   

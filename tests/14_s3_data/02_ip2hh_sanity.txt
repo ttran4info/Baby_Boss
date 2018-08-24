@@ -1,0 +1,59 @@
+*** Settings ***
+Resource            		s3_data_imports.txt
+Force Tags         		AWS			Production_Dataload			IP2HH			BATCH7		EXCLUDE
+Suite Setup 			Run Keywords	Compile PrototypeDAO For cbtools	Compile PrototypeDAO For couchbase_test		Compile UploadData For cbtools		Compile UploadIP2HH For cbtools
+
+*** Test Cases ***
+
+Download IP2HH Data For 3 Days Ago
+		[Documentation]		Only make sure the ip is found in couchbase.  Since this is data 3 days ago, yesterday's data may come and overwrite the other valies.
+		${yyyy}		${mm}		${dd}=			Get Time 			year,month,day			UTC - 3 day
+		Retrieve IP2HH File From S3 Production And Validate Couchbase Production For Date Specified				date=${yyyy}${mm}${dd}				file_name=part-00000.gz
+
+Download IP2HH Data For 2 Days Ago
+		[Documentation]		Only make sure the ip is found in couchbase.  Since this is data 2 days ago, yesterday's data may come and overwrite the other valies.
+		${yyyy}		${mm}		${dd}=			Get Time 			year,month,day			UTC - 2 day
+		Retrieve IP2HH File From S3 Production And Validate Couchbase Production For Date Specified				date=${yyyy}${mm}${dd}				file_name=part-00000.gz
+		
+Download IP2HH Yesterday's Data
+		[Documentation]		If the date returned as yesterday's date but the hour is less than 15 GMT, 
+		...								skip the validation as the data load starts at 4pm PST which is 12 GMT and we are giving 3 hours for load time
+		${yyyy}		${mm}		${dd}		${hour}=			Get Time 			year month day hour 			UTC - 1 day
+		Log       UTC Hour: ${hour}
+	 	Run Keyword If          ${hour} >= 15						Retrieve IP2HH File From S3 Production And Validate Couchbase Production For Date Specified			date=${yyyy}${mm}${dd}			file_name=part-00000.gz
+	 	Run Keyword If 			 ${hour} < 15 						Log           Current Hour: ${hour} - Skip downloading File before 14 HR GMT  		WARN
+
+Load Sample IP2HH Data To QA Couchbase - 2 days old (part-00010.gz)
+		Retrieve CBTools Temp Data IP2HH
+		Empty Directory					${cb_tools_temp_data_load_ip2hh}
+		${yyyy}		${mm}		${dd}=			Get Time 			year,month,day			UTC - 2 day
+		Retrieve IP2HH File From S3 Production And Validate Couchbase Production For Date Specified				date=${yyyy}${mm}${dd}			file_name=part-00010.gz
+		Log       Extracted File To Move: ${extracted_file_name}
+		
+		# truncate the file so that it only has 100 records and load it
+		${output}=         Run 			head -100 ${extracted_file_name} > ${extracted_file_name}_load
+		Log      Output:${output}
+		Move File				${extracted_file_name}_load				${cb_tools_temp_data_load_ip2hh} 
+		Compile UploadIP2HH For cbtools
+		Retrieve Tools File Path			cbtools
+		${output}=         Run 			cd ${tools_directory}; java -classpath $(echo . *.jar |tr ' ' ':') UploadIP2HH consumer ${cb_tools_temp_data_load_ip2hh} QA ${cb_tools_temp_data_load_ip2hh}                
+		Log      Output:${output}
+		${new_object}=       extract_matching_regex          ${output}        Processing file -> (.+?)$
+		Log       New Object:[${new_object}]
+		
+#		Log    Generating Bloom Filter
+#		${output}=         Run 			cd bloom-filter/src/; javac -cp bloom-filter/lib/java-bloomfilter.jar BloomBuilder.java; cat ${cb_tools_temp_data_load_ip2hh} | awk -F '|' '{print $1}' | java -Xmx2000m -classpath "bloom-filter/lib/java-bloomfilter.jar:bloom-filter/src/*" BloomBuilder 100 f 
+#		Log      Output:${output}
+#		File Should Exist      serialized.dat
+#		Move File              serialized.dat        ip_serialized.dat
+#		Remove File            serialized.dat
+		
+		
+Download Tomorrow's IP2HH Data - Should Return Nothing
+		${yyyy}		${mm}		${dd}=			Get Time 			year,month,day			UTC + 1 day
+	 	Download Sample IP2HH File From S3 Production			date=${yyyy}${mm}${dd}					file_name=part-00000.gz
+		Should Match Regexp 			${output}				^$
+		
+		
+		
+		

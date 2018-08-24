@@ -1,0 +1,59 @@
+*** Settings ***
+Resource             frequency_cap_imports.txt
+Force Tags           FREQUENCY_CAP    BATCH39	RUBICON 
+
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ ${app_id_01}					12461
+ ${app_id_03}					12463
+ ${device_fc_agid_banner}		36041
+ ${ip_fc_agid_banner}			36047 
+*** Test Cases ***
+# 
+
+Frequency Cap for Device ID, Stop serving after X times
+	   Set Test Variable	${auction_price}	3.17
+	   Set Test Variable	${auction_price_blowfish}	2ac7481d228c4a9a   
+	   ${random_device_id}=         Generate Random String 		32		abcdef0123456789
+	   Set Test Variable    ${data}   		  {"id":"a72eeb1b79859d0aef038b3fcab4fa0e0b685f5e","at":2,"tmax":53,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id_01}","cat":["IAB24"],"storeurl":"https://play.google.com/store/apps/details?id=mobi.ifunny&feature=search_result#?t=W251bGwsMSwxLDEsIm1vYmkuaWZ1bm55Il0.","name":"iFunny","domain":"http://www.xgamut.media","bundle":"xmobi.ifunny","publisher":{"id":"12060"}},"device":{"os":"Android","model":"zmax","geo":{"country":"USA","region":"FL","lat":0.0,"lon":0.0},"osv":"4.4.2","js":1,"ext":{"xff":""},"dpidmd5":"398276ccdd670a186bd632a634f9957e","ip":"70.126.19.44","connectiontype":0,"dpidsha1":"7848a23eeb3ece874de683e0e1b82aa996ece5f5","ua":"Mozilla/5.0 (Linux; Android 4.4.2; Z970 Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.3","carrier":"Other","devicetype":1,"language":"en","make":"zte","ifa":"${random_device_id}"},"user":{"id":"3b57280ab7d27ca9ccecc4c2b7f68f82750242e8","ext":{"sessiondepth":1}}}
+	   	   Validate RTB AdServed X Times     			api_key=${RTB_RUBICON_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}			submit_client_impression_event=YES		auction_price=${auction_price_blowfish} 
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+  
+Frequency Cap for Device ID, Continue serving X times with new device
+	   Set Test Variable	${auction_price}	3.17
+	   Set Test Variable	${auction_price_blowfish}	2ac7481d228c4a9a   
+	   ${random_device_id}=         Generate Random String 		32		ABCDEF0123456789
+	   Set Test Variable    ${data}   		  {"id":"cfa741c1f91aea85334fb78c5dd50d0b05f2b808","at":2,"tmax":55,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id_01}","cat":["IAB24"],"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8","name":"MeetMe","domain":"http://www.xgamut.media","bundle":"xcom.myYearbook.MyYearbook","publisher":{"id":"12060"}},"device":{"os":"iOS","model":"iPhone","geo":{"country":"USA","region":"IN","lat":0.0,"lon":0.0},"osv":"8.2","js":1,"ext":{"xff":""},"dpidmd5":"72db6f8e73117d98d117d959fd0659cc","ip":"68.73.151.238","connectiontype":0,"dpidsha1":"92bc9aec54166f1d827b44ccc6f707046f929194","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_2 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12D508 QuantcastSDK/iOS_1.4.7/1ash4s7hukmtddti-p5028vkzyy4gw2b","carrier":"Other","devicetype":1,"language":"en","make":"Apple","ifa":"${random_device_id}"},"user":{"id":"b5586d269f63d73aab0a36e641e345392e936baa","ext":{"sessiondepth":1}}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_RUBICON_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}				submit_client_impression_event=YES		auction_price=${auction_price_blowfish} 
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+
+	   
+Frequency Cap for IP Stop serving after X times
+	   Set Test Variable	${auction_price}	3.17
+	   Set Test Variable	${auction_price_blowfish}	2ac7481d228c4a9a   
+
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		 {"id":"a72eeb1b79859d0aef038b3fcab4fa0e0b685f5e","at":2,"tmax":53,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id_03}","cat":["IAB24"],"storeurl":"https://play.google.com/store/apps/details?id=mobi.ifunny&feature=search_result#?t=W251bGwsMSwxLDEsIm1vYmkuaWZ1bm55Il0.","name":"iFunny","domain":"http://www.xgamut.media","bundle":"xmobi.ifunny","publisher":{"id":"12060"}},"device":{"os":"Android","model":"zmax","geo":{"country":"USA","region":"FL","lat":0.0,"lon":0.0},"osv":"4.4.2","js":1,"ext":{"xff":""},"dpidmd5":"398276ccdd670a186bd632a634f9957e","ip":"${random_ip}","connectiontype":0,"dpidsha1":"7848a23eeb3ece874de683e0e1b82aa996ece5f5","ua":"Mozilla/5.0 (Linux; Android 4.4.2; Z970 Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.3","carrier":"Other","devicetype":1,"language":"en","make":"zte","ifa":"2c926864-0b66-4c7b-8880-92753ee8f48e"},"user":{"id":"3b57280ab7d27ca9ccecc4c2b7f68f82750242e8","ext":{"sessiondepth":1}}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_RUBICON_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}		submit_client_impression_event=YES		auction_price=${auction_price_blowfish} 
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=204        submit_client_impression_event=NO				 
+
+Frequency Cap for IP Continue serving X times with new IP
+	   Set Test Variable	${auction_price}	3.17
+	   Set Test Variable	${auction_price_blowfish}	2ac7481d228c4a9a 
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"id":"cfa741c1f91aea85334fb78c5dd50d0b05f2b808","at":2,"tmax":55,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id_03}","cat":["IAB24"],"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8","name":"MeetMe","domain":"http://www.xgamut.media","bundle":"xcom.myYearbook.MyYearbook","publisher":{"id":"12060"}},"device":{"os":"iOS","model":"iPhone","geo":{"country":"USA","region":"IN","lat":0.0,"lon":0.0},"osv":"8.2","js":1,"ext":{"xff":""},"dpidmd5":"72db6f8e73117d98d117d959fd0659cc","ip":"${random_ip}","connectiontype":0,"dpidsha1":"92bc9aec54166f1d827b44ccc6f707046f929194","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_2 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12D508 QuantcastSDK/iOS_1.4.7/1ash4s7hukmtddti-p5028vkzyy4gw2b","carrier":"Other","devicetype":1,"language":"en","make":"Apple","ifa":"49912336-24EF-4078-B42C-A22C4E2F62DF"},"user":{"id":"b5586d269f63d73aab0a36e641e345392e936baa","ext":{"sessiondepth":1}}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_RUBICON_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}		submit_client_impression_event=YES		auction_price=${auction_price_blowfish} 
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=204        submit_client_impression_event=NO		   

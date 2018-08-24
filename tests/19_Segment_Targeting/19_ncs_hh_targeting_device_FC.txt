@@ -1,0 +1,29 @@
+*** Settings ***
+Resource             segment_targeting_imports.txt
+Force Tags          RTB      NCS     BATCH10 		EXCLUDE
+
+*** Test Cases *** 
+
+Device FC for Household(segment800) targeted NCS score of 950, Match 1 HH
+	[Documentation]		QA_REGRESSION_TESTS > 19_NCS, Segment 800, Not Boosted	
+	   Set Test Variable	${app_id_01}	13503
+	   ${random_device_id}=         Generate Random String 		2		0123456789
+	   Set Test Variable 		${random_device_id}		11111111-1111-1111-1919-1111111112${random_device_id}
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"xxcom.myyearbook.m","cat":["IAB24","social_networking"],"id":"${app_id_01}","name":"MeetMe_Android","publisher":{"id":"87e493a6b4424a6eb0ab7bc187d4345d","name":"Beanstock Media Inc."},"ver":"10.0"},"at":2,"badv":["landrover","landrover.com","landrovertristate.com","pof.com","rangerover.com","skout.com","zoosk.com"],"bcat":["IAB25","IAB26","IAB3-7"],"device":{"carrier":"310-120","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"3fe3fd2a5527d04aaeccb5e76bd295ba","dpidsha1":"9803534ab6d6be3472e98f1b68f809cfbe63d234","ifa":"${random_device_id}","geo":{"city":"Norwalk","country":"USA","lat":41.250885,"lon":-82.612862,"region":"OH","zip":"44857"},"ip":"174.100.132.64","js":1,"make":"samsung","model":"SPH-L720","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0 (Linux; Android 4.4.2; SPH-L720 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id":"b193650a-525c-4655-b6cb-1543028a4565","imp":[{"banner":{"api":[3,5],"battr":[3,8,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.30,"displaymanager":"mopub","displaymanagerver":"3.4.0+kit","id":"1","instl":0,"tagid":"5b5991da24da4b68be268c0bc1e9eb2d"}],"user":{"keywords":"DEV_TYPE:jfltespr,BUILD_TYPE:release,DEV_MODEL:SPH-L720,DEV_MFR:samsung,AGE:20,GENDER:m,DEV_BRAND:samsung"}}
+	   
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=35177
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+
+	
+Device FC for Household(segment800) targeted NCS score of 950, Match 1 HH, Boosted
+	[Documentation]		QA_REGRESSION_TESTS > 19_NCS, Segment 805, Boosted
+	   Set Test Variable	${app_id_01}	13504
+	   ${random_device_id}=         Generate Random String 		2		0123456789
+	   Set Test Variable 		${random_device_id}		11111111-1111-1111-1919-1111111113${random_device_id}
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"xxcom.myyearbook.m","cat":["IAB24","social_networking"],"id":"${app_id_01}","name":"MeetMe_Android","publisher":{"id":"87e493a6b4424a6eb0ab7bc187d4345d","name":"Beanstock Media Inc."},"ver":"10.0"},"at":2,"badv":["landrover","landrover.com","landrovertristate.com","pof.com","rangerover.com","skout.com","zoosk.com"],"bcat":["IAB25","IAB26","IAB3-7"],"device":{"carrier":"310-120","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"3fe3fd2a5527d04aaeccb5e76bd295ba","dpidsha1":"9803534ab6d6be3472e98f1b68f809cfbe63d234","ifa":"${random_device_id}","geo":{"city":"Norwalk","country":"USA","lat":41.250885,"lon":-82.612862,"region":"OH","zip":"44857"},"ip":"174.100.132.64","js":1,"make":"samsung","model":"SPH-L720","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0 (Linux; Android 4.4.2; SPH-L720 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id":"b193650a-525c-4655-b6cb-1543028a4565","imp":[{"banner":{"api":[3,5],"battr":[3,8,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.30,"displaymanager":"mopub","displaymanagerver":"3.4.0+kit","id":"1","instl":0,"tagid":"5b5991da24da4b68be268c0bc1e9eb2d"}],"user":{"keywords":"DEV_TYPE:jfltespr,BUILD_TYPE:release,DEV_MODEL:SPH-L720,DEV_MFR:samsung,AGE:20,GENDER:m,DEV_BRAND:samsung"}}
+	   
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${data}				requests=5         response_code=200         adgroup_expected=35177
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	[Tags]	Exclude

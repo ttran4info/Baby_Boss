@@ -1,0 +1,22 @@
+*** Settings ***
+Resource   Device_ID_imports.txt
+Force Tags           DEVICE_ID    BATCH3 	RUBICON
+
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ ${app_id_01}					12461
+ ${app_id_03}					12463
+*** Test Cases ***
+# 
+Clear Device IDFA, Field 13 and 26
+	   ${random_device_id}=		Generate Clear Device ID         	  
+	   Set Test Variable    ${data}   		  {"id":"a72eeb1b79859d0aef038b3fcab4fa0e0b685f5e","at":2,"tmax":53,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id_01}","cat":["IAB24"],"storeurl":"https://play.google.com/store/apps/details?id=mobi.ifunny&feature=search_result#?t=W251bGwsMSwxLDEsIm1vYmkuaWZ1bm55Il0.","name":"iFunny","domain":"http://www.xgamut.media","bundle":"xmobi.ifunny","publisher":{"id":"12060"}},"device":{"os":"Android","model":"zmax","geo":{"country":"USA","region":"FL","lat":0.0,"lon":0.0},"osv":"4.4.2","js":1,"ext":{"xff":""},"dpidmd5":"398276ccdd670a186bd632a634f9957e","ip":"70.126.19.44","connectiontype":0,"dpidsha1":"7848a23eeb3ece874de683e0e1b82aa996ece5f5","ua":"Mozilla/5.0 (Linux; Android 4.4.2; Z970 Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.3","carrier":"Other","devicetype":1,"language":"en","make":"zte","ifa":"${random_device_id}"},"user":{"id":"3b57280ab7d27ca9ccecc4c2b7f68f82750242e8","ext":{"sessiondepth":1}}}
+	   RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Response  	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				13=${random_device_id}
+		Should Match Regexp 			${output}  				46=150
+		
+	   

@@ -1,0 +1,51 @@
+*** Settings ***
+Resource             conversion_imports.txt
+Force Tags           CONVERSION    BATCH9		MOPUB		PROD_BATCH2 
+Suite Teardown      Close All Browsers
+
+*** Test Cases ***
+
+Conversion Tracking - Conversion ID=1
+	   Set Test Variable 	${url}					https://manage-east.adhaven.com/dynamic.jsp?server=${BID_ENGINE_ONE}:8080&apikey=42ba406a62ec13ca&appid=13505&w=320&h=50&explain=true
+	   Set Test Variable 	${image_name}			4INFO_320x50.gif
+       Set Test Variable 	${agid}					36214|35723
+	   Open Browser		${url}	${BROWSER}
+	   Wait Until Page Contains		4Info RTB Test		timeout=15
+	   ${source}=   Get Source
+	   Set Test Variable 	${response_content}		${source} 
+	   Extract REQID From Response
+	   Validate Ad Is Served And Page Source Contains Image File             ${source}                 ${image_name}
+	   Should Match Regexp		${source}		agId=${agid}
+	   Log		Destination URL: https://conversion-tracking.adhaven.com/regression_qa.html		
+	   Click Image   ${IMAGE_ELEMENT}
+	   Run Keyword If	'${ENVIRONMENT}'=='QA'			Click Link	 Conversion Tracking for QA campaign 1888, adgroup 36213, child 36214, conversion1
+	   Run Keyword If	'${ENVIRONMENT}'=='PROD'		Click Link	 Conversion Tracking for PROD campaign 1956, adgroup 35722, child 35723, conversion1
+	   
+	   Sleep   5s
+	   Close Browser
+	   Start Read Event Logs For Reqid Print All		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Should Match Regexp		${output}		convertedCookie
+	   Should Match Regexp		${output}		convertedLocalStorage
+	   Should Match Regexp		${output}		\\|0.0\\|1\\|Y\\|
+
+Conversion Tracking - Conversion ID=2
+	   Set Test Variable 	${url}					https://manage-east.adhaven.com/dynamic.jsp?server=${BID_ENGINE_ONE}:8080&apikey=42ba406a62ec13ca&appid=13505&w=320&h=50&explain=true
+	   Set Test Variable 	${image_name}			4INFO_320x50.gif
+       Set Test Variable 	${agid}					36214|35723
+	   Open Browser		${url}	${BROWSER}
+	   Wait Until Page Contains		4Info RTB Test		timeout=15
+	   ${source}=   Get Source
+	   Set Test Variable 	${response_content}		${source} 
+	   Extract REQID From Response
+	   Validate Ad Is Served And Page Source Contains Image File             ${source}                 ${image_name}
+	   Should Match Regexp		${source}		agId=${agid}
+	   Log		Destination URL: https://conversion-tracking.adhaven.com/regression_qa.html		
+	   Click Image   ${IMAGE_ELEMENT}
+	   Run Keyword If	'${ENVIRONMENT}'=='QA'			Click Link	 Conversion Tracking for QA campaign 1888, adgroup 36213, child 36214, conversion2
+	   Run Keyword If	'${ENVIRONMENT}'=='PROD'		Click Link	 Conversion Tracking for PROD campaign 1956, adgroup 35722, child 35723, conversion1	   
+	   Sleep   5s
+	   Close Browser
+	   Start Read Event Logs For Reqid Print All		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Should Match Regexp		${output}		convertedCookie
+	   Should Match Regexp		${output}		convertedLocalStorage
+	   Should Match Regexp		${output}		\\|0.0\\|2\\|Y\\|	   

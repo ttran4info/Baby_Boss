@@ -1,0 +1,22 @@
+*** Settings ***
+Resource   Device_ID_imports.txt
+Force Tags           DEVICE_ID    BATCH3 	OPERAMW
+
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ ${app_id_01}					12455
+ ${app_id_03}					12457
+*** Test Cases ***
+# 
+Clear Device IDFA, Field 13 and 26
+	   ${random_device_id}=		Generate Clear Device ID         	  
+	   Set Test Variable    ${data}   		  {"id":"bXZyp6xZsI1DtD2","app":{"id":"${app_id_01}","paid":1,"cat":[],"name":"Flysoft-iFunny Android Application","domain":"https:\/\/play.google.com\/store\/apps\/developer?id=Flysoft&hl=en","bundle":"xFlysoft&hl=en"},"tmax":500,"imp":[{"id":"1","bidfloor":0.0923,"instl":0,"bidfloorcur":"USD","banner":{"w":320,"h":50}}],"device":{"dpidsha1":"1D4126ED65889F108524935BBE5CC7FDD994A195","os":"Android","model":"M7","geo":{"region":"CA","zip":"94103","lon":-122.4194,"metro":"807","type":1,"lat":37.7749,"city":"San Francisco","country":"USA"},"js":1,"dnt":0,"Js":1,"ext":{"aaid":"${random_device_id}"},"ip":"107.77.75.26","connectiontype":0,"ua":"Mozilla\/5.0 (Linux; Android 5.0.2; HTC One Build\/LRX22G) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/40.0.0.0 Mobile Safari\/537.36","carrier":"310-02","devicetype":1,"make":"HTC","ifa":"${random_device_id}"},"at":2,"user":{"id":"3eb67006e3c011aa68671a85e52022527ac9063118fbb7b1"}}
+	   RTB Request 				API=${RTB_OPERAMW_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Response  	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				13=${random_device_id}
+		Should Match Regexp 			${output}  				46=150
+		
+	   

@@ -1,0 +1,50 @@
+*** Settings ***
+Resource             exchange_specific_imports.txt
+Force Tags           APP_NAME 	SITE_NAME   BATCH3		APPNEXUS 	EXCLUDE
+Suite Teardown      Close All Connections
+
+*** variables ***
+ ${app_id}					13189
+ ${site_id}					13192
+ 
+*** Test Cases ***
+#appnexus does not have app name or site name - appnexus spec
+#appnexus does not have app name or site name - open rtb spec
+
+Appnexus - app name not available, app id is available. app name= (exchange: app ID)
+	[Documentation]		When app name is not available, but app id is there, log (exchange:app id) for field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-06-0400:48:07","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":198147,"excluded_categories":[13,17,29,38,39,60,78,80,116,118],"excluded_technical_attributes":[33],"tags":[{"auction_id_64":368026378250209840,"size":"300x250","sizes":["300x250"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"iframe","supply_type":"mobile_app","site_id":886154,"ad_profile_id":251049,"visibility_profile_id":990,"venue_id":744119,"inventory_source_id":1719,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.248,"estimated_average_price":0.081,"id":3620009,"inventory_audits":[{"auditor_member_id":2066,"content_categories":[10,13]}]}],"bid_info":{"user_id_64":6254650908374539000,"no_cookies":false,"payment_rule_id":507442,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(iPad;CPUOS8_1_1likeMacOSX)AppleWebKit/600.1.4(KHTML,likeGecko)Mobile/12B435","browser":0,"operating_system":10,"operating_system_extended":129,"operating_system_family":3,"carrier":1,"device_make":26,"device_model":300,"device_type":3,"session_freq":1,"pub_session_freq":1,"ip_address":"76.30.108.22","country":"US","region":"TX","city":"SugarLand","postal_code":"77479","dma":618,"time_zone":"America/Chicago","inventory_class":"class_3","within_iframe":false,"device_ids":{"idfa":"${device_id}","sha1udid":"a9dea295df1cdb430706204134814a4c16bd9d99","md5udid":"52a2ffd2f1210a377d4365bbb816f386"},"selling_member_id":2066,"publisher_id":442520,"app_id":"123456","app_name":"AppName","mobile_app_instance_id":685,"inventory_audits":[{"auditor_member_id":null,"inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23118867}]}}}	   
+	   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data} 
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				71=AppNexus Exchange: 123456
+
+	
+Appnexus - app name and app id is null. app name = exchange: not available
+	[Documentation]		When app name and app id is not available. log exchange: not available in field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-06-0400:48:07","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":198147,"excluded_categories":[13,17,29,38,39,60,78,80,116,118],"excluded_technical_attributes":[33],"tags":[{"auction_id_64":368026378250209840,"size":"300x250","sizes":["300x250"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"iframe","supply_type":"mobile_app","site_id":886154,"ad_profile_id":251049,"visibility_profile_id":990,"venue_id":744119,"inventory_source_id":1719,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.248,"estimated_average_price":0.081,"id":3620009,"inventory_audits":[{"auditor_member_id":2066,"content_categories":[10,13]}]}],"bid_info":{"user_id_64":6254650908374539000,"no_cookies":false,"payment_rule_id":507442,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(iPad;CPUOS8_1_1likeMacOSX)AppleWebKit/600.1.4(KHTML,likeGecko)Mobile/12B435","browser":0,"operating_system":10,"operating_system_extended":129,"operating_system_family":3,"carrier":1,"device_make":26,"device_model":300,"device_type":3,"session_freq":1,"pub_session_freq":1,"ip_address":"76.30.108.22","country":"US","region":"TX","city":"SugarLand","postal_code":"77479","dma":618,"time_zone":"America/Chicago","inventory_class":"class_3","within_iframe":false,"device_ids":{"idfa":"${device_id}","sha1udid":"a9dea295df1cdb430706204134814a4c16bd9d99","md5udid":"52a2ffd2f1210a377d4365bbb816f386"},"selling_member_id":2066,"publisher_id":442520,"mobile_app_instance_id":685,"inventory_audits":[{"auditor_member_id":null,"inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23118867}]}}}	   
+	   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				71=AppNexus Exchange: not available
+
+	
+Appnexus - site name not available, site id is available. site name= (exchange: site ID)
+	[Documentation]		When site name is not available, but site id is there, log (exchange:app id) for field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-06-0400:48:06","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":198147,"excluded_categories":[36],"excluded_technical_attributes":[33],"tags":[{"auction_id_64":0,"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":true,"position":"unknown","tag_format":"iframe","supply_type":"mobile_web","site_id":123456,"ad_profile_id":440717,"visibility_profile_id":1753,"venue_id":299592,"inventory_source_id":1717,"allowed_media_types":[1,6],"media_subtypes":["banner"],"reserve_price":1,"estimated_clear_price":1,"estimated_average_price":0.5,"id":3012531,"inventory_audits":[{"auditor_member_id":2066,"intended_audience":"general","inventory_attributes":[],"content_categories":[19,20,27570,27579,27640,27784,27836,27850,29611,31848,31877,31968]}]}],"bid_info":{"user_id_64":379093741089468500,"no_cookies":false,"payment_rule_id":339401,"no_flash":false,"user_agent":"Mozilla/5.0(Linux;Android5.0.2;SAMSUNG-SM-G925ABuild/LRX22G;wv)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/42.0.2311.138MobileSafari/537.36[FB_IAB/FB4A;FBAV/34.0.0.43.267;]","browser":8,"operating_system":6,"operating_system_extended":130,"operating_system_family":2,"carrier":1,"device_type":2,"language":1,"session_freq":1,"pub_session_freq":1,"ip_address":"104.145.111.149","country":"US","loc":"38.00000,-97.00000","inventory_class":"class_3","within_iframe":false,"device_ids":{"idfa":"${device_id}"},"selling_member_id":2066,"publisher_id":297041,"app_id":"","url":"www.courier-journal.com","domain":"www.courier-journal.com","userdata_json":"{}","segments":[]}}}
+	   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				72=AppNexus Exchange: 123456
+	
+Appnexus - site name and site id is null. site name = exchange: not available
+	[Documentation]		When site name and site id is not available. log exchange: not available in field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-06-0400:48:06","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":198147,"excluded_categories":[36],"excluded_technical_attributes":[33],"tags":[{"auction_id_64":0,"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":true,"position":"unknown","tag_format":"iframe","supply_type":"mobile_web","ad_profile_id":440717,"visibility_profile_id":1753,"venue_id":299592,"inventory_source_id":1717,"allowed_media_types":[1,6],"media_subtypes":["banner"],"reserve_price":1,"estimated_clear_price":1,"estimated_average_price":0.5,"id":3012531,"inventory_audits":[{"auditor_member_id":2066,"intended_audience":"general","inventory_attributes":[],"content_categories":[19,20,27570,27579,27640,27784,27836,27850,29611,31848,31877,31968]}]}],"bid_info":{"user_id_64":379093741089468500,"no_cookies":false,"payment_rule_id":339401,"no_flash":false,"user_agent":"Mozilla/5.0(Linux;Android5.0.2;SAMSUNG-SM-G925ABuild/LRX22G;wv)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/42.0.2311.138MobileSafari/537.36[FB_IAB/FB4A;FBAV/34.0.0.43.267;]","browser":8,"operating_system":6,"operating_system_extended":130,"operating_system_family":2,"carrier":1,"device_type":2,"language":1,"session_freq":1,"pub_session_freq":1,"ip_address":"104.145.111.149","country":"US","loc":"38.00000,-97.00000","inventory_class":"class_3","within_iframe":false,"device_ids":{"idfa":"${device_id}"},"selling_member_id":2066,"publisher_id":297041,"app_id":"","url":"www.courier-journal.com","domain":"www.courier-journal.com","userdata_json":"{}","segments":[]}}}
+	   
+	   RTB Appnexus Request             ${RTB_APPNEXUS_API}        ${data}
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				72=AppNexus Exchange: not available

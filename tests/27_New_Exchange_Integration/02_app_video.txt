@@ -1,0 +1,129 @@
+*** Settings ***
+Resource             new_exchange_integration_imports.txt
+Force Tags           BATCH9		XAD		EXCLUDE		
+ 		
+Suite Teardown      Close All Browsers
+
+*** variables ***
+ ${app_id}					13746
+ ${app_name}				SuperApp
+ ${publisher_name}			SuperInc	
+ ${exchange_id}				c3bbc27cb20e40fb8d7073f157ab4fab
+ ${device_id}				66666666-6666-6666-6666-666666666665
+ ${device_id_method}		150
+ ${bid_floor}				2.0
+ ${lat}						37.383440
+ ${lon}						-122.013046
+ ${data}					{"id":"1234567893","tmax":"120","bcat":["category1","category2"],"badv":["1video.com","company2.com"],"at":1,"app":{"id":"${app_id}","cat":["IAB1"],"name":"${app_name}","domain":"superapp.super.com","ver":"1.0","storeurl":"http://appstore.itunes.com/082534923434","bundle":"xcom.super.superapp","paid":0,"publisher":{"name":"${publisher_name}","domain":"superinc.com"}},"imp":[{"id":"1","secure":0,"banner":{"w":"320","h":"50","pos":"1","btype":["3","4"],"battr":["3","4"],"api":["3"],"ext":{"apiVersion":{"3":"2.0"}}},"pmp":{"private_auction":0,"deals":[{"id":"123","bidfloor":14.07,"at":1}]},"instl":"0","bidfloor":${bid_floor},"ext":{"bidfloor":{"1":1.25,"2":0.75},"si":["car"],"cat":["IAB1"]}}],"device":{"dnt":"0","ua":"Mozilla%2F5.0%20(iPhone%3B%20U%3B%20CPU%20iPhone%20OS%206_0_1%20like%20Mac%20OS%20X%3B%20en-us)%20AppleWebKit%2F532.9%20(KHTML%2C%20like%20Gecko)%20Version%2F4.0.5%20Mobile%2F8A293%20Safari%2F6531.22.7","ip":"55.55.55.55","geo":{"country":"US","region":"ca","zip":"94085","city":"sunnyvale","lat":"${lat}","lon":"${lon}","metro":"807","ext":{"zip9":"94043-5704"}},"carrier":"verizon","language":"en","make":"apple","model":"iPhone","os":"iOS","osv":"8.0.2","ext":{"dpid":"${device_id}","dpid_type":"IDFA","dpid_hash":"RAW","brand":["1","2"],"cat":["5641","5651"],"in_store":{"brand":["1","2"],"cat":["5641","5651"]},"on_lot":{"brand":["1","2"],"cat":["5641","5651"]},"retail_block":{"brand":["1","2"],"cat":["5641","5651"]},"nearby":{"brand":["1","2"],"cat":["5641","5651"]},"wider_reach":{"brand":["1","2"],"cat":["5641","5651"]}}},"user":{"gender":"m","ext":{"age":"18","brand":["1","2"],"cat":["5641","5651"],"zip9":"94043-5704"}}}
+
+*** Test Cases ***
+
+Xad app served banner
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=253150      submit_client_impression_event=YES
+
+Xad app served banner response content
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=253150      submit_client_impression_event=NO
+	Log		Response: ${response_content}
+	
+    ${id}=      Get Json Value     ${response_content}     /id
+    Log     id: ${id}
+    Should Match Regexp		${id}		1234567893 
+
+    ${bidid}=      Get Json Value     ${response_content}     /bidid
+    Log     id: ${bidid}
+    Should Match Regexp		${bidid}		\\w{8}-\\w{4}-\\w{4}-\\w{4}-\\w{12} 
+    
+    ${cur}=      Get Json Value     ${response_content}     /cur
+    Log     id: ${cur}
+    Should Match Regexp		${cur}		USD   
+    
+    ${seat}=      Get Json Value     ${response_content}     /seatbid/0/seat
+    Log     id: ${seat}
+    Should Match Regexp		${seat}		4INFO
+    
+    ${price}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/price
+    Log     id: ${price}
+    Should Match Regexp		${price}		\\d+.\\d+
+    
+    ${impid}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/impid
+    Log     id: ${impid}
+    Should Match Regexp		${impid}		\\d
+                
+    ${adm}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    Should Match Regexp		${adm}		gest=client-impression-served
+    Should Match Regexp		${adm}		gest=click-to-web  
+    Should Match Regexp		${adm}		gest=javascript-impression-served
+    Should Match Regexp		${adm}		gest=noscript-impression-served
+
+    ${adid}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adid
+    Log     id: ${adid}
+    Should Match Regexp		${adid}		\\d{5}
+
+    ${iurl}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/iurl
+    Log     id: ${iurl}
+    Should Match Regexp		${iurl}		https://4info.pc.cdn.bitgravity.com/ad/banner/qa/11520/320x50_Connexion04.jpg
+    
+    ${cid}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/cid
+    Log     id: ${cid}
+    Should Match Regexp		${cid}		\\d{5}
+    
+    ${crid}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/crid
+    Log     id: ${crid}
+    Should Match Regexp		${crid}		[A-Z]\\d{5}
+    
+    ${bid_id}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/id
+    Log     id: ${bid_id}
+    Should Match Regexp		${bid_id}		1234567893
+    Should Match Regexp		${bid_id}		${id}
+    
+    ${dealid}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/dealid
+    Log     id: ${dealid}
+    Should Match Regexp		${dealid}		123
+  
+    ${adomain}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adomain
+    Log     id: ${adomain}
+    Should Match Regexp		${adomain}		4info.com
+    
+   
+Xad request log validation
+	   RTB Request 				API=${exchange_id}          data=${data}
+	   Start Read Requests Logs For Consumer Id		consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				5=${lat}
+	   Should Match Regexp 			${output}  				6=${lon}
+	   Should Match Regexp 			${output}  				13=${device_id}
+	   Should Match Regexp 			${output}  				46=${device_id_method}
+	   Should Match Regexp 			${output}  				49=${bid_floor}
+	   Should Match Regexp 			${output}  				54=${app_id}
+	   Should Match Regexp 			${output}  				74=${publisher_name}
+
+Xad app served banner events - click to web
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=253150      submit_client_impression_event=NO
+	Log		Response: ${response_content}	
+	RTB Extract Click To Web URL
+	${click_to_web_url}=						Replace Macros And Return Url		client_impression_url=${click_to_web_url}		auction_price=1
+	Log 	2:${click_to_web_url}
+	Validate Gestures Are Logged Correctly		event_url=${click_to_web_url}		gesture=click-to-web
+  
+Xad app served banner events - javascript client impression served
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=253150      submit_client_impression_event=NO
+	Log		Response: ${response_content}	
+	RTB Extract Javascript Impression Served URL
+	${javascript_impression_served_url}=		Replace Macros And Return Url		client_impression_url=${javascript_impression_served_url}		auction_price=1
+	Log 	3:${javascript_impression_served_url}
+	Validate Gestures Are Logged Correctly		event_url=${javascript_impression_served_url}		gesture=javascript-impression-served
+  
+Xad app served banner events - no javascript client impression served
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=253150      submit_client_impression_event=NO
+	Log		Response: ${response_content}	
+	RTB Extract No Javascript Impression Served URL
+	${noscript_impression_served_url}=		Replace Macros And Return Url		client_impression_url=${noscript_impression_served_url}		auction_price=1
+	Log 	4:${noscript_impression_served_url}
+	Validate Gestures Are Logged Correctly		event_url=${noscript_impression_served_url}		gesture=noscript-impression-served
+   
+    

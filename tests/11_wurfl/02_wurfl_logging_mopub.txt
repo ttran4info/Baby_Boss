@@ -1,0 +1,231 @@
+*** Settings ***
+Resource    wurfl_imports.txt
+Force Tags          SMB    BUILD_SANITY       QA_ONLY    BATCH4     WURFL    MOPUB 	
+Suite Teardown       Close All Connections
+# z is used to separate begin/end for regex validation
+# For Mopub:    bid_id is the "id": "217050c9-01ea-41a8-b33c-5da4d87a9053","imp": 
+# Sampler:  http://rtb.adhaven.com/bid-engine/sampler/2263/getRequestSample/
+*** Test Cases ***
+Mopub - Valid Request with Request Brand Samsung And Model SCH-I545
+	Set Test Variable    ${data}        ${WURFL_02_01}
+	#Set Test Variable    ${data}        {"explain":"true","app":{"publisher":{"id":"c3584d1c40cb43619e043c065caee33a","name":"MeetMe,Inc."},"ver":"10.2.0.1","name":"MeetMeAndroid","bundle":"xxcom.myyearbook.m","cat":["IAB24"],"id":"12520"},"imp":[{"bidfloor":0.001,"tagid":"20df0909e2aa4715aa65674ef1b8e575","displaymanagerver":"3.7.0","displaymanager":"mopub","instl":0,"banner":{"h":50,"pos":1,"ext":{"nativebrowserclick":1},"api":[3,5],"w":320,"btype":[4]},"id":"1"}],"at":2,"device":{"geo":{"lat":38.1536,"country":"USA","lon":-104.4975},"language":"en","ip":"50.153.222.141","make":"LGE","connectiontype":2,"js":1,"dpidsha1":"c86f92567d1a95065d7e83e81165263ace877684","dnt":0,"ext":{"idfa":"501b897a-caaf-49f3-8b58-d8eff43eed24"},"ua":"Mozilla/5.0(Linux;U;Android4.1.2;en-us;LGMS769Build/JZO54K)AppleWebKit/534.30(KHTML,likeGecko)Version/4.0MobileSafari/534.30","devicetype":1,"dpidmd5":"c51d2c8886c6c9f412256cf02ad2cbd2","osv":"4.1.2","os":"Android","model":"LGMS769"},"id":"1ee5c786-6e4e-4655-ab0a-beaaf0df6370","user":{"keywords":"DEV_TYPE:u2,DEV_MFR:LGE,AGE:23,GENDER:f,BUILD_TYPE:release,DEV_MODEL:LGMS769,RELATIONSHIP:single,DEV_BRAND:MetroPCS"}}
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		user_agent=Mozilla/5.0 (Linux; U; Android 4.3; en-us; SCH-I545 Build/JSS15J) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30															bid_id=76458db1-ce0f-4752-b981-fd3a80720e87
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=samsungz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=SCH-I545z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=SCH-I545
+	Should Match Regexp 			${output}  				Device OS version=4.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Galaxy S4
+
+Mopub - Fake Brand/Model From Request Should Pick up Device Brand From UA
+	Set Test Variable    ${data}        ${WURFL_02_02}     
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.3; en-us; SCH-I545 Build/JSS15J) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30															bid_id=76458db1-ce0f-4752-b981-fd3a80720e88
+	#Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+	#Should Match Regexp 			${output}  				zDevice Brand From Request=chieuz
+	#Should Match Regexp 			${output}  				zDevice Model From Request=phamz
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=SCH-I545
+	Should Match Regexp 			${output}  				Device OS version=4.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Galaxy S4	
+Mopub - Mismatch UA And Brand/Model Passed
+	Set Test Variable    ${data}        ${WURFL_02_03}     
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=iphone										bid_id=76458db1-ce0f-4752-b981-fd3a80720e89
+#	Should Match Regexp 			${output}  				zMobile Device Brand=z
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=samsungz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=SCH-I545z
+	Should Match Regexp 			${output}  				Device OS=Other
+	Should Match Regexp 			${output}  				Device Model=
+	Should Match Regexp 			${output}  				Device OS version=
+	Should Match Regexp 			${output}  				Device Pointing Method=
+	Should Match Regexp 			${output}  				Device Brand=
+	Should Match Regexp 			${output}  				Device Type=
+	Should Match Regexp 			${output}  				Marketing Name=
+		
+Mopub - Live Sample - Samsung SCH-I545
+	Set Test Variable    ${data}        ${WURFL_02_04}     
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.3; en-us; SCH-I545 Build/JSS15J) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30															bid_id=3dd9db51-db23-4861-878a-27d4091f5114
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=SCH-I545
+	Should Match Regexp 			${output}  				Device OS version=4.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Galaxy S4
+		
+Mopub - Live Sample - Samsung ZTE-Z993
+	Set Test Variable    ${data}       ${WURFL_02_05}        
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; ZTE-Z993 Build/JRO03C) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30														bid_id=fe52f3c7-8431-4f2d-9fd3-106a2a468cdb
+#	Should Match Regexp 			${output}  				zMobile Device Brand=ZTEz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=Z993
+	Should Match Regexp 			${output}  				Device OS version=4.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=ZTE
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Prelude
+	
+Mopub - Live Sample - Samsung GT-P3113
+	Set Test Variable    ${data}        ${WURFL_02_06}     
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; GT-P3113 Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30																	bid_id=2eedf7e7-899a-4314-9aef-01aae0cbd71d
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=GT-P3113
+	Should Match Regexp 			${output}  				Device OS version=4.2
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=Galaxy Tab 2 7.0
+	
+Mopub - Live Sample - HTC EVO Design 4G
+	Set Test Variable    ${data}        ${WURFL_02_07}     
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.0.3; en-us; HTCEVODesign4G Build/IML74K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30											bid_id=f9de8fa9-2c78-4292-8dde-ab61e49dcec3
+#	Should Match Regexp 			${output}  				zMobile Device Brand=HTCz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=APC715CKT
+	Should Match Regexp 			${output}  				Device OS version=4.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=HTC
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=EVO Design 4G
+	
+Mopub - Live Sample - LG-LS980
+	Set Test Variable    ${data}        ${WURFL_02_08}     
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; Android 4.4.2; LG-LS980 Build/KOT49I.LS980ZVC) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36							bid_id=a738e7ab-d724-4970-9874-a0bee9243109
+#	Should Match Regexp 			${output}  				zMobile Device Brand=LGz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=LS980
+	Should Match Regexp 			${output}  				Device OS version=4.4
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=LG
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=G2
+	
+Mopub - Live Sample - Motorola Droid Razr
+	Set Test Variable    ${data}        ${WURFL_02_09}    
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.1.2; en-us; DROID RAZR Build/9.8.2O-72_VZW-16-5) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30							bid_id=217050c9-01ea-41a8-b33c-5da4d87a9053
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Motorolaz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=MOTXT912B
+	Should Match Regexp 			${output}  				Device OS version=4.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Motorola
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Droid Razr 4G
+	
+Mopub - Live Sample - Huawei-H867G
+	Set Test Variable    ${data}        ${WURFL_02_10}     
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.0.4; en-us; Huawei-H867G Build/HuaweiH867G) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30									bid_id=42cfca68-79d4-4c7a-a41b-1216553bad5f
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Huaweiz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=H867G
+	Should Match Regexp 			${output}  				Device OS version=4.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Huawei
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Inspira
+	
+Mopub - Live Sample - HTC One
+	Set Test Variable    ${data}        ${WURFL_02_11}     
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.3; en-us; HTC One Build/JSS15J) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30																bid_id=8d12c1f7-9b5f-44af-aee9-d33e8baeca31
+#	Should Match Regexp 			${output}  				zMobile Device Brand=HTCz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=M7
+	Should Match Regexp 			${output}  				Device OS version=4.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=HTC
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=One
+
+Mopub - Live Sample - Samsung SAMSUNG-SM-T217A
+	Set Test Variable    ${data}        ${WURFL_02_12}     
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; SAMSUNG-SM-T217A Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30													bid_id=21a0aefc-e8a4-4194-b803-1175f59921a1
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=samsungz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=SAMSUNG-SM-T217Az
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=SM-T217A
+	Should Match Regexp 			${output}  				Device OS version=4.2
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=Galaxy Tab 3 7.0
+	
+Mopub - Live Sample - Motorola XT907
+	Set Test Variable    ${data}        ${WURFL_02_13}     
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.1.2; en-us; XT907 Build/9.8.1Q-94-1) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30													bid_id=cf62a7d1-37a8-4a90-a00b-1574b6d83a73
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Motorolaz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=XT907
+	Should Match Regexp 			${output}  				Device OS version=4.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Motorola
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=DROID RAZR M 4G LTE
+	
+Mopub - Live Sample - LGE VS980 4G
+	Set Test Variable    ${data}        ${WURFL_02_14}
+    Validate RTB WURFL Detection        api_key=${RTB_MOPUB_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; VS980 4G Build/JDQ39B) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30														bid_id=71843567-b9b9-4c75-8661-f64b6d2f7d94
+#	Should Match Regexp 			${output}  				zMobile Device Brand=LGz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=LGEz
+#	Should Match Regexp 			${output}  				zDevice Model From Request=VS980 4Gz
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=VS980 4G
+	Should Match Regexp 			${output}  				Device OS version=4.2
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=LG
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=G2
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	

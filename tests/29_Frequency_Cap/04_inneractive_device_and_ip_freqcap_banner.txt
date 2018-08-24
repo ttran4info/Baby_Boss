@@ -1,0 +1,48 @@
+*** Settings ***
+Resource             frequency_cap_imports.txt
+Force Tags           FREQUENCY_CAP    BATCH34	INNERACTIVE
+
+*** variables ***
+ ${app_id_01}					12449
+ ${app_id_03}					12451
+ ${device_fc_agid_banner}		36041
+ ${ip_fc_agid_banner}			36047 
+*** Test Cases ***
+# 
+
+Frequency Cap for Device ID, Stop serving after X times
+	   ${random_device_id}=         Generate Random String 		32		abcdef0123456789
+	   Set Test Variable    ${data}   		  {"id":"8318133468316979278","imp":[{"id":"1","banner":{"id":"1","w":320,"h":50,"wmin":300,"hmin":50,"pos":1,"btype":[1,4],"battr":[3,8,9],"topframe":1,"api":[4,3,5],"ext":{}},"instl":0,"bidfloor":0.05,"bidfloorcur":"USD","ext":{}}],"app":{"id":"${app_id_01}","name":"MeetMe Banners","cat":["IAB14","IAB18"],"bundle":"xcom.myyearbook.m","publisher":{"id":"204918","name":"BeanstockMedia","ext":{}},"keywords":[],"storeurl":"https://play.google.com/store/apps/details?id=com.myyearbook.m&hl=en","ext":{}},"device":{"dnt":0,"ua":"Mozilla/5.0 (Linux; Android 4.4.4; SM-G900P Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Mobile Safari/537.36","ip":"66.87.144.48","geo":{"lat":44.98,"lon":-93.2638,"country":"USA","city":"Minneapolis","zip":"55401","type":2,"ext":{}},"dpidsha1":"0E439B5B25E233F37A419A2A050F36ED936E33DB","dpidmd5":"37DC0BA54BFF16CA9B429C0988D6E39A","carrier":"120","language":"en","make":"Samsung","model":"","os":"Android","osv":"4.4","js":1,"connectiontype":0,"devicetype":4,"ifa":"${random_device_id}","ext":{}},"user":{"id":"8265070973252584041","gender":"M"},"at":2,"tmax":250,"bcat":["IAB25","IAB26"],"badv":[],"ext":{}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_INNERACTIVE_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_INNERACTIVE_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+  
+Frequency Cap for Device ID, Continue serving X times with new device
+	   ${random_device_id}=         Generate Random String 		32		ABCDEF0123456789
+	   Set Test Variable    ${data}   		  {"id":"5890039438426440217","imp":[{"id":"1","banner":{"id":"1","w":320,"h":50,"wmin":300,"hmin":50,"pos":1,"btype":[1,4],"battr":[3,8,9],"topframe":1,"api":[4,3,5],"ext":{}},"instl":0,"bidfloor":0.05,"bidfloorcur":"USD","ext":{}}],"app":{"id":"${app_id_01}","name":"MeetMe Banners","cat":["IAB14","IAB18"],"bundle":"x372648912","publisher":{"id":"204918","name":"BeanstockMedia","ext":{}},"keywords":[],"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8","ext":{}},"device":{"dnt":0,"ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 7_1_2 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Mobile/11D257 QuantcastSDK/iOS_1.4.7/1ash4s7hukmtddti-p5028vkzyy4gw2bk","ip":"173.209.211.149","geo":{"lat":38.795501,"lon":-87.254967,"country":"USA","city":"","zip":"","type":1,"ext":{}},"dpidsha1":"5F1832BF751F1655C6FDC38901299F632AFE7F90","dpidmd5":"DC2008AE48420EDCCA3ABEEFB2E13606","carrier":"410","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"7.1","js":1,"connectiontype":3,"devicetype":4,"ifa":"${random_device_id}","ext":{}},"user":{"id":"112218858016234798","gender":"M"},"at":2,"tmax":250,"bcat":["IAB25","IAB26"],"badv":[],"ext":{}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_INNERACTIVE_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_INNERACTIVE_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+
+	   
+Frequency Cap for IP Stop serving after X times
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"id":"8318133468316979278","imp":[{"id":"1","banner":{"id":"1","w":320,"h":50,"wmin":300,"hmin":50,"pos":1,"btype":[1,4],"battr":[3,8,9],"topframe":1,"api":[4,3,5],"ext":{}},"instl":0,"bidfloor":0.05,"bidfloorcur":"USD","ext":{}}],"app":{"id":"${app_id_03}","name":"MeetMe Banners","cat":["IAB14","IAB18"],"bundle":"xcom.myyearbook.m","publisher":{"id":"204918","name":"BeanstockMedia","ext":{}},"keywords":[],"storeurl":"https://play.google.com/store/apps/details?id=com.myyearbook.m&hl=en","ext":{}},"device":{"dnt":0,"ua":"Mozilla/5.0 (Linux; Android 4.4.4; SM-G900P Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Mobile Safari/537.36","ip":"${random_ip}","geo":{"lat":44.98,"lon":-93.2638,"country":"USA","city":"Minneapolis","zip":"55401","type":2,"ext":{}},"dpidsha1":"0E439B5B25E233F37A419A2A050F36ED936E33DB","dpidmd5":"37DC0BA54BFF16CA9B429C0988D6E39A","carrier":"120","language":"en","make":"Samsung","model":"","os":"Android","osv":"4.4","js":1,"connectiontype":0,"devicetype":4,"ifa":"d914a5c1-4fcb-4649-bef1-8a4eecaa20b8","ext":{}},"user":{"id":"8265070973252584041","gender":"M"},"at":2,"tmax":250,"bcat":["IAB25","IAB26"],"badv":[],"ext":{}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_INNERACTIVE_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_INNERACTIVE_API}          data=${data}		response_code=204        submit_client_impression_event=NO	   
+
+Frequency Cap for IP Continue serving X times with new IP
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"id":"5890039438426440217","imp":[{"id":"1","banner":{"id":"1","w":320,"h":50,"wmin":300,"hmin":50,"pos":1,"btype":[1,4],"battr":[3,8,9],"topframe":1,"api":[4,3,5],"ext":{}},"instl":0,"bidfloor":0.05,"bidfloorcur":"USD","ext":{}}],"app":{"id":"${app_id_03}","name":"MeetMe Banners","cat":["IAB14","IAB18"],"bundle":"x372648912","publisher":{"id":"204918","name":"BeanstockMedia","ext":{}},"keywords":[],"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8","ext":{}},"device":{"dnt":0,"ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 7_1_2 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Mobile/11D257 QuantcastSDK/iOS_1.4.7/1ash4s7hukmtddti-p5028vkzyy4gw2bk","ip":"${random_ip}","geo":{"lat":38.795501,"lon":-87.254967,"country":"USA","city":"","zip":"","type":1,"ext":{}},"dpidsha1":"5F1832BF751F1655C6FDC38901299F632AFE7F90","dpidmd5":"DC2008AE48420EDCCA3ABEEFB2E13606","carrier":"410","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"7.1","js":1,"connectiontype":3,"devicetype":4,"ifa":"722EB8DE-FE60-4A74-9A9A-EA3513E66EBB","ext":{}},"user":{"id":"112218858016234798","gender":"M"},"at":2,"tmax":250,"bcat":["IAB25","IAB26"],"badv":[],"ext":{}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_INNERACTIVE_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_INNERACTIVE_API}          data=${data}		response_code=204        submit_client_impression_event=NO		   

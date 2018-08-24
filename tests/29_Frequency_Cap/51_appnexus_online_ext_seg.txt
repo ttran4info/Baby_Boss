@@ -1,0 +1,289 @@
+*** Settings ***
+Resource             frequency_cap_imports.txt
+Force Tags           FREQUENCY_CAP    BATCH14 	APPNEXUS				
+Test Setup           Open Browser        ${DEFAULT_BROWSER_HOME}       ${BROWSER}
+Test Teardown     Close All Browsers
+Suite Teardown    Close All Browsers
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ ${app_id_01}						12446
+ ${app_id_01_mm}					12471
+ ${app_id_01_ms}					12515
+ ${app_id_03}						12448
+ ${app_id_03_ms}						12519
+ ${app_id_03_mm}						12473
+*** Test Cases ***
+# 
+#windowsadid is for use by appnexus: Microsoft
+#It is distinguish by having selling_member_id: 280 
+#https://jira.adhaven.com/browse/ADH-6949   
+Case1: Target External Segment 29, 1 Segment request (served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255278
+	  Set Test Variable		${ext_segment_id}	1745463
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+#ap nexus always response 200, but it has string "no_bid"=true.
+	   RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+
+Case 2: Target External Segment 29, 2 Segments request (served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255278
+	  Set Test Variable		${ext_segment_id}	1745463
+	  Set Test Variable		${ext_segment_id2}	1999999
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387},{"id":"${ext_segment_id2}","other":506050,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+	   RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+
+Case 3 - Target External Segment (70 and 71) or 75, Segment 70 request ( not served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255276
+	  Set Test Variable		${ext_segment_id}	1745505
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	  RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+
+	
+Appnexus Online HH FC - Target External Segment (70 and 71) or 75, Segment 71 request ( not served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255276
+	  Set Test Variable		${ext_segment_id}	1745506
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	  RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+	
+Case 4 - Target External Segment (70 and 71) or 75, Segment 75 and hhid=1 request (served, fc not apply)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255276
+	  Set Test Variable		${ext_segment_id}	1745510
+	  Set Test Variable		${ext_hh_id}		1
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=1        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+
+Case5 - Target External Segment (70 and 71) or 75, Segment 70 and 71 request with same ext_hh_id ( served, fc apply to ext_hh_id)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255276
+	  Set Test Variable		${ext_segment_id}	1745505
+	  Set Test Variable		${ext_segment_id2}	1745506
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387},{"id":"${ext_segment_id2}","other":${ext_hh_id},"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+	   RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+
+Case 6 - Target External Segment (70 and 71) or 75, Segment 70 and 71 request with ext_hh_id=random,1 (served, fc apply to random)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255276
+	  Set Test Variable		${ext_segment_id}	1745505
+	  Set Test Variable		${ext_segment_id2}	1745506
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387},{"id":"${ext_segment_id2}","other":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+	   RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+Case 7 - Target External Segment (70 and 71) or 75, Segment 70 and 71 request with ext_hh_id=1,random (served, fc apply to random)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255276
+	  Set Test Variable		${ext_segment_id}	1745505
+	  Set Test Variable		${ext_segment_id2}	1745506
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"1","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387},{"id":"${ext_segment_id2}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+	   RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+
+Case 8 - Target External Segment (70 and 71) or 75, Segment 70,71 and hhid=1,1 request (served, fc not apply)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255276
+	  Set Test Variable		${ext_segment_id}	1745505
+	  Set Test Variable		${ext_segment_id2}	1745506
+	  Set Test Variable		${ext_hh_id}		1
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"1","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387},{"id":"${ext_segment_id2}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=1        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+
+Appnexus Online HH FC - Target External Segment 60 or 61, Segment 60 request (served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		777777
+	  Set Test Variable		${ext_segment_id}	1745495
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+	   RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+
+Appnexus Online HH FC - Target External Segment 60 or 61, Segment 61 request (served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		777777
+	  Set Test Variable		${ext_segment_id}	1745496
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+#ap nexus always response 200, but it has string "no_bid"=true.
+	   RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+	
+Appnexus Online HH FC - Target External Segment (70 and 71) or 75, Segment 75 request (served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255276
+	  Set Test Variable		${ext_segment_id}	1745510
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+	   RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+
+	
+Appnexus Online - Target External Segment (30 and 31 and 32), Segment 30 request (not served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255277
+	  Set Test Variable		${ext_segment_id}	1745464
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	  RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+
+Appnexus Online - Target External Segment (30 and 31 and 32), Segment 30,31 request (not served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255277
+	  Set Test Variable		${ext_segment_id}	1745464
+	  Set Test Variable		${ext_segment_id2}	1745465
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387},{"id":"${ext_segment_id2}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	  RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+
+Appnexus Online HH FC - Target External Segment (30 and 31 and 32), Segment 30,31,32 request (served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255277
+	  Set Test Variable		${ext_segment_id}	1745464
+	  Set Test Variable		${ext_segment_id2}	1745465
+	  Set Test Variable		${ext_segment_id3}	1745466
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387},{"id":"${ext_segment_id2}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387},{"id":${ext_segment_id3},"other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Log     AuctionID: ${auction_id}   	
+	   Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=5        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	   Sleep     125s   
+	   RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+
+	  
+Appnexus Online IP2HH FC - Target External Segment 29, 1 Segment request (served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+	#Preloaded 100 IP addresses maped to the same HHid
+	#Here IP is changing, but they all map to the same hh (Test case will only pass 10 times/day)
+	#FC should apply to the hh level
+	   ${random_2digits1}=         Generate Random String 		1		123456789  
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1
+	  Set Test Variable		${ext_segment_id}	1745463
+	  Set Test Variable		${ext_segment_id2}	1999999
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  
+	  Set Test Variable    ${random_ip}					169.1.29.${random_2digits1}1
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13748,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"${random_ip}","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+     
+	  Log	Rando IP:${random_ip}	 
+	  Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=1        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	  
+	  Set Test Variable    ${random_ip}					169.1.29.${random_2digits1}2
+	  Log	Rando IP:${random_ip}
+	  Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=1        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	  
+	  Set Test Variable    ${random_ip}					169.1.29.${random_2digits1}3
+	  Log	Rando IP:${random_ip}
+	  Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=1        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	  
+	  Set Test Variable    ${random_ip}					169.1.29.${random_2digits1}4
+	  Log	Rando IP:${random_ip}
+	  Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=1        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	  
+	  Set Test Variable    ${random_ip}					169.1.29.${random_2digits1}5
+	  Log	Rando IP:${random_ip}
+	  Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=1        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	  
+	  Sleep     125s   
+	  Set Test Variable    ${random_ip}					169.1.29.${random_2digits1}6
+	  Log	Rando IP:${random_ip}
+	  RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+	[Tags]	
+Appnexus Online Segment Log - Target External Segment 29, 1 Segment request (served)
+	[Documentation]		Regression>29_Appnexus_Cookie_Online
+#Make a request with external segment 29 and external hh. Check segment log field 20.
+	   ${random_auction_id}=         Generate Random String 		4		0123456789
+	   ${random_ext_hh_id}=          Generate Random String 		7		0123456789
+	  Set Test Variable		${auction_id}		632896071170463${random_auction_id}
+	  Set Test Variable		${creative_id}		1255278
+	  Set Test Variable		${ext_segment_id}	1745463
+	  Set Test Variable		${ext_hh_id}		${random_ext_hh_id}
+	  Set Test Variable    ${data} 				{"bid_request":{"timestamp":"2015-03-1717:02:56","bidder_timeout_ms":350,"members":[{"id":2049}],"member_ad_profile_id":23349,"tags":[{"auction_id_64":${auction_id},"size":"320x50","sizes":["320x50"],"smaller_sizes_allowed":false,"position":"unknown","tag_format":"javascript","supply_type":"mobile_web","site_id":13469,"ad_profile_id":499864,"visibility_profile_id":1,"venue_id":796226,"pop_max_width":320,"pop_max_height":50,"pop_is_prepop":false,"allowed_media_types":[1],"media_subtypes":["banner"],"estimated_clear_price":0.9,"estimated_average_price":1.0797}],"bid_info":{"user_id_64":437609336268923970,"no_cookies":false,"payment_rule_id":517345,"no_flash":false,"certified_supply":true,"user_agent":"Mozilla/5.0(WindowsPhone8.1;ARM;Trident/7.0;Touch;rv:11.0;IEMobile/11.0;Microsoft;Virtual)likeGecko","browser":18,"operating_system":14,"operating_system_extended":0,"operating_system_family":1,"carrier":1,"device_type":2,"language":1,"accepted_languages":"en-us","session_freq":1,"pub_session_freq":1,"ip_address":"108.89.16.118","country":"US","region":"IL","city":"Chicago","postal_code":"60630","dma":602,"time_zone":"America/Chicago","inventory_class":"unaudited","within_iframe":false,"device_ids":{},"selling_member_id":2066,"url":"us.msn.com","domain":"us.msn.com","inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[]}],"userdata_json":"{}","segments":[{"id":"${ext_segment_id}","other":"${ext_hh_id}","member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23770387}]}}}		
+	  Validate AppNexus AdServed X Times     			api_key=${RTB_APPNEXUS_API}           data=${data}				requests=1        auction_id=${auction_id}		creative_id=${creative_id}    image_name=cookie_test.jpg 	response_code=200       adgroup_expected=256934	submit_client_impression_event=YES
+	  Log	Reqid: ${reqid}
+	  Start Read Segment Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+	  Should Match Regexp 			${output}  				20=${ext_segment_id}:${ext_hh_id}

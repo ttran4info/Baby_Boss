@@ -1,0 +1,7 @@
+*** Settings ***
+Resource    adhaven_general.txt
+Resource    prizm.txt
+Resource    connexions.txt
+
+
+   

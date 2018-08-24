@@ -1,0 +1,49 @@
+*** Settings ***
+Resource             frequency_cap_imports.txt
+Force Tags           FREQUENCY_CAP    BATCH31	ADAPTV 	
+
+*** variables ***
+ ${app_id_01}					12481
+ ${app_id_03}					12483
+ ${device_fc_agid_vast}			36042
+ ${ip_fc_agid_vast}				36051
+*** Test Cases ***
+# Adaptv does not have app ID or site ID, we fill it in to make up for it.
+
+Frequency Cap for Device ID, Stop serving after X times (VAST)
+	   ${random_device_id}=         Generate Random String 		32		abcdef0123456789
+	   Set Test Variable    ${data}   		  {"id":"7569adb1-b9d6-44a3-ba2f-785639599c9f","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"protocols":[2 ],"startdelay":0,"playback":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"id":"${app_id_01}","name":"perk tv","cat":["IAB1"]},"device":{"ip":"108.220.55.85","ifa":"${random_device_id}","dpidsha1":"c9cbef800a4faf511bd03925ea31f15218967e44","dpidmd5":"10bc0393e328e1cbec9d43ae002dfd08","ua":"Mozilla/5.0 (Linux; Android; Device) LiveRailSDK/2.4.0 (AB/com.juteralabs.perktv;AV/2.3.2;BV/57)","language":"en","os":"android","devicetype":5,"geo":{"lat":"37.789799","lon":"-122.245697","type":2}},"user":{"id":"14691068417348451344"},"cur":["USD"],"tmax":150}
+	   Validate RTB AdServed X Times     			api_key=${RTB_ADAPTV_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_vast}		submit_client_impression_event=VAST
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+		[Tags]			
+
+Frequency Cap for Device ID, Continue serving X times with new device (VAST)
+	   ${random_device_id}=         Generate Random String 		32		ABCDEF0123456789
+	   Set Test Variable    ${data}   		  {"id":"7569adb1-b9d6-44a3-ba2f-785639599c9f","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"protocols":[2 ],"startdelay":0,"playback":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"id":"${app_id_01}","name":"perk tv","cat":["IAB1"]},"device":{"ip":"108.220.55.85","ifa":"${random_device_id}","dpidsha1":"c9cbef800a4faf511bd03925ea31f15218967e44","dpidmd5":"10bc0393e328e1cbec9d43ae002dfd08","ua":"Mozilla/5.0 (Linux; Android; Device) LiveRailSDK/2.4.0 (AB/com.juteralabs.perktv;AV/2.3.2;BV/57)","language":"en","os":"android","devicetype":5,"geo":{"lat":"37.789799","lon":"-122.245697","type":2}},"user":{"id":"14691068417348451344"},"cur":["USD"],"tmax":150}  
+	   Validate RTB AdServed X Times     			api_key=${RTB_ADAPTV_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_vast}		submit_client_impression_event=VAST
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+
+	   
+Frequency Cap for IP Stop serving after X times (VAST)
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"id":"7569adb1-b9d6-44a3-ba2f-785639599c9f","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"protocols":[2 ],"startdelay":0,"playback":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"id":"${app_id_03}","name":"perk tv","cat":["IAB1"]},"device":{"ip":"${random_ip}","ifa":"6250859b-6c9b-4c70-9695-1ba31bc4bfe7","dpidsha1":"c9cbef800a4faf511bd03925ea31f15218967e44","dpidmd5":"10bc0393e328e1cbec9d43ae002dfd08","ua":"Mozilla/5.0 (Linux; Android; Device) LiveRailSDK/2.4.0 (AB/com.juteralabs.perktv;AV/2.3.2;BV/57)","language":"en","os":"android","devicetype":5,"geo":{"lat":"37.789799","lon":"-122.245697","type":2}},"user":{"id":"14691068417348451344"},"cur":["USD"],"tmax":150}
+	   Validate RTB AdServed X Times     			api_key=${RTB_ADAPTV_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_vast}		submit_client_impression_event=VAST
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO	   
+
+Frequency Cap for IP Continue serving X times with new IP (VAST)
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"id":"681433d4-5ff2-4689-9e8f-f710f52518f1","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"protocols":[2 ],"startdelay":0,"playback":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"id":"${app_id_03}","name":"perk tv","cat":["IAB1"]},"device":{"ip":"${random_ip}","ifa":"DFB9FD7E-8DFF-4791-BC9D-BF03FD9DC227","dpidsha1":"dd2d8082975ba1bbd5e65693dc92ae3bbd27f1cc","dpidmd5":"6932c46e22cf7fd2f92b988ab670e162","ua":"Mozilla/5.0 (iPod; CPU iPod OS 7_1_2 like Mac OS X) LiveRailSDK/2.4.1 (AB/com.perk.livetv.iphone;AV/1.2.1;BV/1.2.1)","language":"en","devicetype":4,"geo":{"lat":"40.661701","lon":"-73.985497","type":2}},"user":{"id":"15168069816801309289"},"cur":["USD"],"tmax":150}
+	   Validate RTB AdServed X Times     			api_key=${RTB_ADAPTV_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_vast}		submit_client_impression_event=VAST
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO		   

@@ -1,0 +1,39 @@
+*** Settings ***
+Resource             exchange_specific_imports.txt
+Force Tags           AUCTIONPRICE    BATCH3		OPENX			
+Suite Teardown      Close All Connections
+
+*** variables ***
+ ${app_id}					REGRESSION OPENX APP
+ ${agid_expected}			86697
+${app_site_zip}			94110
+${online_zip}			94111 
+*** Test Cases ***
+
+Openx - Logging Auction Price at 1300 micro cents
+	   Set Test Variable	${auction_price}	1.3
+	   Set Test Variable	${auction_price_encrypted}		AAABWYSTIcGvFDKb5m-dRaN6ljn-P3YRp2-4Dw   
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"ext":{"pchain":"INTOX:6789","is_test":1},"cur":["USD"],"user":{"id":"37b7cc34-beb1-44b1-fa3a-615b2d2bb0a8","ext":{"marital":"M","ethnicity":0,"income":60000},"gender":"M","yob":1981},"device":{"dnt":0,"ext":{"language":["en"],"macaddress_sha1":"macaddresssha1","macaddress_md5":"macaddressmd5","odin1":"odin1","browser_version":"testDeviceBrowserVersion","browser":"testDeviceBrowser"},"macmd5":"macaddressmd5","macsha1":"macaddresssha1","dpidmd5":"androididmd5","dpidsha1":"androididsha1","didsha1":"2b39984d95bb8aa2477f7e904939373da9f222e8","ifa":"${device_id}","connectiontype":0,"carrier":"testcarrier","language":"en","w":1024,"h":640,"osv":"8.1","os":"testdeviceOS","model":"testDeviceModel","make":"testDeviceMaker","devicetype":1,"ip":"163.171.176.90","geo":{"country":"USA","lat":37.88,"zip":"${app_site_zip}"},"ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.5;en-US;rv:1.9.1.8)Gecko/20100202Firefox/3.5.8;"},"imp":[{"ext":{"matching_ad_id":[{"ad_width":320,"ad_height":50,"creative_id":177,"placement_id":589,"campaign_id":229}],"viewability":{"score":80,"vendor":"moat"}},"banner":{"ext":{"matching_ad_id":[{"ad_width":320,"ad_height":50,"creative_id":467,"placement_id":711,"campaign_id":229}]},"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"d01356db-ec59-49a5-8abd-5f35fac760ce","secure":0}],"test":1,"app":{"publisher":{"id":"6789"},"paid":1,"ver":"0.9.3","cat":["IAB22-4"],"storeurl":"http://store.xexample.com/myapp","domain":"example.com","bundle":"com.example.myapp","name":"MyApp","id":"${app_id}"},"id":"d01356db-ec59-49a5-8abd-5f35fac760ce"}
+	   RTB Request 				API=${RTB_OPENX_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price_encrypted} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}
+	[Tags]			
+Openx - Logging Auction Price at 11300 microcents
+	   Set Test Variable	${auction_price}	11.3
+	   Set Test Variable	${auction_price_encrypted}		AAABWYSVUKegwC2rM-_uDxskIeiJeQNRF-juxA  
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"ext":{"pchain":"INTOX:6789","is_test":1},"cur":["USD"],"user":{"id":"37b7cc34-beb1-44b1-fa3a-615b2d2bb0a8","ext":{"marital":"M","ethnicity":0,"income":60000},"gender":"M","yob":1981},"device":{"dnt":0,"ext":{"language":["en"],"macaddress_sha1":"macaddresssha1","macaddress_md5":"macaddressmd5","odin1":"odin1","browser_version":"testDeviceBrowserVersion","browser":"testDeviceBrowser"},"macmd5":"macaddressmd5","macsha1":"macaddresssha1","dpidmd5":"androididmd5","dpidsha1":"androididsha1","didsha1":"2b39984d95bb8aa2477f7e904939373da9f222e8","ifa":"${device_id}","connectiontype":0,"carrier":"testcarrier","language":"en","w":1024,"h":640,"osv":"8.1","os":"testdeviceOS","model":"testDeviceModel","make":"testDeviceMaker","devicetype":1,"ip":"163.171.176.90","geo":{"country":"USA","lat":37.88,"zip":"${app_site_zip}"},"ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.5;en-US;rv:1.9.1.8)Gecko/20100202Firefox/3.5.8;"},"imp":[{"ext":{"matching_ad_id":[{"ad_width":320,"ad_height":50,"creative_id":177,"placement_id":589,"campaign_id":229}],"viewability":{"score":80,"vendor":"moat"}},"banner":{"ext":{"matching_ad_id":[{"ad_width":320,"ad_height":50,"creative_id":467,"placement_id":711,"campaign_id":229}]},"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"d01356db-ec59-49a5-8abd-5f35fac760ce","secure":0}],"test":1,"app":{"publisher":{"id":"6789"},"paid":1,"ver":"0.9.3","cat":["IAB22-4"],"storeurl":"http://store.xexample.com/myapp","domain":"example.com","bundle":"com.example.myapp","name":"MyApp","id":"${app_id}"},"id":"d01356db-ec59-49a5-8abd-5f35fac760ce"}
+	   RTB Request 				API=${RTB_OPENX_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price_encrypted} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}
+	   [Tags]		  
+Openx - Logging Auction Price at 0.0 microcents
+	   Set Test Variable	${auction_price}	0.0
+	   Set Test Variable	${auction_price_encrypted}		AAABWYSUwXjZC3YnuKjTsNwWWAfbYqRgO9oziQ  
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"ext":{"pchain":"INTOX:6789","is_test":1},"cur":["USD"],"user":{"id":"37b7cc34-beb1-44b1-fa3a-615b2d2bb0a8","ext":{"marital":"M","ethnicity":0,"income":60000},"gender":"M","yob":1981},"device":{"dnt":0,"ext":{"language":["en"],"macaddress_sha1":"macaddresssha1","macaddress_md5":"macaddressmd5","odin1":"odin1","browser_version":"testDeviceBrowserVersion","browser":"testDeviceBrowser"},"macmd5":"macaddressmd5","macsha1":"macaddresssha1","dpidmd5":"androididmd5","dpidsha1":"androididsha1","didsha1":"2b39984d95bb8aa2477f7e904939373da9f222e8","ifa":"${device_id}","connectiontype":0,"carrier":"testcarrier","language":"en","w":1024,"h":640,"osv":"8.1","os":"testdeviceOS","model":"testDeviceModel","make":"testDeviceMaker","devicetype":1,"ip":"163.171.176.90","geo":{"country":"USA","lat":37.88,"zip":"${app_site_zip}"},"ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.5;en-US;rv:1.9.1.8)Gecko/20100202Firefox/3.5.8;"},"imp":[{"ext":{"matching_ad_id":[{"ad_width":320,"ad_height":50,"creative_id":177,"placement_id":589,"campaign_id":229}],"viewability":{"score":80,"vendor":"moat"}},"banner":{"ext":{"matching_ad_id":[{"ad_width":320,"ad_height":50,"creative_id":467,"placement_id":711,"campaign_id":229}]},"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"d01356db-ec59-49a5-8abd-5f35fac760ce","secure":0}],"test":1,"app":{"publisher":{"id":"6789"},"paid":1,"ver":"0.9.3","cat":["IAB22-4"],"storeurl":"http://store.xexample.com/myapp","domain":"example.com","bundle":"com.example.myapp","name":"MyApp","id":"${app_id}"},"id":"d01356db-ec59-49a5-8abd-5f35fac760ce"}
+	   RTB Request 				API=${RTB_OPENX_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price_encrypted} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}
+	   [Tags]

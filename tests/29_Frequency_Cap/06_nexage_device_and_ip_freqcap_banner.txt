@@ -1,0 +1,50 @@
+*** Settings ***
+Resource             frequency_cap_imports.txt
+Force Tags           FREQUENCY_CAP    BATCH36	NEXAGE 
+
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ ${app_id_01}					12452
+ ${app_id_03}					12454
+ ${device_fc_agid_banner}		36041
+ ${ip_fc_agid_banner}			36047 
+*** Test Cases ***
+# 
+
+Frequency Cap for Device ID, Stop serving after X times
+	   ${random_device_id}=         Generate Random String 		32		abcdef0123456789
+	   Set Test Variable    ${data}   		  {"id":"73c07c26-a7e3-473a-9d21-eed3f3753372","at":2,"bcat":["IAB8-5","IAB8-18","IAB14-1","IAB26","IAB25","IAB24","NEX8-101"],"imp":[{"id":"73c07c26-a7e3-473a-9d21-eed3f3753372-1","instl":0,"banner":{"h":50,"w":320,"btype":[1],"battr":[3,4,5,8,9,12],"pos":0,"api":[3],"ext":{"nex_mraid":2}},"displaymanager":"millennial","displaymanagerver":"5.3.0-c3980670.a","bidfloor":2.2,"ext":{"nex_screen":0}}],"app":{"id":"${app_id_01}","name":"Weatherbug-WeatherBug-ANDROID","publisher":{"id":"17291","name":"Weatherbug"},"domain":"weatherbug.com","cat":["IAB19-8","IAB15-10"],"ext":{"nex_coppa":0,"nex_sdkv":"5.3.0-c3980670.a"},"bundle":"xcom.aws.android","storeurl":"https://play.google.com/store/apps/details?id=com.aws.android&hl=en"},"device":{"didsha1":"3bb3f3247861f729926e9fe35740eb52f455436e","dpidsha1":"1D4126ED65889F108524935BBE5CC7FDD994A195","didmd5":"09c18cf5c6fe6583343542f3c5ee1f81","dpidmd5":"A8142CE3675E71F8C7A5E6B53D8A2AEF","dnt":1,"ip":"104.60.196.75","carrier":"WIFI","ua":"Dalvik/1.6.0 (Linux; U; Android 4.4.2; LGLS740 Build/KOT49I.LS740ZV5)","make":"LG","osv":"4.4.2","js":1,"os":"Android","connectiontype":2,"devicetype":1,"geo":{"lat":42.558395,"lon":-89.1599,"country":"USA","city":"ORFORDVILLE","zip":"53576","metro":"669","region":"WI","type":1},"ifa":"${random_device_id}","nex_tablet":0},"user":{"id":"0dccbf36-4f6c-4d38-ae08-bcc39ff069fb","geo":{"country":"USA","zip":"53576","type":3}}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_NEXAGE_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_NEXAGE_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+  
+Frequency Cap for Device ID, Continue serving X times with new device
+	   ${random_device_id}=         Generate Random String 		32		ABCDEF0123456789
+	   Set Test Variable    ${data}   		  {"id":"e215cde0-125f-463a-a38a-d3abe9f8958f","at":2,"bcat":["IAB8-5","IAB8-18","IAB14-1","IAB26","IAB25","IAB24","NEX8-101"],"badv":["machinezone.com","gameofwarapp.com"],"imp":[{"id":"e215cde0-125f-463a-a38a-d3abe9f8958f-1","instl":0,"banner":{"h":50,"w":320,"btype":[1],"battr":[3,4,5,8,9,12],"pos":0},"displaymanager":"millennial","displaymanagerver":"5.1.1-13.8.6.i","bidfloor":0.82,"ext":{"nex_screen":0}}],"app":{"id":"${app_id_01}","name":"EA Mobile-Bejeweled HD-DFP-IPHONE","publisher":{"id":"17382","name":"EA Mobile"},"domain":"eamobile.com","cat":["IAB9-30"],"ext":{"nex_coppa":0,"nex_sdkv":"5.1.1-13.8.6.i"},"bundle":"x479536744"},"device":{"didsha1":"3bb3f3247861f729926e9fe35740eb52f455436e","dpidsha1":"1D4126ED65889F108524935BBE5CC7FDD994A195","didmd5":"09c18cf5c6fe6583343542f3c5ee1f81","dpidmd5":"A8142CE3675E71F8C7A5E6B53D8A2AEF","dnt":0,"ip":"66.87.125.33","carrier":"SPRINT","ua":"iPhone 8.2","make":"Apple","model":"iPhone","osv":"5","js":1,"os":"iOS","connectiontype":3,"devicetype":1,"geo":{"lat":42.191193,"lon":-71.7789,"country":"USA","city":"EAST MILLBURY","zip":"01527","metro":"506","region":"MA","type":1},"ifa":"${random_device_id}","nex_tablet":0},"user":{"id":"7BD209CF-1CB1-4E94-B04B-652F95FFB78D","geo":{"country":"USA","zip":"01527","type":3}}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_NEXAGE_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_NEXAGE_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+
+	   
+Frequency Cap for IP Stop serving after X times
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"id":"73c07c26-a7e3-473a-9d21-eed3f3753372","at":2,"bcat":["IAB8-5","IAB8-18","IAB14-1","IAB26","IAB25","IAB24","NEX8-101"],"imp":[{"id":"73c07c26-a7e3-473a-9d21-eed3f3753372-1","instl":0,"banner":{"h":50,"w":320,"btype":[1],"battr":[3,4,5,8,9,12],"pos":0,"api":[3],"ext":{"nex_mraid":2}},"displaymanager":"millennial","displaymanagerver":"5.3.0-c3980670.a","bidfloor":2.2,"ext":{"nex_screen":0}}],"app":{"id":"${app_id_03}","name":"Weatherbug-WeatherBug-ANDROID","publisher":{"id":"17291","name":"Weatherbug"},"domain":"weatherbug.com","cat":["IAB19-8","IAB15-10"],"ext":{"nex_coppa":0,"nex_sdkv":"5.3.0-c3980670.a"},"bundle":"xcom.aws.android","storeurl":"https://play.google.com/store/apps/details?id=com.aws.android&hl=en"},"device":{"dnt":0,"ip":"${random_ip}","carrier":"WIFI","ua":"Dalvik/1.6.0 (Linux; U; Android 4.4.2; LGLS740 Build/KOT49I.LS740ZV5)","make":"LG","osv":"4.4.2","js":1,"os":"Android","connectiontype":2,"devicetype":1,"geo":{"lat":42.558395,"lon":-89.1599,"country":"USA","city":"ORFORDVILLE","zip":"53576","metro":"669","region":"WI","type":1},"ifa":"0dccbf36-4f6c-4d38-ae08-bcc39ff069fb","nex_tablet":0},"user":{"id":"0dccbf36-4f6c-4d38-ae08-bcc39ff069fb","geo":{"country":"USA","zip":"53576","type":3}}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_NEXAGE_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_NEXAGE_API}          data=${data}		response_code=204        submit_client_impression_event=NO	   
+
+Frequency Cap for IP Continue serving X times with new IP
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"id":"e215cde0-125f-463a-a38a-d3abe9f8958f","at":2,"bcat":["IAB8-5","IAB8-18","IAB14-1","IAB26","IAB25","IAB24","NEX8-101"],"badv":["machinezone.com","gameofwarapp.com"],"imp":[{"id":"e215cde0-125f-463a-a38a-d3abe9f8958f-1","instl":0,"banner":{"h":50,"w":320,"btype":[1],"battr":[3,4,5,8,9,12],"pos":0},"displaymanager":"millennial","displaymanagerver":"5.1.1-13.8.6.i","bidfloor":0.82,"ext":{"nex_screen":0}}],"app":{"id":"${app_id_03}","name":"EA Mobile-Bejeweled HD-DFP-IPHONE","publisher":{"id":"17382","name":"EA Mobile"},"domain":"eamobile.com","cat":["IAB9-30"],"ext":{"nex_coppa":0,"nex_sdkv":"5.1.1-13.8.6.i"},"bundle":"x479536744"},"device":{"dnt":0,"ip":"${random_ip}","carrier":"SPRINT","ua":"iPhone 8.2","make":"Apple","model":"iPhone","osv":"5","js":1,"os":"iOS","connectiontype":3,"devicetype":1,"geo":{"lat":42.191193,"lon":-71.7789,"country":"USA","city":"EAST MILLBURY","zip":"01527","metro":"506","region":"MA","type":1},"ifa":"7BD209CF-1CB1-4E94-B04B-652F95FFB78D","nex_tablet":0},"user":{"id":"7BD209CF-1CB1-4E94-B04B-652F95FFB78D","geo":{"country":"USA","zip":"01527","type":3}}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_NEXAGE_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_NEXAGE_API}          data=${data}		response_code=204        submit_client_impression_event=NO		   

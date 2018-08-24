@@ -1,0 +1,34 @@
+
+*** Settings ***
+Resource            misc_ad_requests_imports.txt
+Force Tags         MISC_AD_REQUESTS    QA_ONLY    GEOFENCE        BATCH1     MEDIATION    EXCLUDE
+Test Setup            Open Browser       ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+Test Teardown      Close All Browsers
+
+*** Keywords *** 
+Geofence Template 
+       [Arguments]        ${lat_lon}
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    header_user-agent=iPhone     placement_id=${GEOFENCE_PERF_PLACEMENTID}      lat_lon=${lat_lon}
+       Delete All Cookies
+       Go To   ${ad_request_url}
+       Sleep     1s
+       Capture Page Screenshot With Timestamp
+       ${source}=   Get Source   
+       Log   ${source}
+       Validate Ad Is Served And Page Source Contains Image File    ${source}    320x50_Group01.jpg
+
+
+*** Test Cases ***
+Sanity Geofence Performance Tests - California Pizza Kitchen For San Francisco - Oak - San Jose
+      [Template]          Geofence Template      
+      	37.32343893,-121.9458422
+      	37.78711315,-122.4104864
+		37.78035466,-122.4202671
+		37.44810356,-122.1588075
+		37.83407411,-122.2921465
+		37.89629373,-122.0595922
+		37.69609407,-121.9319496
+		37.53690278,-122.2973237
+		37.92696127,-122.5165045
+		37.96718082,-122.0619145
+		37.25049935,-121.8634018

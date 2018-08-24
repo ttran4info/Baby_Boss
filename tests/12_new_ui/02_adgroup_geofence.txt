@@ -1,0 +1,65 @@
+*** Settings ***
+Resource            new_ui_imports.txt
+Force Tags         	NEW_UI     6.0       GEOFENCE	BATCH5			     
+Suite Setup			Run Keywords			Start the Browser And Login To The Adhaven UI
+Suite Teardown      Run Keywords            Logout of AdHaven UI            Close All Browsers
+
+*** Variables ***
+${ag_geofence_name}=				REGRESSION GEOFENCE BORDERS
+${banner_type}=                		GENERIC
+${banner_file_name}=        		320x50_Group01.jpg 
+${banner_file_name2}=        		320x50_Group01.jpg 
+${test_campaign_name_prefix}=     	12_TEST_CAMPAIGN
+${generic_mopub_app_request_data}=   			{"app":{"aid":"MOPUB_DEFAULT_PLACEMENT_MOPUB33333","cat":["IAB14","IAB24","lifestyle","social_networking"],"global_aid":"372648912","name":"Meet New People - myYearbook Flirting & Fun for Friends and Singles of Any Sex iOS","paid":0,"pid":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYzdeVEgw","pub":"myYearbook.com"},"at":2,"device":{"city":"Tyrone","country":"USA","dpid":"9B55BA53-6586-48D6-8B46-AC52EA5855DB","ext":{"idfa":"42C6857E-D0F0-4920-91F6-F8BAFD10A7F5"},"ip":"96.247.185.120","js":1,"loc":"40.60843,-75.49018","make":"Apple","model":"iPod","os":"iPhone OS","osv":"6.0.1","state":"PA","ua":"Mozilla/5.0 (iPod; CPU iPhone OS 6_0_1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Mobile/10A523","zip":"16686"},"id":"e505c063-5fd9-428f-b658-526bc9dd5d7e","imp":[{"battr":["8","9","10","14","6"],"h":50,"impid":"e505c063-5fd9-428f-b658-526bc9dd5d7e","instl":0,"w":320}],"pf":0.090,"restrictions":{"badv":["areyouinterested","badoo","howaboutwe","meetmoi","skout","twoo","alertid.com","funzio.com","howaboutwe","http://platform.mdotm.com/promote/mock/c81f742b","m.wildbuddies.com","naughtyflirts.mobi","skout","t.zoosk.com/mkt/*","twoo","www.ngmoco.com/bloodbrothers"],"bcat":["IAB7-39","IAB8-5","IAB8-18","IAB9-9","IAB25","IAB26"]},"tmax":300,"user":{"dnt":1,"uid":"9B55BA53-6586-48D6-8B46-AC52EA5855DB"}}
+${generic_mopub_site_online_request_data}=   	{"id":"060A6B62-C49A-4D64-8A2B-662A87E9BACC","imp":[{"id": "1","tagid": "96088","banner": {"w": 320,"h": 50,"topframe": 1}}],"site": {"id": "9500","domain": "http://www.bigdnet.com","page": "bestbuys.com","ref": "http://show.mediaamped.com/adcode/adcode?site=&crid=469&sourceid=adtech&refUrl=&cbrs=57832803&auction_price=0.1595&zz=51","publisher": {"id": "43472"}},"device": {"ip": "76.23.172.70","ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/534.59.10 (KHTML, like Gecko) Version/5.1.9 Safari/534.59.10","carrier": "Comcast Cable","language": "en-us","js": 1,"geo": {"country": "US","region": "CT","city": "Sharon","metro": "533","lat": 41.8551,"lon": -73.4415,"type": 2,"zip": "06069"},"ext": {"res": "1440x900","freq": 0,"pf": 1}},"user": {"id": "DEE94762-75D9-4074-B1BE-492FE0D86344","ext": {"tmz": "-4"}}}
+*** Keywords ***
+
+*** Test Cases ***
+Clean Up All Existing Data For 12_create_advertiser_and_ads Tests
+		[Documentation]		 04_TEST_ADVERTISER>12_TEST_CAMPAIGN.*  	
+#        Cleanup Campaign Data By Campaign Name        campaign_name=${test_campaign_name_prefix}
+        Reload All Cache
+		[Tags]	Exclude
+		#cleanup db is causing db lockup, exclude for now
+Create A New Campaign
+		[Documentation]		 04_TEST_ADVERTISER>12_TEST_CAMPAIGN+Date+Time
+	   Set Suite Variable      ${screen_type}				1
+	   Set Suite Variable	  ${traffic_type}				1
+	   	Go To Advertisers Tab
+	   	Set Test Variable	${start_date}		DEFAULT
+	   	Set Test Variable	${end_date}			DEFAULT	
+	   	Generate Default Dates For UI Setup
+       	Add Campaign To Advertiser 6.0    advertiser_name=${DEFAULT_ADVERTISER}    campaign_name=${test_campaign_name_prefix}    campaign_start_date=${ui_start_date}    campaign_end_date=${ui_end_date}    campaign_time_zone=Eastern	campaign_total_budget=100000     timestamp_flag=1	     
+       	Retrieve Campaign_ID By Campaign Name       ${campaign_name}
+       	Log     CAMPAIGN_ID: ${campaign_id} 
+       	SMB Validate DB Campaign				campaign_id=${campaign_id} 			campaign_partner_id=183      	campaign_name=${campaign_name}     		campaign_start_time=${start_date_gmt}       	campaign_restart_time=None			campaign_end_time=${end_date_gmt}     			campaign_start_time_ui=${db_start_date} 00:00:00          campaign_end_time_ui=${db_end_date} 03:59:59     		campaign_zoneinfo_time_zone=America/New_York			campaign_impressions_sold=None      		campaign_impressions_delivered=None      	campaign_budget=100000   		campaign_status=1    		campaign_insertion_order=io      	campaign_created_dt=None      	campaign_modified_dt=${today}      		campaign_keywords=rfTestCampaign      		campaign_measurement_id=None      	campaign_order_id=None    		campaign_txn_ref_id=None      campaign_txn_date=None       campaign_txn_status=None      	campaign_txn_return_code=None      	campaign_duration=None      	campaign_internal_duration=None      campaign_target_list_URL=None    	campaign_target_list_ID=None    		campaign_creative_id=None     campaign_billing_id=None      	campaign_available_qty=None      campaign_selected_qty=None      campaign_matched_qty=None     
+		Set Suite Variable 			${campaign_name}		${campaign_name}
+	
+Create A New Parent Adgroup with geofence
+		[Documentation]		GeoFence name is: REGRESSION GEOFENCE BORDERS
+       	Add Parent Adgroup To Campaign Without Targeting 6.0         advertiser_name=${DEFAULT_ADVERTISER}     
+       ...                       campaign_name=${campaign_name}     
+       ...                       ag_adgroup_name=12_PARENT
+       ...                       ag_start_date=${ui_start_date}
+       ...                       ag_end_date=${ui_end_date}
+       ...                       timestamp_flag=1
+	   ...						 ag_geofence=1
+	   ...						 ag_geofence_name=${ag_geofence_name}                                               
+      Log    Adgroup ID Created: ${ag_adgroup_id}
+      Capture Page Screenshot With Timestamp
+      Validate Parent Adgroup Added Correctly In Database For Defaults
+      #TBD - Need to database ad validation for target list such as Geo Fence or HH segment. 1. Look up agid 2.look up adgroup_targetlist 3.look up targetlist 4.different target_table (target_geofence_segment)  	
+      Validate Parent Adgroup Added To Campaign Without Targeting 6.0        advertiser_name=${DEFAULT_ADVERTISER}
+      ...                       campaign_name=${campaign_name}     
+      ...                       ag_adgroup_name=${ag_adgroup_name} 
+      ...                       ag_start_date=${ui_start_date}
+      ...                       ag_end_date=${ui_end_date}
+      ...						ag_geofence=1
+      ...						ag_geofence_name=${ag_geofence_name}    		    
+   
+Clean Up All Existing Data For 12_create_advertiser_and_ads Tests End
+        #Cleanup Campaign Data By Campaign Name        campaign_name=${test_campaign_name_prefix}
+        Reload All Cache
+        #Log     Commented this out to test deadlock issues.
+        [Tags]    Exclude 
+

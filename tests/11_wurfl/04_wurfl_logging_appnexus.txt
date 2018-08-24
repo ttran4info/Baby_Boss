@@ -1,0 +1,106 @@
+*** Settings ***
+Resource    wurfl_imports.txt
+Force Tags          SMB    BUILD_SANITY       QA_ONLY    BATCH4     WURFL        APPNEXUS		
+Suite Setup 		   Retrieve AppNexus Token	 
+# z is used to separate begin/end for regex validation
+# For Appnexus:    bid_id is the  "user_id_64": 4862410637149145000
+# Sampler:  http://rtb.adhaven.com/bid-engine/sampler/3584/getRequestSample/
+# WURFL will no longer be tested in 7.2 due to this Jira : https://jira.adhaven.com/browse/ADH-6526
+Suite Teardown       Close All Connections
+*** Test Cases ***
+Appnexus - Live Sample - Amazon Kindle Fire HD
+	Set Test Variable    ${data}        ${WURFL_04_01}     
+    Validate RTB WURFL Detection        api_key=${RTB_APPNEXUS_API}			bid_request=${data}        		
+    #user_agent=Dalvik/1.6.0 (Linux; U; Android 4.0.4; KFJWI Build/IMM76D)						bid_id=4279075375486570000
+	#Retrieve AppNexus Make          make_id=17
+	#Retrieve AppNexus Model         model_id=249
+#	Should Match Regexp 			${output}  				zMobile Device Brand=${retrieved_appnexus_make}z
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=${retrieved_appnexus_make}z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=${retrieved_appnexus_model}z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=KFJWI
+	Should Match Regexp 			${output}  				Device OS version=4.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Amazon
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=Kindle Fire HD 8.9
+
+Appnexus - Live Sample - HTC EVO Design 4G
+	Set Test Variable    ${data}        ${WURFL_04_02}     
+    Validate RTB WURFL Detection        api_key=${RTB_APPNEXUS_API}			bid_request=${data}        		
+    #user_agent=Dalvik/1.6.0 (Linux; U; Android 4.0.3; HTCEVODesign4G Build/IML74K)						bid_id=4029118844663303370
+#	Retrieve AppNexus Make          make_id=193
+#	Retrieve AppNexus Model         model_id=1493
+#	Should Match Regexp 			${output}  				zMobile Device Brand=${retrieved_appnexus_make}z
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=${retrieved_appnexus_make}z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=${retrieved_appnexus_model}z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=APC715CKT
+	Should Match Regexp 			${output}  				Device OS version=4.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=HTC
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=EVO Design 4G
+
+Appnexus - Live Sample - iPhone 7.1
+	Set Test Variable    ${data}        ${WURFL_04_03}     
+    Validate RTB WURFL Detection        api_key=${RTB_APPNEXUS_API}			bid_request=${data}        		
+    #user_agent=iPhone 7.1					bid_id=1392360101839841025
+#	Retrieve AppNexus Make          make_id=26
+#	Retrieve AppNexus Model         model_id=301
+#	Should Match Regexp 			${output}  				zMobile Device Brand=z
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=${retrieved_appnexus_make}z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=${retrieved_appnexus_model}z
+	Should Match Regexp 			${output}  				Device OS=iPhone OS
+	Should Match Regexp 			${output}  				Device Model=iPhone
+	Should Match Regexp 			${output}  				Device OS version=1.0
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Apple
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=
+
+
+Appnexus - Live Sample - Samsung SGH-T589 Gravity Smart
+	Set Test Variable    ${data}        ${WURFL_04_04}     
+    Validate RTB WURFL Detection        api_key=${RTB_APPNEXUS_API}			bid_request=${data}        		
+    #user_agent=Dalvik/1.6.0 (Linux; U; Android 4.1.2; SGH-T599N Build/JZO54K)			bid_id=4683616626147307912
+	#Retrieve AppNexus Make          make_id=361
+	#Retrieve AppNexus Model         model_id=6897
+#	Should Match Regexp 			${output}  				zMobile Device Brand=${retrieved_appnexus_make}z
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=${retrieved_appnexus_make}z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=${retrieved_appnexus_model}z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=SGH T599N
+	Should Match Regexp 			${output}  				Device OS version=4.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=
+
+Appnexus - Live Sample - Android
+	Set Test Variable    ${data}        ${WURFL_04_05}     
+    Validate RTB WURFL Detection        api_key=${RTB_APPNEXUS_API}			bid_request=${data}        		
+    #user_agent=Dalvik/1.6.0 (Linux; U; Android 4.1.2; Z796C Build/JZO54K)					bid_id=195536395272542919
+	#Retrieve AppNexus Make          make_id=500
+	#Retrieve AppNexus Model         model_id=12116
+#	Should Match Regexp 			${output}  				zMobile Device Brand=ZTEz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=${retrieved_appnexus_make}z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=${retrieved_appnexus_model}z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=Z796C
+	Should Match Regexp 			${output}  				Device OS version=4.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=ZTE
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Majesty
+
+
+
+
+
+
+
+
+
+
+	

@@ -1,0 +1,161 @@
+*** Settings ***
+Resource    wurfl_imports.txt
+Force Tags          SMB    BUILD_SANITY       QA_ONLY    BATCH4     WURFL        INNERACTIVE
+# z is used to separate begin/end for regex validation
+# For Inneractive:    bid_id is the "id":"9024571210284685931"
+# Sampler: http://rtb.adhaven.com/bid-engine/sampler/4183/getRequestSample/
+# WURFL will no longer be tested in 7.2 due to this Jira : https://jira.adhaven.com/browse/ADH-6526
+Suite Teardown       Close All Connections
+*** Test Cases ***
+Inneractive - Live Sample - LG VS980
+	Set Test Variable    ${data}        ${WURFL_05_01}     
+    Validate RTB WURFL Detection        api_key=${RTB_INNERACTIVE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; VS980 4G Build/JDQ39B) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30																bid_id=9024571210284685931
+#	Should Match Regexp 			${output}  				zMobile Device Brand=LGz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=VS980 4G
+	Should Match Regexp 			${output}  				Device OS version=4.2
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=LG
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=G2
+	
+Inneractive - Live Sample - Generic 5890
+	Set Test Variable    ${data}        ${WURFL_05_02}     
+    Validate RTB WURFL Detection        api_key=${RTB_INNERACTIVE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Y88 Build/JRO03H) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30																					bid_id=349441539337302354
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Genericz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=5890z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=Android 4.1 Tablet
+	Should Match Regexp 			${output}  				Device OS version=4.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Generic
+	Should Match Regexp 			${output}  				Device Type=0
+	Should Match Regexp 			${output}  				Marketing Name=
+	
+Inneractive - Live Sample - Motorola DROID3
+	Set Test Variable    ${data}        ${WURFL_05_03}     
+    Validate RTB WURFL Detection        api_key=${RTB_INNERACTIVE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 2.3.4; en-us; DROID3 Build/5.5.1_84_D3G-66_M2-10) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1											bid_id=614745648740469183
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Motorolaz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=XT862z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=XT862
+	Should Match Regexp 			${output}  				Device OS version=2.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Motorola
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Droid 3
+	
+Inneractive - Live Sample - Motorola Droid Razr 4G
+	Set Test Variable    ${data}        ${WURFL_05_04}     
+    Validate RTB WURFL Detection        api_key=${RTB_INNERACTIVE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.1.2; en-us; DROID RAZR Build/9.8.2O-72_VZW-16-5) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30										bid_id=8657282527142052347
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Motorolaz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=MOTXT912Bz
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=MOTXT912B
+	Should Match Regexp 			${output}  				Device OS version=4.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Motorola
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Droid Razr 4G
+	
+Inneractive - Live Sample - Samsung Galaxy Player 3.6
+	Set Test Variable    ${data}        ${WURFL_05_05}     
+    Validate RTB WURFL Detection        api_key=${RTB_INNERACTIVE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 2.3.6; en-us; YP-GS1 Build/GINGERBREAD) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1																bid_id=6463473328786350040
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=YP-GS1z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=YP-GS1
+	Should Match Regexp 			${output}  				Device OS version=2.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=2
+	Should Match Regexp 			${output}  				Marketing Name=Galaxy Player 3.6
+	
+Inneractive - Live Sample - iPhone
+	Set Test Variable    ${data}        ${WURFL_05_06}     
+    Validate RTB WURFL Detection        api_key=${RTB_INNERACTIVE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Mobile/11D169																													bid_id=678025190719885870
+#	Should Match Regexp 			${output}  				zMobile Device Brand=Applez
+#	Should Match Regexp 			${output}  				zDevice Brand From Request=z
+#	Should Match Regexp 			${output}  				zDevice Model From Request=iPhonez
+	Should Match Regexp 			${output}  				Device OS=iPhone OS
+	Should Match Regexp 			${output}  				Device Model=iPhone
+	Should Match Regexp 			${output}  				Device OS version=7.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Apple
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=
+	
+Inneractive - Live Sample - Android P500
+	Set Test Variable    ${data}        ${WURFL_05_07}     
+    Validate RTB WURFL Detection        api_key=${RTB_INNERACTIVE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.1.2; en-us; LG-P659 Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30																	bid_id=6808451092694613855
+	#Should Match Regexp 			${output}  				zMobile Device Brand=LGz
+	#Should Match Regexp 			${output}  				zDevice Brand From Request=z
+	#Should Match Regexp 			${output}  				zDevice Model From Request=P500z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=P659
+	Should Match Regexp 			${output}  				Device OS version=4.1
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=LG
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=Optimus F3
+	
+Inneractive - Live Sample - Google Nexus 4
+	Set Test Variable    ${data}        ${WURFL_05_08}     
+    Validate RTB WURFL Detection        api_key=${RTB_INNERACTIVE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; Android 4.4.2; Nexus 4 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36														bid_id=8847062647204204848
+	#Should Match Regexp 			${output}  				zMobile Device Brand=Googlez
+	#Should Match Regexp 			${output}  				zDevice Brand From Request=z
+	#Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=Nexus 4
+	Should Match Regexp 			${output}  				Device OS version=4.4
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Google
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=
+	
+Inneractive - Live Sample - HTC Generic Android 
+	Set Test Variable    ${data}        ${WURFL_05_09}     
+    Validate RTB WURFL Detection        api_key=${RTB_INNERACTIVE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; Android 4.4.2; 831C Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36															bid_id=6886900955029653556
+	#Should Match Regexp 			${output}  				zMobile Device Brand=HTCz
+	#Should Match Regexp 			${output}  				zDevice Brand From Request=z
+	#Should Match Regexp 			${output}  				zDevice Model From Request=z
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=831C
+	Should Match Regexp 			${output}  				Device OS version=4.4
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=HTC
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=One M8
+	
+Inneractive - Live Sample - Samsung Galaxy Nexus
+	Set Test Variable    ${data}        ${WURFL_05_10}     
+    Validate RTB WURFL Detection        api_key=${RTB_INNERACTIVE_API}			bid_request=${data}        		
+    #user_agent=Mozilla/5.0 (Linux; U; Android 4.3; en-us; Galaxy Nexus Build/JWR66Y) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30																bid_id=2693031608290585142
+	#Should Match Regexp 			${output}  				zMobile Device Brand=Samsungz
+	#Should Match Regexp 			${output}  				zDevice Brand From Request=z
+	#Should Match Regexp 			${output}  				zDevice Model From Request=Galaxy Nexusz
+	Should Match Regexp 			${output}  				Device OS=Android
+	Should Match Regexp 			${output}  				Device Model=Galaxy Nexus
+	Should Match Regexp 			${output}  				Device OS version=4.3
+	Should Match Regexp 			${output}  				Device Pointing Method=touchscreen
+	Should Match Regexp 			${output}  				Device Brand=Samsung
+	Should Match Regexp 			${output}  				Device Type=1
+	Should Match Regexp 			${output}  				Marketing Name=
+
+
+

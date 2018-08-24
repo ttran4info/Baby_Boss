@@ -1,0 +1,67 @@
+*** Settings ***
+Resource             exchange_specific_imports.txt
+Force Tags           APP_NAME 	SITE_NAME   BATCH3		ADAPTV 	
+Suite Teardown      Close All Connections
+
+*** variables ***
+ ${app_id}					13189
+ ${site_id}					13192
+ 
+*** Test Cases ***
+# Adaptv does not have app ID or site ID. it will use the name lowercase, md5
+
+Adaptv - Logging app name
+	[Documentation]		Normal case when app name is available log it in field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"id":"123456","name":"freetone","cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				71=freetone
+
+	
+Adaptv - app name not available, app id is available. app name= (exchange: app ID)
+	[Documentation]		When app name is not available, but app id is there, log (exchange:app id) for field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"id":"123456","cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				71=Oath One Video: 123456
+	
+Adaptv - app name and app id is null. app name = exchange: not available
+	[Documentation]		When app name and app id is not available. log exchange: not available in field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				71=Oath One Video: not available
+
+Adaptv - Logging site name
+	[Documentation]		Normal case when site name is available log it in field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"7151275b-47ce-4264-b5bf-b7825df142f3","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":120,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[1 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"id":"123456","name":"freetone","page":"xfoxct.com/2015/08/21/report-federal-officer-and-suspect-shot-outside-federal-building-in-nyc/","cat":["IAB1"]},"device":{"ifa":"${device_id}","ip":"104.162.160.243","ua":"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.133 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":"40.73","lon":"-73.79","type":1}},"user":{"id":"1829135698822077911"},"cur":["USD"],"tmax":150}
+	   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				72=freetone
+
+	
+Adaptv - site name not available, site id is available. site name= (exchange: site ID)
+	[Documentation]		When site name is not available, but site id is there, log (exchange:app id) for field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"7151275b-47ce-4264-b5bf-b7825df142f3","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":120,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[1 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"id":"123456","name":"","page":"xfoxct.com/2015/08/21/report-federal-officer-and-suspect-shot-outside-federal-building-in-nyc/","cat":["IAB1"]},"device":{"ifa":"${device_id}","ip":"104.162.160.243","ua":"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.133 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":"40.73","lon":"-73.79","type":1}},"user":{"id":"1829135698822077911"},"cur":["USD"],"tmax":150}
+	   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				72=Oath One Video: 123456
+	
+Adaptv - site name and site id is null. site name = exchange: not available
+	[Documentation]		When site name and site id is not available. log exchange: not available in field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"7151275b-47ce-4264-b5bf-b7825df142f3","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":120,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[1 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"page":"xfoxct.com/2015/08/21/report-federal-officer-and-suspect-shot-outside-federal-building-in-nyc/","cat":["IAB1"]},"device":{"ifa":"${device_id}","ip":"104.162.160.243","ua":"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.133 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":"40.73","lon":"-73.79","type":1}},"user":{"id":"1829135698822077911"},"cur":["USD"],"tmax":150}
+	   
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				72=Oath One Video: not available

@@ -1,0 +1,51 @@
+*** Settings ***
+Resource             frequency_cap_imports.txt
+Force Tags           FREQUENCY_CAP    BATCH32	AOL 	
+
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ #clear_id on indicate if we are using clear device ID value should be ON or OFF, not relevant since AOL only has 1 type of ID.
+ ${app_id_01}					12443
+ ${app_id_03}					12445
+ ${device_fc_agid_banner}		36041
+ ${ip_fc_agid_banner}				36047 
+*** Test Cases ***
+# 
+
+Frequency Cap for Device ID, Stop serving after X times
+	   ${random_device_id}=         Generate Random String 		32		abcdef0123456789
+	   Set Test Variable    ${data}   		  {"bcat":["26000","50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"lon":-119.772049,"lat":36.7818375,"country":"usa"},"carrier":"sprint","lmt":0,"ifa":"${random_device_id}","flashver":"0","devicetype":4,"connectiontype":3,"js":1,"osv":"4.4.2","os":"android","model":"ls660","make":"lg","language":"en","ua":"Mozilla/5.0 (Linux; Android 4.4.2; LGLS660 Build/KOT49I.LS660ZV5) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36","ip":"66.87.134.222"},"at":2,"app":{"name":"Words With Friends","id":"${app_id_01}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,9,10,11,12,13,14,16],"btype":[1,2],"h":50,"w":320},"id":"1"}],"id":"erlangcluster@rtb-select039.us-ec.adtech.com-21429698571162041"}
+	   Validate RTB AdServed X Times     			api_key=${RTB_AOL_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+  
+Frequency Cap for Device ID, Continue serving X times with new device
+	   ${random_device_id}=         Generate Random String 		32		ABCDEF0123456789
+	   Set Test Variable    ${data}   		  {"bcat":["26000","50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"carrier":"wifi","lmt":0,"ifa":"${random_device_id}","flashver":"0","devicetype":5,"connectiontype":2,"js":1,"osv":"8.3","os":"ios","model":"ipad","make":"apple","language":"en","ua":"Mozilla/5.0 (iPad; CPU OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F69","ip":"75.88.199.215"},"at":2,"app":{"name":"Words With Friends","id":"${app_id_01}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,9,10,11,12,13,14,16],"btype":[1,2],"h":50,"w":320},"id":"1"}],"id":"erlangcluster@rtb-select042.us-ec.adtech.com-21429699292884660"}
+	   Validate RTB AdServed X Times     			api_key=${RTB_AOL_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+
+	   
+Frequency Cap for IP Stop serving after X times
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"bcat":["26000","50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"lon":-119.772049,"lat":36.7818375,"country":"usa"},"carrier":"sprint","lmt":0,"ifa":"88d65ee8-b336-4dc1-9846-879a004001af","flashver":"0","devicetype":4,"connectiontype":3,"js":1,"osv":"4.4.2","os":"android","model":"ls660","make":"lg","language":"en","ua":"Mozilla/5.0 (Linux; Android 4.4.2; LGLS660 Build/KOT49I.LS660ZV5) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36","ip":"${random_ip}"},"at":2,"app":{"name":"Words With Friends","id":"${app_id_03}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,9,10,11,12,13,14,16],"btype":[1,2],"h":50,"w":320},"id":"1"}],"id":"erlangcluster@rtb-select039.us-ec.adtech.com-21429698571162041"}
+	   Validate RTB AdServed X Times     			api_key=${RTB_AOL_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=204        submit_client_impression_event=NO	   
+
+Frequency Cap for IP Continue serving X times with new IP
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"bcat":["26000","50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"lon":-119.772049,"lat":36.7818375,"country":"usa"},"carrier":"sprint","lmt":0,"ifa":"88d65ee8-b336-4dc1-9846-879a004001af","flashver":"0","devicetype":4,"connectiontype":3,"js":1,"osv":"4.4.2","os":"android","model":"ls660","make":"lg","language":"en","ua":"Mozilla/5.0 (Linux; Android 4.4.2; LGLS660 Build/KOT49I.LS660ZV5) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36","ip":"${random_ip}"},"at":2,"app":{"name":"Words With Friends","id":"${app_id_03}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,9,10,11,12,13,14,16],"btype":[1,2],"h":50,"w":320},"id":"1"}],"id":"erlangcluster@rtb-select039.us-ec.adtech.com-21429698571162041"}
+	   Validate RTB AdServed X Times     			api_key=${RTB_AOL_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=204        submit_client_impression_event=NO		   

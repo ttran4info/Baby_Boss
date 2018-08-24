@@ -1,0 +1,83 @@
+*** Settings ***
+Resource            new_ui_imports.txt
+Force Tags         	NEW_UI     6.0       BATCH4    EXCLUDE
+Suite Teardown      Run Keywords               Close All Browsers
+
+*** Variables ***
+${banner_type}=                		GENERIC
+${banner_file_name}=        		320x50_Group01.jpg 
+${banner_file_name2}=        		320x50_Group01.jpg 
+${test_campaign_name_prefix}=     	12_TEST_CAMPAIGN
+${generic_mopub_app_request_data}=   			{"app":{"aid":"MOPUB_DEFAULT_PLACEMENT_MOPUB33333","cat":["IAB14","IAB24","lifestyle","social_networking"],"global_aid":"372648912","name":"Meet New People - myYearbook Flirting & Fun for Friends and Singles of Any Sex iOS","paid":0,"pid":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYzdeVEgw","pub":"myYearbook.com"},"at":2,"device":{"city":"Tyrone","country":"USA","dpid":"9B55BA53-6586-48D6-8B46-AC52EA5855DB","ext":{"idfa":"42C6857E-D0F0-4920-91F6-F8BAFD10A7F5"},"ip":"96.247.185.120","js":1,"loc":"40.60843,-75.49018","make":"Apple","model":"iPod","os":"iPhone OS","osv":"6.0.1","state":"PA","ua":"Mozilla/5.0 (iPod; CPU iPhone OS 6_0_1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Mobile/10A523","zip":"16686"},"id":"e505c063-5fd9-428f-b658-526bc9dd5d7e","imp":[{"battr":["8","9","10","14","6"],"h":50,"impid":"e505c063-5fd9-428f-b658-526bc9dd5d7e","instl":0,"w":320}],"pf":0.090,"restrictions":{"badv":["areyouinterested","badoo","howaboutwe","meetmoi","skout","twoo","alertid.com","funzio.com","howaboutwe","http://platform.mdotm.com/promote/mock/c81f742b","m.wildbuddies.com","naughtyflirts.mobi","skout","t.zoosk.com/mkt/*","twoo","www.ngmoco.com/bloodbrothers"],"bcat":["IAB7-39","IAB8-5","IAB8-18","IAB9-9","IAB25","IAB26"]},"tmax":300,"user":{"dnt":1,"uid":"9B55BA53-6586-48D6-8B46-AC52EA5855DB"}}
+${generic_mopub_site_online_request_data}=   	{"id":"060A6B62-C49A-4D64-8A2B-662A87E9BACC","imp":[{"id": "1","tagid": "96088","banner": {"w": 320,"h": 50,"topframe": 1}}],"site": {"id": "9500","domain": "http://www.bigdnet.com","page": "bestbuys.com","ref": "http://show.mediaamped.com/adcode/adcode?site=&crid=469&sourceid=adtech&refUrl=&cbrs=57832803&auction_price=0.1595&zz=51","publisher": {"id": "43472"}},"device": {"ip": "76.23.172.70","ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/534.59.10 (KHTML, like Gecko) Version/5.1.9 Safari/534.59.10","carrier": "Comcast Cable","language": "en-us","js": 1,"geo": {"country": "US","region": "CT","city": "Sharon","metro": "533","lat": 41.8551,"lon": -73.4415,"type": 2,"zip": "06069"},"ext": {"res": "1440x900","freq": 0,"pf": 1}},"user": {"id": "DEE94762-75D9-4074-B1BE-492FE0D86344","ext": {"tmz": "-4"}}}
+*** Keywords ***
+
+*** Test Cases ***
+Clean Up All Existing Data For 12_create_advertiser_and_ads Tests
+#        Cleanup Campaign Data By Campaign Name        campaign_name=${test_campaign_name_prefix}
+        Reload All Cache
+        #Log     Commented this out to test deadlock issues.
+		[Tags]	Exclude
+Start the Browser And Login To The Adhaven UI
+       Start the Browser And Login To The Adhaven UI							
+	   Verify Default Page Information	   
+
+UI - Create A New Campaign, Mobile Adgroup, And Ad With Traffic Type Targeting For Web
+	   Set Test Variable      ${screen_type}				1
+	   Set Test Variable	  ${traffic_type}				1
+	   Create Default MOBILE Adgroup With Single Child And Ad				banner_file_name=${banner_file_name}
+       Sleep    10s
+       Submit a Request to Jenkins to Run Smart Bidder for QA
+       Sleep    10s
+       Modify Margin      advertiser_name=${DEFAULT_ADVERTISER}		campaign_name=${campaign_name}		ag_adgroup_name=${child_adgroup_name}		ag_4info_margin=1	    
+       Logout of AdHaven UI
+       Close All Browsers
+       Reload All Cache
+       #splitup up test cases, so we make sure these variable are available throughout the suite
+       Set Suite Variable 	${campaign_name_web}	${campaign_name}
+	   Set Suite Variable 	${parent_adgroup_id_web}	${parent_adgroup_id}
+	   Set Suite Variable 	${child_adgroup_id_web}		${child_adgroup_id}
+	[Tags]	
+RTB - Create A New Campaign, Mobile Adgroup, And Ad With Traffic Type Targeting For Web 
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_app_request_data}				requests=10         response_code=200         ad_expected=NA      adgroup_expected=NA
+	   Set Test Variable       ${rtb_count}				${pass_count}
+	   Sleep    90s    # for logprocessor
+	   Validate UI Impression Count For Child Adgroup   				advertiser_name=${DEFAULT_ADVERTISER} 			campaign_name=${campaign_name_web}  				parent_adgroup_id=${parent_adgroup_id_web}			child_adgroup_id=${child_adgroup_id_web}				impression_count_expected=${rtb_count}                                 
+#      Added the below for reliability - not really needed
+       Submit a Request to Jenkins to Run Smart Bidder for QA
+       Sleep    90s
+       Reload All Cache
+	[Tags]	
+UI - Create A New Campaign, Online Adgroup, And Ad With Traffic Type Targeting For Web
+	   Start the Browser And Login To The Adhaven UI
+	   Set Test Variable       ${screen_type}				2
+	   Set Test Variable	   ${traffic_type}				5
+	   Create Default ONLINE Adgroup With Single Child And Ad				banner_file_name=${banner_file_name2} 
+       Sleep   10s
+       Submit a Request to Jenkins to Run Smart Bidder for QA
+       Sleep   10s
+       Modify Margin      advertiser_name=${DEFAULT_ADVERTISER}		campaign_name=${campaign_name}		ag_adgroup_name=${child_adgroup_name}		ag_4info_margin=1	    
+       Reload All Cache
+       Logout of AdHaven UI
+       Close All Browsers       
+       #splitup up test cases, so we make sure these variable are available throughout the suite
+       Set Suite Variable 	${campaign_name_online}			${campaign_name}
+	   Set Suite Variable 	${parent_adgroup_id_online}		${parent_adgroup_id}
+	   Set Suite Variable 	${child_adgroup_id_online}		${child_adgroup_id} 
+     
+RTB - Create A New Campaign, Online Adgroup, And Ad With Traffic Type Targeting For Web       
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${generic_mopub_site_online_request_data}				requests=10         response_code=200         ad_expected=NA      adgroup_expected=${child_adgroup_id_online}
+	   Set Test Variable       ${rtb_count}				${pass_count}
+	   Sleep   90s
+	   Validate UI Impression Count For Child Adgroup   				advertiser_name=${DEFAULT_ADVERTISER} 			campaign_name=${campaign_name_online}  				parent_adgroup_id=${parent_adgroup_id_online}			child_adgroup_id=${child_adgroup_id_online}				impression_count_expected=${rtb_count}                                 
+#      Added the below for reliability - not really needed
+       Submit a Request to Jenkins to Run Smart Bidder for QA
+       Sleep   90s
+       Reload All Cache
+
+Clean Up All Existing Data For 12_create_advertiser_and_ads Tests End
+#        Cleanup Campaign Data By Campaign Name        campaign_name=${test_campaign_name_prefix}
+        Reload All Cache
+        #Log     Commented this out to test deadlock issues.
+        [Tags]    Exclude 
+

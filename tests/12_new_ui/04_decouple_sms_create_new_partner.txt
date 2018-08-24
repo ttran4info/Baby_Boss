@@ -1,0 +1,53 @@
+*** Settings ***
+Resource            new_ui_imports.txt
+Force Tags         	NEW_UI     6.0       DECOUPLE_SMS 		PARTNER		PLACEMENT		BATCH4						     
+Suite Setup			Start the Browser And Login To The Adhaven UI
+Suite Teardown 		Close All Browsers
+		
+*** Variables ***
+${p_name}						12_REGRESSION_PARTNER
+${pl_name}						12_APP
+
+				           	 		
+*** Test Cases ***
+
+Clean Up All Existing Data For 12_REGRESSION_PARTNER Start
+	Cleanup Partner And Placement		p_name=${p_name}
+	Reload All Cache
+
+Create New Partner With Timestamp
+	${timestamp}=      get_timestamp
+	Set Suite Variable 		${p_name}		${p_name}_${timestamp}
+	#Start the Browser And Login To The Adhaven UI
+	#Verify Default Page Information	 
+	Create New Partner		p_name=${p_name}
+	
+Create New Placement Type (App) With Timestamp
+	${timestamp}=      get_timestamp
+	Set Suite Variable		${pl_type_name_app}		12_APP_${timestamp}	
+	Create New Placement Type	p_name=${p_name}	pl_type_name=${pl_type_name_app}		pl_type=APP
+Create New Placement Type (Site) With Timestamp
+	${timestamp}=      get_timestamp
+	Set Suite Variable		${pl_type_name_site}		12_SITE_${timestamp}	
+	Create New Placement Type	p_name=${p_name}	pl_type_name=${pl_type_name_site}		pl_type=SITE		
+Create New Placement Type (Online) With Timestamp
+	${timestamp}=      get_timestamp
+	Set Suite Variable		${pl_type_name_online}		12_ONLINE_${timestamp}	
+	Create New Placement Type	p_name=${p_name}	pl_type_name=${pl_type_name_online}		pl_type=ONLINE
+
+Create New Placement (App) With Timestamp
+	${timestamp}=      get_timestamp
+	Set Suite Variable		${pl_name_app}		12_APP_${timestamp}
+	Create New Placement	p_name=${p_name}	pl_type_name=${pl_type_name_app}		pl_name=${pl_name_app}		pl_status=LIVE	pl_traffic_type=APP		pl_bid_attribute=App ID (exchange specific)		pl_bid_attribute_Value=${pl_name_app}	
+Create New Placement (Site) With Timestamp
+	${timestamp}=      get_timestamp
+	Set Suite Variable		${pl_name_site}		12_SITE_${timestamp}
+	Create New Placement	p_name=${p_name}	pl_type_name=${pl_type_name_site}		pl_name=${pl_name_site}		pl_status=LIVE	pl_traffic_type=SITE		pl_bid_attribute=Site ID (exchange specific)		pl_bid_attribute_Value=${pl_name_site}	
+Create New Placement (Online) With Timestamp
+	${timestamp}=      get_timestamp
+	Set Suite Variable		${pl_name_online}		12_ONLINE_${timestamp}
+	Create New Placement	p_name=${p_name}	pl_type_name=${pl_type_name_online}		pl_name=${pl_name_online}		pl_status=LIVE	pl_traffic_type=ONLINE		pl_bid_attribute=Site ID (exchange specific)		pl_bid_attribute_Value=${pl_name_site}	
+
+Clean Up All Existing Data For 12_REGRESSION_PARTNER End
+	Cleanup Partner And Placement		p_name=${p_name}
+	Reload All Cache

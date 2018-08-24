@@ -1,0 +1,39 @@
+*** Settings ***
+Resource             exchange_specific_imports.txt
+Force Tags           AUCTIONPRICE    BATCH3		RUBICON			
+Suite Teardown      Close All Connections
+
+*** variables ***
+ ${app_id}					15588
+ ${agid_expected}			86697
+${app_site_zip}			94110
+${online_zip}			94111 
+*** Test Cases ***
+
+Rubicon - Logging Auction Price at 0.0317 (3cents)
+	   Set Test Variable	${auction_price}	0.0317
+	   Set Test Variable	${auction_price_blowfish}	56b892deec70a5e6   
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"a72eeb1b79859d0aef038b3fcab4fa0e0b685f5e","at":2,"tmax":53,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id}","cat":["IAB24"],"storeurl":"https://play.google.com/store/apps/details?id=mobi.ifunny&feature=search_result#?t=W251bGwsMSwxLDEsIm1vYmkuaWZ1bm55Il0.","name":"iFunny","domain":"http://www.xgamut.media","bundle":"xmobi.ifunny","publisher":{"id":"12060"}},"device":{"os":"Android","model":"zmax","geo":{"country":"USA","region":"FL","lat":0.0,"lon":0.0,"zip":"${app_site_zip}"},"osv":"4.4.2","js":1,"ext":{"xff":""},"dpidmd5":"398276ccdd670a186bd632a634f9957e","ip":"70.126.19.44","connectiontype":0,"dpidsha1":"7848a23eeb3ece874de683e0e1b82aa996ece5f5","ua":"Mozilla/5.0 (Linux; Android 4.4.2; Z970 Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.3","carrier":"Other","devicetype":1,"language":"en","make":"zte","ifa":"${device_id}"},"user":{"id":"3b57280ab7d27ca9ccecc4c2b7f68f82750242e8","ext":{"sessiondepth":1}}}
+	   RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price_blowfish} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}
+	[Tags]		
+Rubicon - Logging Auction Price at 3.17 (317cents)
+	   Set Test Variable	${auction_price}	3.17
+	   Set Test Variable	${auction_price_blowfish}	2ac7481d228c4a9a   
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"a72eeb1b79859d0aef038b3fcab4fa0e0b685f5e","at":2,"tmax":53,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id}","cat":["IAB24"],"storeurl":"https://play.google.com/store/apps/details?id=mobi.ifunny&feature=search_result#?t=W251bGwsMSwxLDEsIm1vYmkuaWZ1bm55Il0.","name":"iFunny","domain":"http://www.xgamut.media","bundle":"xmobi.ifunny","publisher":{"id":"12060"}},"device":{"os":"Android","model":"zmax","geo":{"country":"USA","region":"FL","lat":0.0,"lon":0.0,"zip":"${app_site_zip}"},"osv":"4.4.2","js":1,"ext":{"xff":""},"dpidmd5":"398276ccdd670a186bd632a634f9957e","ip":"70.126.19.44","connectiontype":0,"dpidsha1":"7848a23eeb3ece874de683e0e1b82aa996ece5f5","ua":"Mozilla/5.0 (Linux; Android 4.4.2; Z970 Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.3","carrier":"Other","devicetype":1,"language":"en","make":"zte","ifa":"${device_id}"},"user":{"id":"3b57280ab7d27ca9ccecc4c2b7f68f82750242e8","ext":{"sessiondepth":1}}}
+	   RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price_blowfish} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price} 
+	   [Tags]		  
+Rubicon - Logging Auction Price at 317 (dolars)
+	   Set Test Variable	${auction_price}	317
+	   Set Test Variable	${auction_price_blowfish}	1f1eb4ed8bbe9dd5   
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"a72eeb1b79859d0aef038b3fcab4fa0e0b685f5e","at":2,"tmax":53,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id}","cat":["IAB24"],"storeurl":"https://play.google.com/store/apps/details?id=mobi.ifunny&feature=search_result#?t=W251bGwsMSwxLDEsIm1vYmkuaWZ1bm55Il0.","name":"iFunny","domain":"http://www.xgamut.media","bundle":"xmobi.ifunny","publisher":{"id":"12060"}},"device":{"os":"Android","model":"zmax","geo":{"country":"USA","region":"FL","lat":0.0,"lon":0.0,"zip":"${app_site_zip}"},"osv":"4.4.2","js":1,"ext":{"xff":""},"dpidmd5":"398276ccdd670a186bd632a634f9957e","ip":"70.126.19.44","connectiontype":0,"dpidsha1":"7848a23eeb3ece874de683e0e1b82aa996ece5f5","ua":"Mozilla/5.0 (Linux; Android 4.4.2; Z970 Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.3","carrier":"Other","devicetype":1,"language":"en","make":"zte","ifa":"${device_id}"},"user":{"id":"3b57280ab7d27ca9ccecc4c2b7f68f82750242e8","ext":{"sessiondepth":1}}}
+	   RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price_blowfish} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}
+	   [Tags]		

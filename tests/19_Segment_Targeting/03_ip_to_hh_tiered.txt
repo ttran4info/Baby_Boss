@@ -1,0 +1,73 @@
+
+
+*** Settings ***
+Resource        	device_or_ip to_hh_templates.txt
+Force Tags          DEVICE_ID	BATCH8		RTB					
+Test Template       Mopub IP to HH Template
+
+*** Test Cases ***
+
+#Case1: https://wiki.4info.com/pages/viewpage.action?pageId=27395362
+# Tier A + Tier B <=2, Boost = False. Using Tier A + B
+IP2HH, Case1, tiered 0|1|0							ip_address=169.1.1.120		hh_id=272890801			
+IP2HH, Case1, tiered 0|2|0							ip_address=169.1.1.121		hh_id=266527024|252433356
+IP2HH, Case1, tiered 1|1|0							ip_address=169.1.1.122		hh_id=266527024|252433356
+IP2HH, Case1, tiered 1|0|0							ip_address=169.1.1.123		hh_id=272890801
+IP2HH, Case1, tiered 2|0|0							ip_address=169.1.1.124		hh_id=266527024|252433356
+
+# case 4, 20% pick TierC ignored 80%, 
+IP2HH, Case4, tiered 0|1|1							ip_address=169.1.1.125		hh_id=272890801					boosted_hh_id=266527024
+IP2HH, Case4, tiered 0|2|1							ip_address=169.1.1.126		hh_id=266527024|252433356		boosted_hh_id=272890801
+IP2HH, Case4, tiered 1|1|1							ip_address=169.1.1.127		hh_id=266527024|252433356		boosted_hh_id=272890801
+IP2HH, Case4, tiered 1|0|2							ip_address=169.1.1.128		hh_id=272890801					boosted_hh_id=266527024|252433356
+IP2HH, Case4, tiered 2|0|2							ip_address=169.1.1.129		hh_id=266527024|252433356		boosted_hh_id=272890801|257976091
+
+#TierC ignored since total is > 5
+IP2HH, Case1, tiered 0|1|5							ip_address=169.1.1.130		hh_id=272890801
+IP2HH, Case1, tiered 0|2|4							ip_address=169.1.1.131		hh_id=266527024|252433356
+IP2HH, Case1, tiered 1|1|4							ip_address=169.1.1.132		hh_id=266527024|252433356
+IP2HH, Case1, tiered 1|0|5							ip_address=169.1.1.133		hh_id=272890801
+IP2HH, Case1, tiered 2|0|4							ip_address=169.1.1.134		hh_id=266527024|252433356
+
+#Case2: A <=2, A+B>2 No boost. Using TierA only
+IP2HH, Case2, tiered 1|2|0							ip_address=169.1.1.140		hh_id=230851774
+IP2HH, Case2, tiered 1|3|0							ip_address=169.1.1.141		hh_id=230851774
+IP2HH, Case2, tiered 2|1|0							ip_address=169.1.1.142		hh_id=230851774|260566013
+IP2HH, Case2, tiered 2|2|0							ip_address=169.1.1.143		hh_id=230851774|260566013
+
+#TierB,C ignored since their total would overload A+B>2, A+B+C>5
+IP2HH, Case2, tiered 1|2|3							ip_address=169.1.1.144		hh_id=230851774
+IP2HH, Case2, tiered 1|3|3							ip_address=169.1.1.145		hh_id=230851774
+IP2HH, Case2, tiered 2|1|3							ip_address=169.1.1.146		hh_id=230851774|260566013
+IP2HH, Case2, tiered 2|2|2							ip_address=169.1.1.147		hh_id=230851774|260566013
+
+#Case5: boosted Case2, but A+B+C <=5, 80% normal, 20% boosted tier B+C
+IP2HH, Case5, tiered 1|2|2							ip_address=169.1.1.170		hh_id=230851774					boosted_hh_id=260566013|308287886|280556569|295647491
+IP2HH, Case5, tiered 1|3|1							ip_address=169.1.1.171		hh_id=230851774					boosted_hh_id=260566013|308287886|280556569|295647491
+IP2HH, Case5, tiered 2|1|2							ip_address=169.1.1.172		hh_id=230851774|260566013		boosted_hh_id=308287886|280556569|295647491
+IP2HH, Case5, tiered 2|2|1							ip_address=169.1.1.173		hh_id=230851774|260566013		boosted_hh_id=308287886|280556569|295647491
+
+#Case3 A+B+C <=5 Boost=True
+IP2HH, Case3, tiered 0|0|1							ip_address=169.1.1.150		boosted_hh_id=426405419
+IP2HH, Case3, tiered 0|0|2							ip_address=169.1.1.151		boosted_hh_id=426405419|261359363
+IP2HH, Case3, tiered 0|0|3							ip_address=169.1.1.152		boosted_hh_id=426405419|261359363|227995886
+IP2HH, Case3, tiered 0|0|4							ip_address=169.1.1.153		boosted_hh_id=426405419|261359363|227995886|250288743
+IP2HH, Case3, tiered 0|0|5							ip_address=169.1.1.154		boosted_hh_id=426405419|261359363|227995886|250288743|238855135
+IP2HH, Case3, tiered 0|3|0							ip_address=169.1.1.155		boosted_hh_id=426405419|261359363|227995886
+IP2HH, Case3, tiered 0|3|1							ip_address=169.1.1.156		boosted_hh_id=426405419|261359363|227995886|250288743
+IP2HH, Case3, tiered 0|3|2							ip_address=169.1.1.157		boosted_hh_id=426405419|261359363|227995886|250288743|238855135
+IP2HH, Case3, tiered 3|0|0							ip_address=169.1.1.158		boosted_hh_id=426405419|261359363|227995886
+IP2HH, Case3, tiered 3|0|1							ip_address=169.1.1.159		boosted_hh_id=426405419|261359363|227995886|250288743
+IP2HH, Case3, tiered 3|0|2							ip_address=169.1.1.160		boosted_hh_id=426405419|261359363|227995886|250288743|238855135
+IP2HH, Case3, tiered 3|1|1							ip_address=169.1.1.161		boosted_hh_id=426405419|261359363|227995886|250288743|238855135
+
+#Case4: Case1 and Total <=5 (20% of the time tierC), Boost = True - If boost flag is on, we will use Normal 80% of the time and randomly use tierC 20% of the time
+#Case5: Case2 and Total <=5 (20% of the time tierC), Boost = True
+
+#Case6: No association	
+IP2HH, Case6, No Association tiered 0|0|6							ip_address=169.1.1.162
+IP2HH, Case6, No Association tiered 3|0|3							ip_address=169.1.1.163
+IP2HH, Case6, No Association tiered 3|2|2							ip_address=169.1.1.164
+IP2HH, Case6, No Association tiered 3|3|0							ip_address=169.1.1.165
+IP2HH, Case6, No Association tiered 0|3|3							ip_address=169.1.1.166
+IP2HH, Case6, No Association tiered 0|0|0							ip_address=169.1.1.167

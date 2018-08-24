@@ -1,0 +1,620 @@
+*** Settings ***
+Resource            		macro_imports.txt
+Force Tags         		MACRO     MOPUB     3RD_PARTY		6.2       BATCH4	 	PROD_BATCH1		
+Suite Setup             Open Browser        ${DEFAULT_BROWSER_HOME}		${BROWSER}
+Suite Teardown         Run Keywords                     Close All Browsers
+
+*** Variables ***
+							
+${URL1}						https://manage-east.adhaven.com/chieu_macro_88.jsp?RTB_HOST=${BID_ENGINE_ONE}&APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_01
+${URL2}						https://manage-east.adhaven.com/chieu_macro_88.jsp?RTB_HOST=${BID_ENGINE_ONE}&APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_02
+${URL3}						https://manage-east.adhaven.com/chieu_macro_88.jsp?RTB_HOST=${BID_ENGINE_ONE}&APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_03
+${URL4}						https://manage-east.adhaven.com/chieu_macro_88.jsp?RTB_HOST=${BID_ENGINE_ONE}&APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_04
+#URL1
+${aID}						26214|26696
+${agID}						34334|35073
+${cID}						11111111-1111-1111-1919-11111111111A
+${plID}						11395|11931
+${ap}						1.5
+${bID}						15240|15639
+${bdID}						30260|31198
+#URL3
+${placementID}				11397|11933
+${creativeID}				B30262|B31200
+${campaignID}				1872|1910
+${adgroupID}				34338|35075
+# A_NEXAGE_APP_MACRO_SUBSTITUTION_3RD_PARTY_01
+# A_NEXAGE_APP_MACRO_SUBSTITUTION_RM_01
+
+# A_APPNEXUS_APP_MACRO_SUBSTITUTION_3RD_PARTY_01
+# A_APPNEXUS_APP_MACRO_SUBSTITUTION_RM_01
+
+		
+*** Test Cases ***
+
+Validate 3rd Party Macro - [4INFO_TP_DEST]
+		Extract Data For Macro And Verify 3rd Party			${URL1}				4INFO_TP_DEST
+		Should Match Regexp      ${raw_text}     ^${EVENT_PATH}/record\\?gAId=null&gest=click-to-web&aId=${aID}&agId=${agID}&cId=.*&pt=CPM&rt=web&plId=${plID}&ap=${ap}&au=0&bidid=.*&impid=.*&bp=.*&cpu=0.0&tci=Y&bId=${bID}&bdId=${bdID}&reqid=.*&ats=.*&te=\\d&.*&url=.*$
+	[Tags]	
+Validate 3rd Party Macro - [4INFO_TP_Dest] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL1}				4INFO_TP_Dest
+		Should Match Regexp      ${raw_text}     ^${EVENT_PATH}/record\\?gAId=null&gest=click-to-web&aId=${aID}&agId=${agID}&cId=.*&pt=CPM&rt=web&plId=${plID}&ap=${ap}&au=0&bidid=.*&impid=.*&bp=.*&cpu=0.0&tci=Y&bId=${bID}&bdId=${bdID}&reqid=.*&ats=.*&te=\\d&.*&url=.*$
+	[Tags]	
+Validate 3rd Party Macro - [4INFO_TP_DEST_ENC]
+		Extract Data For Macro And Verify 3rd Party			${URL1}				4INFO_TP_DEST_ENC
+		Should Match Regexp      ${raw_text}     ^https%3A%2F%2F${EXTERNAL_EVENT_ENGINE}.*%2Fevents%2Fevent%2Frecord%3FgAId%3Dnull%26gest%3Dclick-to-web%26aId%3D${aID}%26agId%3D${agID}%26cId%3D.*%26pt%3DCPM%26rt%3Dweb%26plId%3D${plID}%26ap%3D%24%7BAUCTION_PRICE%7D%26au%3D%24%7BAUCTION_UNITS%7D%26bidid%3D.*%26impid%3D.*%26bp%3D.*%26cpu%3D0.0%26tci%3DY%26bId%3D${bID}%26bdId%3D${bdID}%26reqid%3D.*%26ats%3D.*%26te%3D.*%26.*%26url%3D.*$
+	[Tags]	
+Validate 3rd Party Macro - [4INFO_TP_DEST_ENC2]
+		Extract Data For Macro And Verify 3rd Party			${URL1}				4INFO_TP_DEST_ENC2
+		Should Match Regexp      ${raw_text}     ^https%253A%252F%252F${EXTERNAL_EVENT_ENGINE}.*%252Fevents%252Fevent%252Frecord%253FgAId%253Dnull%2526gest%253Dclick-to-web%2526aId%253D${aID}%2526agId%253D${agID}%2526cId%253D.*%2526pt%253DCPM%2526rt%253Dweb%2526plId%253D${plID}%2526ap%253D%2524%257BAUCTION_PRICE%257D%2526au%253D%2524%257BAUCTION_UNITS%257D%2526bidid%253D.*%2526impid%253D.*%2526bp%253D.*%2526cpu%253D0.0%2526tci%253DY%2526bId%253D${bID}%2526bdId%253D${bdID}%2526reqid%253D.*%2526ats%253D.*%2526te%253D.*%2526.*%2526url%253D.*$
+	[Tags]	
+# DRID
+Validate 3rd Party Macro - [drid]
+		Extract Data For Macro And Verify 3rd Party				${URL1}				drid
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+Validate 3rd Party Macro - [DRID] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL1}				DRID
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+Validate 3rd Party Macro - [drid_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL1}				drid_enc
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+Validate 3rd Party Macro - [DRID_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL1}				DRID_ENC
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+Validate 3rd Party Macro - [drid_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL1}				drid_enc2
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+Validate 3rd Party Macro - [DRID_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL1}				DRID_ENC2
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+
+#    TIMESTAMP - Time Stamp (same as Delivery Receipt Id) As of release 6.9 it's an actual timestamp
+Validate 3rd Party Macro - [timestamp]
+		Extract Data For Macro And Verify 3rd Party				${URL1}				timestamp
+		Should Match Regexp 			${raw_text}			\\d+
+
+Validate 3rd Party Macro - [TIMESTAMP] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL1}				TIMESTAMP
+		Should Match Regexp 			${raw_text}			\\d+
+
+Validate 3rd Party Macro - [timestamp_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL1}				timestamp_enc
+		Should Match Regexp 			${raw_text}			\\d+
+
+Validate 3rd Party Macro - [timestamp_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL1}				timestamp_ENC
+		Should Match Regexp 			${raw_text}			\\d+
+
+Validate 3rd Party Macro - [timestamp_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL1}				timestamp_enc2
+		Should Match Regexp 			${raw_text}			\\d+
+
+Validate 3rd Party Macro - [TIMESTAMP_enc2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL1}				TIMESTAMP_enc2
+		Should Match Regexp 			${raw_text}			\\d+
+
+
+# Device ID
+Validate 3rd Party Macro - [4info_device_id]
+		Extract Data For Macro And Verify 3rd Party				${URL1}				4info_device_id
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+		
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333
+
+Validate 3rd Party Macro - [4INFO_DEVICE_ID] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL1}				4INFO_DEVICE_ID
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333
+
+Validate 3rd Party Macro - [4info_device_id_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL1}				4info_device_id_enc
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333
+		
+Validate 3rd Party Macro - [4INFO_DEVICE_ID_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL1}				4INFO_DEVICE_ID_ENC
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333
+		
+Validate 3rd Party Macro - [4info_device_id_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL1}				4info_device_id_enc2
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333
+		
+Validate 3rd Party Macro - [4INFO_DEVICE_ID_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL1}				4INFO_DEVICE_ID_ENC2
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333
+			
+
+# 4INFO_ID
+#Validate 3rd Party Macro - [4info_id]
+#		Extract Data For Macro And Verify 3rd Party				${URL1}				4info_id
+##		Should Be Equal 			${raw_text}			&agId=66908&placement_id=8348&
+#		Should Be Equal 			${raw_text}			[4info_id]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+
+#Validate 3rd Party Macro - [4INFO_ID] - Case Insensitive
+#		Extract Data For Macro And Verify 3rd Party			${URL1}				4INFO_ID
+##		Should Be Equal 			${raw_text}			&agId=66908&placement_id=8348&
+#		Should Be Equal 			${raw_text}			[4INFO_ID]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+
+#Validate 3rd Party Macro - [4info_id_enc]
+#		Extract Data For Macro And Verify 3rd Party			${URL1}				4info_id_enc
+##		Should Be Equal 			${raw_text}			%26agId%3D66908%26placement_id%3D8348%26
+#		Should Be Equal 			${raw_text}			[4info_id_enc]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+
+#Validate 3rd Party Macro - [4INFO_ID_enc] - Case Insensitive
+#		Extract Data For Macro And Verify 3rd Party			${URL1}				4INFO_ID_enc
+##		Should Be Equal 			${raw_text}			%26agId%3D66908%26placement_id%3D8348%26
+#		Should Be Equal 			${raw_text}			[4INFO_ID_enc]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+
+#Validate 3rd Party Macro - [4info_id_enc2]
+#		Extract Data For Macro And Verify 3rd Party				${URL1}				4info_id_enc2
+##		Should Be Equal 			${raw_text}			%2526agId%253D66908%2526placement_id%253D8348%2526
+#		Should Be Equal 			${raw_text}			[4info_id_enc2]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+
+#Validate 3rd Party Macro - [4info_id_ENC2] - Case Insensitive
+#		Extract Data For Macro And Verify 3rd Party				${URL1}				4info_id_ENC2
+##		Should Be Equal 			${raw_text}			%2526agId%253D66908%2526placement_id%253D8348%2526
+#		Should Be Equal 			${raw_text}			[4info_id_ENC2]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+
+# http://qa-adui1:8080/JSP_TEST/chieu_macro.jsp?APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_02
+# ZIP from request
+Validate 3rd Party Macro - [4info_zip]
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_zip
+		Should Be Equal 			${raw_text}			 	82901
+
+Validate 3rd Party Macro - [4INFO_ZIP] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4INFO_ZIP
+		Should Be Equal 			${raw_text}			 	82901
+
+Validate 3rd Party Macro - [4info_zip_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4info_zip_enc
+		Should Be Equal 			${raw_text}			 	82901
+
+Validate 3rd Party Macro - [4INFO_ZIP_enc] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4INFO_ZIP_enc
+		Should Be Equal 			${raw_text}			 	82901
+
+Validate 3rd Party Macro - [4info_zip_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_zip_enc2
+		Should Be Equal 			${raw_text}			 	82901
+
+Validate 3rd Party Macro - [4INFO_zip_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4INFO_zip_ENC2
+		Should Be Equal 			${raw_text}			 	82901
+
+
+# REQID
+Validate 3rd Party Macro - [4info_reqid]
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_reqid
+		Should Be Equal 			${raw_text}			${extracted_reqid}
+
+Validate 3rd Party Macro - [4INFO_REQID] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4INFO_REQID
+		Should Be Equal 			${raw_text}			${extracted_reqid}
+
+Validate 3rd Party Macro - [4info_reqid_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4info_reqid_enc
+		Should Be Equal 			${raw_text}			${extracted_reqid}
+
+Validate 3rd Party Macro - [4info_REQID_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4info_REQID_ENC
+		Should Be Equal 			${raw_text}			${extracted_reqid}
+
+Validate 3rd Party Macro - [4info_reqid_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_reqid_enc2
+		Should Be Equal 			${raw_text}			${extracted_reqid}
+
+Validate 3rd Party Macro - [4info_rEQID_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_rEQID_ENC2
+		Should Be Equal 			${raw_text}			${extracted_reqid}
+
+
+# ConsumerID
+Validate 3rd Party Macro - [4info_consumerid]
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_consumerid
+		Should Be Equal 			${raw_text}				11111111-1111-1111-1919-11111111111A
+		
+Validate 3rd Party Macro - [4info_CONSUMERID] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4info_CONSUMERID
+		Should Be Equal 			${raw_text}				11111111-1111-1111-1919-11111111111A
+		
+Validate 3rd Party Macro - [4info_consumerid_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4info_consumerid_enc
+		Should Be Equal 			${raw_text}				11111111-1111-1111-1919-11111111111A
+		
+Validate 3rd Party Macro - [4INFO_consumerID_enc] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4INFO_consumerID_enc
+		Should Be Equal 			${raw_text}				11111111-1111-1111-1919-11111111111A
+		
+Validate 3rd Party Macro - [4info_consumerid_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_consumerid_enc2
+		Should Be Equal 			${raw_text}				11111111-1111-1111-1919-11111111111A
+Validate 3rd Party Macro - [4info_CONSUMERid_enc2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_CONSUMERid_enc2
+		Should Be Equal 			${raw_text}				11111111-1111-1111-1919-11111111111A
+
+
+# LAT/LON
+Validate 3rd Party Macro - [4info_lat_lon]
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_lat_lon
+		Should Be Equal 			${raw_text}				31.3492,-109.5444
+
+Validate 3rd Party Macro - [4INFO_LAT_LON] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4INFO_LAT_LON
+		Should Be Equal 			${raw_text}				31.3492,-109.5444
+		
+Validate 3rd Party Macro - [4info_lat_lon_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4info_lat_lon_enc
+		Should Be Equal 			${raw_text}				31.3492%2C-109.5444
+
+Validate 3rd Party Macro - [4info_lat_LON_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL2}				4info_lat_LON_ENC
+		Should Be Equal 			${raw_text}				31.3492%2C-109.5444
+
+Validate 3rd Party Macro - [4info_lat_lon_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_lat_lon_enc2
+		Should Be Equal 			${raw_text}				31.3492%252C-109.5444
+
+Validate 3rd Party Macro - [4info_lat_lon_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL2}				4info_lat_lon_ENC2
+		Should Be Equal 			${raw_text}				31.3492%252C-109.5444
+
+
+# http://qa-adui1:8080/JSP_TEST/chieu_macro.jsp?APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_03
+# HHID
+Validate 3rd Party Macro - [4info_hhid] - lower case
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_hhid
+		Should Match Regexp 			${raw_text}				272890801
+
+Validate 3rd Party Macro - [4INFO_HHID] - upper case
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_HHID
+		Should Match Regexp 			${raw_text}				272890801
+		
+Validate 3rd Party Macro - [4info_hhid_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4info_hhid_enc
+		Should Match Regexp 			${raw_text}				272890801
+
+Validate 3rd Party Macro - [4iNFO_hhid_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4iNFO_hhid_ENC
+		Should Match Regexp 			${raw_text}				272890801
+
+Validate 3rd Party Macro - [4info_hhid_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_hhid_enc2
+		Should Match Regexp 			${raw_text}				272890801
+
+Validate 3rd Party Macro - [4INFO_HHID_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4INFO_HHID_ENC2
+		Should Match Regexp 			${raw_text}				272890801
+
+
+# HHID AES
+Validate 3rd Party Macro - [4info_hhid_aes]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_hhid_aes
+#		Should Be Equal 			${raw_text}				31.3492,-109.5444
+
+Validate 3rd Party Macro - [4info_hhid_AES] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4info_hhid_AES
+#		Should Be Equal 			${raw_text}				31.3492,-109.5444
+		
+Validate 3rd Party Macro - [4info_hhid_aes_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4info_hhid_aes_enc
+#		Should Be Equal 			${raw_text}				31.3492%2C-109.5444
+
+Validate 3rd Party Macro - [4INFO_HHID_AES_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_HHID_AES_ENC
+#		Should Be Equal 			${raw_text}				31.3492%2C-109.5444
+
+Validate 3rd Party Macro - [4info_hhid_aes_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_hhid_aes_enc2
+#		Should Be Equal 			${raw_text}				31.3492%252C-109.5444
+
+Validate 3rd Party Macro - [4info_HHID_aes_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_HHID_aes_ENC2
+#		Should Be Equal 			${raw_text}				31.3492%252C-109.5444
+
+
+# PLATFORM
+Validate 3rd Party Macro - [4info_platform]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_platform
+		Should Be Equal 			${raw_text}				Android
+
+Validate 3rd Party Macro - [4INFO_platform] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_platform
+		Should Be Equal 			${raw_text}				Android
+		
+Validate 3rd Party Macro - [4info_platform_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4info_platform_enc
+		Should Be Equal 			${raw_text}				Android
+
+Validate 3rd Party Macro - [4info_PLATFORM_enc] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4info_PLATFORM_enc
+		Should Be Equal 			${raw_text}				Android
+
+Validate 3rd Party Macro - [4info_platform_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL3}			4info_platform_enc2
+		Should Be Equal 			${raw_text}				Android
+
+Validate 3rd Party Macro - [4INFO_platform_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4INFO_platform_ENC2
+		Should Be Equal 			${raw_text}			Android
+
+
+# Device Model
+Validate 3rd Party Macro - [4info_devicemodel]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_devicemodel
+		Should Be Equal 			${raw_text}				Galaxy Nexus
+
+Validate 3rd Party Macro - [4INFO_DEVICEMODEL] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_DEVICEMODEL
+		Should Be Equal 			${raw_text}				Galaxy Nexus
+		
+Validate 3rd Party Macro - [4info_devicemodel_enc]
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4info_devicemodel_enc
+		Should Be Equal 			${raw_text}				Galaxy+Nexus
+
+Validate 3rd Party Macro - [4info_deviceMODEL_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4info_deviceMODEL_ENC
+		Should Be Equal 			${raw_text}				Galaxy+Nexus
+
+Validate 3rd Party Macro - [4info_devicemodel_enc2]
+		Extract Data For Macro And Verify 3rd Party				${URL3}			4info_devicemodel_enc2
+		Should Be Equal 			${raw_text}					Galaxy%2BNexus
+
+Validate 3rd Party Macro - [4INFO_devicemodel_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party				${URL3}			4INFO_devicemodel_ENC2
+		Should Be Equal 			${raw_text}				Galaxy%2BNexus
+
+# App or Site ID
+Validate 3rd Party Macro - [4info_appsite_id]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_appsite_id
+		Should Be Equal 			${raw_text}				A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_03
+
+Validate 3rd Party Macro - [4INFO_APPSITE_ID_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_APPSITE_ID_ENC
+		Should Be Equal 			${raw_text}				A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_03
+		
+Validate 3rd Party Macro - [4Info_Appsite_Id_Enc2]
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4Info_Appsite_Id_Enc2
+		Should Be Equal 			${raw_text}				A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_03
+
+# Publisher ID
+Validate 3rd Party Macro - [4info_publisher_id]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_publisher_id
+		Should Be Equal 			${raw_text}				369
+
+Validate 3rd Party Macro - [4INFO_PUBLISHER_ID_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_PUBLISHER_ID_ENC
+		Should Be Equal 			${raw_text}				369
+		
+Validate 3rd Party Macro - [4Info_Publisher_Id_Enc2]
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4Info_Publisher_Id_Enc2
+		Should Be Equal 			${raw_text}				369
+		
+# Placement ID
+Validate 3rd Party Macro - [4info_placement_id]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_placement_id
+		Should Match Regexp 			${raw_text}				${placementID}
+
+Validate 3rd Party Macro - [4INFO_PLACEMENT_ID_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_PLACEMENT_ID_ENC
+		Should Match Regexp 			${raw_text}				${placementID}	
+		
+Validate 3rd Party Macro - [4Info_Placement_Id_Enc2]
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4Info_Placement_Id_Enc2
+		Should Match Regexp 			${raw_text}				${placementID}	
+
+# Creative ID
+Validate 3rd Party Macro - [4info_creative_id]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_creative_id
+		Should Match Regexp 			${raw_text}				${creativeID}
+	
+Validate 3rd Party Macro - [4INFO_CREATIVE_ID_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_CREATIVE_ID_ENC
+		Should Match Regexp 			${raw_text}				${creativeID}
+		
+Validate 3rd Party Macro - [4Info_Creative_Id_Enc2]
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4Info_Creative_Id_Enc2
+		Should Match Regexp 			${raw_text}				${creativeID}	
+
+# Campaign ID
+Validate 3rd Party Macro - [4info_campaign_id]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_campaign_id
+		Should Match Regexp 			${raw_text}				${campaignID}
+
+Validate 3rd Party Macro - [4INFO_CAMPAIGN_ID_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_CAMPAIGN_ID_ENC
+		Should Match Regexp 			${raw_text}				${campaignID}
+		
+Validate 3rd Party Macro - [4Info_Campaign_Id_Enc2]
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4Info_Campaign_Id_Enc2
+		Should Match Regexp 			${raw_text}				${campaignID}	
+		
+# Adgroup ID
+Validate 3rd Party Macro - [4info_adgroup_id]
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_adgroup_id
+		Should Match Regexp 			${raw_text}				${adgroupID}
+
+Validate 3rd Party Macro - [4INFO_ADGROUP_ID_ENC] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_ADGROUP_ID_ENC
+		Should Match Regexp 			${raw_text}				${adgroupID}
+		
+Validate 3rd Party Macro - [4Info_Adgroup_Id_Enc2]
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4Info_Adgroup_Id_Enc2
+		Should Match Regexp 			${raw_text}				${adgroupID}		
+		
+# partnerHHID ID
+Validate 3rd Party Macro - [4info_partner_hhid] - lower case
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_partner_hhid
+		Should Match Regexp 			${raw_text}				f0290575523d9e11bc5cfe4162290ff6
+
+Validate 3rd Party Macro - [4INFO_PARTNER_HHID] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_PARTNER_HHID
+		Should Match Regexp 			${raw_text}				f0290575523d9e11bc5cfe4162290ff6
+		
+Validate 3rd Party Macro - [4Info_Partner_Hhid] - Mixed
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4Info_Partner_Hhid
+		Should Match Regexp 			${raw_text}				f0290575523d9e11bc5cfe4162290ff6	
+		
+# deviceIDsha1 ID
+Validate 3rd Party Macro - [4info_device_id_sha1] - lower case
+		Extract Data For Macro And Verify 3rd Party				${URL3}				4info_device_id_sha1
+		Should Match Regexp 			${raw_text}				^\\w{40}$
+
+Validate 3rd Party Macro - [4INFO_DEVICE_ID_SHA1] - Case Insensitive
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4INFO_DEVICE_ID_SHA1
+		Should Match Regexp 			${raw_text}				^\\w{40}$
+		
+Validate 3rd Party Macro - [4Info_Device_Id_Sha1] - mixed
+		Extract Data For Macro And Verify 3rd Party			${URL3}				4Info_Device_Id_Sha1
+		Should Match Regexp 			${raw_text}				^\\w{40}$	
+
+# 4INFO_INVENTORY_SOURCE
+Validate 3rd Party Macro - [4INFO_INVENTORY_SOURCE] - upper case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4INFO_INVENTORY_SOURCE
+		Should Match Regexp 			${raw_text}				^Twitter MoPub$
+
+Validate 3rd Party Macro - [4info_inventory_source] - lower case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4info_inventory_source
+		Should Match Regexp 			${raw_text}				^Twitter MoPub$
+		
+Validate 3rd Party Macro - [4Info_Inventory_Source] - Mix
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4Info_Inventory_Source
+		Should Match Regexp 			${raw_text}				^Twitter MoPub$
+
+# 4INFO_PUBLISHER_NAME
+Validate 3rd Party Macro - [4INFO_PUBLISHER_NAME] - upper case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4INFO_PUBLISHER_NAME
+		Should Match Regexp 			${raw_text}				^Maleo, Limited$
+
+Validate 3rd Party Macro - [4info_publisher_name] - lower case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4info_publisher_name
+		Should Match Regexp 			${raw_text}				^Maleo, Limited$
+		
+Validate 3rd Party Macro - [4Info_Publisher_Name] - Mix
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4Info_Publisher_Name
+		Should Match Regexp 			${raw_text}				^Maleo, Limited$
+		
+# 4INFO_APPSITE_NAME
+Validate 3rd Party Macro - [4INFO_APPSITE_NAME] - upper case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4INFO_APPSITE_NAME
+		Should Match Regexp 			${raw_text}				^Android KikMeUp$
+
+Validate 3rd Party Macro - [4info_appsite_name] - lower case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4info_appsite_name
+		Should Match Regexp 			${raw_text}				^Android KikMeUp$
+		
+Validate 3rd Party Macro - [4Info_AppSite_Name] - Mix
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4Info_AppSite_Name
+		Should Match Regexp 			${raw_text}				^Android KikMeUp$
+			
+# 4info_hh_dma
+Validate 3rd Party Macro - [4info_hh_dma] - lower case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4info_hh_dma
+		Should Match Regexp 			${raw_text}				^807$
+	[Tags]		Exclude
+Validate 3rd Party Macro - [4INFO_HH_DMA] - upper case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4INFO_HH_DMA
+		Should Match Regexp 			${raw_text}				^807$
+	[Tags]		Exclude	
+Validate 3rd Party Macro - [4info_Hh_dMa] - Mix
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4Info_Hh_dMa
+		Should Match Regexp 			${raw_text}				^807$
+	[Tags]		Exclude
+# 4info_dma
+#direct convert from 4info_zip using target_geo_zip2dma
+Validate 3rd Party Macro - [4info_dma] - lower case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4info_dma
+		Should Match Regexp 			${raw_text}				^770$
+
+Validate 3rd Party Macro - [4INFO_DMA] - upper case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4INFO_DMA
+		Should Match Regexp 			${raw_text}				^770$
+		
+Validate 3rd Party Macro - [4Info_dMa] - Mixed case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4Info_dMa
+		Should Match Regexp 			${raw_text}				^770$
+		
+# 4info_hh_zip
+Validate 3rd Party Macro - [4info_hh_zip] - lower case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4info_hh_zip
+		Should Match Regexp 			${raw_text}				^94589$
+	[Tags]		Exclude
+Validate 3rd Party Macro - [4INFO_HH_ZIP] - upper case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4INFO_HH_ZIP
+		Should Match Regexp 			${raw_text}				^94589$
+	[Tags]		Exclude	
+Validate 3rd Party Macro - [4Info_Hh_zIp] - Mixed case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4Info_Hh_zIp
+		Should Match Regexp 			${raw_text}				^94589$		
+	[Tags]		Exclude
+# 4INFO_APP_BUNDLE:
+Validate 3rd Party Macro - [4INFO_APP_BUNDLE:] - lower case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4INFO_APP_BUNDLE
+		Should Match Regexp 			${raw_text}				^com.xmyyearbook.m$
+
+Validate 3rd Party Macro - [4Info_App_Bundle] - upper case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4Info_App_Bundle
+		Should Match Regexp 			${raw_text}				^com.xmyyearbook.m$
+		
+Validate 3rd Party Macro - [4info_app_bundle] - Mixed case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4info_app_bundle
+		Should Match Regexp 			${raw_text}				^com.xmyyearbook.m$
+		
+# 4INFO_APPSTORE_URL::
+Validate 3rd Party Macro - [4INFO_APPSTORE_URL:] - lower case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4INFO_APPSTORE_URL
+		Should Match Regexp 			${raw_text}				^https://itunes.apple.com/us/app/meetme\\-chat\\-meet\\-new\\-people/id372648912\\?mt=8&uo=4$
+
+Validate 3rd Party Macro - [4Info_AppStore_Url] - upper case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4Info_AppStore_Url
+		Should Match Regexp 			${raw_text}				^https://itunes.apple.com/us/app/meetme\\-chat\\-meet\\-new\\-people/id372648912\\?mt=8&uo=4$
+		
+Validate 3rd Party Macro - [4info_appstore_url] - Mixed case
+		Extract Data For Macro And Verify 3rd Party			${URL4}				4info_appstore_url
+		Should Match Regexp 			${raw_text}				^https://itunes.apple.com/us/app/meetme\\-chat\\-meet\\-new\\-people/id372648912\\?mt=8&uo=4$
+		
+#4INFO_CLIENT_IP
+Validate 3rd Party Macro - [4INFO_CLIENT_IP:] - Upper case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4INFO_CLIENT_IP
+		Should Match Regexp 			${raw_text}				63.155.124.240
+
+Validate 3rd Party Macro - [4Info_Client_Ip] - Mixed case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4Info_Client_Ip
+		Should Match Regexp 			${raw_text}				63.155.124.240		
+
+Validate 3rd Party Macro - [4info_client_ip] - Lower case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4info_client_ip
+		Should Match Regexp 			${raw_text}				63.155.124.240		
+
+#4INFO_CLIENT_UA
+Validate 3rd Party Macro - [4INFO_CLIENT_UA:] - Upper case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4INFO_CLIENT_UA
+		Should Match Regexp 			${raw_text}				Mozilla/5.0 \\(Linux; U; Android 4.3; en-us; Galaxy Nexus Build/JWR67B\\) AppleWebKit/534.30 \\(KHTML, like Gecko\\) Version/4.0 Mobile Safari/534.30				
+
+Validate 3rd Party Macro - [4Info_Client_Ua:] - Mixed case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4Info_Client_Ua
+		Should Match Regexp 			${raw_text}				Mozilla/5.0 \\(Linux; U; Android 4.3; en-us; Galaxy Nexus Build/JWR67B\\) AppleWebKit/534.30 \\(KHTML, like Gecko\\) Version/4.0 Mobile Safari/534.30				
+
+Validate 3rd Party Macro - [4info_client_ua:] - Lower case
+		Extract Data For Macro And Verify 3rd Party				${URL4}				4info_client_ua
+		Should Match Regexp 			${raw_text}				Mozilla/5.0 \\(Linux; U; Android 4.3; en-us; Galaxy Nexus Build/JWR67B\\) AppleWebKit/534.30 \\(KHTML, like Gecko\\) Version/4.0 Mobile Safari/534.30				
+																

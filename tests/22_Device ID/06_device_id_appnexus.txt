@@ -1,0 +1,69 @@
+*** Settings ***
+Resource   Device_ID_imports.txt
+Force Tags           DEVICE_ID    BATCH3 	APPNEXUS	
+Test Setup           Open Browser        ${DEFAULT_BROWSER_HOME}       ${BROWSER}
+Test Teardown     Close All Browsers
+Suite Teardown    Close All Browsers
+*** variables ***
+ #app_id_01 is the app id for device frequency
+ #qpp_id_03 is the app id for ip freqency
+ ${app_id_01}						12446
+ ${app_id_01_mm}					12471
+ ${app_id_01_ms}					12515
+ ${app_id_03}						12448
+ ${app_id_03_ms}						12519
+ ${app_id_03_mm}						12473
+*** Test Cases ***
+## 
+#windowsadid is for use by appnexus: Microsoft
+#It is distinguish by having selling_member_id: 280
+
+Clear Device_ids windowsadid (Microsoft), Field 13 and 26
+	   ${random_device_id}=		Generate Clear Device ID   
+	  Set Test Variable		${auction_id}		34521192423407
+	  Set Test Variable		${creative_id}		958090      	  
+	   Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-07-17 00:12:18","bidder_timeout_ms":350,"members": [{"id":2049}],"member_ad_profile_id":23349,"excluded_technical_attributes":[2,36],"tags": [{"auction_id_64": ${auction_id},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "wp7","supply_type": "mobile_app","site_id": 670274,"creative_formats_map": "111111111111","creative_formats": ["unknown","html-url","js-url","flash","image","js-raw","html-raw","html-iframe","vast-url","text","xml-url","file-url"],"ad_profile_id": 535543,"visibility_profile_id": 1323,"venue_id": 681692,"pop_max_width": 320,"pop_max_height": 50,"pop_is_prepop": false,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":2.07900,"estimated_average_price":1.0560,"id":2916478}],"bid_info": {"user_id_64": 6329836781646259027,"no_cookies": false,"payment_rule_id": 400244,"no_flash": true,"certified_supply": true,"user_agent": "WindowsAdClient/6.1.30629.0 (Windows; XAML)","browser": 0,"operating_system_extended": 93,"operating_system_family": 5,"carrier": 1,"device_type": 1,"language": 1,"session_freq": 1,"pub_session_freq": 1,"ip_address": "99.169.4.191","country": "US","region": "FL","city": "Miami","postal_code": "33193","dma": 528,"time_zone": "America/New_York","inventory_class": "unaudited","within_iframe": false,"device_ids": {"windowsadid": "${random_device_id}"},"selling_member_id":280,"publisher_id":348882,"app_id":"${app_id_01_ms}","mobile_app_instance_id":853705,"url":"windows.appnetwork.games_strategy.microsoftadexchange.com","domain":"windows.appnetwork.games_strategy.microsoftadexchange.com","userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23938339}]}}}
+	   RTB Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Appnexus Response 	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				13=${random_device_id}
+		Should Match Regexp 			${output}  				46=150
+	[Tags]	EXCLUDE		
+Clear Device_ids idfa (Millenial), Field 13 and 26
+	   ${random_device_id}=		Generate Clear Device ID   
+	  Set Test Variable		${auction_id}		34521192423408
+	  Set Test Variable		${creative_id}		958090      	  
+	   Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-06-04 00:48:07","bidder_timeout_ms":100,"members": [{"id":2049}],"member_ad_profile_id":198147,"excluded_categories":[13,17,29,38,39,60,78,80,116,118],"excluded_technical_attributes":[33],"tags": [{"auction_id_64": ${auction_id},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","supply_type": "mobile_app","site_id": 886154,"ad_profile_id": 251049,"visibility_profile_id": 990,"venue_id": 744119,"inventory_source_id": 1719,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":0.24800,"estimated_average_price":0.0810,"id":3620009,"inventory_audits":[{"auditor_member_id":2066,"content_categories":[10,13]}]}],"bid_info": {"user_id_64": 6254650908374538979,"no_cookies": false,"payment_rule_id": 507442,"no_flash": false,"certified_supply": true,"user_agent": "Mozilla/5.0 (iPad; CPU OS 8_1_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12B435","browser": 0,"operating_system": 10,"operating_system_extended": 129,"operating_system_family": 3,"carrier": 1,"device_make": 26,"device_model": 300,"device_type": 3,"session_freq": 1,"pub_session_freq": 1,"ip_address": "76.30.108.22","country": "US","region": "TX","city": "Sugar Land","postal_code": "77479","dma": 618,"time_zone": "America/Chicago","inventory_class": "class_3","within_iframe": false,"device_ids": {"idfa": "${random_device_id}","sha1udid": "a9dea295df1cdb430706204134814a4c16bd9d99","md5udid": "52a2ffd2f1210a377d4365bbb816f386"},"selling_member_id":2066,"publisher_id":442520,"app_id":"${app_id_01_mm}","mobile_app_instance_id":685,"inventory_audits": [{"auditor_member_id": null,"inventory_attributes": []}],"userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23118867}]}}}
+	   RTB Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Appnexus Response 	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				13=${random_device_id}
+		Should Match Regexp 			${output}  				46=150
+		[Tags]	EXCLUDE	
+Clear Device_ids aaid (Millenial), Field 13 and 26
+	   ${random_device_id}=		Generate Clear Device ID   
+	  Set Test Variable		${auction_id}		34521192423409
+	  Set Test Variable		${creative_id}		958090      	  
+	   Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-06-04 00:48:42","bidder_timeout_ms":100,"members": [{"id":2049}],"member_ad_profile_id":198147,"excluded_categories":[37,38,60,65,78,80,87,118],"excluded_technical_attributes":[33],"tags": [{"auction_id_64": ${auction_id},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","supply_type": "mobile_app","site_id": 566384,"ad_profile_id": 264384,"visibility_profile_id": 990,"venue_id": 380092,"inventory_source_id": 1719,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":1.34900,"estimated_average_price":0.4570,"id":2038394,"inventory_audits":[{"auditor_member_id":2066,"intended_audience":"general","inventory_attributes": [],"content_categories":[25800,10,18,21]}]}],"bid_info": {"user_id_64": 6184927345315624308,"no_cookies": false,"payment_rule_id": 333146,"no_flash": false,"certified_supply": true,"user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","browser": 12,"operating_system": 8,"operating_system_extended": 0,"operating_system_family": 1,"carrier": 1,"device_make": 26,"device_model": 301,"device_type": 2,"session_freq": 1,"pub_session_freq": 1,"ip_address": "107.188.16.228","country": "US","region": "NY","city": "Bronx","postal_code": "10453","dma": 501,"time_zone": "America/New_York","inventory_class": "class_3","within_iframe": false,"device_ids": {"sha1udid": "3d2129ac53c287e63a59da128d3316d0503c5b62","md5udid": "404ba0a98a5e863a830cabfa36ec8bf1","aaid": "${random_device_id}"},"selling_member_id":2066,"publisher_id":291641,"app_id":"${app_id_01_mm}","inventory_audits": [{"auditor_member_id": null,"inventory_attributes": []}],"userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23719985}]}}}
+	   RTB Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Appnexus Response  	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				13=${random_device_id}
+		Should Match Regexp 			${output}  				46=150
+		[Tags]	EXCLUDE	
+
+Appnexus Clear Device_ids OPEN RTB, Field 13 and 26	
+	${random_device_id}=		Generate Clear Device ID  
+		Set Test Variable		${auction_id}		34521192423409
+	  Set Test Variable		${creative_id}		958090      	  
+	   #Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-06-04 00:48:42","bidder_timeout_ms":100,"members": [{"id":2049}],"member_ad_profile_id":198147,"excluded_categories":[37,38,60,65,78,80,87,118],"excluded_technical_attributes":[33],"tags": [{"auction_id_64": ${auction_id},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "iframe","supply_type": "mobile_app","site_id": 566384,"ad_profile_id": 264384,"visibility_profile_id": 990,"venue_id": 380092,"inventory_source_id": 1719,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":1.34900,"estimated_average_price":0.4570,"id":2038394,"inventory_audits":[{"auditor_member_id":2066,"intended_audience":"general","inventory_attributes": [],"content_categories":[25800,10,18,21]}]}],"bid_info": {"user_id_64": 6184927345315624308,"no_cookies": false,"payment_rule_id": 333146,"no_flash": false,"certified_supply": true,"user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","browser": 12,"operating_system": 8,"operating_system_extended": 0,"operating_system_family": 1,"carrier": 1,"device_make": 26,"device_model": 301,"device_type": 2,"session_freq": 1,"pub_session_freq": 1,"ip_address": "107.188.16.228","country": "US","region": "NY","city": "Bronx","postal_code": "10453","dma": 501,"time_zone": "America/New_York","inventory_class": "class_3","within_iframe": false,"device_ids": {"sha1udid": "3d2129ac53c287e63a59da128d3316d0503c5b62","md5udid": "404ba0a98a5e863a830cabfa36ec8bf1","aaid": "${random_device_id}"},"selling_member_id":2066,"publisher_id":291641,"app_id":"${app_id_01_mm}","inventory_audits": [{"auditor_member_id": null,"inventory_attributes": []}],"userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23719985}]}}}
+	   Set Test Variable		${data}					{"id": "8765482113786061111","imp": [{"id": "${auction_id}","banner": {"w": 320,"h": 50,"id": "1","battr": [1, 2, 15],"pos": 0,"format": [{"w": 320,"h": 50}]},"instl": 0,"tagid": "12347654","secure": 1,"ext": {"appnexus": {"estimated_clear_price": 0.57,"predicted_view_rate": 0.073255,"member_ad_profile_id": 1111055,"predicted_video_completion_rate": 0.592172,"predicted_view_rate_over_total": 0.067229,"allowed_payment_types": [{"payment_type": 1,"imp_count_method": 2}]}}}],"app": {"id": "3232399","domain": "example.com","cat": ["IAB12-2", "IAB12", "IAB11-5"],"page": "https://example.com/somepage.html","publisher": {"id": "1111999"}},"device": {"ua": "Mozilla/5.0 (Linux; Android 6.0.1; HUAWEI Build/MMB28B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.137 Mobile Safari/537.36","geo": {"lat": 36.6203,"lon": -4.4998,"country": "US","region": "MA","metro": "1","city": "UnaCuidad","zip": "94110","utcoffset": 60,"ext": {"appnexus": {"timezone": "Africa/Ceuta"}}},"dnt": 0,"ip": "11.222.111.0","devicetype": 3,"ifa": "${random_device_id}","make": "Unknown","model": "Generic Android Mobile","os": "Android","language": "es","connectiontype": 0},"user": {"id": "7939999668795769876","buyeruid": "CABBBBrbuQ9AA5DMJJJJlOL9ZOo","gender": "O","data": [{"id": "0","segment": [{"id": "1","value": "0"}]}, {"id": "1234","segment": [{"id": "4444555","value": "0"}]}]},"test": 0,"at": 1,"tmax": 150,"wseat": ["1234"],"cur": ["USD"],"bcat": ["IAB23-7", "IAB23-5", "IAB23-10", "IAB23-9", "IAB23-1", "IAB7-44", "IAB9-9", "IAB8-18", "IAB8-5"],"badv": ["url1.com", "url2.com"],"ext": {"appnexus": {"seller_member_id": 123,"spend_protection": true,"publisher_integration": {"is_header": 0,"bid_shading_high": 1,"bid_shading_medium": 0.35,"bid_shading_low": 0.95}}},"source": {"fd": 1,"tid": "2dd111ff-7777-4abc-8558-86a123ab46d6"}}	
+       RTB Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Appnexus Response  	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				13=${random_device_id}
+		Should Match Regexp 			${output}  				46=150   

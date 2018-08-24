@@ -1,0 +1,16 @@
+*** Settings ***
+Resource             segment_targeting_imports.txt
+Force Tags          RTB      NCS     BATCH8    	EXCLUDE
+
+*** Variables ***
+${app_id}		12803
+
+*** Test Cases ***
+#There is a pre-existing adgroup with device segment  (4Info_Age_18-30), This adgroup will expire and may require reupload once in a while
+#follow the instruction on wiki to reload the device ID segment https://wiki.4info.com/pages/viewpage.action?pageId=25953524
+
+Sanity Device ID(segment) targeted to specific device
+	[Documentation]		This test case has pre-existing ad group setup with hh segment pre-loaded.  
+    Set Test Variable	 ${device_id}		07C57B20-032B-4D91-9658-231A3092A988
+    Set Test Variable    ${data} 			{"app":{"publisher":{"id":"c3584d1c40cb43619e043c065caee33a","name":"MeetMe,Inc."},"ver":"10.2.0.1","name":"MeetMeAndroid","bundle":"xxcom.myyearbook.m","cat":["IAB24"],"id":"${app_id}"},"imp":[{"bidfloor":0.001,"tagid":"20df0909e2aa4715aa65674ef1b8e575","displaymanagerver":"3.7.0","displaymanager":"mopub","instl":0,"banner":{"h":50,"pos":1,"ext":{"nativebrowserclick":1},"api":[3,5],"w":320,"btype":[4]},"id":"1"}],"at":2,"device":{"geo":{"lat":38.1536,"country":"USA","lon":-104.4975},"language":"en","ip":"50.153.222.141","make":"LGE","connectiontype":2,"js":1,"dpidsha1":"c86f92567d1a95065d7e83e81165263ace877684","dnt":0,"ifa":"${device_id}","ua":"Mozilla/5.0(Linux;U;Android4.1.2;en-us;LGMS769Build/JZO54K)AppleWebKit/534.30(KHTML,likeGecko)Version/4.0MobileSafari/534.30","devicetype":1,"dpidmd5":"c51d2c8886c6c9f412256cf02ad2cbd2","osv":"4.1.2","os":"Android","model":"LGMS769"},"id":"1ee5c786-6e4e-4655-ab0a-beaaf0df6370","user":{"keywords":"DEV_TYPE:u2,DEV_MFR:LGE,AGE:23,GENDER:f,BUILD_TYPE:release,DEV_MODEL:LGMS769,RELATIONSHIP:single,DEV_BRAND:MetroPCS"}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200      ad_expected=YES  adgroup_expected=37093		submit_client_impression_event=NO	

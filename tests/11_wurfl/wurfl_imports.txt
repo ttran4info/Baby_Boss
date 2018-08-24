@@ -1,0 +1,8 @@
+*** Settings ***
+Library    	  RequestsLibrary
+Resource      wurfl.txt
+Resource	  log_reader.txt
+Resource      ssh_lib.txt
+Resource      rtb.txt
+Resource      utilities_json.txt
+Resource 	  00_RTB_Data.txt

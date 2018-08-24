@@ -1,0 +1,5 @@
+
+*** Settings ***
+Resource    adhaven_general.txt
+Resource    macro.txt
+

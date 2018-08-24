@@ -1,0 +1,60 @@
+*** Settings ***
+Resource             exchange_specific_imports.txt
+Force Tags           AUCTIONPRICE    BATCH3		ADX			
+Suite Teardown      Close All Connections
+
+*** variables ***
+ ${app_id}					Regression Adx App
+ ${agid_expected}			86697
+ ${agid_expected_video}		86698
+ ${app_id}					Regression Adx App
+ ${app_name}				Regression Adx App
+ ${publisher_name}			SuperInc
+ ${bid_floor}				2.0
+ ${lat}						37.383440
+ ${lon}						-122.013046
+ ${id}						Vu4DAAI8CEKGPVxAwrsA
+ ${device_id} 				6e552d9b-bf7f-43c8-85aa-9c0790007503
+${data}					{"id":"${id}","imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"api":[3,5],"wmax":360,"hmax":640,"wmin":320,"hmin":280},"instl":1,"tagid":"1","bidfloor":${bid_floor},"bidfloorcur":"USD","ext":{"billing_id":["12345678901"],"publisher_settings_list_id":["12345678901234567890"],"allowed_vendor_type":[113]}}],"app":{"id":"${app_id}","name":"SuperSpeedVPN","bundle":"com.example.free.vpn.proxy","publisher":{"id":"1","name":"${publisher_name}"},"content":{"url":"https://play.google.com/store/apps/details?id=com.example.free.vpn.proxy","contentrating":"DV-G","userrating":"4.2","language":"en"}},"device":{"ua":"Mozilla/5.0...(Mobile;afma-sdk-a-v9683236.8115000.2)","ip":"123.456.789.0","geo":{"country":"USA","lat": ${lat},"lon": ${lon},"utcoffset":180},"make":"alcatel","model":"5022d","os":"android","osv":"5.1","devicetype":4,"ifa":"${device_id}","w":360,"h":640,"pxratio":2},"user":{"id":"CAESEPfSJVjdc8Mx2U_Dd3fQqvM"},"cur":["USD"]}
+${data2}					{"id":"${id}","imp":[{"id":"1","banner":{"w":360,"h":592,"pos":1,"api":[3,5],"wmax":360,"hmax":592,"wmin":250,"hmin":250},"video":{"mimes":["video/mp4","video/webm","video/x-flv"],"maxduration":30,"w":360,"h":592,"startdelay":0,"playbackmethod":[1],"pos":1,"api":[3,5],"protocols":[2,3,5,6]},"instl":1,"tagid":"1","bidfloor":0.09,"bidfloorcur":"USD","ext":{"billing_id":["12345"],"publisher_settings_list_id":["15984503506551632562"]}}],"app":{"id":"${app_id}","name":"Tienadx","bundle":"fr.android.myapp","publisher":{"id":"1"},"content":{"url":"https://play.google.com/store/apps/details?id=fr.android.myapp","contentrating":"DV-G","userrating":"4.1","language":"fr"}},"device":{"ua":"Mozilla/5.0...(Mobile;afma-sdk-a-v10084448.9452000.2)","ip":"236.162.37.0","geo":{"country":"USA","region":"FR-D","zip":"94110","utcoffset":60},"make":"sony","model":"e5633","os":"android","osv":"6.0","devicetype":4,"ifa":"${device_id}","w":360,"h":592,"pxratio":3},"user":{"id":"userid","data":[{"id":123,"name":"DoubleClick","segment":[{"id":"224","value":"0.5"},{"id":"1461","value":"0.5"}]}]},"cur":["EUR"],"bcat":["IAB19-3"]}
+ ${app_site_zip}			94110
+ ${online_zip}			94111
+*** Test Cases ***
+
+Adx - Logging Auction Price at 0.100 (10c)
+	   Set Test Variable	${auction_price}	0.10
+	   Set Test Variable	${auction_price_adx}	WWk0AAAHijMKXnrVAA1alPffHF5k3McrXK6Sjg   
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"a72eeb1b79859d0aef038b3fcab4fa0e0b685f5e","at":2,"tmax":53,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id}","cat":["IAB24"],"storeurl":"https://play.google.com/store/apps/details?id=mobi.ifunny&feature=search_result#?t=W251bGwsMSwxLDEsIm1vYmkuaWZ1bm55Il0.","name":"iFunny","domain":"http://www.xgamut.media","bundle":"xmobi.ifunny","publisher":{"id":"12060"}},"device":{"os":"Android","model":"zmax","geo":{"country":"USA","region":"FL","lat":0.0,"lon":0.0,"zip":"${app_site_zip}"},"osv":"4.4.2","js":1,"ext":{"xff":""},"dpidmd5":"398276ccdd670a186bd632a634f9957e","ip":"70.126.19.44","connectiontype":0,"dpidsha1":"7848a23eeb3ece874de683e0e1b82aa996ece5f5","ua":"Mozilla/5.0 (Linux; Android 4.4.2; Z970 Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.3","carrier":"Other","devicetype":1,"language":"en","make":"zte","ifa":"${device_id}"},"user":{"id":"3b57280ab7d27ca9ccecc4c2b7f68f82750242e8","ext":{"sessiondepth":1}}}
+	   RTB Request 				API=${RTB_ADX_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price_adx} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}
+	[Tags]		
+Adx - Logging Auction Price at 1.100 (dolar and dime)
+	   Set Test Variable	${auction_price}	1.1
+	   Set Test Variable	${auction_price_adx}	WWk0AAAHimcKXnrVAA1alL4NYF7ryt-o1Pq9Kw  
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"a72eeb1b79859d0aef038b3fcab4fa0e0b685f5e","at":2,"tmax":53,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id}","cat":["IAB24"],"storeurl":"https://play.google.com/store/apps/details?id=mobi.ifunny&feature=search_result#?t=W251bGwsMSwxLDEsIm1vYmkuaWZ1bm55Il0.","name":"iFunny","domain":"http://www.xgamut.media","bundle":"xmobi.ifunny","publisher":{"id":"12060"}},"device":{"os":"Android","model":"zmax","geo":{"country":"USA","region":"FL","lat":0.0,"lon":0.0,"zip":"${app_site_zip}"},"osv":"4.4.2","js":1,"ext":{"xff":""},"dpidmd5":"398276ccdd670a186bd632a634f9957e","ip":"70.126.19.44","connectiontype":0,"dpidsha1":"7848a23eeb3ece874de683e0e1b82aa996ece5f5","ua":"Mozilla/5.0 (Linux; Android 4.4.2; Z970 Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.3","carrier":"Other","devicetype":1,"language":"en","make":"zte","ifa":"${device_id}"},"user":{"id":"3b57280ab7d27ca9ccecc4c2b7f68f82750242e8","ext":{"sessiondepth":1}}}
+	   RTB Request 				API=${RTB_ADX_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price_adx} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price} 
+	   [Tags]		  
+Adx - Logging Auction Price at 10.100 (dolars)
+	   Set Test Variable	${auction_price}	10.1
+	   Set Test Variable	${auction_price_adx}	WWk0AAAHiogKXnrVAA1alKiZEDUS2fWrsO851A   
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"a72eeb1b79859d0aef038b3fcab4fa0e0b685f5e","at":2,"tmax":53,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id}","cat":["IAB24"],"storeurl":"https://play.google.com/store/apps/details?id=mobi.ifunny&feature=search_result#?t=W251bGwsMSwxLDEsIm1vYmkuaWZ1bm55Il0.","name":"iFunny","domain":"http://www.xgamut.media","bundle":"xmobi.ifunny","publisher":{"id":"12060"}},"device":{"os":"Android","model":"zmax","geo":{"country":"USA","region":"FL","lat":0.0,"lon":0.0,"zip":"${app_site_zip}"},"osv":"4.4.2","js":1,"ext":{"xff":""},"dpidmd5":"398276ccdd670a186bd632a634f9957e","ip":"70.126.19.44","connectiontype":0,"dpidsha1":"7848a23eeb3ece874de683e0e1b82aa996ece5f5","ua":"Mozilla/5.0 (Linux; Android 4.4.2; Z970 Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.3","carrier":"Other","devicetype":1,"language":"en","make":"zte","ifa":"${device_id}"},"user":{"id":"3b57280ab7d27ca9ccecc4c2b7f68f82750242e8","ext":{"sessiondepth":1}}}
+	   RTB Request 				API=${RTB_ADX_API}          data=${data}		response_code=200	adgroup_expected=${agid_expected}        submit_client_impression_event=YES		auction_price=${auction_price_adx} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}
+	   [Tags]		
+
+Adx - Video Logging Auction Price at 10.100 (dolars)
+	   Set Test Variable	${auction_price}	10.1
+	   Set Test Variable	${auction_price_adx}	WWk0AAAHiogKXnrVAA1alKiZEDUS2fWrsO851A   
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"a72eeb1b79859d0aef038b3fcab4fa0e0b685f5e","at":2,"tmax":53,"imp":[{"id":"1","tagid":"193782","secure":0,"iframebuster":[],"banner":{"w":320,"h":50,"pos":0,"battr":[],"api":[],"topframe":0},"instl":0}],"app":{"id":"${app_id}","cat":["IAB24"],"storeurl":"https://play.google.com/store/apps/details?id=mobi.ifunny&feature=search_result#?t=W251bGwsMSwxLDEsIm1vYmkuaWZ1bm55Il0.","name":"iFunny","domain":"http://www.xgamut.media","bundle":"xmobi.ifunny","publisher":{"id":"12060"}},"device":{"os":"Android","model":"zmax","geo":{"country":"USA","region":"FL","lat":0.0,"lon":0.0,"zip":"${app_site_zip}"},"osv":"4.4.2","js":1,"ext":{"xff":""},"dpidmd5":"398276ccdd670a186bd632a634f9957e","ip":"70.126.19.44","connectiontype":0,"dpidsha1":"7848a23eeb3ece874de683e0e1b82aa996ece5f5","ua":"Mozilla/5.0 (Linux; Android 4.4.2; Z970 Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.3","carrier":"Other","devicetype":1,"language":"en","make":"zte","ifa":"${device_id}"},"user":{"id":"3b57280ab7d27ca9ccecc4c2b7f68f82750242e8","ext":{"sessiondepth":1}}}
+	   RTB Request 				API=${RTB_ADX_API}          data=${data2}		response_code=200	adgroup_expected=${agid_expected_video}        submit_client_impression_event=ADX_VIDEO		auction_price=${auction_price_adx} 
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Check Auction Price	output=${output}		auction_price=${auction_price}
+	   [Tags]			his   		

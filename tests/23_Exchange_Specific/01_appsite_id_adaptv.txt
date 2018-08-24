@@ -1,0 +1,93 @@
+*** Settings ***
+Resource             exchange_specific_imports.txt
+Force Tags           APPSITEID    BATCH3	ADAPTV 
+Suite Teardown      Close All Connections
+
+*** variables ***
+ ${app_id}					13189
+ ${site_id}					13192
+ 
+*** Test Cases ***
+# Adaptv does not have app ID or site ID. it will use the name lowercase, md5
+# Adaptv is renamed to Oath One
+Adaptv - Logging app ID as ID
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"id":"123456","name":"freetone","cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO   
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				54=123456
+	   Should Match Regexp 			${output}  				55=
+
+Adaptv - Logging app name as ID, freetone (lower case)
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"name":"freetone","cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				54=ed245aaa7b05d3b973b7be8923a45da4
+	   Should Match Regexp 			${output}  				55=
+	   
+Adaptv - Logging app name as ID, FreeTone (Mix case)
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"name":"FreeTone","cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				54=6d2656ec8b6084508b9039ce26a5116c
+	   Should Match Regexp 			${output}  				55=
+	   
+Adaptv - Logging app name as ID, FREETONE (Upper case)
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"name":"FREETONE","cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   Should Match Regexp 			${output}  				54=985b5f9f22f8b58bb1c69f97a851eeab
+	   Should Match Regexp 			${output}  				55=	   
+
+#when both ID and Name is missing from request
+Adaptv - Logging (Adap.tv Mobile Exchange: not available) as ID
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"034a3a2e-1c8a-45b7-99a3-40a9b47dc1ad","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":60,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[3 ],"ext":{"viewability":"UNKNOWN"}}}],"app":{"cat":["IAB1"],"storeurl":"https://itunes.apple.com/us/app/freetone-free-calls-texting/id338088432?mt=8","bundle":"xcom.gemsoftware.textme"},"device":{"ip":"76.211.210.44","ifa":"${device_id}","dpidsha1":"9edc86b28705450d8240232e5a4815607fbd67cd","dpidmd5":"36f8a8c55689af88e646e9000e534f77","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70","language":"en","os":"iOS","devicetype":4,"geo":{"lat":"26.20","lon":"-98.23","type":1}},"user":{"id":"9849241915858942006"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   #Should Match Regexp 			${output}  				54=a52abb0645faabf76d7f3920cdc16dea
+	   Should Match Regexp 			${output}  				54=f4384a91668e8a5f2b3922c55584046b		# md5(Oath One Video: not available)
+	   Should Match Regexp 			${output}  				55=
+
+Adaptv - Logging site ID as ID
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"7151275b-47ce-4264-b5bf-b7825df142f3","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":120,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[1 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"id":"123456","name":"freetone","page":"xfoxct.com/2015/08/21/report-federal-officer-and-suspect-shot-outside-federal-building-in-nyc/","cat":["IAB1"]},"device":{"ifa":"${device_id}","ip":"104.162.160.243","ua":"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.133 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":"40.73","lon":"-73.79","type":1}},"user":{"id":"1829135698822077911"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   Should Match Regexp 			${output}  				54=
+	   Should Match Regexp 			${output}  				55=123456  	 
+Adaptv - Logging site name as ID, freetone (lower case)
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"7151275b-47ce-4264-b5bf-b7825df142f3","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":120,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[1 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"name":"freetone","page":"xfoxct.com/2015/08/21/report-federal-officer-and-suspect-shot-outside-federal-building-in-nyc/","cat":["IAB1"]},"device":{"ifa":"${device_id}","ip":"104.162.160.243","ua":"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.133 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":"40.73","lon":"-73.79","type":1}},"user":{"id":"1829135698822077911"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				54=
+	   Should Match Regexp 			${output}  				55=ed245aaa7b05d3b973b7be8923a45da4
+
+Adaptv - Logging site name as ID, FreeTone (mix case)
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"7151275b-47ce-4264-b5bf-b7825df142f3","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":120,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[1 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"name":"FreeTone","page":"xfoxct.com/2015/08/21/report-federal-officer-and-suspect-shot-outside-federal-building-in-nyc/","cat":["IAB1"]},"device":{"ifa":"${device_id}","ip":"104.162.160.243","ua":"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.133 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":"40.73","lon":"-73.79","type":1}},"user":{"id":"1829135698822077911"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   Should Match Regexp 			${output}  				54=
+	   Should Match Regexp 			${output}  				55=6d2656ec8b6084508b9039ce26a5116c
+	 
+Adaptv - Logging site name as ID, FREETONE (upper case)
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"7151275b-47ce-4264-b5bf-b7825df142f3","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":120,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[1 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"name":"FREETONE","page":"xfoxct.com/2015/08/21/report-federal-officer-and-suspect-shot-outside-federal-building-in-nyc/","cat":["IAB1"]},"device":{"ifa":"${device_id}","ip":"104.162.160.243","ua":"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.133 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":"40.73","lon":"-73.79","type":1}},"user":{"id":"1829135698822077911"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   Should Match Regexp 			${output}  				54=
+	   Should Match Regexp 			${output}  				55=985b5f9f22f8b58bb1c69f97a851eeab
+
+Adaptv - Logging site ID as (Adap.tv Mobile Exchange: not available)when ID and name missing
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"id":"7151275b-47ce-4264-b5bf-b7825df142f3","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":120,"protocols":[2 ,5 ],"startdelay":0,"playbackmethod":[1 ],"ext":{"viewability":"UNKNOWN"}}}],"site":{"page":"xfoxct.com/2015/08/21/report-federal-officer-and-suspect-shot-outside-federal-building-in-nyc/","cat":["IAB1"]},"device":{"ifa":"${device_id}","ip":"104.162.160.243","ua":"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.133 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":"40.73","lon":"-73.79","type":1}},"user":{"id":"1829135698822077911"},"cur":["USD"],"tmax":150}
+	   RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}	
+	   Should Match Regexp 			${output}  				54=
+	   #Should Match Regexp 			${output}  				55=a52abb0645faabf76d7f3920cdc16dea	   
+	    Should Match Regexp 			${output}  				55=f4384a91668e8a5f2b3922c55584046b		#Oath One Video: not available (md5) 

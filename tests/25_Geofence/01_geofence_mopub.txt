@@ -1,0 +1,22 @@
+*** Settings ***
+Resource             geofence_imports.txt
+Force Tags           GEOFENCE    BATCH9		MOPUB	 
+
+*** variables ***
+${app_id}					13475
+
+ 
+*** Test Cases ***
+#dma = 520
+Mopub - Geofence Borders (bookstore) within 2 miles
+	   Set Test Variable 	${lat}				33.4893901569992
+	   Set Test Variable 	${lon}				-82.0804707744926
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"xcom.myyearbook.m","cat":["IAB24"],"id":"${app_id}","name":"MeetMe_Android","publisher":{"id":"87e493a6b4424a6eb0ab7bc187d4345d","name":"BeanstockMediaInc."},"ver":"9.5.2"},"at":2,"bcat":["IAB100","IAB200","IAB300"],"device":{"carrier":"310-260","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"e32feae37f36a86edfc9297d92988225","dpidsha1":"e994f940c0a0f689506622aefc918ef6002f802b","ifa":"bf3d12ff-5f82-417c-9fcb-64eb41bb82e3","geo":{"city":"NorthLasVegas","country":"USA","lat":${lat},"lon":${lon},"region":"GA","zip":"30901"},"ip":"68.224.110.221","js":1,"make":"samsung","model":"SM-G386T1","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;SM-G386T1Build/KOT49H)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"353e5aa1-ec1e-4f3a-bf83-84abd6980360","imp":[{"banner":{"api":[3,5],"battr":[10,8,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.09,"displaymanager":"mopub","displaymanagerver":"3.3.0+kit","id":"1","instl":0,"tagid":"f79f2fcc242b4e9d9ebf9ad9e60a7d11"}],"user":{"keywords":"RELATIONSHIP:single,AGE:16,GENDER:m,BUILD_TYPE:release"}}	   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200		adgroup_expected=35080        submit_client_impression_event=NO
+	[Tags]	   
+Mopub - Negative Geofence Borders (bookstore) 7 miles
+	   Set Test Variable 	${lat}				33.5883901569992
+	   Set Test Variable 	${lon}				-82.0803707744926
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"xcom.myyearbook.m","cat":["IAB24"],"id":"${app_id}","name":"MeetMe_Android","publisher":{"id":"87e493a6b4424a6eb0ab7bc187d4345d","name":"BeanstockMediaInc."},"ver":"9.5.2"},"at":2,"bcat":["IAB100","IAB200","IAB300"],"device":{"carrier":"310-260","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"e32feae37f36a86edfc9297d92988225","dpidsha1":"e994f940c0a0f689506622aefc918ef6002f802b","ifa":"bf3d12ff-5f82-417c-9fcb-64eb41bb82e3","geo":{"city":"NorthLasVegas","country":"USA","lat":${lat},"lon":${lon},"region":"GA","zip":"30901"},"ip":"68.224.110.221","js":1,"make":"samsung","model":"SM-G386T1","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;SM-G386T1Build/KOT49H)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"353e5aa1-ec1e-4f3a-bf83-84abd6980360","imp":[{"banner":{"api":[3,5],"battr":[10,8,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.09,"displaymanager":"mopub","displaymanagerver":"3.3.0+kit","id":"1","instl":0,"tagid":"f79f2fcc242b4e9d9ebf9ad9e60a7d11"}],"user":{"keywords":"RELATIONSHIP:single,AGE:16,GENDER:m,BUILD_TYPE:release"}}	   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200		adgroup_expected=35082        submit_client_impression_event=NO
+

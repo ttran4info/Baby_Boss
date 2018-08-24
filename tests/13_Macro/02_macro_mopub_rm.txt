@@ -1,0 +1,570 @@
+*** Settings ***
+Resource            		macro_imports.txt
+Force Tags         		MACRO     MOPUB     RICH_MEDIA		6.2       BATCH4 	   
+Suite Setup             Open Browser        ${DEFAULT_BROWSER_HOME}		${BROWSER}
+Suite Teardown          Run Keywords                     Close All Browsers
+
+*** Variables ***
+							
+${URL1}						https://manage-east.adhaven.com/chieu_macro_88.jsp?RTB_HOST=${BID_ENGINE_ONE}&APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_RM_01
+${URL2}						https://manage-east.adhaven.com/chieu_macro_88.jsp?RTB_HOST=${BID_ENGINE_ONE}&APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_RM_02
+${URL3}						https://manage-east.adhaven.com/chieu_macro_88.jsp?RTB_HOST=${BID_ENGINE_ONE}&APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_RM_03
+${URL4}						https://manage-east.adhaven.com/chieu_macro_88.jsp?RTB_HOST=${BID_ENGINE_ONE}&APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_RM_04
+${aID}						62765
+${agID}						37230
+${cID}						11111111-1111-1111-1919-11111111111A
+${plID}						13559
+${ap}						1.5
+${bID}						49176
+${bdID}						68722
+		
+*** Test Cases ***
+
+Validate Rich Media Macro - [4INFO_CLICK]
+		Extract Data For Macro And Verify Rich Media			${URL1}				4INFO_click
+		Should Match Regexp      ${raw_text}     ^${EVENT_PATH}/record\\?gAId=null&gest=click-to-expand&aId=${aID}&agId=${agID}&cId=${cId}&pt=CPM&rt=web&plId=${plID}&ap=1.5&au=0&bidid=.*&impid=.*&bp=.*&cpu=0.0&tci=Y&bId=${bID}&bdId=${bdID}&reqid=.*&ats=.*&te=\\d&.*$
+	[Tags]	
+Validate Rich Media Macro - [4INFO_Click_enc]
+		Extract Data For Macro And Verify Rich Media			${URL1}				4INFO_Click_enc
+		Should Match Regexp      ${raw_text}     ^https%3A%2F%2Fqa-events-svcolo.adhaven.com.*events%2Fevent%2Frecord.*gest.*click-to-expand.*aId.*${aID}.*agId.*${agID}.*cId.*${cID}.*plId.*${plID}.*ap.*bdId.*${bdID}.*$
+	[Tags]	
+Validate Rich Media Macro - [4INFO_click_enc2]
+		Extract Data For Macro And Verify Rich Media			${URL1}				4INFO_click_enc2
+		Should Match Regexp      ${raw_text}     ^https%253A%252F%252F${EXTERNAL_EVENT_ENGINE}.*events%252Fevent%252Frecord.*gest.*click-to-expand.*aId.*${aID}.*agId.*${agID}.*cId.*${cID}.*plId.*${plID}.*ap.*bdId.*${bdID}.*$
+	[Tags]	
+Validate Rich Media Macro - [4INFO_CLICK_MD5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL1}				4INFO_CLICK_MD5
+		Should Match Regexp      ${raw_text}     ^\\w{32}$
+	[Tags]
+Validate Rich Media Macro - [4INFO_CLICK_sha1] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL1}				4INFO_CLICK_sha1
+		Should Match Regexp      ${raw_text}     ^\\w{40}$
+		[Tags]		
+# DRID
+Validate Rich Media Macro - [drid]
+		Extract Data For Macro And Verify Rich Media				${URL1}				drid
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+Validate Rich Media Macro - [DRID] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL1}				DRID
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+Validate Rich Media Macro - [drid_enc]
+		Extract Data For Macro And Verify Rich Media			${URL1}				drid_enc
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+Validate Rich Media Macro - [DRID_ENC] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL1}				DRID_ENC
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+Validate Rich Media Macro - [drid_enc2]
+		Extract Data For Macro And Verify Rich Media				${URL1}				drid_enc2
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+Validate Rich Media Macro - [DRID_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media				${URL1}				DRID_ENC2
+		Should Be Equal 			${raw_text}			${extracted_drid}
+		[Tags]	Exclude
+		
+
+#    TIMESTAMP - Time Stamp (same as Delivery Receipt Id) As of release 6.9 it's an actual timestamp
+Validate Rich Media Macro - [TIMESTAMP]
+		Extract Data For Macro And Verify Rich Media				${URL1}				TIMESTAMP
+		Should Match Regexp 			${raw_text}			\\d{13}
+Validate Rich Media Macro - [timestamp_enc]
+		Extract Data For Macro And Verify Rich Media			${URL1}				timestamp_enc
+		Should Match Regexp 			${raw_text}			\\d{13}
+Validate Rich Media Macro - [timestamp_enc2]
+		Extract Data For Macro And Verify Rich Media				${URL1}				timestamp_enc2
+		Should Match Regexp 			${raw_text}			\\d{13}	
+Validate Rich Media Macro - [timestamp_md5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL1}				timestamp_md5
+		Should Match Regexp      ${raw_text}     			^\\w{32}$
+Validate Rich Media Macro - [TIMESTAMP_sha1] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL1}				TIMESTAMP_sha1
+		Should Match Regexp      ${raw_text}     			^\\w{40}$
+
+# Device ID
+Validate Rich Media Macro - [4info_device_id]
+		Extract Data For Macro And Verify Rich Media				${URL1}				4info_device_id
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333	 
+
+Validate Rich Media Macro - [4INFO_DEVICE_ID] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL1}				4INFO_DEVICE_ID
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333	 
+
+Validate Rich Media Macro - [4info_device_id_enc]
+		Extract Data For Macro And Verify Rich Media			${URL1}				4info_device_id_enc
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333	 
+Validate Rich Media Macro - [4INFO_DEVICE_ID_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media				${URL1}				4INFO_DEVICE_ID_ENC2
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333	 
+		
+Validate Rich Media Macro - [4INFO_DEVICE_ID_MD5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL1}				4INFO_DEVICE_ID_MD5
+		Should Match Regexp      ${raw_text}     			^\\w{32}$
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333	 
+		
+Validate Rich Media Macro - [4info_device_id_sha1]
+		Extract Data For Macro And Verify Rich Media				${URL1}				4info_device_id_sha1
+		Should Match Regexp      ${raw_text}     			^\\w{40}$
+		[Tags]			https://jira.adhaven.com/browse/ADH-5333
+		
+		
+
+# 4INFO_ID
+#Validate Rich Media Macro - [4info_id]
+#		Extract Data For Macro And Verify Rich Media				${URL1}				4info_id
+#		Should Be Equal 			${raw_text}			&agId=66908&placement_id=8348&
+#		Should Be Equal 			${raw_text}			[4info_id]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+		
+#Validate Rich Media Macro - [4INFO_ID] - Case Insensitive
+#		Extract Data For Macro And Verify Rich Media			${URL1}				4INFO_ID
+#		Should Be Equal 			${raw_text}			&agId=66908&placement_id=8348&
+#		Should Be Equal 			${raw_text}			[4INFO_ID]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+		
+#Validate Rich Media Macro - [4info_id_enc]
+#		Extract Data For Macro And Verify Rich Media			${URL1}				4info_id_enc
+#		Should Be Equal 			${raw_text}			%26agId%3D66908%26placement_id%3D8348%26
+#		Should Be Equal 			${raw_text}			[4info_id_enc]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+
+#Validate Rich Media Macro - [4INFO_ID_enc] - Case Insensitive
+#		Extract Data For Macro And Verify Rich Media			${URL1}				4INFO_ID_enc
+#		Should Be Equal 			${raw_text}			%26agId%3D66908%26placement_id%3D8348%26
+#		Should Be Equal 			${raw_text}			[4INFO_ID_enc]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+
+#Validate Rich Media Macro - [4info_id_enc2]
+#		Extract Data For Macro And Verify Rich Media				${URL1}				4info_id_enc2
+##		Should Be Equal 			${raw_text}			%2526agId%253D66908%2526placement_id%253D8348%2526
+#		Should Be Equal 			${raw_text}			[4info_id_enc2]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+
+#Validate Rich Media Macro - [4info_id_ENC2] - Case Insensitive
+#		Extract Data For Macro And Verify Rich Media				${URL1}				4info_id_ENC2
+##		Should Be Equal 			${raw_text}			%2526agId%253D66908%2526placement_id%253D8348%2526
+#		Should Be Equal 			${raw_text}			[4info_id_ENC2]
+#		[Tags]		https://jira.adhaven.com/browse/ADH-5349
+
+# http://qa-adui1:8080/JSP_TEST/chieu_macro.jsp?APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_02
+# ZIP
+Validate Rich Media Macro - [4info_zip]
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_zip
+		Should Be Equal 			${raw_text}			 	82901
+
+Validate Rich Media Macro - [4INFO_ZIP] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL2}				4INFO_ZIP
+		Should Be Equal 			${raw_text}			 	82901
+
+Validate Rich Media Macro - [4info_zip_enc]
+		Extract Data For Macro And Verify Rich Media			${URL2}				4info_zip_enc
+		Should Be Equal 			${raw_text}			 	82901
+
+Validate Rich Media Macro - [4INFO_zip_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media				${URL2}				4INFO_zip_ENC2
+		Should Be Equal 			${raw_text}			 	82901
+
+Validate Rich Media Macro - [4INFO_ZIP_MD5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL2}				4INFO_ZIP_MD5
+		Should Match Regexp      ${raw_text}     			9ae782e31c7b7d4fd0e7dbde03909519
+
+Validate Rich Media Macro - [4info_zip_sha1]
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_zip_sha1
+		Should Be Equal 			${raw_text}			 	66aeb2c50a766eb0ab45ec51165b38cb1b71152f
+
+
+# REQID
+Validate Rich Media Macro - [4info_reqid]
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_reqid
+		Should Be Equal 			${raw_text}			${extracted_reqid}
+
+Validate Rich Media Macro - [4INFO_REQID] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL2}				4INFO_REQID
+		Should Be Equal 			${raw_text}			${extracted_reqid}
+
+Validate Rich Media Macro - [4info_reqid_enc]
+		Extract Data For Macro And Verify Rich Media			${URL2}				4info_reqid_enc
+		Should Be Equal 			${raw_text}			${extracted_reqid}
+
+Validate Rich Media Macro - [4info_rEQID_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_rEQID_ENC2
+		Should Be Equal 			${raw_text}			${extracted_reqid}
+Validate Rich Media Macro - [4info_REQID_MD5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL2}				4info_REQID_MD5
+		Should Match Regexp      ${raw_text}     			^\\w{32}$
+
+Validate Rich Media Macro - [4info_reqid_sha1]
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_reqid_sha1
+		Should Match Regexp      ${raw_text}     			^\\w{40}$
+
+
+# ConsumerID
+Validate Rich Media Macro - [4info_consumerid]
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_consumerid
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+	 
+Validate Rich Media Macro - [4info_CONSUMERID] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL2}				4info_CONSUMERID
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+	 
+Validate Rich Media Macro - [4info_consumerid_enc]
+		Extract Data For Macro And Verify Rich Media			${URL2}				4info_consumerid_enc
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+	 
+Validate Rich Media Macro - [4info_CONSUMERid_enc2] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_CONSUMERid_enc2
+		Should Be Equal 			${raw_text}			11111111-1111-1111-1919-11111111111A
+Validate Rich Media Macro - [4INFO_consumerID_md5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL2}				4INFO_consumerID_md5
+		Should Be Equal 			${raw_text}			baef043da2403a920514363fd6da8fa7
+	 
+Validate Rich Media Macro - [4info_consumerid_Sha1]
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_consumerid_Sha1
+		Should Be Equal 			${raw_text}			0951863e1dbd7aad028a36db2de74abb576b9f72
+	 
+
+# LAT/LON
+Validate Rich Media Macro - [4info_lat_lon]
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_lat_lon
+		Should Be Equal 			${raw_text}				31.3492,-109.5444
+
+Validate Rich Media Macro - [4INFO_LAT_LON] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL2}				4INFO_LAT_LON
+		Should Be Equal 			${raw_text}				31.3492,-109.5444
+		
+Validate Rich Media Macro - [4info_lat_lon_enc]
+		Extract Data For Macro And Verify Rich Media			${URL2}				4info_lat_lon_enc
+		Should Be Equal 			${raw_text}				31.3492%2C-109.5444
+
+Validate Rich Media Macro - [4info_lat_lon_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_lat_lon_ENC2
+		Should Be Equal 			${raw_text}				31.3492%252C-109.5444
+
+Validate Rich Media Macro - [4info_lat_LON_MD5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL2}				4info_lat_LON_MD5
+		Should Be Equal 			${raw_text}				5092faca11a1b4bc17c6679b7a51ba6c
+
+Validate Rich Media Macro - [4info_lat_lon_sha1]
+		Extract Data For Macro And Verify Rich Media				${URL2}				4info_lat_lon_sha1
+		Should Be Equal 			${raw_text}				440ad1e470e220a72d2ea31983a4f2ad3f85e815
+
+
+# http://qa-adui1:8080/JSP_TEST/chieu_macro.jsp?APP_ID=A_MOPUB_APP_MACRO_SUBSTITUTION_3RD_PARTY_03
+# HHID
+Validate Rich Media Macro - [4info_hhid]
+		Extract Data For Macro And Verify Rich Media				${URL3}				4info_hhid
+		Should Match Regexp 			${raw_text}				272890801
+
+Validate Rich Media Macro - [4INFO_HHID] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL3}				4INFO_HHID
+		Should Match Regexp 			${raw_text}				272890801
+		
+Validate Rich Media Macro - [4info_hhid_enc]
+		Extract Data For Macro And Verify Rich Media			${URL3}				4info_hhid_enc
+		Should Match Regexp 			${raw_text}				272890801
+
+Validate Rich Media Macro - [4INFO_HHID_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media				${URL3}				4INFO_HHID_ENC2
+		Should Match Regexp 			${raw_text}				272890801
+
+Validate Rich Media Macro - [4info_hhid_md5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL3}				4info_hhid_md5
+		Should Match Regexp 			${raw_text}				f0290575523d9e11bc5cfe4162290ff6
+
+Validate Rich Media Macro - [4iNFO_hhid_SHA1]
+		Extract Data For Macro And Verify Rich Media				${URL3}				4iNFO_hhid_SHA1
+		Should Match Regexp 			${raw_text}				fd2e7a1e325077230bf23b88e3f44628c5252a80
+
+# HHID AES
+Validate Rich Media Macro - [4info_hhid_aes]
+		Extract Data For Macro And Verify Rich Media				${URL3}				4info_hhid_aes
+		Should Be Equal 			${raw_text}					PYQvI2ZGdz6qOb43m6PAIg
+	[Tags]		Exclude
+Validate Rich Media Macro - [4info_hhid_AES] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL3}				4info_hhid_AES
+		Should Be Equal 			${raw_text}					PYQvI2ZGdz6qOb43m6PAIg
+	[Tags]		Exclude	
+Validate Rich Media Macro - [4info_hhid_aes_enc]
+		Extract Data For Macro And Verify Rich Media			${URL3}				4info_hhid_aes_enc
+		Should Be Equal 			${raw_text}					PYQvI2ZGdz6qOb43m6PAIg
+	[Tags]		Exclude
+
+Validate Rich Media Macro - [4info_HHID_aes_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media				${URL3}				4info_HHID_aes_ENC2
+		Should Be Equal 			${raw_text}					PYQvI2ZGdz6qOb43m6PAIg
+	[Tags]		Exclude
+Validate Rich Media Macro - [4info_hhid_aes_md5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL3}				4info_hhid_aes_md5
+		Should Be Equal 			${raw_text}					7fcca83163e0b933dca2e5f96485b931
+	[Tags]		Exclude
+Validate Rich Media Macro - [4INFO_HHID_AES_SHA1]
+		Extract Data For Macro And Verify Rich Media				${URL3}				4INFO_HHID_AES_SHA1
+		Should Be Equal 			${raw_text}					65848a6c600ff19ff64518967d943f2f026de8bf
+	[Tags]		Exclude
+# PLATFORM
+Validate Rich Media Macro - [4info_platform]
+		Extract Data For Macro And Verify Rich Media				${URL3}				4info_platform
+		Should Be Equal 			${raw_text}				Android
+
+Validate Rich Media Macro - [4INFO_platform] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL3}				4INFO_platform
+		Should Be Equal 			${raw_text}				Android
+		
+Validate Rich Media Macro - [4info_platform_enc]
+		Extract Data For Macro And Verify Rich Media			${URL3}				4info_platform_enc
+		Should Be Equal 			${raw_text}				Android
+
+Validate Rich Media Macro - [4INFO_platform_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media				${URL3}				4INFO_platform_ENC2
+		Should Be Equal 			${raw_text}			Android
+
+Validate Rich Media Macro - [4info_PLATFORM_md5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL3}				4info_PLATFORM_md5
+		Should Be Equal 			${raw_text}				e84e30b9390cdb64db6db2c9ab87846d
+
+Validate Rich Media Macro - [4info_platform_sha1]
+		Extract Data For Macro And Verify Rich Media				${URL3}			4info_platform_sha1
+		Should Be Equal 			${raw_text}				1928f95c598b9e69462fcb512625cf8e28923044
+
+
+# Device Model
+Validate Rich Media Macro - [4info_devicemodel]
+		Extract Data For Macro And Verify Rich Media				${URL3}				4info_devicemodel
+		Should Be Equal 			${raw_text}				Galaxy Nexus
+
+Validate Rich Media Macro - [4INFO_DEVICEMODEL] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL3}				4INFO_DEVICEMODEL
+		Should Be Equal 			${raw_text}				Galaxy Nexus
+		
+Validate Rich Media Macro - [4info_devicemodel_enc]
+		Extract Data For Macro And Verify Rich Media			${URL3}				4info_devicemodel_enc
+		Should Be Equal 			${raw_text}				Galaxy+Nexus
+
+Validate Rich Media Macro - [4INFO_devicemodel_ENC2] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media				${URL3}			4INFO_devicemodel_ENC2
+		Should Be Equal 			${raw_text}				Galaxy%2BNexus
+
+Validate Rich Media Macro - [4info_deviceMODEL_MD5] - Case Insensitive
+		Extract Data For Macro And Verify Rich Media			${URL3}				4info_deviceMODEL_MD5
+		Should Be Equal 			${raw_text}				943a17aa862216338fcf5805422df0ee
+
+Validate Rich Media Macro - [4info_devicemodel_sha1]
+		Extract Data For Macro And Verify Rich Media				${URL3}			4info_devicemodel_sha1
+		Should Be Equal 			${raw_text}					2c2cd906ea84d8bcee34e2068a1fa4560468873b
+
+# 4INFO_INVENTORY_SOURCE
+Validate 3rd Party Macro - [4INFO_INVENTORY_SOURCE] - upper case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4INFO_INVENTORY_SOURCE
+		Should Match Regexp 			${raw_text}				^Twitter MoPub$
+
+Validate 3rd Party Macro - [4info_inventory_source_enc] - lower case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_inventory_source_enc
+		Should Match Regexp 			${raw_text}				^Twitter MoPub$
+		
+Validate 3rd Party Macro - [4Info_Inventory_Source_Enc2] - Mix
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_Inventory_Source_Enc2
+		Should Match Regexp 			${raw_text}				^Twitter MoPub$
+
+Validate 3rd Party Macro - [4info_inventory_source_md5] - lower case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_inventory_source_md5
+		Should Match Regexp 			${raw_text}				8b06f603b044d91585e140ffae6bd427
+		
+Validate 3rd Party Macro - [4Info_Inventory_Source_Sha1] - Mix
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_Inventory_Source_Sha1
+		Should Match Regexp 			${raw_text}				2ef0a46a85dd024296689a9e2ac36977ad5a6139
+		
+# 4INFO_PUBLISHER_NAME
+Validate 3rd Party Macro - [4INFO_PUBLISHER_NAME] - upper case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4INFO_PUBLISHER_NAME
+		Should Match Regexp 			${raw_text}				^Maleo, Limited$
+Validate 3rd Party Macro - [4info_publisher_name_enc] - lower case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_publisher_name_enc
+		Should Match Regexp 			${raw_text}				Maleo%2C\\+Limited
+Validate 3rd Party Macro - [4Info_Publisher_Name_Enc2] - lower case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_Publisher_Name_Enc2
+		Should Match Regexp 			${raw_text}				Maleo%252C%2BLimited
+Validate 3rd Party Macro - [4info_publisher_name_md5] - lower case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_publisher_name_md5
+		Should Match Regexp 			${raw_text}				3099b8a1508ccb6de24f8054bdf618c3	
+Validate 3rd Party Macro - [4Info_Publisher_Name_Sha1] - lower case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_Publisher_Name_Sha1
+		Should Match Regexp 			${raw_text}				a8930b2cde93a706f0edc6735aabc1cc4be30a62			
+
+#4info_Appsite_Name
+Validate 3rd Party Macro - [4INFO_APPSITE_NAME] - Mix
+		Extract Data For Macro And Verify Rich Media			${URL4}				4INFO_APPSITE_NAME
+		Should Match Regexp 			${raw_text}				^Android KikMeUp$
+Validate 3rd Party Macro - [4Info_Appsite_Name_Enc] - Mix
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_Appsite_Name_Enc
+		Should Match Regexp 			${raw_text}				Android\\+KikMeUp				
+Validate 3rd Party Macro - [4Info_Appsite_NAME_Enc2] - Mix
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_Appsite_NAME_Enc2
+		Should Match Regexp 			${raw_text}				^Android%2BKikMeUp$
+Validate 3rd Party Macro - [4info_appsite_name_md5] - lower case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_appsite_name_md5
+		Should Match Regexp 			${raw_text}				0c6efbde2a5bc933b39b3dc25a1526de
+Validate 3rd Party Macro - [4Info_Appsite_Name_Sha1] - Mix
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_Appsite_Name_Sha1
+		Should Match Regexp 			${raw_text}				e87b4bc0e6f13c7a024f9faafba5b16c1c4fe252
+
+		
+# 4INFO_APPSITE_ID
+Validate 3rd Party Macro - [4INFO_APPSITE_ID] - upper case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4INFO_APPSITE_ID
+		Should Match Regexp 			${raw_text}				^A_MOPUB_APP_MACRO_SUBSTITUTION_RM_04$
+
+Validate 3rd Party Macro - [4info_appsite_id_enc] - lower case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_appsite_id_enc
+		Should Match Regexp 			${raw_text}				^A_MOPUB_APP_MACRO_SUBSTITUTION_RM_04$
+		
+Validate 3rd Party Macro - [4Info_AppSite_id_Enc2] - Mix
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_AppSite_id_Enc2
+		Should Match Regexp 			${raw_text}				^A_MOPUB_APP_MACRO_SUBSTITUTION_RM_04$
+
+Validate 3rd Party Macro - [4info_appsite_id_md5] - lower case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_appsite_id_md5
+		Should Match Regexp 			${raw_text}				e9b6558e7f4cdbe348c63a1d56ed8d49
+		
+Validate 3rd Party Macro - [4Info_AppSite_id_Sha1] - Mix
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_AppSite_id_Sha1
+		Should Match Regexp 			${raw_text}				d074ee15c9f13cdaba2dbaf1f57b137eff5fd8c9
+		
+# 4info_hh_dma
+Validate 3rd Party Macro - [4info_hh_dma] - lower case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4info_hh_dma
+		Should Match Regexp 			${raw_text}				^770$
+	[Tags]		Exclude
+Validate 3rd Party Macro - [4INFO_HH_DMA] - upper case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4INFO_HH_DMA
+		Should Match Regexp 			${raw_text}				^770$
+	[Tags]		Exclude	
+Validate 3rd Party Macro - [4info_Hh_dMa] - Mix
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_Hh_dMa
+		Should Match Regexp 			${raw_text}				^770$
+	[Tags]		Exclude
+# 4info_dma
+Validate 3rd Party Macro - [4info_dma] - lower case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4info_dma
+		Should Match Regexp 			${raw_text}				^770$
+
+Validate 3rd Party Macro - [4INFO_DMA_ENC] - upper case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4INFO_DMA_ENC
+		Should Match Regexp 			${raw_text}				^770$
+		
+Validate 3rd Party Macro - [4Info_dMa_EnC2] - Mixed case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_dMa_EnC2
+		Should Match Regexp 			${raw_text}				^770$
+
+Validate 3rd Party Macro - [4INFO_DMA_md5] - upper case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4INFO_DMA_md5
+		Should Match Regexp 			${raw_text}				4ea06fbc83cdd0a06020c35d50e1e89a
+		
+Validate 3rd Party Macro - [4Info_dMa_SHA1] - Mixed case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_dMa_SHA1
+		Should Match Regexp 			${raw_text}				5b5b3319a315a7bfac818b638ae5f0780fde9021
+			
+# 4info_hh_zip
+Validate 3rd Party Macro - [4info_hh_zip] - lower case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4info_hh_zip
+		Should Match Regexp 			${raw_text}				^94589$
+	[Tags]		Exclude
+Validate 3rd Party Macro - [4INFO_HH_ZIP] - upper case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4INFO_HH_ZIP
+		Should Match Regexp 			${raw_text}				^94589$
+	[Tags]		Exclude	
+Validate 3rd Party Macro - [4Info_Hh_zIp] - Mixed case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_Hh_zIp
+		Should Match Regexp 			${raw_text}				^94589$
+	[Tags]		Exclude
+
+# 4INFO_APP_BUNDLE:
+Validate 3rd Party Macro - [4INFO_APP_BUNDLE:] - lower case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4INFO_APP_BUNDLE
+		Should Match Regexp 			${raw_text}				^com.xmyyearbook.m$
+
+Validate 3rd Party Macro - [4Info_App_Bundle_enc] - upper case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_App_Bundle_enc
+		Should Match Regexp 			${raw_text}				^com.xmyyearbook.m$
+		
+Validate 3rd Party Macro - [4info_app_bundle_enc2] - Mixed case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_app_bundle_enc2
+		Should Match Regexp 			${raw_text}				^com.xmyyearbook.m$
+Validate 3rd Party Macro - [4Info_App_Bundle_md5] - upper case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_App_Bundle_md5
+		Should Match Regexp 			${raw_text}				397155fd5abf0974bf8bb18066ff0c4f
+		
+Validate 3rd Party Macro - [4info_app_bundle_sha1] - Mixed case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_app_bundle_sha1
+		Should Match Regexp 			${raw_text}				8a67d8b7188143689b84a5172508b50dfa7928f0		
+		
+# 4INFO_APPSTORE_URL::
+Validate 3rd Party Macro - [4INFO_APPSTORE_URL:] - lower case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4INFO_APPSTORE_URL
+		Should Match Regexp 			${raw_text}				^https://itunes.apple.com/us/app/meetme\\-chat\\-meet\\-new\\-people/id372648912\\?mt=8&uo=4$
+
+Validate 3rd Party Macro - [4Info_AppStore_Url_enc] - upper case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_AppStore_Url_enc
+		Should Match Regexp 			${raw_text}				^	https%3A%2F%2Fitunes.apple.com%2Fus%2Fapp%2Fmeetme-chat-meet-new-people%2Fid372648912%3Fmt%3D8%26uo%3D4$
+		
+Validate 3rd Party Macro - [4info_appstore_url_enc2] - Mixed case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_appstore_url_enc2
+		Should Match Regexp 			${raw_text}				^https%253A%252F%252Fitunes.apple.com%252Fus%252Fapp%252Fmeetme-chat-meet-new-people%252Fid372648912%253Fmt%253D8%2526uo%253D4$	
+
+Validate 3rd Party Macro - [4Info_AppStore_Url_md5] - upper case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4Info_AppStore_Url_md5
+		Should Match Regexp 			${raw_text}				515fcc791ebbf4a7c0dbe3acf3c6dbc0
+		
+Validate 3rd Party Macro - [4info_appstore_url_sha1] - Mixed case
+		Extract Data For Macro And Verify Rich Media			${URL4}				4info_appstore_url_sha1
+		Should Match Regexp 			${raw_text}				cd6e6cad3d8b737581be1503b7cf49652191224c	
+
+		
+#4INFO_CLIENT_IP
+Validate 3rd Party Macro - [4INFO_CLIENT_IP] - Upper case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4INFO_CLIENT_IP
+		Should Match Regexp 			${raw_text}				63.155.124.240
+
+Validate 3rd Party Macro - [4Info_Client_Ip_Enc] - Mixed case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4Info_Client_Ip_Enc
+		Should Match Regexp 			${raw_text}				63.155.124.240		
+
+Validate 3rd Party Macro - [4info_client_ip_enc2] - Lower case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4info_client_ip_enc2
+		Should Match Regexp 			${raw_text}				63.155.124.240		
+Validate 3rd Party Macro - [4info_client_ip_md5] - Lower case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4info_client_ip_md5
+		Should Match Regexp 			${raw_text}				fd2650e9277fa085e70b2a45616f0a04	
+Validate 3rd Party Macro - [4info_client_ip_SHA1] - Lower case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4info_client_ip_SHA1
+		Should Match Regexp 			${raw_text}				90a128451400fed1fb2415df2dc2da1c1c5ae363	
+#4INFO_CLIENT_UA
+Validate 3rd Party Macro - [4INFO_CLIENT_UA:] - Upper case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4INFO_CLIENT_UA
+		Should Match Regexp 			${raw_text}				Mozilla/5.0 \\(Linux; U; Android 4.3; en-us; Galaxy Nexus Build/JWR67B\\) AppleWebKit/534.30 \\(KHTML, like Gecko\\) Version/4.0 Mobile Safari/534.30				
+
+Validate 3rd Party Macro - [4Info_Client_Ua_enc] - Mixed case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4Info_Client_Ua_enc
+		Should Match Regexp 			${raw_text}				Mozilla%2F5.0\\+%28Linux%3B\\+U%3B\\+Android\\+4.3%3B\\+en\\-us%3B\\+Galaxy\\+Nexus\\+Build%2FJWR67B%29\\+AppleWebKit%2F534.30\\+%28KHTML%2C\\+like\\+Gecko%29\\+Version%2F4.0\\+Mobile\\+Safari%2F534.30
+				
+Validate 3rd Party Macro - [4info_client_ua_enc2] - Lower case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4info_client_ua_enc2
+		Should Match Regexp 			${raw_text}				Mozilla%252F5.0%2B%2528Linux%253B%2BU%253B%2BAndroid%2B4.3%253B%2Ben-us%253B%2BGalaxy%2BNexus%2BBuild%252FJWR67B%2529%2BAppleWebKit%252F534.30%2B%2528KHTML%252C%2Blike%2BGecko%2529%2BVersion%252F4.0%2BMobile%2BSafari%252F534.30				
+
+Validate 3rd Party Macro - [4Info_Client_Ua_md5] - Mixed case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4Info_Client_Ua_md5
+		Should Match Regexp 			${raw_text}				64190eed9d00da605282e4c7e2ba3e04
+Validate 3rd Party Macro - [4info_client_ua_sha1] - Lower case
+		Extract Data For Macro And Verify Rich Media				${URL4}				4info_client_ua_sha1
+		Should Match Regexp 			${raw_text}				d0d068fb963b60872d7d2d8236bc46e0a8f445fc

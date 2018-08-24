@@ -1,0 +1,28 @@
+*** Settings ***
+Resource            misc_ad_requests_imports.txt
+Force Tags         BATCH8				EXCLUDE    	 		
+Suite Teardown		Close All Browsers
+
+*** Test Cases ***
+         
+Validate HHSegmentMap url is working
+	[Documentation]		ADH-6765
+	   Set Test Variable 	${data}			{"at":2,"bcat":["IAB25","IAB26","IAB3-7"],"device":{"carrier":"310-120","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"1b640600fbdb4776295569bded495f75","dpidsha1":"5d8b97b93c3b7351f7821bbd23a7336b0bf228f2","ifa":"11111111-1111-1111-1919-11111111111A","geo":{"city":"FortWorth","country":"USA","lat":32.578361,"lon":-97.147758,"metro":"623","region":"TX","zip":"76140"},"ip":"66.169.179.107","js":1,"make":"samsung","model":"SM-G920P","os":"Android","osv":"5.1.1","ua":"Mozilla/5.0(Linux;Android5.1.1;SM-G920PBuild/LMY47X;wv)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/46.0.2490.76MobileSafari/537.36"},"id":"34971c6c-caac-4e69-a1c1-a9c83e468c84","imp":[{"banner":{"api":[3,5],"battr":[3,8,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.160,"displaymanager":"mopub","displaymanagerver":"3.4.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"agltb3B1Yi1pbmNyDQsSBFNpdGUYitrvEww"}],"site":{"cat":["IAB1","IAB14","entertainment","lifestyle"],"id":"13194","name":"KiddNation","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQYm4upEww","name":"YeaNetworks"}}}
+ 	   Set Test Variable 	${hhid}		272890801
+ 	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200        submit_client_impression_event=NO 	      
+       
+       Open Browser              ${DEFAULT_BROWSER_HOME}     ${BROWSER}      
+       ${my_segment_url}=   Set Variable    http://admin:lebowski@${BID_ENGINE_ONE}:8080/bid-engine/cache/detail/com.adhaven.rtb.bidEngine.HHSegmentMap
+       Go to       ${my_segment_url}
+       ${source}=   Get Source   
+        Log   ${source}
+       ${my_segment_url2}=   Set Variable    http://admin:lebowski@qa-rtb-11:8080/bid-engine/cache/detail/com.adhaven.rtb.bidEngine.HHSegmentMap
+       Go to       ${my_segment_url2}
+       ${source2}=   Get Source
+       
+       Set Test Variable		${source_all}	${source}${source2}
+       Should Match Regexp     ${source_all}        key = ${hhid}
+        Close Browser   
+
+        
+

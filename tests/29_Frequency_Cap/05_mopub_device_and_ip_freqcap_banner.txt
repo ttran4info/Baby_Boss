@@ -1,0 +1,48 @@
+*** Settings ***
+Resource             frequency_cap_imports.txt
+Force Tags           FREQUENCY_CAP    BATCH35	MOPUB
+
+*** variables ***
+ ${app_id_01}					10074
+ ${app_id_03}					12442
+ ${device_fc_agid_banner}		36041
+ ${ip_fc_agid_banner}			36047 
+*** Test Cases ***
+# 
+
+Frequency Cap for clear Device ID, Stop serving after X times
+	   ${random_device_id}=         Generate Random String 		32		abcdef0123456789
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"xcom.myyearbook.m","cat":["IAB24","social_networking"],"id":"${app_id_01}","name":"MeetMe_Android","publisher":{"id":"87e493a6b4424a6eb0ab7bc187d4345d","name":"Beanstock Media Inc."},"ver":"10.0"},"at":2,"badv":["landrover","landrover.com","landrovertristate.com","pof.com","rangerover.com","skout.com","zoosk.com"],"bcat":["IAB25","IAB26","IAB3-7"],"device":{"carrier":"310-120","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"3fe3fd2a5527d04aaeccb5e76bd295ba","dpidsha1":"9803534ab6d6be3472e98f1b68f809cfbe63d234","ifa":"${random_device_id}","geo":{"city":"Norwalk","country":"USA","lat":41.250885,"lon":-82.612862,"region":"OH","zip":"44857"},"ip":"174.100.132.64","js":1,"make":"samsung","model":"SPH-L720","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0 (Linux; Android 4.4.2; SPH-L720 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id":"b193650a-525c-4655-b6cb-1543028a4565","imp":[{"banner":{"api":[3,5],"battr":[3,8,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.30,"displaymanager":"mopub","displaymanagerver":"3.4.0+kit","id":"1","instl":0,"tagid":"5b5991da24da4b68be268c0bc1e9eb2d"}],"user":{"keywords":"DEV_TYPE:jfltespr,BUILD_TYPE:release,DEV_MODEL:SPH-L720,DEV_MFR:samsung,AGE:20,GENDER:m,DEV_BRAND:samsung"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+  
+Frequency Cap for clear Device ID, Continue serving X times with new device
+	   ${random_device_id}=         Generate Random String 		32		ABCDEF0123456789
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"x372648912","cat":["IAB24","social_networking"],"id":"${app_id_01}","name":"MeetMe_iPhone","publisher":{"id":"87e493a6b4424a6eb0ab7bc187d4345d","name":"Beanstock Media Inc."},"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8","ver":"10.0.0"},"at":2,"badv":["landrover","landrover.com","landrovertristate.com","pof.com","rangerover.com","skout.com","zoosk.com"],"bcat":["IAB25","IAB26","IAB3-7"],"device":{"carrier":"310-410","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"648bb0edbe9898c2b6c9f16978107b3a","dpidsha1":"a015d585bfdf44f410babbd901e197202676d996","ifa":"${random_device_id}","geo":{"city":"South Gate","country":"USA","lat":33.143524,"lon":-117.22932,"region":"CA","zip":"90280"},"ip":"166.137.8.45","js":1,"language":"en","make":"Apple","model":"iPhone 6+","os":"iOS","osv":"8.3","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70"},"id":"ada38d21-ac4c-4f64-9eaf-5c332aa7dacb","imp":[{"banner":{"api":[3,5],"battr":[3,8,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.090,"displaymanager":"mopub","displaymanagerver":"3.4.0","id":"1","instl":0,"tagid":"eba918744ffe4fe48d5e51c038b9259b"}],"user":{"keywords":"AGE:31,GENDER:m"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${device_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+
+	   
+Frequency Cap for IP Stop serving after X times
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"xcom.myyearbook.m","cat":["IAB24","social_networking"],"id":"${app_id_03}","name":"MeetMe_Android","publisher":{"id":"87e493a6b4424a6eb0ab7bc187d4345d","name":"Beanstock Media Inc."},"ver":"10.0"},"at":2,"badv":["landrover","landrover.com","landrovertristate.com","pof.com","rangerover.com","skout.com","zoosk.com"],"bcat":["IAB25","IAB26","IAB3-7"],"device":{"carrier":"310-120","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"3fe3fd2a5527d04aaeccb5e76bd295ba","dpidsha1":"9803534ab6d6be3472e98f1b68f809cfbe63d234","ifa":"141cb80d-cd6f-4f59-bded-a292ab611ec7","geo":{"city":"Norwalk","country":"USA","lat":41.250885,"lon":-82.612862,"region":"OH","zip":"44857"},"ip":"${random_ip}","js":1,"make":"samsung","model":"SPH-L720","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0 (Linux; Android 4.4.2; SPH-L720 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"},"id":"b193650a-525c-4655-b6cb-1543028a4565","imp":[{"banner":{"api":[3,5],"battr":[3,8,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.30,"displaymanager":"mopub","displaymanagerver":"3.4.0+kit","id":"1","instl":0,"tagid":"5b5991da24da4b68be268c0bc1e9eb2d"}],"user":{"keywords":"DEV_TYPE:jfltespr,BUILD_TYPE:release,DEV_MODEL:SPH-L720,DEV_MFR:samsung,AGE:20,GENDER:m,DEV_BRAND:samsung"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO	   
+
+Frequency Cap for IP Continue serving X times with new IP
+	   ${random_2digits1}=         Generate Random String 		2		0123456789
+	   ${random_2digits2}=         Generate Random String 		2		0123456789
+	   ${random_2digits3}=         Generate Random String 		2		0123456789
+	   ${random_2digits4}=         Generate Random String 		2		0123456789	   
+	   set Test Variable    ${random_ip}					${random_2digits1}.${random_2digits2}.${random_2digits3}.${random_2digits4}
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"x372648912","cat":["IAB24","social_networking"],"id":"${app_id_03}","name":"MeetMe_iPhone","publisher":{"id":"87e493a6b4424a6eb0ab7bc187d4345d","name":"Beanstock Media Inc."},"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8","ver":"10.0.0"},"at":2,"badv":["landrover","landrover.com","landrovertristate.com","pof.com","rangerover.com","skout.com","zoosk.com"],"bcat":["IAB25","IAB26","IAB3-7"],"device":{"carrier":"310-410","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"648bb0edbe9898c2b6c9f16978107b3a","dpidsha1":"a015d585bfdf44f410babbd901e197202676d996","ifa":"6D7880C7-1149-4994-AE80-F08999CA53B6","geo":{"city":"South Gate","country":"USA","lat":33.143524,"lon":-117.22932,"region":"CA","zip":"90280"},"ip":"${random_ip}","js":1,"language":"en","make":"Apple","model":"iPhone 6+","os":"iOS","osv":"8.3","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F70"},"id":"ada38d21-ac4c-4f64-9eaf-5c332aa7dacb","imp":[{"banner":{"api":[3,5],"battr":[3,8,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.090,"displaymanager":"mopub","displaymanagerver":"3.4.0","id":"1","instl":0,"tagid":"eba918744ffe4fe48d5e51c038b9259b"}],"user":{"keywords":"AGE:31,GENDER:m"}}
+	   Validate RTB AdServed X Times     			api_key=${RTB_MOPUB_API}           data=${data}				requests=5         response_code=200         ad_expected=NA      adgroup_expected=${ip_fc_agid_banner}
+	   Sleep     125s   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO		   

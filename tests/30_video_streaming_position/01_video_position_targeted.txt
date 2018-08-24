@@ -1,0 +1,57 @@
+*** Settings ***
+Resource             video_streaming_position_imports.txt
+Force Tags           BATCH3		VIDEO	TARGETING		
+
+*** variables ***
+${bundle}				REGRESSION BUNDLE ADAPTV APP
+${bundle2}				REGRESSION BRX_VIDEO_STREAMING_POSITION APP
+${bundle3}				REGRESSION RUBICON_VIDEO_STREAMING_POSITION APP
+${video_streaming_interstitial}				37182
+${video_streaming_mid_roll}					37184
+${video_streaming_no_target}				37186
+${video_streaming_post_roll}				37185
+${video_streaming_pre_roll}					37183
+*** Test Cases ***
+
+Rubicon - Video Streaming Position (Checked Interstitial), video.instl=1
+	[Documentation]		QA_REGRESSION_TESTS>30_Video_Streaming_Position
+	Set Test Variable	${start_delay}		0
+	Set Test Variable 	${data}			{"id":"54c336ef8ffd6e743efaa90c42cc6f287dd930d0","at":2,"tmax":114,"imp":[{"id":"1","tagid":"295482","secure":0,"video":{"w":320,"h":480,"boxingallowed":1,"linearity":1,"maxduration":30,"mimes":["video/mp4"],"minduration":0,"playbackmethod":[1],"protocol":5,"startdelay":0,"battr":[],"pos":0,"api":[]},"instl":1}],"app":{"ext":{"appstoreid":"804379658"},"storeurl":"https://itunes.apple.com/us/app/words-with-friends/id804379658?mt=8","domain":"www.wordswithfriends.com","cat":["IAB1"],"name":"WordsWithFriends","publisher":{"id":"12266"},"id":"xapi:62034:9GW8XWdROgJQ","bundle":"${bundle3}"},"device":{"ext":{"xff":"75.38.192.171, 54.167.47.138"},"os":"iOS","ifa":"795821EB-5061-4AE6-9CA7-B29720956017","ip":"75.38.192.171","js":1,"language":"en","ua":"Mozilla/5.0 (iPad; CPU OS 9_2_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Mobile/13D15","devicetype":1,"geo":{"lat":42.2668,"lon":-83.8562,"type":1,"country":"USA","region":"MI","zip":"48103","utcoffset":-300,"ext":{"latlonconsent":1}},"carrier":"Other","lmt":0,"osv":"9.2.1","dpidmd5":"aabd77c511827d7d2073ef7e90044c7e","model":"iPad","connectiontype":0,"make":"Apple","dpidsha1":"f7aaae053a0a082de3fe271039ce3b46fd59f4e3"},"user":{"id":"73156efeb56b8575d8f11fe2541589ca77a4bbcd","ext":{"sessiondepth":0}}}
+    RTB Request 				API=${RTB_RUBICON_API}          data=${data}		response_code=200  	adgroup_expected=${video_streaming_interstitial}	      submit_client_impression_event=NO
+	[Tags]		
+Adaptv - Video Streaming Position (Checked Pre-roll), video.instl missing, delay=0
+	[Documentation]		QA_REGRESSION_TESTS>30_Video_Streaming_Position
+	Set Test Variable	${start_delay}		0
+	Set Test Variable 	${data}			{"id":"4486aabf-e3c7-461c-b15b-ee909300c4ed","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"protocols":[2 ,5 ],"startdelay":${start_delay},"playbackmethod":[1 ],"ext":{"viewability":0}},"pmp":{"ext":{"marketplaceid":756}},"secure":0}],"app":{"name":"slacker radio","cat":["IAB1"],"storeurl":"https://play.google.com/store/apps/details?id=com.slacker.radio","bundle":"${bundle}","ext":{"mpcid":"694249"}},"device":{"ip":"73.195.33.20","ifa":"efd57bc4-e783-4678-93c1-4fd57ad1cad9","dpidsha1":"225b0bbf88979214ecd73d24b070c010bbcbc9af","dpidmd5":"992c771fc559a7b7953e07c0712582c7","ua":"Mozilla/5.0 (Linux; Android 6.0; VS985 4G Build/MRA58K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/47.0.2526.100 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":39.96,"lon":-74.92,"type":2}},"user":{"id":"13233644733222825113"},"cur":["USD"],"tmax":150}
+    RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=200  	adgroup_expected=${video_streaming_pre_roll}	      submit_client_impression_event=NO
+
+Adaptv - Video Streaming Position (Checked Mid-roll), video.instl missing, delay=-1
+	[Documentation]		QA_REGRESSION_TESTS>30_Video_Streaming_Position
+	Set Test Variable	${start_delay}		-1
+	Set Test Variable 	${data}			{"id":"4486aabf-e3c7-461c-b15b-ee909300c4ed","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"protocols":[2 ,5 ],"startdelay":${start_delay},"playbackmethod":[1 ],"ext":{"viewability":0}},"pmp":{"ext":{"marketplaceid":756}},"secure":0}],"app":{"name":"slacker radio","cat":["IAB1"],"storeurl":"https://play.google.com/store/apps/details?id=com.slacker.radio","bundle":"${bundle}","ext":{"mpcid":"694249"}},"device":{"ip":"73.195.33.20","ifa":"efd57bc4-e783-4678-93c1-4fd57ad1cad9","dpidsha1":"225b0bbf88979214ecd73d24b070c010bbcbc9af","dpidmd5":"992c771fc559a7b7953e07c0712582c7","ua":"Mozilla/5.0 (Linux; Android 6.0; VS985 4G Build/MRA58K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/47.0.2526.100 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":39.96,"lon":-74.92,"type":2}},"user":{"id":"13233644733222825113"},"cur":["USD"],"tmax":150}
+    RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=200  	adgroup_expected=${video_streaming_mid_roll}      submit_client_impression_event=NO
+
+Adaptv - Video Streaming Position (Checked Mid-roll), video.instl missing, delay= x>0
+	[Documentation]		QA_REGRESSION_TESTS>30_Video_Streaming_Position
+	Set Test Variable	${start_delay}		5
+	Set Test Variable 	${data}			{"id":"4486aabf-e3c7-461c-b15b-ee909300c4ed","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"protocols":[2 ,5 ],"startdelay":${start_delay},"playbackmethod":[1 ],"ext":{"viewability":0}},"pmp":{"ext":{"marketplaceid":756}},"secure":0}],"app":{"name":"slacker radio","cat":["IAB1"],"storeurl":"https://play.google.com/store/apps/details?id=com.slacker.radio","bundle":"${bundle}","ext":{"mpcid":"694249"}},"device":{"ip":"73.195.33.20","ifa":"efd57bc4-e783-4678-93c1-4fd57ad1cad9","dpidsha1":"225b0bbf88979214ecd73d24b070c010bbcbc9af","dpidmd5":"992c771fc559a7b7953e07c0712582c7","ua":"Mozilla/5.0 (Linux; Android 6.0; VS985 4G Build/MRA58K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/47.0.2526.100 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":39.96,"lon":-74.92,"type":2}},"user":{"id":"13233644733222825113"},"cur":["USD"],"tmax":150}
+    RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=200  	adgroup_expected=${video_streaming_mid_roll}      submit_client_impression_event=NO
+
+Adaptv - Video Streaming Position (Checked Post-roll), video.instl missing, delay=-2
+	[Documentation]		QA_REGRESSION_TESTS>30_Video_Streaming_Position
+	Set Test Variable	${start_delay}		-2
+	Set Test Variable 	${data}			{"id":"4486aabf-e3c7-461c-b15b-ee909300c4ed","imp":[{"id":"1","video":{"mimes":["video/mp4"],"linearity":1,"minduration":5,"maxduration":30,"protocols":[2 ,5 ],"startdelay":${start_delay},"playbackmethod":[1 ],"ext":{"viewability":0}},"pmp":{"ext":{"marketplaceid":756}},"secure":0}],"app":{"name":"slacker radio","cat":["IAB1"],"storeurl":"https://play.google.com/store/apps/details?id=com.slacker.radio","bundle":"${bundle}","ext":{"mpcid":"694249"}},"device":{"ip":"73.195.33.20","ifa":"efd57bc4-e783-4678-93c1-4fd57ad1cad9","dpidsha1":"225b0bbf88979214ecd73d24b070c010bbcbc9af","dpidmd5":"992c771fc559a7b7953e07c0712582c7","ua":"Mozilla/5.0 (Linux; Android 6.0; VS985 4G Build/MRA58K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/47.0.2526.100 Mobile Safari/537.36","language":"en","os":"android","devicetype":4,"geo":{"lat":39.96,"lon":-74.92,"type":2}},"user":{"id":"13233644733222825113"},"cur":["USD"],"tmax":150}
+    RTB Request 				API=${RTB_ADAPTV_API}          data=${data}		response_code=200  	adgroup_expected=${video_streaming_post_roll}      submit_client_impression_event=NO
+
+
+BRX - Video Streaming Position (No Targeting), video.instl=0 , delay= x<-2
+	[Documentation]		QA_REGRESSION_TESTS>30_Video_Streaming_Position
+	Set Test Variable	${start_delay}		-2
+	Set Test Variable 	${data}			{"id":"Fdt4XEjlej0McAOvrzTYCtj7rtSDE","imp":[{"id":"1","video":{"mimes":["video/mp4"],"minduration":5,"maxduration":30,"protocols":[2,5],"w":320,"h":240,"startdelay":${start_delay},"linearity":1,"maxbitrate":1000,"playbackmethod":[3],"delivery":[2],"pos":1,"api":[],"ext":{}},"instl":0,"bidfloor":0.00112,"pmp":{"private_auction":0,"deals":[{"id":"y-50afd8","bidfloor":0.00112},{"id":"y-72046f","bidfloor":0.00112},{"id":"y-aafb2a","bidfloor":0.00112},{"id":"y-e761fc","bidfloor":0.00112}],"ext":{}}}],"app":{"id":"3865331","name":"Mobile - Android app - Clean Master","cat":["IAB9"],"privacypolicy":1,"paid":0,"bundle":"${bundle2}","storeurl":"https://play.google.com/store/apps/details?id=com.cleanmaster.mguard","content":{"context":"4","qagmediarating":2,"embeddable":2,"language":"en"}},"device":{"dnt":0,"ip":"142.196.133.183","ua":"Mozilla/5.0 (Linux; Android 5.0; SAMSUNG-SM-N900A Build/LRX21V; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/51.0.2704.81 Mobile Safari/537.36","language":"en","make":"Samsung","model":"SM-N900A","os":"android","osv":"5.0","devicetype":1,"dpidsha1":"975eebb2107f193b6f1743e668d0990a797fecb0","dpidmd5":"393c2a11da646a823f8a6ffe6c471194","ifa":"9b6e8401-62b9-4a20-93f2-7c0ae763c7fa"},"user":{},"tmax":120,"ext":{"is_skippable":1,"skip_offset":7,"is_fullscreenexpandable":0,"is_facebook":0,"is_incentivized":0,"is_syndicated":0,"is_ugc":0,"max_wrapper_redirects":1,"inventory_class":2,"viewability":0}}
+    RTB Request 				API=${RTB_BRX_API}          data=${data}		response_code=200  	adgroup_expected=${video_streaming_no_target}      submit_client_impression_event=NO
+	[Tags]	Exclude
+BRX - Video Streaming Position (No Targeting), video.instl=0 missing, delay missing
+	[Documentation]		QA_REGRESSION_TESTS>30_Video_Streaming_Position
+	Set Test Variable 	${data}			{"id":"Fdt4XEjlej0McAOvrzTYCtj7rtSDE","imp":[{"id":"1","video":{"mimes":["video/mp4"],"minduration":5,"maxduration":30,"protocols":[2,5],"w":320,"h":240,"linearity":1,"maxbitrate":1000,"playbackmethod":[3],"delivery":[2],"pos":1,"api":[],"ext":{}},"instl":0,"bidfloor":0.00112,"pmp":{"private_auction":0,"deals":[{"id":"y-50afd8","bidfloor":0.00112},{"id":"y-72046f","bidfloor":0.00112},{"id":"y-aafb2a","bidfloor":0.00112},{"id":"y-e761fc","bidfloor":0.00112}],"ext":{}}}],"app":{"id":"3865331","name":"Mobile - Android app - Clean Master","cat":["IAB9"],"privacypolicy":1,"paid":0,"bundle":"${bundle2}","storeurl":"https://play.google.com/store/apps/details?id=com.cleanmaster.mguard","content":{"context":"4","qagmediarating":2,"embeddable":2,"language":"en"}},"device":{"dnt":0,"ip":"142.196.133.183","ua":"Mozilla/5.0 (Linux; Android 5.0; SAMSUNG-SM-N900A Build/LRX21V; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/51.0.2704.81 Mobile Safari/537.36","language":"en","make":"Samsung","model":"SM-N900A","os":"android","osv":"5.0","devicetype":1,"dpidsha1":"975eebb2107f193b6f1743e668d0990a797fecb0","dpidmd5":"393c2a11da646a823f8a6ffe6c471194","ifa":"9b6e8401-62b9-4a20-93f2-7c0ae763c7fa"},"user":{},"tmax":120,"ext":{"is_skippable":1,"skip_offset":7,"is_fullscreenexpandable":0,"is_facebook":0,"is_incentivized":0,"is_syndicated":0,"is_ugc":0,"max_wrapper_redirects":1,"inventory_class":2,"viewability":0}}
+    RTB Request 				API=${RTB_BRX_API}          data=${data}		response_code=200  	adgroup_expected=${video_streaming_no_target}      submit_client_impression_event=NO
+	[Tags]	Exclude

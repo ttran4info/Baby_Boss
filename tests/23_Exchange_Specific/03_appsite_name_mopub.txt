@@ -1,0 +1,67 @@
+*** Settings ***
+Resource             exchange_specific_imports.txt
+Force Tags           APP_NAME 	SITE_NAME   BATCH3		MOPUB 	
+Suite Teardown      Close All Connections
+
+*** variables ***
+ ${app_id}					13189
+ ${site_id}					13192
+ 
+*** Test Cases ***
+
+
+Mopub - Logging app name
+	[Documentation]		Normal case when app name is available log it in field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"xcom.sgiggle.production","cat":["IAB24","social_networking"],"id":"123456","name":"TangoAndroid-PRODUCTION","publisher":{"id":"8f2cdeb4f21b486f970dedc3bb1dcaac","name":"Tango"}},"at":2,"badv":["www.xtreme-slots.com"],"bcat":["IAB26","IAB3-7"],"device":{"connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"7e150cebc7742127d3cc156a10766a6f","dpidsha1":"8c031cdfef2913d489ff6a83c0cb025b9a799ba1","ifa":"${device_id}","geo":{"city":"EwaBeach","country":"USA","lat":21.3256,"lon":-158.056,"metro":"744","region":"HI","zip":"96706"},"ip":"67.49.148.178","js":1,"language":"en","os":"Android","osv":"5.1.1","ua":"Mozilla/5.0(Linux;Android5.1.1;SM-N910PBuild/LMY47X;wv)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/44.0.2403.90MobileSafari/537.36"},"id":"cff2ce5d-e0ad-43bb-bc68-75d04971c49c","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"native":{"type":"install","ver":"1.1"},"nativead":{"type":"install","ver":"1.1"}},"h":0,"pos":1,"w":0},"bidfloor":2.77,"displaymanager":"mopub","displaymanagerver":"3.3","id":"1","instl":0,"tagid":"edf8540c38704aeb8cd06103b9a8ea8e"}],"user":{"gender":"male","keywords":"m_pstnOnboardStatus:3,m_dlpaywal:1,m_dlver:e,m_usertype:1,m_androidpremium:1,m_mcc_mnc:310120,m_dev:sm-n910p_trltespr,m_locale:en"}}	   
+	   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				71=TangoAndroid-PRODUCTION
+
+	
+Mopub - app name not available, app id is available. app name= (exchange: app ID)
+	[Documentation]		When app name is not available, but app id is there, log (exchange:app id) for field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"xcom.sgiggle.production","cat":["IAB24","social_networking"],"id":"123456","publisher":{"id":"8f2cdeb4f21b486f970dedc3bb1dcaac","name":"Tango"}},"at":2,"badv":["www.xtreme-slots.com"],"bcat":["IAB26","IAB3-7"],"device":{"connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"7e150cebc7742127d3cc156a10766a6f","dpidsha1":"8c031cdfef2913d489ff6a83c0cb025b9a799ba1","ifa":"${device_id}","geo":{"city":"EwaBeach","country":"USA","lat":21.3256,"lon":-158.056,"metro":"744","region":"HI","zip":"96706"},"ip":"67.49.148.178","js":1,"language":"en","os":"Android","osv":"5.1.1","ua":"Mozilla/5.0(Linux;Android5.1.1;SM-N910PBuild/LMY47X;wv)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/44.0.2403.90MobileSafari/537.36"},"id":"cff2ce5d-e0ad-43bb-bc68-75d04971c49c","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"native":{"type":"install","ver":"1.1"},"nativead":{"type":"install","ver":"1.1"}},"h":0,"pos":1,"w":0},"bidfloor":2.77,"displaymanager":"mopub","displaymanagerver":"3.3","id":"1","instl":0,"tagid":"edf8540c38704aeb8cd06103b9a8ea8e"}],"user":{"gender":"male","keywords":"m_pstnOnboardStatus:3,m_dlpaywal:1,m_dlver:e,m_usertype:1,m_androidpremium:1,m_mcc_mnc:310120,m_dev:sm-n910p_trltespr,m_locale:en"}}	   
+	   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				71=Twitter MoPub: 123456
+	
+Mopub - app name and app id is null. app name = exchange: not available
+	[Documentation]		When app name and app id is not available. log exchange: not available in field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"app":{"bundle":"xcom.sgiggle.production","cat":["IAB24","social_networking"],"publisher":{"id":"8f2cdeb4f21b486f970dedc3bb1dcaac","name":"Tango"}},"at":2,"badv":["www.xtreme-slots.com"],"bcat":["IAB26","IAB3-7"],"device":{"connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"7e150cebc7742127d3cc156a10766a6f","dpidsha1":"8c031cdfef2913d489ff6a83c0cb025b9a799ba1","ifa":"${device_id}","geo":{"city":"EwaBeach","country":"USA","lat":21.3256,"lon":-158.056,"metro":"744","region":"HI","zip":"96706"},"ip":"67.49.148.178","js":1,"language":"en","os":"Android","osv":"5.1.1","ua":"Mozilla/5.0(Linux;Android5.1.1;SM-N910PBuild/LMY47X;wv)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/44.0.2403.90MobileSafari/537.36"},"id":"cff2ce5d-e0ad-43bb-bc68-75d04971c49c","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"native":{"type":"install","ver":"1.1"},"nativead":{"type":"install","ver":"1.1"}},"h":0,"pos":1,"w":0},"bidfloor":2.77,"displaymanager":"mopub","displaymanagerver":"3.3","id":"1","instl":0,"tagid":"edf8540c38704aeb8cd06103b9a8ea8e"}],"user":{"gender":"male","keywords":"m_pstnOnboardStatus:3,m_dlpaywal:1,m_dlver:e,m_usertype:1,m_androidpremium:1,m_mcc_mnc:310120,m_dev:sm-n910p_trltespr,m_locale:en"}}	   
+	   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				71=Twitter MoPub: not available
+
+Mopub - Logging site name
+	[Documentation]		Normal case when site name is available log it in field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"site":{"bundle":"xcom.sgiggle.production","cat":["IAB24","social_networking"],"id":"123456","name":"TangoAndroid-PRODUCTION","publisher":{"id":"8f2cdeb4f21b486f970dedc3bb1dcaac","name":"Tango"}},"at":2,"badv":["www.xtreme-slots.com"],"bcat":["IAB26","IAB3-7"],"device":{"connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"7e150cebc7742127d3cc156a10766a6f","dpidsha1":"8c031cdfef2913d489ff6a83c0cb025b9a799ba1","ifa":"${device_id}","geo":{"city":"EwaBeach","country":"USA","lat":21.3256,"lon":-158.056,"metro":"744","region":"HI","zip":"96706"},"ip":"67.49.148.178","js":1,"language":"en","os":"Android","osv":"5.1.1","ua":"Mozilla/5.0(Linux;Android5.1.1;SM-N910PBuild/LMY47X;wv)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/44.0.2403.90MobileSafari/537.36"},"id":"cff2ce5d-e0ad-43bb-bc68-75d04971c49c","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"native":{"type":"install","ver":"1.1"},"nativead":{"type":"install","ver":"1.1"}},"h":0,"pos":1,"w":0},"bidfloor":2.77,"displaymanager":"mopub","displaymanagerver":"3.3","id":"1","instl":0,"tagid":"edf8540c38704aeb8cd06103b9a8ea8e"}],"user":{"gender":"male","keywords":"m_pstnOnboardStatus:3,m_dlpaywal:1,m_dlver:e,m_usertype:1,m_androidpremium:1,m_mcc_mnc:310120,m_dev:sm-n910p_trltespr,m_locale:en"}}	   
+	   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				72=TangoAndroid-PRODUCTION
+
+	
+Mopub - site name not available, site id is available. site name= (exchange: site ID)
+	[Documentation]		When site name is not available, but site id is there, log (exchange:site id) for field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"site":{"bundle":"xcom.sgiggle.production","cat":["IAB24","social_networking"],"id":"123456","publisher":{"id":"8f2cdeb4f21b486f970dedc3bb1dcaac","name":"Tango"}},"at":2,"badv":["www.xtreme-slots.com"],"bcat":["IAB26","IAB3-7"],"device":{"connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"7e150cebc7742127d3cc156a10766a6f","dpidsha1":"8c031cdfef2913d489ff6a83c0cb025b9a799ba1","ifa":"${device_id}","geo":{"city":"EwaBeach","country":"USA","lat":21.3256,"lon":-158.056,"metro":"744","region":"HI","zip":"96706"},"ip":"67.49.148.178","js":1,"language":"en","os":"Android","osv":"5.1.1","ua":"Mozilla/5.0(Linux;Android5.1.1;SM-N910PBuild/LMY47X;wv)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/44.0.2403.90MobileSafari/537.36"},"id":"cff2ce5d-e0ad-43bb-bc68-75d04971c49c","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"native":{"type":"install","ver":"1.1"},"nativead":{"type":"install","ver":"1.1"}},"h":0,"pos":1,"w":0},"bidfloor":2.77,"displaymanager":"mopub","displaymanagerver":"3.3","id":"1","instl":0,"tagid":"edf8540c38704aeb8cd06103b9a8ea8e"}],"user":{"gender":"male","keywords":"m_pstnOnboardStatus:3,m_dlpaywal:1,m_dlver:e,m_usertype:1,m_androidpremium:1,m_mcc_mnc:310120,m_dev:sm-n910p_trltespr,m_locale:en"}}	   
+	   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				72=Twitter MoPub: 123456
+	
+Mopub - site name and site id is null. site name = exchange: not available
+	[Documentation]		When site name and site id is not available. log exchange: not available in field 71 in request log.
+	   ${device_id}=		Generate Clear Device ID
+	   Set Test Variable    ${data}   		  {"site":{"bundle":"xcom.sgiggle.production","cat":["IAB24","social_networking"],"publisher":{"id":"8f2cdeb4f21b486f970dedc3bb1dcaac","name":"Tango"}},"at":2,"badv":["www.xtreme-slots.com"],"bcat":["IAB26","IAB3-7"],"device":{"connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"7e150cebc7742127d3cc156a10766a6f","dpidsha1":"8c031cdfef2913d489ff6a83c0cb025b9a799ba1","ifa":"${device_id}","geo":{"city":"EwaBeach","country":"USA","lat":21.3256,"lon":-158.056,"metro":"744","region":"HI","zip":"96706"},"ip":"67.49.148.178","js":1,"language":"en","os":"Android","osv":"5.1.1","ua":"Mozilla/5.0(Linux;Android5.1.1;SM-N910PBuild/LMY47X;wv)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/44.0.2403.90MobileSafari/537.36"},"id":"cff2ce5d-e0ad-43bb-bc68-75d04971c49c","imp":[{"banner":{"api":[3,5],"battr":[3,8,9,10,14,6],"btype":[4],"ext":{"native":{"type":"install","ver":"1.1"},"nativead":{"type":"install","ver":"1.1"}},"h":0,"pos":1,"w":0},"bidfloor":2.77,"displaymanager":"mopub","displaymanagerver":"3.3","id":"1","instl":0,"tagid":"edf8540c38704aeb8cd06103b9a8ea8e"}],"user":{"gender":"male","keywords":"m_pstnOnboardStatus:3,m_dlpaywal:1,m_dlver:e,m_usertype:1,m_androidpremium:1,m_mcc_mnc:310120,m_dev:sm-n910p_trltespr,m_locale:en"}}	   
+	   
+	   RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=204        submit_client_impression_event=NO
+	   Start Read Requests Logs For Consumer Id			consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				72=Twitter MoPub: not available

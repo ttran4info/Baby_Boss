@@ -1,0 +1,58 @@
+
+*** Settings ***
+Resource            misc_ad_requests_imports.txt
+Force Tags         MISC_AD_REQUESTS    QA_ONLY    BATCH1    MEDIATION    EXCLUDE
+Test Setup            Open Browser       ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+Test Teardown      Close All Browsers
+
+
+*** Variables ***
+
+*** Test Cases ***
+Test Standard Generation Of Ad URL Should Return Empty ALT Tag Without Markup
+      Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    header_user-agent=iPhone     placement_id=${PLACEMENT_LIVE_ID}
+      Go To   ${ad_request_url}
+      ${source}=   Get Source   
+       Log   ${source}
+       Validate Ad Is Served And Page Source Contains Image File    ${source}    320x50_PL_LIVE.jpg
+       Should Match Regexp    ${source}    ALT=\"\"|alt=\"\"
+       Should Not Match Regexp    ${source}    ALT=\"Advertisement\"|alt=\"Advertisement\"
+       [TAGS]     ADH-3567     4.8 
+       
+Test Standard Generation Of Ad URL Should Return Empty ALT Tag With Markup
+      Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    header_user-agent=iPhone     placement_id=${PLACEMENT_LIVE_ID}    response_type=markup
+      Go To   ${ad_request_url}
+      ${source}=   Get Source   
+       Log   ${source}
+       Validate Ad Is Served And Page Source Contains Image File    ${source}    320x50_PL_LIVE.jpg
+       Should Match Regexp    ${source}    ALT=\"\"|alt=\"\"
+       Should Not Match Regexp    ${source}    ALT=\"Advertisement\"|alt=\"Advertisement\"
+       [TAGS]     ADH-3567       4.8
+
+Test Prism Ad URL Should Return Empty ALT Tag Without Markup
+      ${lat}=    Set Variable       61.0614              
+      ${lon}=   Set Variable      -149.7509
+      Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}    header_user-agent=iPhone   lat_lon=${lat},${lon}    
+      Go To   ${ad_request_url}
+      ${source}=   Get Source   
+       Log   ${source}
+       Validate Ad Is Served And Page Source Contains Image File    ${source}    .jpg
+       Should Match Regexp    ${source}    ALT=\"\"|alt=\"\"
+       Should Not Match Regexp    ${source}    ALT=\"Advertisement\"|alt=\"Advertisement\"
+      [TAGS]     ADH-3567    4.8
+
+Test Prism Ad URL Should Return Empty ALT Tag With Markup
+      ${lat}=    Set Variable       61.0614              
+      ${lon}=   Set Variable      -149.7509
+      Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}    header_user-agent=iPhone   lat_lon=${lat},${lon}    response_type=markup
+      Go To   ${ad_request_url}
+      ${source}=   Get Source   
+       Log   ${source}
+       Validate Ad Is Served And Page Source Contains Image File    ${source}    .jpg
+       Should Match Regexp    ${source}    ALT=\"\"|alt=\"\"
+       Should Not Match Regexp    ${source}    ALT=\"Advertisement\"|alt=\"Advertisement\"
+      [TAGS]     ADH-3567    4.8
+      
+      
+      
+# Need to ad tests for RichMedia Ads, Video Ads, and 3rd Party Ads

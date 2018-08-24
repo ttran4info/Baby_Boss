@@ -1,0 +1,211 @@
+*** Settings ***
+Resource             new_exchange_integration_imports.txt
+Force Tags           BATCH3		ADX		
+ 		
+Suite Teardown      Close All Browsers
+
+*** variables ***
+ ${app_id}					Regression Adx App
+ ${app_name}				Regression Adx App
+ ${publisher_name}			SuperInc	
+ ${exchange_id}				59725dddbfd04e75827b81ecc7ee7f29
+ ${device_id}				66666666-6666-6666-6666-666666666665
+ ${device_id_method}		150
+ ${bid_floor}				0.01
+ ${lat}						37.383440
+ ${lon}						-122.013046
+ ${cid}						12345
+ ${crid}					B67663
+
+ ${id}						Vu4DAAI8CEKGPVxAwrsA
+ ${data}					{"id":"${id}","imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"api":[3,5],"wmax":360,"hmax":640,"wmin":320,"hmin":280},"instl":1,"tagid":"1","bidfloor":${bid_floor},"bidfloorcur":"USD","ext":{"billing_id":["12345678901"],"publisher_settings_list_id":["12345678901234567890"],"allowed_vendor_type":[113]}}],"app":{"id":"${app_id}","name":"SuperSpeedVPN","bundle":"com.example.free.vpn.proxy","publisher":{"id":"1","name":"${publisher_name}"},"content":{"url":"https://play.google.com/store/apps/details?id=com.example.free.vpn.proxy","contentrating":"DV-G","userrating":"4.2","language":"en"}},"device":{"ua":"Mozilla/5.0...(Mobile;afma-sdk-a-v9683236.8115000.2)","ip":"123.456.789.0","geo":{"country":"USA","lat": ${lat},"lon": ${lon},"utcoffset":180,"zip":"94110"},"make":"alcatel","model":"5022d","os":"android","osv":"5.1","devicetype":4,"ifa":"${device_id}","w":360,"h":640,"pxratio":2},"user":{"id":"CAESEPfSJVjdc8Mx2U_Dd3fQqvM"},"cur":["USD"]}
+${data2}					{"id":"${id}","imp":[{"id":"1","banner":{"w":360,"h":592,"pos":1,"api":[3,5],"wmax":360,"hmax":592,"wmin":250,"hmin":250},"video":{"mimes":["video/mp4","video/webm","video/x-flv"],"maxduration":30,"w":360,"h":592,"startdelay":0,"playbackmethod":[1],"pos":1,"api":[3,5],"protocols":[2,3,5,6]},"instl":1,"tagid":"1","bidfloor":${bid_floor},"bidfloorcur":"USD","ext":{"billing_id":["12345"],"publisher_settings_list_id":["15984503506551632562"]}}],"app":{"id":"${app_id}","name":"Tienadx","bundle":"fr.android.myapp","publisher":{"id":"1"},"content":{"url":"https://play.google.com/store/apps/details?id=fr.android.myapp","contentrating":"DV-G","userrating":"4.1","language":"fr"}},"device":{"ua":"Mozilla/5.0...(Mobile;afma-sdk-a-v10084448.9452000.2)","ip":"236.162.37.0","geo":{"country":"USA","region":"FR-D","zip":"94110","utcoffset":60},"make":"sony","model":"e5633","os":"android","osv":"6.0","devicetype":4,"ifa":"6e552d9b-bf7f-43c8-85aa-9c0790007503","w":360,"h":592,"pxratio":3},"user":{"id":"userid","data":[{"id":123,"name":"DoubleClick","segment":[{"id":"224","value":"0.5"},{"id":"1461","value":"0.5"}]}]},"cur":["EUR"],"bcat":["IAB19-3"]}
+${crid_video}				V4278
+${app_site_zip}			94110
+${online_zip}			94111
+*** Test Cases ***
+
+Adx app served banner
+	[Documentation]		Check ad serve for adx, adgroup is = QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=86697      submit_client_impression_event=NO
+	[Tags]	
+Adx app served banner response content
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=86697      submit_client_impression_event=NO
+	Log		Response: ${body}
+	
+    ${response_id}=      Get Json Value     ${body}     /id
+    Log     id: ${response_id}
+    Should Match Regexp		${response_id}		${id}
+
+    ${bidid}=      Get Json Value     ${body}     /bidid
+    Log     id: ${bidid}
+    Should Match Regexp		${bidid}		\\w{8}-\\w{4}-\\w{4}-\\w{4}-\\w{12} 
+    
+    ${cur}=      Get Json Value     ${body}     /cur
+    Log     id: ${cur}
+    Should Match Regexp		${cur}		USD   
+    
+    ${seat}=      Get Json Value     ${body}     /seatbid/0/seat
+    Log     id: ${seat}
+    Should Match Regexp		${seat}		4INFO
+    
+    ${price}=      Get Json Value     ${body}     /seatbid/0/bid/0/price
+    Log     id: ${price}
+    Should Match Regexp		${price}		\\d+.\\d+
+    
+    ${impid}=      Get Json Value     ${body}     /seatbid/0/bid/0/impid
+    Log     id: ${impid}
+    Should Match Regexp		${impid}		\\d
+                
+    ${adm}=      Get Json Value     ${body}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    Should Match Regexp		${adm}		gest=client-impression-served
+    Should Match Regexp		${adm}		gest=click-to-web
+    Should Match Regexp		${adm}		url=%%CLICK_URL_ESC%%
+#    Should Match Regexp		${adm}		gest=javascript-impression-served
+#    Should Match Regexp		${adm}		gest=noscript-impression-served
+
+    ${adid}=      Get Json Value     ${body}     /seatbid/0/bid/0/adid
+    Log     id: ${adid}
+    Should Match Regexp		${adid}		\\d{5}
+
+    ${iurl}=      Get Json Value     ${body}     /seatbid/0/bid/0/iurl
+    Log     id: ${iurl}
+    Should Match Regexp		${iurl}		https://4info.pc.cdn.bitgravity.com/ad/banner/prod/48634/banner_67663_image_4INFO_320x50.gif
+    
+    ${bid_cid}=      Get Json Value     ${body}     /seatbid/0/bid/0/cid
+    Log     id: ${bid_cid}
+    Should Match Regexp		${bid_cid}		${cid}
+    
+    ${bid_crid}=      Get Json Value     ${body}     /seatbid/0/bid/0/crid
+    Log     id: ${bid_crid}
+    Should Match Regexp		${bid_crid}		${crid}
+
+    ${bid_id}=      Get Json Value     ${body}     /seatbid/0/bid/0/id
+    Log     id: ${bid_id}
+    Should Match Regexp		${bid_id}		${id}
+
+#	seatbid/0/bid/0/w - not needed, unless dealing with multi size request	
+#	seatbid/0/bid/0/h - not needed, unless dealing with multi size request
+#Starting in 8.4 we start to support private auction, and if the ad does not have deal id, we are not responding with deal id.    
+#    ${dealid}=      Get Json Value     ${body}     /seatbid/0/bid/0/dealid
+#    Log     id: ${dealid}
+#    Should Match Regexp		${dealid}		123
+  
+    ${adomain}=      Get Json Value     ${body}     /seatbid/0/bid/0/adomain
+    Log     id: ${adomain}
+    Should Match Regexp		${adomain}		4info.com
+    
+   [Tags]	
+Adx request log validation
+	   RTB Request 				API=${exchange_id}          data=${data}
+	   Start Read Requests Logs For Consumer Id		consumer_id=${device_id}
+	   Should Match Regexp 			${output}  				5=${lat}
+	   Should Match Regexp 			${output}  				6=${lon}
+	   Should Match Regexp 			${output}  				13=${device_id}
+	   Should Match Regexp 			${output}  				46=${device_id_method}
+	   Should Match Regexp 			${output}  				49=${bid_floor}
+	   Should Match Regexp 			${output}  				54=${app_id}
+	   Should Match Regexp 			${output}  				74=${publisher_name}
+
+Adx app served banner events - client impression served
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=86697      submit_client_impression_event=NO
+	Log		Response: ${body}	
+	RTB Extract Client Impression URL
+	${click_to_web_url}=						Replace Macros And Return Url		client_impression_url=${client_impression_url}		auction_price=WWk0AAAHimcKXnrVAA1alL4NYF7ryt-o1Pq9Kw
+	Log 	2:${click_to_web_url}
+	Validate Gestures Are Logged Correctly		event_url=${client_impression_url}		gesture=client-impression-served
+  
+Adx app served banner events - click to web
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=86697      submit_client_impression_event=NO
+	Log		Response: ${body}	
+	RTB Extract Click To Web URL
+	${click_to_web_url}=						Replace Macros And Return Url		client_impression_url=${click_to_web_url}		auction_price=WWk0AAAHimcKXnrVAA1alL4NYF7ryt-o1Pq9Kw
+	Log 	2:${click_to_web_url}
+	Validate Gestures Are Logged Correctly		event_url=${click_to_web_url}		gesture=click-to-web
+  	[Tags]	
+Adx app served banner events - javascript client impression served
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=86697      submit_client_impression_event=NO
+	Log		Response: ${body}	
+	RTB Extract Javascript Impression Served URL
+	${javascript_impression_served_url}=		Replace Macros And Return Url		client_impression_url=${javascript_impression_served_url}		auction_price=1
+	Log 	3:${javascript_impression_served_url}
+	Validate Gestures Are Logged Correctly		event_url=${javascript_impression_served_url}		gesture=javascript-impression-served
+  	[Tags]		Exclude
+Adx app served banner events - no javascript client impression served
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data}		response_code=200  	adgroup_expected=86697      submit_client_impression_event=NO
+	Log		Response: ${body}	
+	RTB Extract No Javascript Impression Served URL
+	${noscript_impression_served_url}=		Replace Macros And Return Url		client_impression_url=${noscript_impression_served_url}		auction_price=1
+	Log 	4:${noscript_impression_served_url}
+	Validate Gestures Are Logged Correctly		event_url=${noscript_impression_served_url}		gesture=noscript-impression-served
+   	[Tags]		Exclude
+#####################################
+Adx Video served
+	[Documentation]		Check ad serve for adx, adgroup is = QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data2}		response_code=200  
+	[Tags] 
+
+Adx Video served video response content
+	[Documentation]		QA_REGRESSION_TESTS>23_Exchange_Sepcific	
+    RTB Request 				API=${exchange_id}          data=${data2}		response_code=200  
+	Log		Response: ${body}
+	
+    ${response_id}=      Get Json Value     ${body}     /id
+    Log     id: ${response_id}
+    Should Match Regexp		${response_id}		${id}
+
+    ${bidid}=      Get Json Value     ${body}     /bidid
+    Log     id: ${bidid}
+    Should Match Regexp		${bidid}		\\w{8}-\\w{4}-\\w{4}-\\w{4}-\\w{12} 
+    
+    ${cur}=      Get Json Value     ${body}     /cur
+    Log     id: ${cur}
+    Should Match Regexp		${cur}		USD   
+    
+    ${seat}=      Get Json Value     ${body}     /seatbid/0/seat
+    Log     id: ${seat}
+    Should Match Regexp		${seat}		4INFO
+    
+    ${price}=      Get Json Value     ${body}     /seatbid/0/bid/0/price
+    Log     id: ${price}
+    Should Match Regexp		${price}		\\d+.\\d+
+    
+    ${impid}=      Get Json Value     ${body}     /seatbid/0/bid/0/impid
+    Log     id: ${impid}
+    Should Match Regexp		${impid}		\\d
+                
+    ${adm}=      Get Json Value     ${body}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    Should Match Regexp		${adm}		https://qa-adpickup.adhaven.com
+	
+    ${adid}=      Get Json Value     ${body}     /seatbid/0/bid/0/adid
+    Log     id: ${adid}
+    Should Match Regexp		${adid}		\\d{5}
+
+    ${iurl}=      Get Json Value     ${body}     /seatbid/0/bid/0/iurl
+    Log     id: ${iurl}
+    Should Match Regexp		${iurl}		https://4info.pc.cdn.bitgravity.com/ad/video/prod/4278/thumbnail.jpg
+    
+    ${bid_cid}=      Get Json Value     ${body}     /seatbid/0/bid/0/cid
+    Log     id: ${bid_cid}
+    Should Match Regexp		${bid_cid}		${cid}
+    
+    ${bid_crid}=      Get Json Value     ${body}     /seatbid/0/bid/0/crid
+    Log     id: ${bid_crid}
+    Should Match Regexp		${bid_crid}		${crid_video}
+
+    ${bid_id}=      Get Json Value     ${body}     /seatbid/0/bid/0/id
+    Log     id: ${bid_id}
+    Should Match Regexp		${bid_id}		${id}
+  
+    ${adomain}=      Get Json Value     ${body}     /seatbid/0/bid/0/adomain
+    Log     id: ${adomain}
+    Should Match Regexp		${adomain}		4info.com
+    
+   [Tags]		   

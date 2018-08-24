@@ -1,0 +1,13 @@
+
+*** Settings ***
+Library    	    RequestsLibrary
+Library    	    Collections
+Library         String
+Library         adhaven_helper
+Library         Selenium2Library
+Resource      	common_config.txt
+Resource   		utilities_json.txt
+Resource      	rtb.txt
+Resource		log_reader.txt
+Resource    	ssh_lib.txt
+Resource 		adhaven_general.txt

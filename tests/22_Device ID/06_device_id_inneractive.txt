@@ -1,0 +1,21 @@
+*** Settings ***
+Resource   Device_ID_imports.txt
+Force Tags           DEVICE_ID    BATCH3	INNERACTIVE
+
+*** variables ***
+ ${app_id_01}					12449
+ ${app_id_03}					12451
+ 
+*** Test Cases ***
+# 
+Clear Device IDFA, Field 13 and 26
+	   ${random_device_id}=		Generate Clear Device ID         	  
+	   Set Test Variable    ${data}   		  {"id":"8318133468316979278","imp":[{"id":"1","banner":{"id":"1","w":320,"h":50,"wmin":300,"hmin":50,"pos":1,"btype":[1,4],"battr":[3,8,9],"topframe":1,"api":[4,3,5],"ext":{}},"instl":0,"bidfloor":0.05,"bidfloorcur":"USD","ext":{}}],"app":{"id":"${app_id_01}","name":"MeetMe Banners","cat":["IAB14","IAB18"],"bundle":"xxcom.myyearbook.m","publisher":{"id":"204918","name":"BeanstockMedia","ext":{}},"keywords":[],"storeurl":"https://play.google.com/store/apps/details?id=com.myyearbook.m&hl=en","ext":{}},"device":{"dnt":0,"ua":"Mozilla/5.0 (Linux; Android 4.4.4; SM-G900P Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Mobile Safari/537.36","ip":"66.87.144.48","geo":{"lat":44.98,"lon":-93.2638,"country":"USA","city":"Minneapolis","zip":"55401","type":2,"ext":{}},"dpidsha1":"0E439B5B25E233F37A419A2A050F36ED936E33DB","dpidmd5":"37DC0BA54BFF16CA9B429C0988D6E39A","carrier":"120","language":"en","make":"Samsung","model":"","os":"Android","osv":"4.4","js":1,"connectiontype":0,"devicetype":4,"ifa":"${random_device_id}","ext":{}},"user":{"id":"8265070973252584041","gender":"M"},"at":2,"tmax":250,"bcat":["IAB25","IAB26"],"badv":[],"ext":{}}
+	   RTB Request 				API=${RTB_INNERACTIVE_API}          data=${data}		response_code=200        submit_client_impression_event=NO
+	   Extract REQID From Response  	
+		#it's being stored as ${reqid} for test variable
+		Start Read Request Logs For Reqid		host=${SSH_RTB_HOST}		reqid=${reqid}
+		Should Match Regexp 			${output}  				13=${random_device_id}
+		Should Match Regexp 			${output}  				46=150
+		
+   

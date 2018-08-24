@@ -1,0 +1,44 @@
+
+
+*** Settings ***
+Resource        	device_or_ip to_hh_templates.txt
+Force Tags          DEVICE_ID	BATCH8		RTB				EXCLUDE	
+Test Template       Mopub Device to HH Template
+
+*** Test Cases ***
+
+#Segment 800, NCS
+19_automation_ncs, Segment 2655, 1HH						device_id=11111111-1111-1111-1919-11111111111A		hh_id=272890801
+19_automation_ncs, Segment 2655, 2HH						device_id=11111111-1111-1111-1919-11111111111B		hh_id=236306913|234993761
+19_automation_ncs, Segment 2655, 8HH						device_id=11111111-1111-1111-1919-11111111111C		hh_id=257976091|297395801|256058399|248672003|259629854|253958081|272196385|272831627
+19_automation_ncs, Segment 2655, 66HH					device_id=11111111-1111-1111-1919-11111111111D		
+
+#Segment 805, NCS, boost enabled
+19_automation_ncs, Segment 2647, 1HH Boosted						device_id=11111111-1111-1111-1919-11111111112A		hh_id=313165132
+19_automation_ncs, Segment 2647, 2HH Boosted						device_id=11111111-1111-1111-1919-11111111112B		hh_id=266527024|252433356
+19_automation_ncs, Segment 2647, 8HH Boosted						device_id=11111111-1111-1111-1919-11111111112C		hh_id=230851774|260566013|308287886|280556569|295647491|261881398|212720068|297578588
+19_automation_ncs, Segment 2647, 113HH Boosted					device_id=11111111-1111-1111-1919-11111111112D		
+
+#segment 806, axciom
+20_automation_axciom, Segment 806, 1HH					device_id=11111111-1111-1111-2020-11111111111A		hh_id=248400002
+20_automation_axciom, Segment 806, 2HH					device_id=11111111-1111-1111-2020-11111111111B		hh_id=247217744|298449792
+20_automation_axciom, Segment 806, 6HH					device_id=11111111-1111-1111-2020-11111111111C		hh_id=249074677|433052169|211620836|249526175|249951533|249183932|249958410|248928087|245972000
+20_automation_axciom, Segment 806, 66HH					device_id=11111111-1111-1111-2020-11111111111D		
+
+#segment 827, axciom, boost enabled
+#20_automation_axciom, Segment 827, 1HH Boosted					device_id=11111111-1111-1111-2020-11111111112A		hh_id=250543886
+#20_automation_axciom, Segment 827, 2HH Boosted					device_id=11111111-1111-1111-2020-11111111112B		hh_id=249530126|219121000
+#20_automation_axciom, Segment 827, 6HH Boosted					device_id=11111111-1111-1111-2020-11111111112C		hh_id=248241030|246433123|427555284|249151931|423941534|431948411|245731344|432942982
+#20_automation_axciom, Segment 827, 66HH Boosted					device_id=11111111-1111-1111-2020-11111111112D		
+
+#segment 802, Wallmart
+21_automation_walmart, Segment 802, 1HH					device_id=11111111-1111-1111-2121-11111111111A		hh_id=248728015
+21_automation_walmart, Segment 802, 2HH					device_id=11111111-1111-1111-2121-11111111111B		hh_id=253487405|249307572
+21_automation_walmart, Segment 802, 6HH					device_id=11111111-1111-1111-2121-11111111111C		hh_id=278558812|226344176|299511429|303267978|227464301|251019610|256467831|419772989|214436480|303270265
+21_automation_walmart, Segment 802, 66HH				device_id=11111111-1111-1111-2121-11111111111D		
+
+#segment 831, Wallmart, Boost enabled
+#21_automation_walmart, Segment 831, 1HH Boosted					device_id=11111111-1111-1111-2121-11111111112A		hh_id=303267978
+#21_automation_walmart, Segment 831, 2HH Boosted					device_id=11111111-1111-1111-2121-11111111112B		hh_id=303270265|257472118
+#21_automation_walmart, Segment 831, 6HH Boosted					device_id=11111111-1111-1111-2121-11111111112C		hh_id=298573108|303279077|303376981|303279018|238275460|302994369|238022887|271827548|303407987|303397724
+#21_automation_walmart, Segment 831, 66HH Boosted				device_id=11111111-1111-1111-2121-11111111112D		
