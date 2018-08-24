@@ -1,6 +1,0 @@
-
-*** Settings ***
-Resource    adhaven_general.txt
-Resource    connexions.txt
-
-   

@@ -1,6 +1,0 @@
-
-
-*** Settings ***
-Resource            prizm_imports.txt
-Suite Setup         Run Keywords                 Retrieve Original Selenium Speed And Implicit Time        Remove Selenium Speed And Implicit Time For Fast Execution
-Suite Teardown      Run Keywords                Reset Selenium Speed And Implicit Time To Original        Close All Browsers

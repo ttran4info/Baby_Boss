@@ -1,6 +1,0 @@
-
-*** Settings ***
-Resource    	adhaven_general.txt
-Resource    	prizm.txt
-Resource 	  	00_RTB_Data.txt
-Resource        mopub_test_templates.txt   
