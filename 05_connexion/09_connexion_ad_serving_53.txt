@@ -1,0 +1,26 @@
+
+
+*** Settings ***
+Resource            connexions_imports.txt
+Force Tags          ACE    CONNEXIONS    4.0    CONNEXIONS_53           MEDIATION
+Test Template       Connexions Ad Serving Test
+Test Setup            Open Browser       ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+Test Teardown      Close All Browsers
+Documentation       Tests for Connexions Audience 
+...                 CONNEXION SEGMENTS
+...                 53	Last to Adopt
+
+*** Variables ***
+${engine}           ${DEFAULT_AUDIENCE_ENGINE}
+${image_name}       320x50_Connexion05.jpg
+${location}         *.google.*
+${page_title}       Google
+${api_key}          96a3be339dc3269b
+${placement_id}     ${CONNEX_09_PLACEMENTID}
+*** Test Cases ***
+#Test Case                                                                  					LAT                    LON                        		EXPECT_ERROR    
+
+# SEGMENT 53
+Lat_Lon For Segment 53 881 Spokane                                          46.3694               -116.9725                   0              
+
+            

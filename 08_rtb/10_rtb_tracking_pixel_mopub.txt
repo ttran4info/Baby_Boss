@@ -1,0 +1,39 @@
+*** Settings ***
+Resource             rtb_imports.txt
+Force Tags          RTB      MOPUB     BATCH1			PROD_BATCH2
+
+*** Variables ***
+${mopub_request}		{"app":{"bundle":"xx372648912","cat":["IAB24","social_networking"],"id":"13952","name":"MeetMe iPhone","publisher":{"id":"c3584d1c40cb43619e043c065caee33a","name":"MeetMe, Inc."},"storeurl":"https://itunes.apple.com/us/app/meetme-chat-meet-new-people/id372648912?mt=8&uo=4","ver":"10.2.0"},"at":2,"badv":["badoo","chatmeup","fling","happn","howaboutwe","imvu","jaumo","justhookup","landrover","landrover.com","landrovertristate.com","lavaplace","lovoo","meetmoi","meowchat","moco","momo","on.com","pof","sayhi","skout","tagged","tango","thegamebyhotornot","tinder","twoo","wechat","whisper","zoosk"],"bcat":["IAB25","IAB25-2","IAB25-3","IAB25-4","IAB25-5","IAB26","IAB26-1","IAB26-2","IAB26-3","IAB26-4","IAB3-7"],"device":{"carrier":"310-030","connectiontype":2,"devicetype":1,"dnt":0,"dpidmd5":"af7045cff2375b9f85af4786f94ad9d6","dpidsha1":"4f5714baa19608cd52caf7ddeac2a4625e64a945","ifa":"42C6857E-D0F0-4920-91F6-F8BAFD10A7F3","geo":{"city":"Bronx","country":"USA","lat":40.835762,"lon":-73.821533,"metro":"501","region":"NY","zip":"10462"},"ip":"47.18.4.157","js":1,"language":"en","make":"Apple","model":"iPhone 6","os":"iOS","osv":"8.4","ua":"Mozilla/5.0 (iPhone; CPU iPhone OS 8_4 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12H143"},"id":"d50bb64d-f415-4f54-b439-0a64d977ac3b","imp":[{"banner":{"api":[3,5],"battr":[1,3,8,9,10,14,6],"btype":[4],"ext":{"nativebrowserclick":1},"h":50,"pos":1,"w":320},"bidfloor":0.001,"displaymanager":"mopub","displaymanagerver":"3.7.0","id":"1","instl":0,"tagid":"f5ea2d24c9bb46a38713cf98dffd8252"}],"user":{"keywords":"AGE:26,GENDER:m,MARITAL:single"}}
+
+
+*** Test Cases *** 
+
+#https://jira.adhaven.com/browse/ADH-6789
+#https://jira.adhaven.com/browse/ADH-6790
+Mopub Tracking pixel is 0x0
+    Set Test Variable    	${data}         		 ${mopub_request}
+    RTB Request             ${RTB_MOPUB_API}         ${data}   
+	RTB Basic Validation MOPUB
+#check width and height to be zero   
+    Should Match Regexp		${adm}		img src=.+?//${EXTERNAL_EVENT_ENGINE}.+?BORDER=0 WIDTH=0 HEIGHT=0 STYLE=.+?display:none   
+
+Mopub Tracking pixel is after the img src
+    Set Test Variable    	${data}         		 ${mopub_request}
+    RTB Request             ${RTB_MOPUB_API}         ${data}   
+	RTB Basic Validation MOPUB
+    Should Match Regexp		${adm}		img src=.+?//${EXTERNAL_EVENT_ENGINE}.+?BORDER=0 WIDTH=0 HEIGHT=0 STYLE=.+?display:none.+?http://www.regression3rdpartytrackingurl.com.+?BORDER=0 WIDTH=0 HEIGHT=0 STYLE=.+?display:none
+
+Mopub Tracking pixel is after the bitgravity img src
+    Set Test Variable    	${data}         		 ${mopub_request}
+    RTB Request             ${RTB_MOPUB_API}         ${data}   
+	RTB Basic Validation MOPUB
+    Should Match Regexp		${adm}		img src=.+?//${EXTERNAL_EVENT_ENGINE}.+?BORDER=0 WIDTH=0 HEIGHT=0 STYLE=.+?display:none.+?img src=.+?bitgravity.com.+?http://www.regression3rdpartytrackingurl.com.+?BORDER=0 WIDTH=0 HEIGHT=0 STYLE=.+?display:none  
+
+Mopub Tracking JS pixel is after click to web img pixel
+    Set Test Variable    	${data}         		 ${mopub_request}
+    RTB Request             ${RTB_MOPUB_API}         ${data}   
+	RTB Basic Validation MOPUB
+    Should Match Regexp		${adm}		img src=.+?//${EXTERNAL_EVENT_ENGINE}.+?BORDER=0 WIDTH=0 HEIGHT=0 STYLE=.+?display:none.+?gest=click-to-web.+?img src=.+?bitgravity.com.+?http://www.regression3rdpartytrackingurl.com.+?BORDER=0 WIDTH=0 HEIGHT=0 STYLE=.+?display:none  
+   
+    
+      

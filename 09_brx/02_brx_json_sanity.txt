@@ -1,0 +1,49 @@
+*** Settings ***
+Resource             brx_imports.txt
+Force Tags          BRX      BUILD_SANITY    QA_ONLY          BATCH1		EXCLUDE	#BRX is no longer available	
+
+*** Variables ***
+${app_pl}                REGRESSION BRX_JSON APP
+${site_pl}                REGRESSION BRX_JSON SITE  
+${online_pl}                REGRESSION BRX_JSON ONLINE     
+
+*** Test Cases *** 
+
+BRX - MOBILE APP via JSON
+	   Set Test Variable    ${data}   	{"id":"Yd_2O1S1cznkIAOwQAaIZE0Kq_6Ns","imp":[{"id":"1","video":{"mimes":["video/mp4"],"minduration":5,"maxduration":30,"protocols":[2,5],"w":320,"h":240,"startdelay":0,"linearity":1,"maxbitrate":1000,"playbackmethod":[3],"delivery":[2],"pos":7,"api":[],"ext":{}},"instl":0,"bidfloor":0.03299999237060546875,"pmp":{"private_auction":0,"deals":[{"id":"y-64f928","bidfloor":0.3299999237060546875},{"id":"y-fb639a","bidfloor":0.3299999237060546875},{"id":"y-8ef31e","bidfloor":0.3299999237060546875},{"id":"y-558c25","bidfloor":0.3299999237060546875},{"id":"y-306c35","bidfloor":0.3299999237060546875},{"id":"y-1cadb4","bidfloor":0.3299999237060546875},{"id":"y-38323e","bidfloor":0.3299999237060546875},{"id":"y-50afd8","bidfloor":0.3299999237060546875},{"id":"y-aafb2a","bidfloor":0.3299999237060546875},{"id":"y-f55e0d","bidfloor":0.3299999237060546875}],"ext":{}}}],"app":{"id":"${app_pl}","name":"Mobile - Android app - AerServ Gaming RON","cat":["IAB9-30","IAB1"],"privacypolicy":1,"paid":0,"bundle":"xxcom.gameresort.stupidzombies","storeurl":"https://play.google.com/store/apps/details?id=com.gameresort.stupidzombies","content":{"context":"2","qagmediarating":1,"embeddable":0,"language":"en"}},"device":{"dnt":0,"ip":"75.181.99.255","ua":"Mozilla/5.0 (Linux; Android 6.0; LG-V495 Build/MRA58K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/50.0.2661.86 Safari/537.36","make":"LG","model":"V495","os":"android","osv":"6.0","connectiontype":2,"devicetype":1,"dpidsha1":"8b82cfa3706df7764c090f6d3280e607c665707b","dpidmd5":"19420316a314d518910cad52d6d15034","ifa":"f303cb3d-870d-4ec2-b10c-99d44c48d818","geo":{"lat":35.0709991455078125,"lon":-80.68900299072265625}},"user":{},"tmax":120,"ext":{"is_skippable":0,"is_fullscreenexpandable":0,"is_facebook":0,"is_incentivized":0,"is_syndicated":0,"is_ugc":0,"max_wrapper_redirects":1,"inventory_class":3,"viewability":0}}	  
+	   RTB Request 				API=${RTB_BRX_API}          data=${data}		response_code=200        submit_client_impression_event=BRX		adgroup_expected=86698
+	 Log 	response_content: ${resp.content}
+	   Should Match Regexp             ${resp.content}                  "campaign_name":"23_Exchange_Specific"
+	   Should Match Regexp             ${resp.content}                  "line_item_name":"App Site Video test"
+	   Should Match Regexp             ${resp.content}                  "creative_name":"Video1"
+	   Should Match Regexp             ${resp.content}                  "creative_duration":30
+	   Should Match Regexp             ${resp.content}                  "media_mime":"video/mp4"
+	   Should Match Regexp             ${resp.content}                  "adtype":"VIDEO"
+	   Should Match Regexp             ${resp.content}                  "nurl":"http.*##BRX_CLEARING_PRICE##"
+	   
+	   
+BRX - MOBILE WEB via JSON
+	   Set Test Variable    ${data}   	{"id":"AdXfm2R1cznkIAOvPIOIHgkOicdaY","imp":[{"id":"1","video":{"mimes":["video/mp4"],"minduration":5,"maxduration":30,"protocols":[5,2],"w":320,"h":240,"startdelay":0,"linearity":1,"maxbitrate":1000,"playbackmethod":[3],"delivery":[2],"pos":7,"api":[],"ext":{}},"instl":0,"bidfloor":0.03299999237060546875,"pmp":{"private_auction":0,"deals":[],"ext":{}}}],"site":{"id":"${site_pl}","name":"Mobile - Android web - Optimatic RON","page":"xhttp://www.thereciperebel.com/easy-skillet-scalloped-potatoes-au-gratin/","cat":["IAB12","IAB1"],"privacypolicy":1,"domain":"thereciperebel.com","content":{"context":"2","qagmediarating":1,"embeddable":0,"language":"en"}},"device":{"dnt":0,"ip":"71.182.249.93","ua":"Mozilla/5.0 (Linux; Android 4.4.2; LGL41C Build/KOT49I.L41CV10a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.89 Mobile Safari/537.36","os":"android","osv":"[osversion]","devicetype":1,"geo":{"lat":40.31800079345703125,"lon":-79.7180023193359375}},"user":{"id":"3VzOeQji9RzEBvNkD6A"},"tmax":120,"ext":{"is_skippable":0,"is_fullscreenexpandable":0,"is_facebook":0,"is_incentivized":0,"is_syndicated":0,"is_ugc":0,"max_wrapper_redirects":1,"inventory_class":2,"viewability":0}}
+	   RTB Request 				API=${RTB_BRX_API}          data=${data}		response_code=200        submit_client_impression_event=BRX		adgroup_expected=86698
+	 Log 	response_content: ${resp.content}
+	   Should Match Regexp             ${resp.content}                  "campaign_name":"23_Exchange_Specific"
+	   Should Match Regexp             ${resp.content}                  "line_item_name":"App Site Video test"
+	   Should Match Regexp             ${resp.content}                  "creative_name":"Video1"
+	   Should Match Regexp             ${resp.content}                  "creative_duration":30
+	   Should Match Regexp             ${resp.content}                  "media_mime":"video/mp4"
+	   Should Match Regexp             ${resp.content}                  "adtype":"VIDEO"
+	   Should Match Regexp             ${resp.content}                  "nurl":"http.*##BRX_CLEARING_PRICE##"
+	   
+	   
+BRX - ONLINE via JSON
+	   Set Test Variable    ${data}   	{"id":"AdGy2yn1cznkIAOqnbdK4dweCmC0s","imp":[{"id":"1","video":{"mimes":["video/mp4","application/x-shockwave-flash","video/x-flv"],"minduration":5,"maxduration":30,"protocols":[2,5],"w":300,"h":250,"startdelay":0,"linearity":1,"maxbitrate":1800,"playbackmethod":[1],"delivery":[2],"pos":3,"api":[1],"ext":{}},"instl":0,"bidfloor":0.03500000238418579102,"pmp":{"private_auction":0,"deals":[{"id":"y-4b0e85","bidfloor":0.3500000238418579102},{"id":"y-366330","bidfloor":0.3500000238418579102},{"id":"y-0f2c09","bidfloor":0.3500000238418579102},{"id":"y-cbde83","bidfloor":0.3500000238418579102},{"id":"y-b34476","bidfloor":0.3500000238418579102},{"id":"y-f2ba0c","bidfloor":0.3500000238418579102},{"id":"y-ca6c8b","bidfloor":0.3500000238418579102},{"id":"y-f9de14","bidfloor":0.3500000238418579102},{"id":"y-355944","bidfloor":0.3500000238418579102},{"id":"y-4607d2","bidfloor":0.3500000238418579102},{"id":"y-2309f8","bidfloor":0.3500000238418579102},{"id":"y-e1ceff","bidfloor":0.3500000238418579102},{"id":"y-c14e5e","bidfloor":0.3500000238418579102},{"id":"y-43e494","bidfloor":0.3500000238418579102}],"ext":{}}}],"site":{"id":"${online_pl}","name":"Catch All SYND 6834908","page":"xstartpage.lenovo.com/","cat":["IAB1"],"privacypolicy":1,"ref":"http://atm.adap.tv/","domain":"xlenovo.com","content":{"context":"7","embeddable":2,"language":"und"}},"device":{"ip":"159.178.45.27","ua":"Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko","devicetype":2},"user":{"id":"3VubBRASg/fUBR2am2Q"},"tmax":120,"ext":{"is_skippable":0,"is_fullscreenexpandable":0,"is_facebook":0,"is_incentivized":2,"is_syndicated":1,"is_ugc":1,"max_wrapper_redirects":3,"inventory_class":2,"viewability":2}}
+	   RTB Request 				API=191d469d043cff1b        data=${data}		response_code=200        submit_client_impression_event=BRX		adgroup_expected=86700
+	 Log 	response_content: ${resp.content}
+	   Should Match Regexp             ${resp.content}                  "campaign_name":"23_Exchange_Specific"
+	   Should Match Regexp             ${resp.content}                  "line_item_name":"Desktop Video test"
+	   Should Match Regexp             ${resp.content}                  "creative_name":"Video1"
+	   Should Match Regexp             ${resp.content}                  "creative_duration":30
+	   Should Match Regexp             ${resp.content}                  "media_mime":"video/x-flv"
+	   Should Match Regexp             ${resp.content}                  "adtype":"VIDEO"
+	   Should Match Regexp             ${resp.content}                  "nurl":"http.*##BRX_CLEARING_PRICE##"	  
+	   [Tags]		 	   

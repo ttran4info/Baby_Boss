@@ -1,0 +1,92 @@
+
+
+*** Settings ***
+Resource            mysql_imports.txt
+Force Tags          DATABASE    REPORTING     QA_ONLY        BATCH1		EXCLUDE
+Suite Setup           Get Current Date
+Test Setup            Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+Test Teardown      Disconnect From Database
+*** Variables ***
+
+*** Test Cases ***
+        
+Validate rhino.batch_tracker Table Has Status SUCCESS/STARTED/PENDING For Last 100 Records (25 hours)
+       @{query_results}     Query     select * from rhino.batch_tracker order by batch_no desc limit 100
+        Log Many     @{query_results}
+        @{query_results}     Query    select STATUS from rhino.batch_tracker order by batch_no desc limit 100
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        \        Should Match Regexp     '${index[0]}'        SUCCESS|STARTED|PENDING
+
+Validate rhino.log_uploader Table Has Status PROCESSING/PROCESSED/PENDING For Last 100 Records
+       @{query_results}     Query     select * from rhino.log_uploader order by batch_id desc limit 100
+        Log Many     @{query_results}
+        @{query_results}     Query    select FINAL_STATUS from rhino.log_uploader order by batch_id desc limit 100 
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        \        Should Match Regexp     '${index[0]}'        PROCESSING|PROCESSED|PENDING         
+        
+Validate rhino.log_uploader_audit Table Has Status PASSED For Last 100 Records
+       @{query_results}     Query     select * from rhino.log_uploader_audit order by batch_id desc limit 100
+        Log Many     @{query_results}
+        @{query_results}     Query    select STATUS from rhino.log_uploader_audit order by batch_id desc limit 100
+        Log Many     @{query_results}
+        :FOR     ${index}    IN      @{query_results}
+        \        Log     ${index[0]} 
+        \        Should Match Regexp     '${index[0]}'        PASSED         
+                
+
+# Tests from Shreekant's DEVICE_HH_GENERAL_STEPS.xlsx
+Validate DEVICE_HHID_DAILY Should Be created In The log_uploader_daily Table And Everything Is Good For The Last 3 Days
+        @{query_results}     Query    select batch_date,final_status,log_size,log_file_count from rhino.log_uploader_daily where ROLLUP_TYPE = 'DEVICE_HHID_DAILY' order by BATCH_DATE desc limit 3
+        Log Many     @{query_results}
+        ${rows}=       Get Length        ${query_results} 
+        :FOR    ${index}    IN RANGE   0    ${rows}
+        \        Should Match Regexp     ${query_results[${index}][1]}        PROCESSED|PENDING|PROCESSING  
+        [Tags]     Exclude
+
+Validate DEVICE_HHID_DAILY Stage In Table rhino.batch_tracker_daily And Everything Is Successful In The Last 3 Days
+        @{query_results}     Query    select * from rhino.batch_tracker_daily where ROLLUP_TYPE = 'DEVICE_HHID_DAILY' order by BATCH_DATE desc limit 3
+        Log Many     @{query_results}
+        ${rows}=       Get Length        ${query_results} 
+        :FOR    ${index}    IN RANGE   0    ${rows}
+        \        Should Match Regexp     ${query_results[${index}][14]}        qa-engine1
+        \        Should Match Regexp     ${query_results[${index}][2]}          SUCCESS|STARTED      
+        [Tags]     Exclude
+        
+
+# These steps are added based on the DEVICE_HH_GENERAL steps as there are other jobs in the same table 
+Validate GEOGRAPHICAL_DISTRIBUTION_DAILY Should Be created In The log_uploader_daily Table And Everything Is Good For The Last 3 Days
+        
+        @{query_results}     Query    select batch_date,final_status,log_size,log_file_count from rhino.log_uploader_daily where ROLLUP_TYPE = 'GEOGRAPHICAL_DISTRIBUTION_DAILY' order by BATCH_DATE desc limit 3
+        Log Many     @{query_results}
+        ${rows}=       Get Length        ${query_results} 
+        :FOR    ${index}    IN RANGE   0    ${rows}
+        \        Should Match Regexp     ${query_results[${index}][1]}        PROCESSED|PENDING|PROCESSING        
+
+Validate GEOGRAPHICAL_DISTRIBUTION_DAILY Stage In Table rhino.batch_tracker_daily And Everything Is Successful In The Last 3 Days
+        @{query_results}     Query    select * from rhino.batch_tracker_daily where ROLLUP_TYPE = 'GEOGRAPHICAL_DISTRIBUTION_DAILY' order by BATCH_DATE desc limit 3
+        Log Many     @{query_results}
+        ${rows}=       Get Length        ${query_results} 
+        :FOR    ${index}    IN RANGE   0    ${rows}
+        \        Should Match Regexp     ${query_results[${index}][14]}        qa-engine1
+        \        Should Match Regexp     ${query_results[${index}][2]}          SUCCESS|STARTED         
+            
+Validate HOUSEHOLD_DMA_IMPRESSION_DAILY Should Be created In The log_uploader_daily Table And Everything Is Good For The Last 3 Days
+        @{query_results}     Query    select batch_date,final_status,log_size,log_file_count from rhino.log_uploader_daily where ROLLUP_TYPE = 'HOUSEHOLD_DMA_IMPRESSION_DAILY' order by BATCH_DATE desc limit 3
+        Log Many     @{query_results}
+        ${rows}=       Get Length        ${query_results} 
+        :FOR    ${index}    IN RANGE   0    ${rows}
+        \        Should Match Regexp     ${query_results[${index}][1]}         PROCESSED|PENDING|PROCESSING 
+
+Validate HOUSEHOLD_DMA_IMPRESSION_DAILY Stage In Table rhino.batch_tracker_daily And Everything Is Successful In The Last 3 Days
+        @{query_results}     Query    select * from rhino.batch_tracker_daily where ROLLUP_TYPE = 'HOUSEHOLD_DMA_IMPRESSION_DAILY' order by BATCH_DATE desc limit 3
+        Log Many     @{query_results}
+        ${rows}=       Get Length        ${query_results} 
+        :FOR    ${index}    IN RANGE   0    ${rows}
+        \        Should Match Regexp     ${query_results[${index}][14]}        qa-engine1
+        \        Should Match Regexp     ${query_results[${index}][2]}          SUCCESS|STARTED       
+
+       

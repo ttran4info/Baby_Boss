@@ -1,0 +1,170 @@
+
+
+*** Settings ***
+Resource            a_initial_validations_imports.txt
+Force Tags          SYSTEM_VALIDATIONS   BUILD_SANITY    BATCH1		
+Suite Setup         Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+Suite Teardown      Disconnect From Database
+
+*** Variables ***
+
+*** Test Cases ***
+#8.21, we are removing all parameter in system settings, they are now in rhino.properties.
+Validate Dedup Gesture Cache Time In Seconds
+		Extract Value From Properties File			SSH_HOST=${BID_ENGINE_ONE}		properties_tag=dedup.gesture.cache.time.seconds
+        #${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "dedup.gesture.cache.time.seconds"
+        #${result}=   Set Variable    ${query_results[0][0]}
+        Log     Dedup Gesture Cache Time In Seconds: ${${output_result}}
+		Run Keyword If		'${ENVIRONMENT}'=='QA'		Should Be Equal    0    ${output_result}
+		Run Keyword If		'${ENVIRONMENT}'=='PROD'	Should Be Equal    0    ${output_result}
+#       Should Be Equal    60    ${result}
+
+Validate Dedup Impression Cache Time In Seconds
+        #${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "dedup.impression.cache.time.seconds"
+        #${result}=   Set Variable     ${query_results[0][0]}
+        Extract Value From Properties File			SSH_HOST=${BID_ENGINE_ONE}		properties_tag=dedup.impression.cache.time.seconds
+        Log     Dedup Impression Cache Time In Seconds: ${output_result}
+		Run Keyword If		'${ENVIRONMENT}'=='QA'		Should Be Equal    30    ${output_result}
+		Run Keyword If		'${ENVIRONMENT}'=='PROD'	Should Be Equal    30    ${output_result}
+#        Should Be Equal    60    ${result}
+
+Validate Geonames Loc API Protocol
+        ${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "geonames.loc.api.protocol"
+        Set Suite Variable    ${api_protocol}    ${query_results[0][0]}
+        Log     Geonames Loc API Protocol: ${api_protocol}
+        Should Be Equal   http   ${api_protocol}
+		[Tags]	Exclude
+	
+Validate Geonames Loc API Host
+        ${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "geonames.loc.api.host"
+        Set Suite Variable    ${api_host}        ${query_results[0][0]}
+        Log     Geonames Loc API Host: ${api_host}
+        Run Keyword If		'${ENVIRONMENT}'=='QA'		Should Be Equal    archive1    	${api_host}
+		Run Keyword If		'${ENVIRONMENT}'=='PROD'	Should Be Equal    lb-adhaven    ${api_host}
+		[Tags]	Exclude
+		
+Validate Geonames Loc API Port
+        ${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "geonames.loc.api.port"
+        Set Suite Variable   ${api_port}      ${query_results[0][0]}
+        Log     Geonames Loc API Port: ${api_port}
+        Should Be Equal    8080    ${api_port}
+		[Tags]	Exclude
+		
+Validate Geonames Loc API URI
+        ${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "geonames.loc.api.uri"
+        Set Suite Variable    ${api_uri}      ${query_results[0][0]}
+        Log    Geonames Loc API URI: ${api_uri}
+        Should Be Equal    /geonames/servlet/geonames    ${api_uri}
+		[Tags]	Exclude
+		
+Validate Geonames Loc API Max Threads
+        ${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "geonames.loc.api.max.threads"
+        ${result} =      Set Variable    ${query_results[0][0]}
+        Log    Geonames Loc API Max Threads: ${result}
+        Run Keyword If		'${ENVIRONMENT}'=='QA'			Should Be Equal    500    ${result}
+        Run Keyword If		'${ENVIRONMENT}'=='PROD'		Should Be Equal    700    ${result}
+    	[Tags]	Exclude
+    	
+Validate Geonames Loc API Socket Timeout
+        ${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "geonames.loc.api.socket.timeout"
+        ${result} =     Set Variable     ${query_results[0][0]}
+        Log    Geonames Loc API Socket Timeout: ${result}
+        Run Keyword If		'${ENVIRONMENT}'=='QA'			Should Be Equal    70    ${result}
+		Run Keyword If		'${ENVIRONMENT}'=='PROD'		Should Be Equal    70    ${result}
+		[Tags]	Exclude		
+	
+Validate Geonames Loc API Connection Timeout
+        ${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "geonames.loc.api.conn.timeout"
+        ${result} =     Set Variable    ${query_results[0][0]}
+        Log    Geonames Loc API Connection Timeout: ${result}
+        Run Keyword If		'${ENVIRONMENT}'=='QA'			Should Be Equal    70    ${result}
+		Run Keyword If		'${ENVIRONMENT}'=='PROD'		Should Be Equal    70    ${result}
+		[Tags]	Exclude
+		
+Validate Geonames Loc Forced Timeout
+        ${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "geonames.loc.forced.timeout"
+        ${result} =     Set Variable    ${query_results[0][0]}
+        Log    Geonames Loc Forced Timeout: ${result}
+        Run Keyword If		'${ENVIRONMENT}'=='QA'			Should Be Equal    200    ${result}
+		Run Keyword If		'${ENVIRONMENT}'=='PROD'		Should Be Equal    200    ${result}
+		[Tags]	Exclude
+		        
+Validate Events Max Threads
+        #${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "events.http.max.threads"
+        #${result} =     Set Variable    ${query_results[0][0]}
+        Extract Value From Properties File			SSH_HOST=${BID_ENGINE_ONE}		properties_tag=events.http.max.threads
+        Log    Geonames Loc Forced Timeout: ${output_result}
+        Run Keyword If		'${ENVIRONMENT}'=='QA'			Should Be Equal    200    ${output_result}
+		Run Keyword If		'${ENVIRONMENT}'=='PROD'		Should Be Equal    2000    ${output_result}        
+ 		[Tags]	Exclude
+Validate Events Socket Timeout
+        #${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "events.http.socket.timeout"
+        #${result} =     Set Variable    ${query_results[0][0]}
+        Extract Value From Properties File			SSH_HOST=${BID_ENGINE_ONE}		properties_tag=events.http.socket.timeout
+        Log    Geonames Loc Forced Timeout: ${output_result}
+        Should Be Equal    600    ${output_result}        
+        [Tags]	Exclude
+Validate Events Connection Timeout
+        #${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "events.http.conn.timeout"
+        #${result} =     Set Variable    ${query_results[0][0]}
+        Extract Value From Properties File			SSH_HOST=${BID_ENGINE_ONE}		properties_tag=events.http.conn.timeout
+        Log    Geonames Loc Forced Timeout: ${output_result}
+        Should Be Equal    600    ${output_result}        
+		[Tags]	Exclude
+Validate Events Forced Timeout
+        #${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "events.http.forced.timeout"
+        #${result} =     Set Variable    ${query_results[0][0]}
+        Extract Value From Properties File			SSH_HOST=${BID_ENGINE_ONE}		properties_tag=events.http.forced.timeout
+        Log    Geonames Loc Forced Timeout: ${output_result}
+        Should Be Equal    600    ${output_result}        
+		[Tags]	Exclude
+Validate Events Cleanup Period
+        #${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "events.http.cleanup.period.ms"
+        #${result} =     Set Variable    ${query_results[0][0]}
+        Extract Value From Properties File			SSH_HOST=${BID_ENGINE_ONE}		properties_tag=events.http.cleanup.period.ms
+        Log    Geonames Loc Forced Timeout: ${output_result}
+        Should Be Equal    5000    ${output_result}        
+		[Tags]	Exclude
+Validate Units Delivery Buffer Percent
+        #${query_results}     Query    SELECT VALUE FROM rhino.system_settings WHERE NAME = "units.delivery.buffer.percent"
+        #${result} =     Set Variable    ${query_results[0][0]}
+        Extract Value From Properties File			SSH_HOST=${BID_ENGINE_ONE}		properties_tag=units.delivery.buffer.percent
+        Log    Geonames Loc Forced Timeout: ${output_result}
+        Should Be Equal    0.0    ${output_result}        
+        [Tags]     4.9   ADH-3659
+
+Construct Geonames URL and Validate 
+        Open Browser              ${DEFAULT_BROWSER_HOME}     ${BROWSER}
+        ${my_geonames_url}=   Set Variable    ${api_protocol}://${api_host}:${api_port}${api_uri}?srv=findNearbyAddress&lat=37.786121&lng=-122.405303
+        Go to      ${my_geonames_url}
+        ${source}=   Get Source   
+        Log   ${source}
+        Should Match Regexp    ${source}        <placename>San Francisco</placename>
+        Close Browser   
+        [Tags]	Exclude
+        
+Validate TrustE QA Token works 
+       Open Browser              ${DEFAULT_BROWSER_HOME}      ${BROWSER}
+       ${my_truste_url}=   Set Variable    https://partner-mobile.truste.com/mobile/services/v1/batch/preference?idNames=consumerId&access_token=c330ec7e-c832-4b81-abde-8598bbef9773&changedAfter=2014-01-01&optin=false
+       Go to       ${my_truste_url}
+       ${source}=   Get Source   
+        Log   ${source}
+        Should Match Regexp     ${source}        <batchPreferences>.*</batchPreferences>
+        Close Browser   
+        [Tags]     4.8   TRUSTE
+
+Validate TrustE PROD Token Works
+       Open Browser              ${DEFAULT_BROWSER_HOME}     ${BROWSER}
+       ${my_truste_url}=   Set Variable    https://mobile.truste.com/mobile/services/v1/batch/preference?idNames=consumerId&access_token=5fb15a7f-4ba2-4501-a1a3-1a1b96cef411&changedAfter=2014-01-01&optin=false
+       Go to       ${my_truste_url}
+       Sleep 	15s
+       ${source}=   Get Source   
+        Log   ${source}
+        Should Match Regexp     ${source}        <batchPreferences>.*</batchPreferences>
+        Close Browser   
+        [Tags]     4.8   TRUSTE
+        
+Close The Browsers Opened
+       Close All Browsers
+        
+

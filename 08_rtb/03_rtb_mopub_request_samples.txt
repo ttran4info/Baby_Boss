@@ -1,0 +1,122 @@
+*** Settings ***
+Resource             rtb_imports.txt
+Force Tags          RTB      MOPUB     BATCH2          5.12Patch   A3
+Suite Setup          Retrieve Output File Path            SampleRequests_MOPUB20.txt
+Test Setup           Open Browser        ${DEFAULT_BROWSER_HOME}       ${BROWSER}
+Test Teardown           Close All Browsers
+Documentation       Tests for Mopub OpenRTB 2.0
+...                            Default PROD Mopub 2.0 Get Sample Request:  
+...                            http://rtb.adhaven.com/bid-engine/sampler/4175/getRequestSample/
+...                            PROD Mopub 1.0 Placement:  4175 - 4info exchange
+...							   PROD Mopub 2.1 Placement:  2263
+
+*** Variables ***
+${iterations_for_each_batch}                100
+${sample_request_url}                       http://rtb-mopub.east.adhaven.com/bid-engine/sampler/2263/getRequestSample
+
+*** Keywords ***
+Retrieve Sample Request And Verify
+    Go To       ${sample_request_url}
+    ${source}=   Get Text            //html/body/pre
+    Log     Source: ${source}
+    Set Test Variable  	${source}		${source}
+	${clear_id}=       extract_matching_regex          ${source}         	"ifa":"(.+?)"
+	Log 	clear_id:${clear_id}
+	${gdpr}=       Get Json Value          ${source}         	/regs/ext/gdpr
+	Log 	gdpr:${gdpr}	
+	Run Keyword Unless 	'${clear_id}' == 'NONE_FOUND' or '${gdpr}'=='1'				Determine Request Type
+	Run Keyword If 	'${clear_id}' == 'NONE_FOUND' or '${gdpr}'=='1'					Increment No Sample Count
+	
+Determine Request Type
+    Replace JSON Value     ${source}			     	/app/id						"13739"
+	Log      Replace: ${json_response}
+	Replace JSON Value     ${json_response}      		/imp/0/bidfloor				0.001
+    Log      Replace: ${json_response}		
+	Replace JSON Value     ${json_response}			     	/device/geo/zip						"93001"
+	Log      Replace: ${json_response}
+	${banner}=       extract_matching_regex          ${source}         		"\(banner\)":
+	Log 	banner:${banner}
+	Run Keyword If	'${banner}'=='banner'					Replace Sample Request Banner
+	${video}=       extract_matching_regex          ${source}         		"\(video\)":
+	Log 	video:${video}
+	Run Keyword If	'${video}'=='video'					Replace Sample Request Video	
+	${native}=       extract_matching_regex          ${source}         		"\(native\)":
+	Log 	native:${native}
+#	Run Keyword If	'${native}'=='native'					Replace Sample Request Native
+#Nothing to do if it's native	
+	${country}=       extract_matching_regex          ${source}         		"\(country\)":
+	Log 	country:${country}
+	Run Keyword If	'${country}'=='country'			Replace JSON Value     ${json_response}		     	/device/geo/country			"USA"
+	
+	${store_url}=	extract_matching_regex          ${source}         		"\(storeurl\)":
+	Log 	store_url:${store_url}
+	Run Keyword If	'${store_url}'=='storeurl'			Replace JSON Value     ${json_response}			    /app/storeurl				"https://itunes.apple.com/4info"
+	Log      Replace: ${json_response}
+	
+    Set Test Variable    ${data}         ${json_response}
+    Append To File         ${output_directory}             ${data}\n\n
+	Run Keyword And Continue On Failure               RTB Request             ${RTB_MOPUB_API}         ${data}    	200         
+    Run Keyword If	'${banner}'=='banner' or '${video}'=='video' 			RTB Basic Validation MOPUB
+    Run Keyword If	'${native}'=='native' 									RTB Basic Validation for Native Ads MOPUB
+	Increment Pass Count
+	
+Increment No Sample Count
+	${no_sample}= 		 Evaluate	   ${no_sample} + 1
+	Set Test Variable      ${no_sample}			${no_sample}
+
+Replace Sample Request Banner
+    Replace JSON Value     ${json_response}		     	/imp/0/banner/h				50
+    Log      Replace: ${json_response}
+    Replace JSON Value     ${json_response}      		/imp/0/banner/w				320
+    Log      Replace: ${json_response}
+    
+Replace Sample Request Video
+    Replace JSON Value     ${json_response}		     	/imp/0/video/maxduration			30
+    Log      Replace: ${json_response}
+    Replace JSON Value     ${json_response}      		/imp/0/video/minduration			0
+    Log      Replace: ${json_response}
+*** Test Cases *** 
+
+Append Time Stamp To File 
+    ${timestamp}=      Get Time
+    Append To File         ${output_directory}             \n\n==================== ${timestamp} ====================\n\n
+   
+Loop Through Sample Requests From Mopub Batch1 
+	Set Test Variable 	${pass_count}	0
+	Set Test Variable 	${no_sample}	0
+	Append To File         ${output_directory}             \n\n========== BATCH 1 ==========\n\n
+    :FOR    ${index}    IN RANGE   ${iterations_for_each_batch} 
+    \      Run Keyword And Continue On Failure         Retrieve Sample Request And Verify
+    Log 	passcount: ${pass_count}
+    Log		no sample count:${no_sample}
+    ${pass_sample}=			Evaluate	 ${pass_count}-${no_sample}
+    ${thresshold_sample}=	Evaluate	 90-${no_sample}
+    Should Be True				${pass_sample} > ${thresshold_sample}
+ 
+  	[Tags]	
+Loop Through Sample Requests From Mopub Batch2 
+    Append To File         ${output_directory}             \n\n========== BATCH 2 ==========\n\n
+    :FOR    ${index}    IN RANGE   ${iterations_for_each_batch} 
+    \      Run Keyword And Continue On Failure        Retrieve Sample Request And Verify
+        [Tags]    Exclude
+        
+Loop Through Sample Requests From Mopub Batch3 
+    Append To File         ${output_directory}             \n\n========== BATCH 3 ==========\n\n
+    :FOR    ${index}    IN RANGE   ${iterations_for_each_batch} 
+    \      Run Keyword And Continue On Failure         Retrieve Sample Request And Verify
+         [Tags]    Exclude
+         
+Loop Through Sample Requests From Mopub Batch4 
+    Append To File         ${output_directory}             \n\n========== BATCH 4 ==========\n\n
+    :FOR    ${index}    IN RANGE   ${iterations_for_each_batch} 
+    \      Run Keyword And Continue On Failure         Retrieve Sample Request And Verify
+         [Tags]    Exclude
+         
+Loop Through Sample Requests From Mopub Batch5
+    Append To File         ${output_directory}             \n\n========== BATCH 5 ==========\n\n
+    :FOR    ${index}    IN RANGE   ${iterations_for_each_batch} 
+    \      Run Keyword And Continue On Failure        Retrieve Sample Request And Verify
+        [Tags]    Exclude
+    
+    
+     

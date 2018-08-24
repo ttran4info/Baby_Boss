@@ -1,0 +1,155 @@
+*** Settings ***
+Resource             brx_imports.txt
+Force Tags          BRX      BUILD_SANITY    QA_ONLY          BATCH1	EXCLUDE
+#Moving BRX to JSON as of 8.10
+*** Variables ***
+${default_api}          4a1f4e830641bcbe
+${online_api}			191d469d043cff1b
+${app_pl}                6708
+${site_pl}                6845      
+
+*** Test Cases *** 
+
+# TESTS FOR SITE ID
+BRX Request - SITE - Default Request Site
+    Run Keyword If 			'${CLEAR_ID}' == 'OFF'		RTB BRX Request      ${default_api}           brx_01_site_default.txt
+    Run Keyword If 			'${CLEAR_ID}' == 'ON'		RTB BRX Request      ${default_api}           brx_01_site_default_ifa.txt
+    RTB Extract VAST URL From BRX Response
+    Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+    Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+
+BRX Request - SITE - Is_Ping True Should Return 204
+    RTB BRX Request      ${default_api}           brx_02_site_isPingTrue_204.txt    204
+    
+BRX Request - SITE - Is_Ping False
+    RTB BRX Request      ${default_api}           brx_02_site_isPingFalse.txt
+    RTB Extract VAST URL From BRX Response
+    Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+    Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+    [Tags]     https://jira.adhaven.com/browse/ADH-4721 		EXCLUDE 	
+    
+BRX Request - SITE - Target iOS
+     RTB BRX Request      ${default_api}           brx_03_site_target_ios.txt
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+     [Tags]     EXCLUDE
+     
+BRX Request - SITE - Target Phone
+     Run Keyword If 			'${CLEAR_ID}' == 'OFF'		RTB BRX Request      ${default_api}           brx_03_site_target_phone.txt
+     Run Keyword If 			'${CLEAR_ID}' == 'ON'		RTB BRX Request      ${default_api}           brx_03_site_target_phone_ifa.txt
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+    
+BRX Request - SITE - Target Tablet
+     Run Keyword If 			'${CLEAR_ID}' == 'OFF'		RTB BRX Request      ${default_api}           brx_03_site_target_tablet.txt 
+     Run Keyword If 			'${CLEAR_ID}' == 'ON'		RTB BRX Request      ${default_api}           brx_03_site_target_tablet_ifa.txt 
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4        
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+
+BRX Request - SITE - Target Frequency Cap
+     RTB BRX Request      ${default_api}           brx_04_site_target_device_fc.txt
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+# Add test to make request for 10 times (daily set to 10)
+# Validate 11th does not work for same day
+     [Tags]     EXCLUDE
+     
+BRX Request - SITE - Device ID Logging - 4 IDs (dpidsha1)
+     [Documentation]         didmd5=105
+     ...                               didsha1=106
+     ...                               dpidsha1=122
+     ...                               dpidmd5=121
+     RTB BRX Request      ${default_api}           brx_05_site_target_device_logging_01_4deviceID_dpidsha1_122.txt
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+     Should Be Equal                      ${device_id_logged}       122
+     [Tags]     EXCLUDE
+
+BRX Request - SITE - Device ID Logging - 4 IDs Different Ordering (dpidsha1)
+     RTB BRX Request      ${default_api}           brx_05_site_target_device_logging_02_4deviceID_reverse_dpidsha1_122.txt
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+     Should Be Equal                      ${device_id_logged}       122
+     [Tags]     EXCLUDE
+
+BRX Request - SITE - Device ID Logging - 3 IDs Different (dpidsha1)
+     RTB BRX Request      ${default_api}           brx_05_site_target_device_logging_03_3deviceID_dpidsha1_122.txt
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+     Should Be Equal                      ${device_id_logged}       122
+     [Tags]     EXCLUDE
+     
+BRX Request - SITE - Device ID Logging - 3 IDs Different (dpidmd5)
+     RTB BRX Request      ${default_api}           brx_05_site_target_device_logging_04_3deviceID_dpidmd5_121.txt
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+     Should Be Equal                      ${device_id_logged}       121    
+     [Tags]     EXCLUDE 
+
+BRX Request - SITE - Device ID Logging - 2 IDs Different (didsha1)
+     RTB BRX Request      ${default_api}           brx_05_site_target_device_logging_05_2deviceID_didsha1_106.txt
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+     Should Be Equal                      ${device_id_logged}       106       
+     [Tags]     EXCLUDE
+
+BRX Request - SITE - Device ID Logging - 2 IDs Different Ordering (didsha1)
+     RTB BRX Request      ${default_api}           brx_05_site_target_device_logging_06_2deviceID_didsha1_106_reverse.txt
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+     Should Be Equal                      ${device_id_logged}       106       
+     [Tags]     EXCLUDE
+
+BRX Request - SITE - Device ID Logging - didmd5
+     RTB BRX Request      ${default_api}           brx_05_site_target_device_logging_07_1deviceID_didmd5_105.txt
+     RTB Extract VAST URL From BRX Response
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+     Should Be Equal                      ${device_id_logged}       105  
+     [Tags]     EXCLUDE 
+
+# TESTS FOR APP ID
+
+BRX Request - APP - Default Request App Should Serve Video for BRX0002
+    RTB BRX Request      ${default_api}           brx_08_app_default.txt
+    RTB Extract VAST URL From BRX Response
+    Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+    Should Not Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+    [Tags]     EXCLUDE
+         
+BRX Request - APP - Passing SiteID Should Not Serve Site Video BRX0001
+     RTB BRX Request      ${default_api}           brx_06_app_pass_siteid_in_app_test_204.txt     200
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Not Match Regexp             ${source}                  agId=21036|agId=60982|agId=65334|agId=65222
+    [Tags]     EXCLUDE
+
+BRX Request - APP - Empty ID Should Serve Default Video And Not Brightroll vast APP_BRX0002
+     RTB BRX Request      ${default_api}           brx_07_app_emptyid_204.txt         200
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Not Match Regexp             ${source}                  agId=20193|agId=60982|agId=65334|agId=65222
+    [Tags]     EXCLUDE
+    
+BRX Request - APP - Null ID Should Serve Default Video And Not Brightroll vast APP_BRX0002
+     RTB BRX Request      ${default_api}           brx_07_app_nullid_204.txt         200
+     Validate BRX VAST Response     duration=00:00:50     media_file=http://bitcast-a.bitgravity.com.+?\\.mp4
+     Should Not Match Regexp             ${source}                  agId=20193|agId=60982|agId=65334|agId=65222
+    [Tags]     EXCLUDE
+     
+BRX Request - APP - Is_Ping True Should Return 204
+     RTB BRX Request      ${default_api}           brx_09_app_isPingTrue_204.txt         204     
+
+BRX Request - Online
+    RTB BRX Request      API=${online_api}           data_file=brx_03_online.txt
+    RTB Extract VAST URL From BRX Response
+    Validate BRX VAST Response     duration=00:00:30     media_file=http://bitcast-a.bitgravity.com.+?\\.flv
+    Should Match Regexp             ${source}                  agId=74555     

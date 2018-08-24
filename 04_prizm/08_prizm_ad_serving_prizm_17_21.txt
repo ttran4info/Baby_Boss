@@ -1,0 +1,35 @@
+
+
+*** Settings ***
+Resource            prizm_imports.txt
+Force Tags          ACE   QA    PRIZM   3.11    PRIZM_17_18_19_20_21		MEDIATION
+Test Template       Prizm Ad Serving Test
+Test Setup            Open Browser       ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+Test Teardown      Close All Browsers
+Documentation       Tests for Prizm Audience 
+...                 Prizm Targetting Set: 17,18,19,20,21
+...                 Ad Group:  CP_PRIZM_TEST_ADGROUP_1858
+...                 Ad Should Serve:  PRIZM 22
+...                 Sample Request:  http://qa-engine1:8080/ad-engine/ad-groups/getAd?api_key=96a3be339dc3269b&placement_id=1864&header_user-agent=iPhone&lat_lon=61.2041,-149.8396&response_type=markup
+...                 PRIZM SEGMENTS
+...                 17	Beltway Boomers
+...                 18	Kids & Cul-de-Sacs
+...                 19	Home Sweet Home
+...                 20	Fast-Track Families
+...                 21	Gray Power
+*** Variables ***
+${default_engine}      ${DEFAULT_AUDIENCE_ENGINE}
+${image_name}          320x50_Prizm22.jpg
+${target_url}              ${DEFAULT_BROWSER_HOME}
+${page_title}              Google
+${placement_id}        ${PRIZM_08_PLACEMENTID}
+*** Test Cases ***
+#Test Case                                                                                                  								  ENGINE                    		API_KEY                             			PLACEMENT_ID                    		LAT                    		LON                  	IMAGE NAME             	TARGET URL         PAGE TITLE        	EXPECT_ERROR
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 17 DMA 692                                                     ${default_engine}         	96a3be339dc3269b                    ${placement_id}                      	29.9126				 -93.9488               	${image_name}          	${target_url}       	${page_title}         0                  
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 18 DMA 821                                                     ${default_engine}         	96a3be339dc3269b                    ${placement_id}                      	44.0528				 -121.2546             	${image_name}          	${target_url}       	${page_title}         0                  
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 19 DMA 756                                                     ${default_engine}        	96a3be339dc3269b                    ${placement_id}                      	45.7692 				 -108.4834               ${image_name}          	${target_url}       	${page_title}         0                  
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 20 DMA 746                                                     ${default_engine}        	96a3be339dc3269b                    ${placement_id}                      	30.3199				 -89.2705              	${image_name}          	${target_url}         	${page_title}         0                  
+
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 21 DMA 502                                                     ${default_engine}        	96a3be339dc3269b                    ${placement_id}                      	42.0591				 -75.9281               	${image_name}          	${target_url}         	${page_title}         0                  
+
+CP_PRIZM_TEST_ADGROUP Lat_Lon For Segment 16 DMA 866 Should Serve Prizm 23 Ad            ${default_engine}         	96a3be339dc3269b                    ${PRIZM_07_PLACEMENTID}      	36.7407 				 -119.7195             	320x50_Prizm23.jpg     ${target_url}        	${page_title}         0                  

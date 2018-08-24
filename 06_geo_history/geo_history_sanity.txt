@@ -1,0 +1,63 @@
+
+
+*** Settings ***
+Resource              geo_history_imports.txt
+Force Tags           GEO_HISTORY    QA_ONLY   BUILD_SANITY    4.4	BATCH1	MEDIATION     EXCLUDE
+Suite Teardown    Close All Browsers
+*** Variables ***
+
+*** Test Cases ***
+
+Geo History - Prizm Segments 2-6 Without Clearing Cookies 
+       Open Browser       ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+       Construct REST API Ad Request     	ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=32.4561,-99.7071    response_type=markup
+       Validate Ad Serving    				ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       Validate Ad Serving    				ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       Construct REST API Ad Request     	ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=0,0    response_type=markup
+       Validate Ad Serving    				ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       Close Browser
+       
+Geo History - Prizm Segments 2-6 Clearing Cookies And Starting New Browser Session
+       Open Browser       ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=32.4561,-99.7071    response_type=markup
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=0,0    response_type=markup
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       Close Browser 
+       Open Browser       ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=1
+       Close Browser
+       
+Geo History - Prizm Segments 2-6 Clearing Cookies And Starting New Browser Session - Extended Test
+       Open Browser      ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=32.4561,-99.7071    response_type=markup
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       # Go to a location within 50 meters - Ad should serve
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=32.4562,-99.7071    response_type=markup
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       # Go to a location targeted in segment 22-26 - Ad should still serve
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=40.7781,-91.1057    response_type=markup
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       # Go to 0,0 and Ad should still serve
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=0,0    response_type=markup
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       Close Browser 
+       Open Browser       ${DEFAULT_BROWSER_HOME}    ${BROWSER}
+       # After Browser is closed, cookie is gone and ad should not serve with the same URL for 0,0
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=1
+       # Go back to original request and ad should serve again
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=32.4561,-99.7071    response_type=markup
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       # Go to 0,0 and Ad should not serve because consumer id method 1 is not cached with geo history
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=0,0    response_type=markup
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}   page_title=Google   expect_error=1
+       # Make original ad request a second time and consumer id method should now be 2 and will be cached
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=32.4561,-99.7071    response_type=markup
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       # Go to 0,0 and Ad should serve because consumer id method is now 2 and is cached with geo history
+       Construct REST API Ad Request     ad_engine=${DEFAULT_AUDIENCE_ENGINE}    api_key=96a3be339dc3269b    placement_id=${PRIZM_05_PLACEMENTID}   header_user-agent=iPhone   lat_lon=0,0    response_type=markup
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=320x50_Prizm25.jpg    location=${DEFAULT_BROWSER_HOME}    page_title=Google   expect_error=0
+       Close Browser
+       
+       
