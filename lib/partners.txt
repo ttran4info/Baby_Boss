@@ -1,0 +1,324 @@
+
+
+*** Settings ***
+Resource            ui_object_library.txt
+Resource            common_config.txt
+
+*** Keywords ****
+
+Go To Partners Tab
+      Click Link         ${TAB_PARTNERS}
+      Sleep    2s
+      Page Should Contain                  Partners
+#      Removed 6.15 - site & apps replaced with tags      
+      Page Should Contain                  Tags
+      Wait Until Page Contains Element     ${CREATE_NEW_PARTNER_LINK}
+      
+
+Create A New Partner
+      Click Link        ${CREATE_NEW_PARTNER_LINK}
+      Sleep    2s
+      Capture Page Screenshot With Timestamp
+      
+Validate Partners Table Headers
+      Page Should Contain Element        ${PARTNERS_TABLE}
+      Get Table Data       TABLE_LOCATOR=${PARTNERS_TABLE}    ROW=1    COLUMN=1    
+      Log   RETURNED_CELL_VALUE: ${RETURNED_CELL_VALUE}
+      Table Header Should Contain        ${PARTNERS_TABLE}    TAG NAME
+      Table Header Should Contain        ${PARTNERS_TABLE}    COUNT
+      
+Retrieve Partners Available
+      [Arguments]         ${total_partners}=ALL
+      ${orig_speed}=     Get Selenium Speed
+      Log   Original Selenium Speed:${orig_speed}
+      Set Selenium Speed   0 seconds
+      Run Keyword If        '${total_partners}'=='ALL'       Get All Partners
+      @{all_partners_list}=    Create List 
+      :FOR    ${index}    IN RANGE   2    ${total_partners}+2
+      \       Get Table Data       TABLE_LOCATOR=${PARTNERS_TABLE}    ROW=${index}    COLUMN=1    
+      \       Append To List    ${all_partners_list}    ${RETURNED_CELL_VALUE}
+      Set Suite Variable     ${ALL_PARTNERS}                 ${all_partners_list}
+      Log     ${ALL_PARTNERS} 
+      ${count}=          Get Length         ${ALL_PARTNERS} 
+      Should Be True     0 < ${count} 
+      Set Selenium Speed    ${orig_speed}
+ 
+Get All Partners
+      Get Total Rows Available In Table ${PARTNERS_TABLE_ROW_XPATH}
+      Set Suite Variable        ${total_partners}         ${Results_Returned}  
+
+Validate Partners Information Table Headers
+#      Page Should Contain Element        id=${PARTNERS_INFO_TABLE}
+      Get Table Data       TABLE_LOCATOR=${PARTNERS_INFO_TABLE}    ROW=1    COLUMN=1    
+      Log   RETURNED_CELL_VALUE: ${RETURNED_CELL_VALUE}
+      Table Header Should Contain        ${PARTNERS_INFO_TABLE}    SITE OR APP NAME
+      Table Header Should Contain        ${PARTNERS_INFO_TABLE}    STATUS      
+      Table Header Should Contain        ${PARTNERS_INFO_TABLE}    TYPE      
+      Table Header Should Contain        ${PARTNERS_INFO_TABLE}    PLATFORM
+      
+Retrieve Partners Information Available For Partner 
+      [ARGUMENTS]    ${partner}=       ${total_to_retrieve}=ALL
+      Go To Partners Tab
+      Click Link     ${partner}
+      Sleep     2s
+      ${orig_speed}=     Get Selenium Speed
+      Log   Original Selenium Speed:${orig_speed}
+      Set Selenium Speed   1 seconds
+#      Page Should Contain Element        id=${PARTNERS_INFO_TABLE}
+      Run Keyword If        '${total_to_retrieve}'=='ALL'       Get All Partner Information For Specific Partner
+      @{all_partners_info_list}=    Create List 
+      :FOR    ${index}    IN RANGE   2    ${total_to_retrieve}+2
+      \       Get Table Data       TABLE_LOCATOR=${PARTNERS_INFO_TABLE}    ROW=${index}    COLUMN=1    
+      \       Append To List    ${all_partners_info_list}    ${RETURNED_CELL_VALUE}
+      Set Suite Variable     ${ALL_PARTNERS_INFO_LIST}                 ${all_partners_info_list}
+      Log     ${ALL_PARTNERS_INFO_LIST} 
+      ${count}=          Get Length         ${ALL_PARTNERS_INFO_LIST} 
+      Should Be True     0 < ${count} 
+      Set Selenium Speed    ${orig_speed}      
+
+Get All Partner Information For Specific Partner
+      Get Total Rows Available In Table ${PARTNERS_INFO_TABLE_ROW_XPATH}
+      Set Suite Variable        ${total_to_retrieve}         ${Results_Returned}  
+      
+Create A New Site & App
+      [ARGUMENTS]      ${partner}=        
+      ...              ${site_type}=      
+      ...              ${site_name}=           
+      ...              ${platform}=       
+      ...              ${link_to_app}=    
+      ...              ${site_url}=       
+      ...               ${timestamp_flag}=1
+      ${timestamp}=      get_timestamp
+      Run Keyword If                        '${timestamp_flag}' == '1'     Set Suite Variable    ${site_name}    ${site_name}_${timestamp}
+      Run Keyword Unless                '${timestamp_flag}' == '1'     Set Suite Variable    ${site_name}     ${site_name}
+      Go To Partners Tab
+      Click Link     ${partner}
+      Sleep     2s
+      Click Link     ${CREATE_NEW_SITE_APP_LINK}
+      Sleep     2s
+      Input Text     ${PARTNERS_INFO_NAME_FIELD}           ${site_name}
+      Run Keyword If    '${site_type}' == '${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_APP}'            Create Mobile App Type           site_name=${site_name}   platform=${platform}   link_to_app=${link_to_app}
+      Run Keyword If    '${site_type}' == '${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_WEBSITE}'     Create Mobile Website Type      site_name=${site_name}   site_url=${site_url}
+      Validate Site & App Is Created Successfully      partner=${partner}    site_type=${site_type}    site_name=${site_name}     platform=${platform}    link_to_app=${link_to_app}    site_url=${site_url}       
+
+Create Mobile App Type  
+      [ARGUMENTS]       ${site_name}=           
+      ...               ${platform}=       
+      ...               ${link_to_app}=    
+      Click Element     ${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_APP}
+      Log     Creating Mobile App Type with site_name: ${site_name} platform: ${platform} link_to_app: ${link_to_app}
+      Input Text        ${PARTNERS_INFO_LINK_TO_APP_FIELD}      ${link_to_app}
+      Click Element     ${platform}
+      Capture Page Screenshot With Timestamp
+      Click Button      ${PARTNERS_INFO_SAVE_BUTTON}
+#      Click Button      ${PARTNERS_INFO_CANCEL_BUTTON}
+      
+Create Mobile Website Type       
+      [ARGUMENTS]       ${site_name}=           
+      ...               ${site_url}=       
+      Click Element     ${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_WEBSITE}
+      Log     Creating Mobile Website Type with site_name: ${site_name} site_url: ${site_url}
+      Input Text        ${PARTNERS_INFO_SITE_URL_FIELD}      ${site_url}
+      Capture Page Screenshot With Timestamp
+      Click Button      ${PARTNERS_INFO_SAVE_BUTTON}
+#       Click Button      ${PARTNERS_INFO_CANCEL_BUTTON}
+            
+Validate Site & App Is Created Successfully     
+      [ARGUMENTS]      ${partner}=        
+      ...              ${site_type}=      
+      ...              ${site_name}=           
+      ...              ${platform}=       
+      ...              ${link_to_app}=    
+      ...              ${site_url}=       
+      Go To Partners Tab
+      Click Link     ${partner}
+      Sleep      3s
+      Click Link     ${site_name}
+      Sleep      5s
+      Page Should Contain            ${site_name}
+      Click Link                     ${PARTNERS_INFO_EDIT_SITE_LINK}
+      Sleep      3s
+      Run Keyword If    '${site_type}' == '${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_APP}'         Validate Mobile App Type Created       site_name=${site_name}   platform=${platform}   link_to_app=${link_to_app}
+      Run Keyword If    '${site_type}' == '${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_WEBSITE}'     Validate Mobile Website Type Created   site_name=${site_name}   site_url=${site_url}
+      Capture Page Screenshot With Timestamp
+      
+Validate Mobile App Type Created       
+      [ARGUMENTS]      ${site_name}=
+      ...              ${platform}=   
+      ...              ${link_to_app}=      
+      Radio Button Should Be Set To    ${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON}      ${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_APP_INDEX}
+      Textfield Should Contain      ${PARTNERS_INFO_NAME_FIELD}             ${site_name}
+      Textfield Should Contain      ${PARTNERS_INFO_LINK_TO_APP_FIELD}      ${link_to_app}
+      Click Button      ${PARTNERS_INFO_CANCEL_BUTTON}
+      
+Validate Mobile Website Type Created    
+      [ARGUMENTS]      ${site_name}=    ${site_url}=    
+      Radio Button Should Be Set To    ${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON}      ${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_WEBSITE_INDEX}
+      Textfield Should Contain      ${PARTNERS_INFO_NAME_FIELD}           ${site_name}
+      Textfield Should Contain      ${PARTNERS_INFO_SITE_URL_FIELD}       ${site_url}
+      Click Button      ${PARTNERS_INFO_CANCEL_BUTTON}
+
+Create A Placement
+      [ARGUMENTS]     ${partner}=    
+      ...             ${site_name}= 
+      ...             ${placement_name}=    
+      ...             ${placement_status}=  
+      ...             ${allow_rem_banner}=0
+      ...             ${allow_rem_video}=0
+      ...             ${allow_rem_html5}=0
+      ...             ${timestamp_flag}=1
+      Go To Partners Tab
+      Click Link     ${partner}
+      Sleep     2s
+      Click Link     ${site_name}
+      Sleep     2s
+      ${timestamp}=      get_timestamp
+      Run Keyword If                 '${timestamp_flag}' == '1'     Set Suite Variable    ${placement_name}    ${placement_name}_${timestamp}
+      Run Keyword Unless             '${timestamp_flag}' == '1'     Set Suite Variable    ${placement_name}    ${placement_name}
+      Page Should Contain            ${site_name}
+      Page Should Contain Link       Edit
+      Page Should Contain Link       ${CREATE_PLACEMENT_LINK}
+      Click Link                     ${CREATE_PLACEMENT_LINK}
+      Sleep     5s
+      Page Should Contain            Create New Placement
+      Page Should Contain Element    ${PLACEMENT_CANCEL_BUTTON}
+      Page Should Contain Element    ${PLACEMENT_SAVE_BUTTON}
+      Select Radio Button       ${PLACEMENT_STATUS_GROUP_RADIO}           ${placement_status}
+#      Run Keyword If            '${allow_rem_banner}' == '1'               Enabled Checkbox ${ALLOW_REM_BANNER_CHECKBOX}
+#      Run Keyword Unless        '${allow_rem_banner}' == '1'               Disabled Checkbox ${ALLOW_REM_BANNER_CHECKBOX}
+#      Run Keyword If            '${allow_rem_video}' == '1'                Enabled Checkbox ${ALLOW_REM_VIDEO_CHECKBOX}
+#      Run Keyword Unless        '${allow_rem_video}' == '1'                Disabled Checkbox ${ALLOW_REM_VIDEO_CHECKBOX}
+#      Run Keyword If            '${allow_rem_html5}' == '1'                Enabled Checkbox ${ALLOW_REM_HTML5_CHECKBOX}
+#      Run Keyword Unless        '${allow_rem_html5}' == '1'                Disabled Checkbox ${ALLOW_REM_HTML5_CHECKBOX}
+      Input Text                     ${PLACEMENT_NAME_FIELD}       ${placement_name}
+      Capture Page Screenshot With Timestamp
+      Click Element                  ${PLACEMENT_SAVE_BUTTON}
+      Sleep      5s
+      Page Should Contain Link       ${CREATE_PLACEMENT_LINK}
+      Page Should Contain Link       ${placement_name}  
+      Validate Placement    partner=${partner}     site_name=${site_name}    placement_name=${placement_name}     placement_status=${placement_status}   
+
+Edit A Placement
+      [ARGUMENTS]     ${partner}=    
+      ...             ${site_name}= 
+      ...             ${placement_name}=    
+      ...             ${placement_status}=  
+      ...             ${allow_rem_banner}=0
+      ...             ${allow_rem_video}=0
+      ...             ${allow_rem_html5}=0
+      Go To Partners Tab
+      Click Link     ${partner}
+      Sleep     2s
+      Click Link     ${site_name}
+      Sleep     2s
+      Click Link       ${placement_name}
+      Sleep     2s
+      Page Should Contain Element    ${PLACEMENT_CANCEL_BUTTON}
+      Page Should Contain Element    ${PLACEMENT_SAVE_BUTTON}
+#      Select From List               ${PLACEMENT_STATUS_SELECT}     ${placement_status}
+      Select Radio Button       ${PLACEMENT_STATUS_GROUP_RADIO}           ${placement_status}
+#      Run Keyword If            '${allow_rem_banner}' == '1'               Enabled Checkbox ${ALLOW_REM_BANNER_CHECKBOX}
+#      Run Keyword Unless        '${allow_rem_banner}' == '1'               Disabled Checkbox ${ALLOW_REM_BANNER_CHECKBOX}
+#      Run Keyword If            '${allow_rem_video}' == '1'                Enabled Checkbox ${ALLOW_REM_VIDEO_CHECKBOX}
+#      Run Keyword Unless        '${allow_rem_video}' == '1'                Disabled Checkbox ${ALLOW_REM_VIDEO_CHECKBOX}
+#      Run Keyword If            '${allow_rem_html5}' == '1'                Enabled Checkbox ${ALLOW_REM_HTML5_CHECKBOX}
+#      Run Keyword Unless        '${allow_rem_html5}' == '1'                Disabled Checkbox ${ALLOW_REM_HTML5_CHECKBOX}
+      Capture Page Screenshot With Timestamp
+      Click Element                  ${PLACEMENT_SAVE_BUTTON}
+      Sleep      2s
+      Page Should Contain Link       ${CREATE_PLACEMENT_LINK}
+      Page Should Contain Link       ${placement_name}  
+      Validate Placement    partner=${partner}     site_name=${site_name}    placement_name=${placement_name}     placement_status=${placement_status}   
+    
+
+Validate Placement 
+      [Arguments]     ${partner}=
+      ...             ${site_name}= 
+      ...             ${placement_name}=     
+      ...             ${placement_status}=
+      Go To Partners Tab
+      Click Link     ${partner}
+      Sleep     2s
+      Click Link     ${site_name}
+      Sleep     2s
+      Page Should Contain            ${site_name}
+      Page Should Contain Link       ${CREATE_PLACEMENT_LINK}
+      Retrieve Information For Placement For Site And App      placement_name=${placement_name}			site_name=${site_name}
+      Set Suite Variable       ${placement_id}         ${db_placement_id}
+      Run Keyword If         '${placement_status}'=='LIVE'             			Should Be Equal         '${db_placement_status}'        '1'
+      Run Keyword If         '${placement_status}'=='TEST'             		Should Be Equal         '${db_placement_status}'        '0'
+      Run Keyword If         '${placement_status}'=='DISABLED'             Should Be Equal         '${db_placement_status}'        '2'
+#     ****  Removing the below because it is taking too long to use UI to do the validation.  Change to using DB validation instead and UI to validate actual Placement data. 
+#      Retrieve All Table Information For Placement    ${placement_name}  
+#      Should Be Equal    ${ROW_DATA[0]}    ${placement_name}
+#      Set Suite Variable   ${placement_id}    ${ROW_DATA[1]} 
+#      Should Be Equal    ${ROW_DATA[2]}    ${placement_status}
+#     ****  
+      Log    Placement ID: ${placement_id} 
+      Click Link       ${placement_name}
+      Page Should Contain            Edit ${placement_name}
+      Page Should Contain Element    ${PLACEMENT_CANCEL_BUTTON}
+      Page Should Contain Element    ${PLACEMENT_SAVE_BUTTON}
+      Radio Button Should Be Set To      ${PLACEMENT_STATUS_GROUP_RADIO}    ${placement_status}
+#      ${selected_status}=    Get Selected List Label        ${PLACEMENT_STATUS_SELECT}
+#      Should Be Equal        ${placement_status}    ${selected_status}
+      Click Element                  ${PLACEMENT_CANCEL_BUTTON}
+
+            
+Retrieve All Placements Available          
+      Get Total Rows Available In Table ${PLACEMENT_INFO_TABLE_ROW_XPATH}
+      Set Suite Variable    ${total_rows}    ${Results_Returned}
+      @{all_placements_list}=    Create List 
+      :FOR    ${index}    IN RANGE   2    ${total_rows}+2
+      \       Get Table Data       TABLE_LOCATOR=${PLACEMENT_INFO_TABLE}    ROW=${index}    COLUMN=1    
+      \       Set Test Variable     ${current}    ${RETURNED_CELL_VALUE}
+      \       Append To List    ${all_placements_list}    ${current}
+      Set Suite Variable     ${ALL_PLACEMENTS}                  ${all_placements_list}
+             
+Retrieve All Table Information For Placement
+      [Arguments]     ${placement_name}=
+      Retrieve All Placements Available          
+      @{row_info}=    Create List      
+      Get Total Columns Available In Table ${PLACEMENT_INFO_TABLE_COLUMN_XPATH}
+      Set Suite Variable    ${total_columns}    ${Results_Returned}
+      ${index_found}=     Get Index From List    ${ALL_PLACEMENTS}    ${placement_name}   
+      ${row_number}=     Evaluate      ${index_found}+2
+      Log    Index Found: ${row_number}
+      :FOR    ${index}   IN RANGE   1   ${total_columns}
+      \       Get Table Data       TABLE_LOCATOR=${PLACEMENT_INFO_TABLE}    ROW=${row_number}    COLUMN=${index}    
+      \       Set Test Variable     ${current}    ${RETURNED_CELL_VALUE}
+      \       Append To List        ${row_info}   ${current}
+      Set Suite Variable    ${ROW_DATA}    ${row_info}
+      
+      
+Placement Ad Serving Test  
+       [Arguments]     ${ad_engine}=     ${api_key}=    ${placement_id}=    ${image_name}=    ${location}=${DEFAULT_BROWSER_HOME}     ${page_title}=Google    ${expect_error}=0     ${source_validation_string}=${AD_NOT_SERVED_HTML_VALIDATION}
+#       Set Selenium Speed     0.5 seconds
+#       Set Selenium Timeout   2 seconds
+       Construct REST API Ad Request     ad_engine=${ad_engine}    api_key=${api_key}    placement_id=${placement_id}   header_user-agent=iPhone
+       Log   Expected Error: ${expect_error}
+       Log   Source_Validation_String: ${source_validation_string}
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=${image_name}    location=${location}    page_title=${page_title}    expect_error=${expect_error}   source_validation_string=${source_validation_string}   
+       
+      
+Placement Ad Serving Test Repeating
+      [Arguments]     ${ad_engine}=     ${api_key}=    ${placement_id}=    ${image_name}=    ${location}=${DEFAULT_BROWSER_HOME}     ${page_title}=Google    ${expect_error}=0     ${repeat_number_of_times}=5   ${source_validation_string}=${AD_NOT_SERVED_HTML_VALIDATION}
+      Log     source_validation_string:${source_validation_string}
+      :FOR    ${index}    IN RANGE    ${repeat_number_of_times}
+      \       Placement Ad Serving Test    ad_engine=${ad_engine}     api_key=${api_key}    placement_id=${placement_id}    image_name=${image_name}    location=${location}    page_title=${page_title}    expect_error=${expect_error}    source_validation_string=${source_validation_string}
+      Log   Completed Ad Requests ${repeat_number_of_times} times.
+      
+      
+Find Item In Partners Suggested Search
+      [Arguments]      ${item_to_search}
+      ...              @{items_to_validate_against}      
+      Go To Partners Tab
+      Page Should Contain            ${PARTNERS_SUGGEST_SEARCH_LABEL}
+      Page Should Contain Element    ${PARTNERS_SUGGEST_SEARCH_TEXTBOX}
+      Input Text      ${PARTNERS_SUGGEST_SEARCH_TEXTBOX}    ${item_to_search}
+      Sleep      10s
+      :FOR    ${item}    IN    @{items_to_validate_against}  
+      \       Page Should Contain           ${item}
+      \       Page Should Contain Link    	${item}
+      
+      

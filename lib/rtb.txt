@@ -1,0 +1,586 @@
+*** Settings ***
+Library    	    RequestsLibrary
+Resource      	utilities_json.txt	
+Resource		log_reader.txt
+Resource		database.txt	
+##Resource   	 	adhaven_general.txt 
+
+*** Keywords ***
+Read Request Logs For BRX
+     ${output}=    Read Until    END
+     Set Test Variable       ${output}     ${output} 
+     Log      Server Request Log: ${output}
+     
+Extract ID Type From Request Log Output      
+      Log    Output[${output}]
+      ${device_id_logged}=       extract_matching_regex          ${output}        DEVICE_ID=(\\d{3})
+      Set Test Variable       ${device_id_logged}     ${device_id_logged}
+      Log      Device ID Logged: ${device_id_logged}
+
+RTB Setup      
+    Create Session   rtb    ${RTB_HOST} 
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable    ${headers}    ${headers}
+
+RTB Setup BRX      
+    Create Session   brx    ${RTB_HOST} 
+    ${headers}    Create Dictionary     Content-type=application/octet-stream		Accept=application/octet-stream
+    Set Test Variable    ${headers}    ${headers}
+
+Pegasus Setup      
+    Create Session   pegasus    http://qa-engine-05:8080
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json
+    Set Test Variable    ${headers}    ${headers}
+
+#Adding extra value for this variable ${submit_client_impression_event}= NO, YES, CDATA or VAST
+RTB Request 
+    [Documentation]        
+    [Arguments]                   ${API}=          ${data}=          ${response_code}=200         ${ad_expected}=NA        ${adgroup_expected}=NA		${submit_client_impression_event}=NO	${auction_price}=1.0	${banner_expected}=NA	
+    Log      Ad Expected: ${ad_expected} Agid=${adgroup_expected}
+    Log		Auction price:${auction_price}
+    Log      Response Code: ${response_code}
+    RTB Setup
+    Log    POST BODY: ${data}
+    ${resp}    RequestsLibrary.Post Request     rtb     /bid-engine/bidder/${API}/getBidOffer     data=${data}     headers=${headers}  
+    Log    Response: '${resp.content}'
+    Set Suite Variable 		${resp}			${resp}
+    Set Suite Variable       ${body}			     ${resp.content}
+    Set Suite Variable       ${response_content}     ${resp.content}
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    Log	Response Content :${response_content}
+    ${nurl}= 			extract_matching_regex          ${resp.content}         \\"nurl\\":\\"(http.+?bid-notice/notify/.+?)\\",
+    #${adx_content}= 	extract_matching_regex          ${resp.content}         \\"adm\\":\\".+?(http.+?adpickup.+?ep=\\$\\{AUCTION_PRICE\\})
+    ${adx_content}= 	extract_matching_regex          ${resp.content}         \\"adm\\":\\"(http.+?adpickup.+?ep=\\$\\{AUCTION_PRICE\\})
+    Run Keyword Unless		'${nurl}'=='NONE_FOUND'  				Extract Response Content From Nurl		nurl=${nurl}			auction_price=${auction_price}
+    Run Keyword Unless		'${adx_content}'=='NONE_FOUND' 			Extract Response Content From Nurl		nurl=${adx_content}		auction_price=${auction_price}
+	#removing this check since we start to introduce javascript with the word null, moving this check to the client impression area
+    #Should Not Match Regexp       ${response_content}       null|NULL 
+	Run Keyword If		  '${response_code}' == '200'					Validate Adgroup Expected And Ad Expected 		ad_expected=${ad_expected}     adgroup_expected=${adgroup_expected}			banner_expected=${banner_expected}
+	Run Keyword Unless 	  '${submit_client_impression_event}'=='NO'		Simulate RTB Client Impression Event			submit_client_impression_event=${submit_client_impression_event}		auction_price=${auction_price}		
+
+Extract Response Content From Nurl
+	[Arguments]		${nurl}=NA		${auction_price}=1.0
+	${nurl}=		Replace Macros And Return Url		client_impression_url=${nurl}		auction_price=${auction_price}
+	Open Browser     ${nurl}    ${BROWSER}
+    Get Cookies 
+	#Capture Page Screenshot With Timestamp
+    ${source}=   Get Source   
+    Log   ${source}
+    #${client_impression_url}=       extract_matching_regex          ${source}         src="(http://.+?gest=client-impression-served.*ip=\\d+.\\d+.\\d+.\\d+.*ehId=.*?)"   
+    #Log       Client Impression URL Extracted: ${client_impression_url}
+    ${decoded_url}=                   decode_url       ${source}
+    Log      Decoded URL: ${decoded_url}
+    Set Suite Variable          ${response_content}       ${decoded_url}  
+	Close Browser
+#For Appnexus request we use this function
+RTB Appnexus Request  
+	#[Arguments]     ${API}=          ${data}=          ${response_code}=200     ${submit_client_impression_event}=NO
+	[Arguments]      ${API}=          ${data}=          ${response_code}=200         ${ad_expected}=NA        ${adgroup_expected}=NA				${submit_client_impression_event}=NO	${auction_price}=1.0    
+	Run Keyword If 		'${submit_client_impression_event}'=='YES'		RTB Request 	API=${API}          data=${data}          response_code=200         adgroup_expected=NA		submit_client_impression_event=APPNEXUS	
+	Run Keyword Unless	'${submit_client_impression_event}'=='YES'		RTB Request 	API=${API}          data=${data}          response_code=200         adgroup_expected=NA		submit_client_impression_event=${submit_client_impression_event}	
+	Log    Response Content: ${response_content}
+	Run Keyword if		'${response_code}'=='no_bid'	Should Match Regexp			${response_content}		"no_bid":true
+	
+Validate Adgroup Expected And Ad Expected 
+    [Arguments]     ${ad_expected}=NA     ${adgroup_expected}=NA			${banner_expected}=NA
+	Run Keyword Unless       '${ad_expected}' == 'NA'         Should Not Match     ${response_content}         ${ad_expected}
+	Run Keyword Unless       '${ad_expected}' == 'NA'         Should Not Match     ${response_content}         ${adgroup_expected}
+    Run Keyword Unless       '${adgroup_expected}' == 'NA'    Should Match Regexp     ${response_content}         agId=${adgroup_expected}
+	Run Keyword Unless       '${banner_expected}' == 'NA'     Should Match Regexp     ${response_content}         "crid":"${banner_expected}"
+    
+RTB BRX Request
+     [Arguments]                   ${API}          ${data_file}        ${response_code}=200
+     RTB Setup BRX      
+     Retrieve BRX Data File               ${data_file}      
+     ${binary_file_content}=             Get Binary File                   ${brx_file} 
+     Log     Binary Content: ${binary_file_content}
+     ${binary_data}=        Convert To Bytes         ${binary_file_content}
+     Set Test Variable    ${data}         ${binary_data}
+     Log      Binary Data: ${data}
+     SSH Login As Valid User    SSH_HOST=${SSH_RTB_HOST}     TIMEOUT=5
+     Write    tail -F -n0 ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS = "|" }; { plid=$2; if (plid == "6845" ) print; print "DEVICE_ID="$46; print "END"; }'
+     ${resp}    RequestsLibrary.Post Request     brx     /bid-engine/bidder/${API}/getPBBidOffer     data=${data}    headers=${headers}  
+     Run Keyword If               '${response_code}'=='200'           Read Request Logs For BRX
+     Run Keyword If               '${response_code}'=='200'           Extract ID Type From Request Log Output        
+     Set Suite Variable      ${response}      ${resp}
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     ${string_response}=       Convert To String      ${resp.content}
+     Log    String Response: [${string_response}]
+     Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+     Should Not Match Regexp       ${response_content}       null|NULL
+    
+RTB Basic Validation MOPUB       
+    [Arguments]             ${expected_ag_id_list}=       ${no_expected_ag_id_list}=
+#    ${validations}=    Create Dictionary       /seatbid/0/bid/0/adomain          "4info.com"           This is for Mopub Open RTB 1.0
+#  New Mopub 2.1 
+    ${validations}=    Create Dictionary       /seatbid/0/bid/0/adomain=[\"4info.com\"]          
+    Validate JSON Response     json_response=${response_content}        expected_values_dictionary=${validations}
+    ${adm}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    ${iurl}=      Get Json Value     ${response_content}    /seatbid/0/bid/0/iurl
+    Log     adm: ${iurl}
+    Set Suite Variable           ${adm}       ${adm} 
+     
+
+RTB Basic Validation for Native Ads MOPUB       
+#Some changes from native ad that is different from normal ad
+#nurl is required
+#adm is now in ext.admjson (adm should now be empty) - title, text, iconimage, mainimage, clk are always required
+#adomain is 4info
+#iurl exist
+#crtype = "native"
+
+    [Arguments]             ${expected_ag_id_list}=       ${no_expected_ag_id_list}=
+    
+#Check that adomain is [4info.com]
+    ${validations}=    Create Dictionary       /seatbid/0/bid/0/adomain=[\"4info.com\"]          
+    Validate JSON Response     json_response=${response_content}        expected_values_dictionary=${validations}
+
+#check that nurl is starting with http
+    ${nurl}=		 Get Json Value     ${response_content}     /seatbid/0/bid/0/nurl
+    Log     nurl: ${nurl}
+    Should Match Regexp                  ${nurl}       ^"http.*"$
+
+#check that iurl is http
+    ${iurl}=      Get Json Value     ${response_content}    /seatbid/0/bid/0/iurl
+    Log     iurl: ${iurl}
+	Should Match Regexp                  ${iurl}       ^"http.*"$
+#check that cid is digit
+    ${cid}=      Get Json Value     ${response_content}    /seatbid/0/bid/0/cid
+    Log     cid: ${cid}
+	Should Match Regexp                  ${cid}       ^"1907"$	
+#check that crid is starting with Nxx
+    ${crid}=      Get Json Value     ${response_content}    /seatbid/0/bid/0/crid
+    Log     crid: ${crid}
+	Should Match Regexp                  ${crid}       "N.*"	
+#check that the crtype has the word native
+    ${validations}=    Create Dictionary       /seatbid/0/bid/0/ext/crtype=\"native\"          
+    Validate JSON Response     json_response=${response_content}        expected_values_dictionary=${validations}
+
+#check imptracker default
+	${imptracker}=		Get Json Value     ${response_content}    /seatbid/0/bid/0/ext/admnative/native/imptrackers 
+	Log     imptracker: ${imptracker}
+    Should Match Regexp		${imptracker}		\\[.*${EVENT_PATH}/.+?ip=\\d*.\\d*.\\d*.\\d.*ehId=.*?"
+	
+RTB Basic Validation NEXAGE
+    [Arguments]             ${expected_ag_id_list}=       ${no_expected_ag_id_list}=
+    ${validations}=    Create Dictionary       /seatbid/0/bid/0/adomain=[\"4info.com\"]
+#    Validate JSON Response     json_response=${response_content}        expected_values_dictionary=${validations}
+    ${adm}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    ${iurl}=      Get Json Value     ${response_content}    /seatbid/0/bid/0/iurl
+    Log     adm: ${iurl}
+    Set Suite Variable           ${adm}       ${adm}      
+RTB Basic Validation Appnexus      
+    [Arguments]             ${auction_id}=       ${creative_id}=
+    #${validations}=    Create Dictionary       	/seatbid/0/bid/0/impid=${auction_id}
+    #...											/seatbid/0/bid/0/adid=${creative_id}
+    #Validate JSON Response     json_response=${response_content}        expected_values_dictionary=${validations}
+    ${r_auction_id}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/impid
+    Json Value Should Equal			${response_content}     /seatbid/0/bid/0/impid			"${auction_id}"
+    ${r_auction_id}=		Remove String 		${r_auction_id}		"
+    Log     auction id: ${r_auction_id}
+    	
+    ${r_creative_id}=      Get Json Value     ${response_content}    /seatbid/0/bid/0/adid
+    Json Value Should Equal			${response_content}     /seatbid/0/bid/0/adid			"${creative_id}"
+    ${r_creative_id}=		Remove String 		${r_creative_id}		"
+    Log     creative_id: ${r_creative_id}
+    	
+    ${r_price}=      Get Json Value     ${response_content}    		/seatbid/0/bid/0/price
+    ${r_price}=		Remove String 		${r_price}		"
+    Log     price: ${r_price}
+    Set Suite Variable           ${appnexus_auction_id}    	${r_auction_id}
+    Set Suite Variable           ${appnexus_price}			${r_price}
+RTB Basic Validation Appnexus Old     
+    [Arguments]             ${auction_id}=       ${creative_id}=
+    ${validations}=    Create Dictionary       	/bid_response/responses/0/auction_id_64=${auction_id}
+    ...											/bid_response/responses/0/creative_id=${creative_id}
+    Validate JSON Response     json_response=${response_content}        expected_values_dictionary=${validations}
+    ${r_auction_id}=      Get Json Value     ${response_content}     /bid_response/responses/0/auction_id_64
+    Log     auction id: ${r_auction_id}
+    ${r_creative_id}=      Get Json Value     ${response_content}    /bid_response/responses/0/creative_id
+    Log     creative_id: ${r_creative_id}
+    ${r_price}=      Get Json Value     ${response_content}    /bid_response/responses/0/price
+    Log     price: ${r_price}
+    Set Suite Variable           ${appnexus_auction_id}    	${r_auction_id}
+    Set Suite Variable           ${appnexus_price}			${r_price}
+    
+RTB Extract Client Impression URL
+    Log     Response Content: ${response_content} 
+    ${adm}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    ${client_impression_url}= 		extract_matching_regex          ${adm}         <img src=\\\\"(.+?)\\\\" BORDER=0 WIDTH=0 HEIGHT=0 STYLE=\\\\"display:none\\\\" ALT=
+    Log       Client Impression URL Extracted: ${client_impression_url}
+    ${decoded_url}=                   decode_url       ${client_impression_url}
+    Log      Decoded URL: ${decoded_url}
+    Set Suite Variable          ${client_impression_url}       ${decoded_url}
+    Should Not Match Regexp       ${client_impression_url}       null|NULL
+
+RTB Extract Click To Web URL
+    Log     Response Content: ${response_content} 
+    ${adm}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    ${click_to_web_url}= 		extract_matching_regex          ${adm}         href=.*\\\\"(http.+gest=click-to-web.+)\\\\"><img src
+    Log       Client Impression URL Extracted: ${click_to_web_url}
+    ${decoded_url}=                   decode_url       ${click_to_web_url}
+    Log      Decoded URL: ${decoded_url}
+    Set Suite Variable          ${click_to_web_url}       ${decoded_url}
+
+RTB Extract Javascript Impression Served URL
+    Log     Response Content: ${response_content} 
+    ${adm}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    ${javascript_impression_served_url}= 		extract_matching_regex          ${adm}         img\\.src='(.+gest=javascript-impression-served.+\\d).+hs=document
+    Log       Client Impression URL Extracted: ${javascript_impression_served_url}
+    ${decoded_url}=                   decode_url       ${javascript_impression_served_url}
+    Log      Decoded URL: ${decoded_url}
+    Set Suite Variable          ${javascript_impression_served_url}       ${decoded_url}
+
+RTB Extract No Javascript Impression Served URL
+    Log     Response Content: ${response_content} 
+    ${adm}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    ${noscript_impression_served_url}= 		extract_matching_regex          ${adm}         <noscript><img src='(.+?)' BORDER=0 WIDTH=0 HEIGHT=0 STYLE=\\\\"display:none\\\\" ALT=
+    Log       Client Impression URL Extracted: ${noscript_impression_served_url}
+    ${decoded_url}=                   decode_url       ${noscript_impression_served_url}
+    Log      Decoded URL: ${decoded_url}
+    Set Suite Variable          ${noscript_impression_served_url}       ${decoded_url}
+        
+RTB Extract Client Impression URL for CDATA
+    Log     Response Content: ${response_content} 
+    ${adm}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    ${client_impression_url}=       extract_matching_regex          ${adm}         <beacon><!\\[CDATA\\[(.+?)\\]\\]></beacon>
+    Log       Client Impression URL Extracted: ${client_impression_url}
+    ${decoded_url}=                   decode_url       ${client_impression_url}
+    Log      Decoded URL: ${decoded_url}
+    Set Suite Variable          ${client_impression_url}       ${decoded_url}
+    
+RTB Extract Client Impression URL for VAST
+    Log     Response Content: ${response_content} 
+    ${adm}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    #${client_impression_url}=       extract_matching_regex          ${adm}         <Impression>(.+?)</Impression> 
+    ${client_impression_url}=       extract_matching_regex          ${adm}         <Tracking event=\\\\"start\\\\">(.+?video_start.+?)</Tracking> 
+    
+    Log       Client Impression URL Extracted: ${client_impression_url}
+    ${decoded_url}=                   decode_url       ${client_impression_url}
+    Log      Decoded URL: ${decoded_url}
+    Set Suite Variable          ${client_impression_url}       ${decoded_url}
+
+RTB Extract Client Impression URL for BRX
+    Log     response_content: ${response_content}
+    ${client_impression_url}=       extract_matching_regex          ${response_content}         <Impression>(.+?)</Impression> 
+    Log       Client Impression URL Extracted: ${client_impression_url}
+    ${decoded_url}=                   decode_url       ${client_impression_url}
+    Log      Decoded URL: ${decoded_url}
+    Set Suite Variable          ${client_impression_url}       ${decoded_url}    
+
+RTB Extract Client Impression URL for APPNEXUS
+    Log     Response Content: ${response_content}
+    Set Test Variable 	${appnexus_auction_id}  	8465750699367243003
+    Set Test Variable      ${ad_request_url}		${RTB_HOST}/bid-notice/notify/media/${appnexus_auction_id}?price=0.81
+       Open Browser     ${ad_request_url}    ${BROWSER}
+    #   Go To   ${ad_url}
+       Get Cookies 
+	   Capture Page Screenshot With Timestamp
+       ${source}=   Get Source   
+       Log   ${source}
+    ${client_impression_url}=       extract_matching_regex          ${source}         src="(http://.+?gest=client-impression-served.*ip=\\d+.\\d+.\\d+.\\d+.*ehId=.*?)"   
+    Log       Client Impression URL Extracted: ${client_impression_url}
+    ${decoded_url}=                   decode_url       ${client_impression_url}
+    Log      Decoded URL: ${decoded_url}
+    Set Suite Variable          ${client_impression_url}       ${decoded_url}
+
+RTB Extract Client Impression URL for ADX_VIDEO
+    ${client_impression_url}=       extract_matching_regex          ${response_content}         <Tracking event="start">(.+?gest=video_start.+?)</Tracking> 
+    Log       Client Impression URL Extracted: ${client_impression_url}
+    ${decoded_url}=                   decode_url       ${client_impression_url}
+    Log      Decoded URL: ${decoded_url}
+    Set Suite Variable          ${client_impression_url}       ${decoded_url}    
+    
+Simulate RTB Client Impression Event 		
+	[Arguments]		${submit_client_impression_event}=YES	${auction_price}=1		
+	Run Keyword if 	'${submit_client_impression_event}'=='YES'			RTB Extract Client Impression URL				
+	Run Keyword if 	'${submit_client_impression_event}'=='CDATA'		RTB Extract Client Impression URL for CDATA		
+	Run Keyword if 	'${submit_client_impression_event}'=='VAST'			RTB Extract Client Impression URL for VAST
+	Run Keyword if 	'${submit_client_impression_event}'=='BRX'			RTB Extract Client Impression URL for BRX
+	Run Keyword if 	'${submit_client_impression_event}'=='APPNEXUS'		RTB Extract Client Impression URL for APPNEXUS
+	Run Keyword if 	'${submit_client_impression_event}'=='ADX_VIDEO'	RTB Extract Client Impression URL for ADX_VIDEO		#auction_price=${auction_price}
+			
+	Replace All RTB Client Impression Marcros		client_impression_url=${client_impression_url}		auction_price=${auction_price}
+	Log     Replaced Macros: ${client_impression_url_macro_replaced}
+	#Run Keyword if 			'${submit_client_impression_event}'=='VAST' 			Validate Gestures Are Logged Correctly		event_url=${client_impression_url_macro_replaced}		gesture=video_start
+	#Run Keyword unless 		'${submit_client_impression_event}'=='VAST' 			Validate Gestures Are Logged Correctly		event_url=${client_impression_url_macro_replaced}		gesture=client-impression-served
+	
+	Run Keyword if 			'${submit_client_impression_event}'=='VAST' or '${submit_client_impression_event}'=='ADX_VIDEO'			Validate Gestures Are Logged Correctly		event_url=${client_impression_url_macro_replaced}		gesture=video_start
+	Run Keyword unless 		'${submit_client_impression_event}'=='VAST' or '${submit_client_impression_event}'=='ADX_VIDEO'			Validate Gestures Are Logged Correctly		event_url=${client_impression_url_macro_replaced}		gesture=client-impression-served
+	
+	Log						Log:${LOG_SETTING}
+	Run Keyword If			'${LOG_SETTING}'=='1'			Extract Info From Couchbase	
+RTB Extract Click URL
+    Log     Response Content: ${response_content} 
+    ${adm}=      Get Json Value     ${response_content}     /seatbid/0/bid/0/adm
+    Log     adm: ${adm}
+    ${click_url}=       extract_matching_regex          ${adm}         <a\\s\\shref=\\\\"(.+?)&amp;url=.+?\\\\"><img src=
+    Log       Click URL Extracted: ${click_url}
+    ${decoded_click_url}=                   decode_url       ${click_url}
+    Log      Decoded URL: ${decoded_click_url}
+    Set Suite Variable          ${click_url}        ${decoded_click_url}
+
+RTB Extract VAST URL From BRX Response
+    Log     Response Content: ${response_content} 
+#    ${vast_url}=       extract_matching_regex          ${response_content}         \\"z(.+?)&clearing_price_ratio=##BRX_CLEARING_PRICE##
+	${vast_url}=       extract_matching_regex          ${response_content}           http:(.+?)&clearing_price_ratio=##BRX_CLEARING_PRICE##
+    Log    Vast URL: http:${vast_url}
+    Set Suite Variable       ${vast_url}       http:${vast_url}
+
+Validate BRX VAST Response    
+    [Arguments]      ${vast_url}=${vast_url}
+    ...                      ${ad_system}=4info
+    ...                      ${duration}=
+    ...                      ${media_file}= 
+    Open Browser        ${DEFAULT_BROWSER_HOME}       ff
+    Go To      ${vast_url}
+    ${source}=   Get Source  
+    Log     Source: ${source}
+    Set Suite Variable        ${source}         ${source}
+    Close All Browsers
+    ${validation_dictionary}=         Create Dictionary                   Ad/InLine/AdSystem=${ad_system}
+#    ...                                                                                          Ad/InLine/Creatives/Creative/Linear/Duration        ${duration}
+    Validate XML Response      ${source}         ${validation_dictionary}
+    ${root}=     Parse XML        ${source}
+    ${client_impression}=      Get Element Text     ${root}     Ad/InLine/Impression
+    Log     Client Impression: ${client_impression}
+    ${modified_client_impression}=          	Replace String Using Regexp      		${client_impression}        \\$\\{AUCTION_PRICE\\}    0.3
+    Log    ${modified_client_impression}
+    Set Suite Variable       ${brx_client_impression}     ${modified_client_impression}
+	# START
+#	Retrieve Video Tracking Events         ${source}			start
+#	Set Test Variable      ${start_gesture}		${modified_event}
+#	Log      Start: ${start_gesture}
+	# MIDPOINT	
+#	Retrieve Video Tracking Events         ${source}			midpoint
+#	Set Test Variable      ${midpoint_gesture}		${modified_event}
+#	Log      Midpoint: ${midpoint_gesture}
+	# COMPLETE
+#	Retrieve Video Tracking Events         ${source}			complete
+#	Set Test Variable      ${complete_gesture}		${modified_event}
+#	Log      Complete: ${complete_gesture}
+	# CREATIVE_VIEW
+#	Retrieve Video Tracking Events         ${source}			creativeView
+#	Set Test Variable      ${creativeView_gesture}		${modified_event}
+#	Log      CreativeView: ${creativeView_gesture}
+	# FIRSTQUARTILE
+#	Retrieve Video Tracking Events         ${source}			firstQuartile
+#	Set Test Variable      ${firstQuartile_gesture}		${modified_event}
+#	Log      FirstQuartile: ${firstQuartile_gesture}
+	# THIRDQUARTILE
+#	Retrieve Video Tracking Events         ${source}			thirdQuartile
+#	Set Test Variable      ${thirdQuartile_gesture}		${modified_event}
+#	Log      ThirdQuartile: ${thirdQuartile_gesture}
+	# MUTE
+#	Retrieve Video Tracking Events         ${source}			mute
+#	Set Test Variable      ${mute_gesture}		${modified_event}
+#	Log      Mute: ${mute_gesture}
+	# UNMUTE
+#	Retrieve Video Tracking Events         ${source}			unmute
+#	Set Test Variable      ${unmute_gesture}		${modified_event}
+#	Log      Unmute: ${unmute_gesture}
+	# PAUSE
+#	Retrieve Video Tracking Events         ${source}			pause
+#	Set Test Variable      ${pause_gesture}		${modified_event}
+#	Log      Pause: ${pause_gesture}	
+	# RESUME
+#	Retrieve Video Tracking Events         ${source}			resume
+#	Set Test Variable      ${resume_gesture}		${modified_event}
+#	Log      Resume: ${resume_gesture}	
+	# FULLSCREEN
+#	Retrieve Video Tracking Events         ${source}			fullscreen
+#	Set Test Variable      ${fullscreen_gesture}		${modified_event}
+#	Log      Fullscreen: ${fullscreen_gesture}	
+
+    ${vast_media_file}=             Get Element Text     ${root}            Ad/InLine/Creatives/Creative/Linear/MediaFiles/MediaFile               
+    Should Match Regexp         ${vast_media_file}         ${media_file}
+    # Validate Client Impression
+    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${brx_client_impression} 		client-impression-served
+
+	# Click Every Gesture For Events And Validate
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${start_gesture} 					video_start
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${midpoint_gesture} 				video_mid
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${complete_gesture}				video_end
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${creativeView_gesture}			creative_view
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${firstQuartile_gesture}			first_quartile
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${thirdQuartile_gesture}			third_quartile
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${mute_gesture}					mute
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${unmute_gesture}					unmute    
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${pause_gesture}					pause
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${resume_gesture}					resume
+#    Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   ${fullscreen_gesture}				fullscreen
+    Close All Browsers
+ 
+ #${submit_client_impression_event}=YES, NO, VAST, CDATA 
+Validate RTB AdServed X Times    
+	[Arguments]				${api_key}=NA           ${data}=NA				${requests}=10         ${response_code}=200         ${ad_expected}=NA      ${adgroup_expected}=NA	${submit_client_impression_event}=YES	${auction_price}=1.0 
+	Log      Response Code: ${response_code}
+	Set Test Variable        ${pass_count}					0
+	:FOR    ${index}    IN RANGE    ${requests}
+	\ 			${status}=     Run Keyword And Return Status		RTB Request 				API=${api_key}          data=${data}			response_code=${response_code}         ad_expected=${ad_expected}    adgroup_expected=${adgroup_expected}       submit_client_impression_event=${submit_client_impression_event} 	auction_price=${auction_price}
+	\			Run Keyword If        	'${status}' == 'True'				Increment Pass Count
+	Log      Pass Count: ${pass_count}
+	#Set Test Variable	${first_pass}	${pass_count}
+	${failed_count}=	Evaluate	${requests}-${pass_count}
+	Set Test Variable        ${rerun_pass_count}					0
+	Run Keyword If		${failed_count} > 0				Rerun RTB AdServed X Times		api_key=${api_key}          data=${data}		requests=${failed_count}		response_code=${response_code}         ad_expected=${ad_expected}    adgroup_expected=${adgroup_expected}       submit_client_impression_event=${submit_client_impression_event}	auction_price=${auction_price}
+	${pass_count}=		Evaluate	${pass_count} + ${rerun_pass_count}						
+	#Should Be True				${pass_count} > 1		
+	Should Be Equal As Numbers		${pass_count}	${requests}
+
+	
+Rerun RTB AdServed X Times
+	[Arguments]				${api_key}=           ${data}=				${requests}=10         ${response_code}=200         ${ad_expected}=NA      ${adgroup_expected}=NA	${submit_client_impression_event}=YES  	${auction_price}=1.0 
+	Log      Response Code: ${response_code}
+	:FOR    ${index}    IN RANGE    ${requests}
+	\ 			${status}=     Run Keyword And Return Status		RTB Request 				${api_key}          ${data}			${response_code}         ${ad_expected}    ${adgroup_expected}       ${submit_client_impression_event}		auction_price=${auction_price}
+	\			Run Keyword If        '${status}' == 'True'			Increment Rerun Pass Count
+	Log      Pass Count: ${rerun_pass_count}
+
+#host here is the location where we store the tool in this case it is in qa-rtb
+Extract Info From Couchbase
+	Log		Response:${response_content}
+	${child_adgroup}=	extract_matching_regex          ${response_content}        agId=(.+?)&
+	Retrieve Parent_Adgroup By Child_Adgroup			child_ag_id=${child_adgroup}
+	${device_id}=		extract_matching_regex          ${response_content}        cId=(.+?)&
+	${ip_address}=		extract_matching_regex          ${response_content}        ip=(.+?)&
+	${hh_id}=			extract_matching_regex          	${response_content}        hhid=(.+?)&
+	Run Keyword Unless 	'${device_id}'=='NONE_FOUND' or '${device_id}'=='${EMPTY}' 		Extract Consumer ID From Couchbase			consumer_id=${device_id}		parent_adgroup=${parent_adgroup_id}
+	Run Keyword Unless 	'${ip_address}'=='NONE_FOUND' or '${device_id}'=='${EMPTY}'		Extract IP Address From Couchbase			ip_address=${ip_address}		parent_adgroup=${parent_adgroup_id}
+	Run Keyword Unless 	'${hh_id}'=='NONE_FOUND' or '${hh_id}'=='${EMPTY}'				Extract House Hold ID From Couchbase		house_hold=${hh_id}				parent_adgroup=${parent_adgroup_id}
+	
+	Start Read Server Log For Error
+Validate AppNexus AdServed X Times    
+	[Arguments]				${api_key}=           ${data}=				${requests}=5     ${auction_id}=		${creative_id}=    ${image_name}=320x50_Group02.jpg 	${response_code}=200         ${ad_expected}=NA      ${adgroup_expected}=NA	${submit_client_impression_event}=NO     	
+	Log      Response Code: ${response_code}
+	Set Test Variable        ${pass_count}					0
+	Log     AuctionID: ${auction_id}
+	Log		submit_client_impression_event:${submit_client_impression_event}
+	:FOR    ${index}    IN RANGE    ${requests}
+	\ 			${status}=     Run Keyword And Return Status			Appnexus Ad Served 				api_key=${api_key}          data=${data}			auction_id=${auction_id}		creative_id=${creative_id}	image_name=${image_name}	ad_expected=YES      adgroup_expected=NA	submit_client_impression_event=${submit_client_impression_event}
+	\			Run Keyword If        '${status}' == 'True'				Increment Pass Count
+	Log      Pass Count: ${pass_count}
+	Should Be True				${pass_count} > 0
+
+#This make a request to appnexus
+#assume the response contain an ad, attempt to validate that ad by going to the ad_request_url
+#perform the adclick if required
+Appnexus Ad Served		
+	[Arguments]				${api_key}=           ${data}=				${auction_id}=		${creative_id}=		${image_name}= 	${ad_expected}=YES      ${adgroup_expected}=NA	${submit_client_impression_event}=YES
+    RTB Appnexus Request             ${api_key}         ${data}   
+    RTB Basic Validation Appnexus		auction_id=${auction_id}			creative_id=${creative_id}		
+    Set Test Variable      ${ad_request_url}		${AD_PICKUP_URL}/${appnexus_auction_id}?price=0.81
+	Log		submit_client_impression_event:${submit_client_impression_event}
+    Run Keyword If        '${submit_client_impression_event}'=='YES' 	Validate Ad Serving  ad_url=${ad_request_url}    	image_name=${image_name}   location=${DEFAULT_BROWSER_HOME}
+    Capture Page Screenshot With Timestamp
+
+Validate RTB Ad Does Not Serve
+	[Arguments]				${api_key}=           ${data}=				${requests}=1         ${response_code}=204         ${ad_expected}=NA      ${adgroup_expected}=NA     	
+	Log      Response Code: ${response_code}
+	Set Test Variable        ${pass_count}					0
+	:FOR    ${index}    IN RANGE    ${requests}
+	\ 			${status}=     Run Keyword And Return Status		RTB Request 				API=${api_key}          data=${data}			response_code=${response_code}         ad_expected=${ad_expected}      
+	\			Run Keyword If        '${status}' == 'True'				Increment Pass Count
+	\			Run Keyword Unless    '${status}' == 'True'				Decrement Pass Count
+	Log      Ads Returned Count: ${pass_count}
+	Should Be True				${pass_count} == ${pass_count}
+
+Retrieve Video Tracking Events         
+	[Arguments]			${source}      ${event_name}
+	${root}=     Parse XML        ${source}
+#	${xpath}=			Set Variable         Ad/InLine/Creatives/Creative/Linear/TrackingEvents/Tracking/[@event='${event_name}']
+	${xpath}=			Set Variable         .//Tracking[@event='${event_name}']
+	Log     XPATH: ${xpath}
+	${event}=      Get Element Text     ${root}         ${xpath}
+	Log    Event: ${event}
+	${modified_event}=          		Replace String Using Regexp             ${event}      		\\$\\{AUCTION_PRICE\\}    0.3
+	Log     ${modified_event}
+	Set Suite Variable       ${modified_event}           ${modified_event}
+	
+RTB Events For Client Impression
+	RTB Extract Client Impression URL
+	Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   		${client_impression_url} 		client-impression-served
+
+RTB Events For Click
+	RTB Extract Click URL
+	Run Keyword And Continue On Failure       	Validate Gestures Are Logged Correctly   		${click_url}  		click-to-web
+		
+          
+Replace All RTB Client Impression Marcros
+	[Arguments]			${client_impression_url}  		${auction_price}=1.00
+	Set Test Variable			${temp_url}								${client_impression_url}
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}      						\\$\\{AUCTION_PRICE\\}    		${auction_price}
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}      						\\$\\{AUCTION_PRICE:BF\\}    	${auction_price}
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}      						\\$\\{AUCTION_PRICE:OXCRYPT\\}    	${auction_price}
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}					      		\\$\\{AUCTION_UNITS\\}    		0
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}					      		\\$\\{market_ratio\\}    		${auction_price} 
+	#${temp_url}=          		Replace String Using Regexp             ${temp_url}					      		\\$\\{market_ratio\\}    		500000
+    Set Test Variable       ${client_impression_url_macro_replaced}					${temp_url}
+
+Replace Macros And Return Url
+	[Arguments]			${client_impression_url}=  		${auction_price}=1.00
+	Set Test Variable			${temp_url}								${client_impression_url}
+	Log			Auction Price:${auction_price} 
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}      						%%CLICK_URL_ESC%%    			http%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Faclk%3Fsa%3Dl%26ai%3DBsD-iGQ%26num%3D1%26client%3Dca-mongoogle%26adurl%3D
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}      						\\$\\{AUCTION_PRICE\\}    		${auction_price}
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}      						\\$\\{AUCTION_PRICE:BF\\}  		${auction_price}
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}					      		\\$\\{AUCTION_UNITS\\}    		0
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}					      		\\$\\{market_ratio\\}    		${auction_price} 
+	${temp_url}=          		Replace String Using Regexp             ${temp_url}					      		\##BRX_CLEARING_PRICE##    		500000
+    [Return]    ${temp_url}
+ 
+    	
+Generate Clear Device ID
+	${random_device_id}=         Generate Random String 		32		abcdef0123456789
+	Log		DeviceID:${random_device_id}
+	${sub1}=	Get Substring		${random_device_id}		0	8
+	${sub2}=	Get Substring		${random_device_id}		8	12
+	${sub3}=	Get Substring		${random_device_id}		12	16
+	${sub4}=	Get Substring		${random_device_id}		16	20
+	${sub5}=	Get Substring		${random_device_id}		20	32
+	${random_device_id2}=	Catenate	SEPARATOR=-		${sub1}		${sub2}		${sub3}		${sub4}		${sub5}
+	[Return]	  ${random_device_id2.upper()}
+
+Check Auction Price
+	[Arguments]			${output}=  		${auction_price}=0
+	Log		output:${output}
+	Log		auction price:${auction_price}
+	${ap}=  extract_matching_regex          ${output}        27=(.*)
+	${bp}=	extract_matching_regex			${output}		26=(.*)
+	${au}=	extract_matching_regex			${output}		28=(.*)
+	${ap}=	Convert to Number	${ap}
+	${au}=	Convert to Integer	${au}
+	Run Keyword If	${au}==0	Convert Auction Price To Winning Price	auction_price=${auction_price}
+	Log 	auction price expected: ${auction_price}		
+	Should Be Equal As Numbers		${ap}		${auction_price}
+
+Calculate Auction Price From Market Ratio		
+	 [Arguments]      ${output}=	${market_ratio}=
+	   ${bid_price}=    extract_matching_regex          ${output}        26=(.*)
+	   ${au}=			extract_matching_regex			${output}		 28=(.*)
+	   ${bid_price}=	Convert To Number 	${bid_price}
+	   ${au}=			Convert To Number 	${au}
+	   Run Keyword If			'${market_ratio}'=='000000'		Set Test Variable		${auction_price}		${bid_price}
+	   Run Keyword Unless 		'${market_ratio}'=='000000'		Convert Market Ratio To Winning Price	market_ratio=${market_ratio}	bid_price=${bid_price}
+	   #Run Keyword If			${au}==0						Convert Auction Price To Winning Price	auction_price=${auction_price}
+	   Log 	Auction Price Devrived from Market Ratio: ${auction_price}
+	   [Return] 	${auction_price}  
+	   
+Convert Market Ratio To Winning Price
+ 	   [Arguments]      ${market_ratio}=	${bid_price}=
+	   ${auction_price}=	Evaluate 	(${market_ratio} * ${bid_price})/(1000000.0)
+	   Set Test Variable	${auction_price}		${auction_price}
+Convert Auction Price To Winning Price
+	[Arguments]      ${auction_price}=		
+	Log		auction price:${auction_price}
+	${auction_price}=	Evaluate	${auction_price}/1000.0
+	Set Test Variable 	${auction_price}	${auction_price}

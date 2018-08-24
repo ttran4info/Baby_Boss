@@ -1,0 +1,289 @@
+
+*** Keywords ***
+
+################### EXTRACTION  and VALIDATION ##################################
+
+Extract REQID From Client Impression
+	[Arguments]			${raw_client_impression}
+	${reqid}=    	extract_matching_regex			${raw_client_impression}           reqid=(.+?)&ats
+	Log     REQID: ${reqid}
+	Set Test Variable     ${reqid}		${reqid}
+
+Extract REQID From Response
+	${reqid}=    	extract_matching_regex			${response_content}           reqid=(.+?)&
+	Log     REQID: ${reqid}
+	Set Test Variable     ${reqid}		${reqid}
+
+Extract REQID From Appnexus Response		
+	#${appnexus_auction_id}=	extract_matching_regex			${response_content}           "auction_id_64":(.+?),
+	${appnexus_auction_id}=	extract_matching_regex			${response_content}           "impid":(.+?),
+	${appnexus_auction_id}=		Remove String 		${appnexus_auction_id}		"
+	Log		AuctionID:${appnexus_auction_id}
+	Set Test Variable      ${ad_request_url}		${AD_PICKUP_URL}/${appnexus_auction_id}?price=0.81
+	Open Browser	${ad_request_url}	${BROWSER}
+	Sleep   1s
+	${response_source}=		Get Source
+	Close All Browsers
+	${reqid}=    	extract_matching_regex			${response_source}           reqid=(.+?)&
+	Log     REQID: ${reqid}
+	Set Test Variable     ${reqid}		${reqid}
+
+Validate Gestures Are Logged Correctly
+	[Arguments]			${event_url}     		${gesture}
+	Extract REQID From Client Impression			${event_url}  
+	Open Browser        ${DEFAULT_BROWSER_HOME}       ${BROWSER}
+    Go To     ${event_url}
+    Close Browser
+    Sleep 	6s 
+   	Start Read Event Logs For Reqid    host=${EVENT_ENGINE}		reqid=${reqid} 
+    Should Match Regexp        ${output}			4=${gesture}
+
+#We will use this to read value in RTB rhino.property
+Extract Value From Properties File
+	[Arguments]			${SSH_HOST}     		${properties_tag}
+	SSH Login As Valid User    SSH_HOST=${SSH_HOST}    TIMEOUT=5
+	Write		grep -i "${properties_tag}" /usr/java/jboss/rhino.properties
+	${output}=    Read Until Prompt
+	Set Test Variable       ${output}     ${output} 
+	Log      Server Log Output: ${output}
+	${result}=		Remove String Using Regexp		${output}		\\n	 .*<entry key=".*${properties_tag}.*">			</entry>.*
+	Set Test Variable	${output_result}		${result}
+	Close Connection
+################### READ LOGS ##################################		
+Terminate Read Logs For END
+     ${output}=    Read Until    END
+     Set Test Variable       ${output}     ${output} 
+     Log      Server Log Output: ${output}
+	 Close Connection
+Terminate Read Logs For Prompt
+     ${output}=    Read Until Prompt
+     Set Test Variable       ${output}     ${output} 
+     Log      Server Log Output: ${output}
+	 Close Connection
+Terminate Read Logs For Line
+	[Arguments]		${line}=END
+     ${output}=    Read Until    ${line}
+     Set Test Variable       ${output}     ${output} 
+     Log      Server Log Output: ${output}
+	 Close Connection
+	 
+Terminate Read Logs
+     ${output}=    Read
+     Set Test Variable       ${output}     ${output} 
+     Log      Server Log Output: ${output} 	 
+	 Close Connection
+
+#We are parsing the event log by location. wiki https://wiki.4info.com/display/Software/Events (current limit is 34 column)
+#1=Time
+#4=gesture type
+#etc=etc...
+Start Read Event Logs For Reqid
+	 [Arguments]			${host}=${EVENT_ENGINE}			${reqid}=
+	 @{host_names}=						String.Split String 					${host}				;	
+	 ${yyyy}	${mm}	${dd}=		Get Time	year,month,day
+	 Set Test Variable 		${output_main}				${EMPTY}
+	:FOR	${name}		IN		@{host_names}
+	\	Log		${name}
+	\	SSH Login As Valid User    SSH_HOST=${name}    TIMEOUT=5
+	\	Write		grep -i "${reqid}" ${LOG_PATH}/events/events.v6.* ${LOG_PATH}/processed_events/events.v6.log.${yyyy}-${mm}-${dd}-* |tail -1| awk 'BEGIN {FS = "|"}; {print; for(i=1;i<=38;i++) {print i "=" $i}; print "END" }' 
+	\	Terminate Read Logs For Prompt	 
+	\   Set Test Variable		${output_main}		${output_main}${output} 
+	 Log		Event Logs:${output_main}
+	Set Test Variable	${output}		${output_main} 
+
+Start Read Event Logs For Reqid Print All
+	 [Arguments]			${host}=${EVENT_ENGINE}			${reqid}=	
+#	 SSH Login As Valid User    SSH_HOST=${host}    TIMEOUT=5
+#	 ${yyyy}	${mm}	${dd}=		Get Time	year,month,day
+#	 Write		grep -i "${reqid}" ${LOG_PATH}/events/events.v6.* ${LOG_PATH}/processed_events/events.v6.log.${yyyy}-${mm}-${dd}-*
+#	 sleep 		5s 
+#	 Terminate Read Logs
+
+	 @{host_names}=						String.Split String 					${host}				;	
+	 ${yyyy}	${mm}	${dd}=		Get Time	year,month,day
+	 Set Test Variable 		${output_main}				${EMPTY}
+	:FOR	${name}		IN		@{host_names}
+	\	Log		${name}
+	\	SSH Login As Valid User    SSH_HOST=${name}    TIMEOUT=5
+	\	Write		grep -i "${reqid}" ${LOG_PATH}/events/events.v6.* ${LOG_PATH}/processed_events/events.v6.log.${yyyy}-${mm}-${dd}-* 
+	\	Terminate Read Logs For Prompt	 
+	\   Set Test Variable		${output_main}		${output_main}${output} 
+	 Log		Event Logs:${output_main}
+	Set Test Variable	${output}		${output_main}
+
+#reqid is automatically generated when RTB request is run and an ad is responsed
+Start Read Request Logs For Reqid
+	 [Arguments]			${host}=${SSH_RTB_HOST}			${reqid}=	
+#	 SSH Login As Valid User    SSH_HOST=${host}    TIMEOUT=5
+#	 Write		grep -i "${reqid}" ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS = "|"}; {print; for(i=1;i<=76;i++) {print i "=" $i}; print "END" }' 
+#	 Terminate Read Logs For END	 
+	 @{host_names}=						String.Split String 					${host}				;	
+	 ${yyyy}	${mm}	${dd}=		Get Time	year,month,day
+	 Set Test Variable 		${output_main}				${EMPTY}
+	:FOR	${name}		IN		@{host_names}
+	\	Log		${name}
+	\	SSH Login As Valid User    SSH_HOST=${name}    TIMEOUT=5
+	\	Write		grep -i "${reqid}" ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS = "|"}; {print; for(i=1;i<=88;i++) {print i "=" $i}; print "END" }' 
+	\	Terminate Read Logs For Prompt	 
+	\   Set Test Variable		${output_main}		${output_main}${output} 
+	 Log		Event Logs:${output_main}
+	Set Test Variable	${output}		${output_main}
+#Sometimes we know the Device ID and don't really care if an ad is serve or not
+Start Read Requests Logs For Consumer Id
+	 [Arguments]			${host}=${SSH_RTB_HOST}			${consumer_id}=	
+#	 SSH Login As Valid User    SSH_HOST=${host}    TIMEOUT=5
+#	 Write		grep -i "${consumer_id}" ${LOG_PATH}/requests/requests.v11.log | tail -1 | awk 'BEGIN {FS = "|"}; {print; for(i=1;i<=76;i++) {print i "=" $i}; print "END" }' 
+#	 Terminate Read Logs For END	   
+	 @{host_names}=						String.Split String 					${host}				;	
+	 ${yyyy}	${mm}	${dd}=		Get Time	year,month,day
+	 Set Test Variable 		${output_main}				${EMPTY}
+	:FOR	${name}		IN		@{host_names}
+	\	Log		${name}
+	\	SSH Login As Valid User    SSH_HOST=${name}    TIMEOUT=5
+	\	Write		grep -i "${consumer_id}" ${LOG_PATH}/requests/requests.v11.log | tail -1 | awk 'BEGIN {FS = "|"}; {print; for(i=1;i<=88;i++) {print i "=" $i}; print "END" }' 
+	\	Terminate Read Logs For Prompt	 
+	\   Set Test Variable		${output_main}		${output_main}${output} 
+	 Log		Event Logs:${output_main}
+	Set Test Variable	${output}		${output_main}
+	${reqid}=    	extract_matching_regex			${output}           40=(.*)
+	${reqid}=    	Replace String Using Regexp			${reqid}		\r			${EMPTY}
+	Log		Start:[${reqid}]
+	Set Test Variable   	${reqid}			${reqid} 
+Start Read Request Metadata Logs For Reqid
+	 [Arguments]			${host}=${SSH_RTB_HOST}			${reqid}=	
+	 SSH Login As Valid User    SSH_HOST=${host}    TIMEOUT=5
+	 Write		grep -i "${reqid}" ${LOG_PATH}/requests/requests.metadata.log | awk 'BEGIN {FS = "|"}; {print; for(i=1;i<=5;i++) {print i "=" $i}; print "END" }' 
+	 Terminate Read Logs For END
+#reqid is automatically generated when rtb request is run and ad is served, 
+#we should remove this function, it's redundant but some test case are still using it
+Start Reading Requests Logs For Consumer Id Using Reqid
+	 [Arguments]      ${host}=${SSH_RTB_HOST}         ${timeout}=5
+	 Sleep 	5s    
+	 Set Test Variable            ${output}           ${EMPTY}
+	 ${yyyy}	${mm}	${dd}=		Get Time	year,month,day
+	 Should Be Empty   		  ${output}  
+     SSH Login As Valid User    SSH_HOST=${host}     TIMEOUT=${timeout}    
+	 Write		grep "${reqid}" ${LOG_PATH}/requests/requests.v11.log ${LOG_PATH}/requests/requests.v11.log.${yyyy}-${mm}-${dd}-* |awk 'BEGIN {FS="|"}; {print "Consumer ID=" $13;print "Consumer ID Method=" $46;}'
+	 Terminate Read Logs
+
+#eventually we should remove this and use reading event log	 
+Start Reading Event Logs For Auction Price
+	[Arguments]      ${host}=${SSH_HOST}         ${timeout}=5         	${reqid}=
+	Set Test Variable            ${output}           ${EMPTY}
+	Should Be Empty   		  ${output}
+    SSH Login As Valid User    SSH_HOST=${host}     TIMEOUT=${timeout}
+    ${yyyy}	${mm}	${dd}=		Get Time	year,month,day    
+    #Write   tail -F ${LOG_PATH}/events/events.v6.log | awk 'BEGIN {FS = "|"}; {consumer_id=$8; if(consumer_id=="${consumer_id}") {print "Auction Price=" $27; print "Auction Unit=" $28; print "Bid Price=" $26; print "END";}}'
+	Write		grep "${reqid}" ${LOG_PATH}/events/events.v6.* ${LOG_PATH}/processed_events/events.v6.log.${yyyy}-${mm}-${dd}-*| awk 'BEGIN {FS = "|"}; {print "Auction Price=" $27; print "Auction Unit=" $28; print "Bid Price=" $26; print "END";}'
+	Terminate Read Logs
+
+Start Read Segment Logs For Reqid
+	 [Arguments]			${host}=${SSH_RTB_HOST}			${reqid}=	
+	 SSH Login As Valid User    SSH_HOST=${host}    TIMEOUT=5
+	 Write		grep -i "${reqid}" ${LOG_PATH}/segments/loc_segments_match.log | awk 'BEGIN {FS = "|"}; {print; for(i=1;i<=20;i++) {print i "=" $i}; print "END" }' 
+	 Terminate Read Logs For END			
+
+Start Read Server Log For Error
+	[Arguments]			${host}=${SSH_RTB_HOST}		${line}=3
+	 SSH Login As Valid User    SSH_HOST=${host}    TIMEOUT=5
+	 Write		grep -i -m${line} "error" ${LOG_PATH}/server.log
+	 Terminate Read Logs For Prompt			
+	
+#These 2 function check couchbase for the occurance of these so we can check for frequency cap
+Extract Consumer ID From Couchbase
+	 [Arguments]			${host}=${SSH_RTB_HOST}			${consumer_id}=NA			${parent_adgroup}=NA
+	 SSH Login As Valid User    SSH_HOST=${host}    TIMEOUT=5
+	 Write		cd /usr/java/jboss/cbtools
+	 Sleep 		1s
+	 Write		java -classpath \$(echo . *.jar | tr ' ' ':') PrototypeDAO consumer cid_${consumer_id}_${parent_adgroup}_24	
+	 Terminate Read Logs For Prompt
+Extract IP Address From Couchbase
+	 [Arguments]			${host}=${SSH_RTB_HOST}			${ip_address}=NA			${parent_adgroup}=NA
+	 SSH Login As Valid User    SSH_HOST=${host}    TIMEOUT=5
+	 Write		cd /usr/java/jboss/cbtools
+	 Sleep 		1s	 
+	 Write		java -classpath \$(echo . *.jar | tr ' ' ':') PrototypeDAO consumer ip_${ip_address}_${parent_adgroup}_24	
+	 Terminate Read Logs For Prompt
+Extract House Hold ID From Couchbase
+	 [Arguments]			${host}=${SSH_RTB_HOST}			${hh_id}=NA			${parent_adgroup}=NA
+	 SSH Login As Valid User    SSH_HOST=${host}    TIMEOUT=5
+	 Write		cd /usr/java/jboss/cbtools
+	 Sleep 		1s	
+	 Write		/usr/java/jboss/cbtools/java -classpath \$(echo . *.jar | tr ' ' ':') PrototypeDAO consumer hid_${hh_id}_${parent_adgroup}_24	
+	 Terminate Read Logs For Prompt	 
+	 
+################### MAVERICKS ##################################
+Start Read Mavericks Logs
+	 [Arguments]			${host}=${SSH_RTB_HOST}			${reqid}=	
+	 @{host_names}=						String.Split String 					${host}				;	
+	 ${yyyy}	${mm}	${dd}=		Get Time	year,month,day
+	 Set Test Variable 		${output_main}				${EMPTY}
+	:FOR	${name}		IN		@{host_names}
+	\	Log		${name}
+	\	SSH Login As Valid User    SSH_HOST=${name}    TIMEOUT=5
+	\	Write		grep -i "${reqid}" ${LOG_PATH}/debug/mavericks.log | awk 'BEGIN {FS = "|"}; {print; for(i=1;i<=6;i++) {print i "=" $i}; print "END" }' 
+	\	Terminate Read Logs For Prompt	 
+	\   Set Test Variable		${output_main}		${output_main}${output} 
+	 Log		Event Logs:${output_main}
+	Set Test Variable	${output}		${output_main}	
+Start Read Mavericks2 Logs
+	 [Arguments]			${host}=${SSH_RTB_HOST}			${reqid}=	${optimization}=NA
+	 #Optimization (1 = CTR, 2 = VCR or 3 = Viewability or 4 = Measurability, 5=eligibility) - column 4
+	 @{host_names}=						String.Split String 					${host}				;	
+	 ${yyyy}	${mm}	${dd}=		Get Time	year,month,day
+	 Set Test Variable 		${output_main}				${EMPTY}
+	:FOR	${name}		IN		@{host_names}
+	\	Log		${name}
+	\	SSH Login As Valid User    SSH_HOST=${name}    TIMEOUT=5
+	\	Run Keyword If			'${optimization}'=='NA'		Write		grep -i "${reqid}" ${LOG_PATH}/debug/mavericks2.log | awk 'BEGIN {FS = "|"}; {if ($8=="") {print; for(i=1;i<=7;i++) {print i "=" $i}; print "END" }}' 
+	\	Run Keyword Unless		'${optimization}'=='NA'		Write		grep -i "${reqid}" ${LOG_PATH}/debug/mavericks2.log | awk 'BEGIN {FS = "|"}; { if ($4==${optimization}) { print; for(i=1;i<=11;i++) {print i "=" $i}; print "END" }; }' 
+	\	Terminate Read Logs For Prompt	 
+	\   Set Test Variable		${output_main}		${output_main}${output} 
+	 Log		Event Logs:${output_main}
+	Set Test Variable	${output}		${output_main}
+Start Read Server Logs
+	 [Arguments]			${host}=${SSH_RTB_HOST}			${validation}=
+	 @{host_names}=						String.Split String 					${host}				;	
+	 ${yyyy}	${mm}	${dd}=		Get Time	year,month,day
+	 Set Test Variable 		${output_main}				${EMPTY}
+	:FOR	${name}		IN		@{host_names}
+	\	Log		${name}
+	\	SSH Login As Valid User    SSH_HOST=${name}    TIMEOUT=5
+	\	Write		grep -i "${validation}" ${LOG_PATH}/server.log| awk '{print;print "END"}'
+	\	Terminate Read Logs For Prompt	 
+	\   Set Test Variable		${output_main}		${output_main}${output} 
+	 Log		Logs:${output_main}
+	Set Test Variable	${output}		${output_main}		 
+################### TAIL LOGS ##################################
+#Tailing Logs is becoming obsolete because it might get stuck and we never end the ssh session, resulting in lots of process run on the server
+#use ps -elf | grep "tail"
+#require Raw ID 
+#Start Tailing Request Logs For App Site ID
+#	 [Arguments]      ${host}=${SSH_RTB_HOST}         ${timeout}=5          ${consumer_id}=
+#	 Set Test Variable            ${output}           ${EMPTY}
+#	 Should Be Empty   		  ${output}  
+#     SSH Login As Valid User    SSH_HOST=${host}     TIMEOUT=${timeout}    
+#	 Write    tail -F -n0 ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS="|"}; { consumer_id=$13; if (consumer_id == "${consumer_id}" ) {print "App ID=" $54;print "Site ID=" $55;print "END";} }'
+
+#Start Tailing Request Logs For HHID
+#	 [Arguments]      ${host}=${SSH_RTB_HOST}         ${timeout}=5          ${consumer_id}=
+#	 Set Test Variable            ${output}           ${EMPTY}
+#	 Should Be Empty   		  ${output}  
+#     SSH Login As Valid User    SSH_HOST=${host}     TIMEOUT=${timeout}    
+#	 Write    tail -F -n0 ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS="|"}; { consumer_id=$13; if (consumer_id == "${consumer_id}" ) {print "HH ID=" $67;print "HH ID Source=" $68;print "HH ID DMA=" $69;print "END";} }'
+
+#Start Tailing Segment Logs For HHID
+#	 [Arguments]      ${host}=${SSH_RTB_HOST}         ${timeout}=5          ${consumer_id}=
+#	 Set Test Variable            ${output}           ${EMPTY}
+#	 Should Be Empty   		  ${output}  
+#     SSH Login As Valid User    SSH_HOST=${host}     TIMEOUT=${timeout}    
+#	 Write    tail -F -n0 ${LOG_PATH}/segments/loc_segments_match.log | awk 'BEGIN {FS="|"}; { consumer_id=$3; if (consumer_id == "${consumer_id}" ) {print "HH ID=" $12;print "HH Segment=" $13;print "HH source=" $15;print "END";} }'
+
+#Start Tailing Request Logs For Consumer Id
+#	 [Arguments]      ${host}=${SSH_RTB_HOST}         ${timeout}=5          ${consumer_id}=
+#	 Set Test Variable            ${output}           ${EMPTY}
+#	 Should Be Empty   		  ${output}  
+#     SSH Login As Valid User    SSH_HOST=${host}     TIMEOUT=${timeout}    
+#	 # Write		tail -F -n0 ${LOG_PATH}/requests/requests.v11.log | grep "${consumer_id}" | awk 'BEGIN {FS = "|"}; {print; for(i=1;i<=76;i++) {print i "=" $i}; print "END" }'
+#	 Write 		tail -F -n0 ~/server/4info/log/requests/requests.v11.log | awk 'BEGIN {FS = "|"}; {if ($13=="${consumer_id}") {print; for(i=1;i<=76;i++) {print i "=" $i}; print "END" }}'	  
+     

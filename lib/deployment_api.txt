@@ -1,0 +1,66 @@
+*** Settings ***
+
+
+*** Keywords ***
+DEPLOYMENT API
+	[Arguments]    ${connection_type}=https							#http or https
+    ...            ${server}=${QA_API_EXTERNAL_GCP}								#qa-api.4info.com
+    ...            ${port}=${QA_API_EXTERNAL_GCP_PORT}							#443 for https or 8080 for http
+    ...            ${uri}=											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   ${request_type}=GET								#GET, POST, PUT
+    ...			   ${data}=None										#POST or PUT normally goes with data
+    ...            ${expected_status_code}=200						#normally 200 for working condition, 400 for failure
+    ...            ${success}=NA									#true if response is 200, false if response is 400
+	Run Keyword If	'${request_type}'=='GET'	API GET			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='POST'	API POST			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='PUT'	API PUT			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='PATCH'	API PATCH			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='DELETE'	API DELETE			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+
+####### 02_Deployement controller ########
+Get All Deployment DB Count
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST_IO}   ${DB_PORT}
+    @{query_result}     Query    select count(*) from deployment where status in (1,2)
+    Disconnect From Database
+    ${DB_count}=   ${query_result[0][0]}
+    Set Test Variable 		${DB_count}			${DB_count}
+Get All Active Deployment DB Count
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST_IO}   ${DB_PORT}
+    @{query_result}     Query    select count(*) from deployment where status in (1)
+    Disconnect From Database
+    ${DB_count}=   ${query_result[0][0]}
+    Set Test Variable 		${DB_count}			${DB_count}    

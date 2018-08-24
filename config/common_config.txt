@@ -1,0 +1,40 @@
+*** Settings ***
+Library        Collections
+# Default timeout = 3     default implicit timeout = 10 
+Library        Selenium2Library       timeout=30    implicit_wait=3    run_on_failure=Capture Page Screenshot    
+#Library        Selenium2Library      run_on_failure=Capture Page Screenshot    
+Library        SSHLibrary  10  ${EMPTY}  $
+Library        DatabaseLibrary   
+Library        adhaven_helper
+Library        adhaven_excel_reader
+Library        adhaven_csv_reader
+Library        OperatingSystem
+Library        String
+#Resource       ui_object_library.txt
+
+*** Variables ****
+# Default the browser to Firefox/Chrome Browser
+#${BROWSER}     ff
+${BROWSER}      gc
+${SEL_SPEED}    .2 seconds
+
+${DISABLED_PLACEMENT_VALIDATION_STRING}      <message>Invalid placement_id or placement_id disabled.</message>
+
+${CACHE_WAIT_TIME}         	5m
+
+${DEFAULT_BROWSER_HOME}    	https://www.google.com/
+
+
+${S3_ACCESS_KEY_ID}			1SVS98882QADFH0AQKR2
+${S3_ACCESS_KEY_SECRET}		Ur321eIUsJo/8HkkaVpzjz7CZP7ESYTZmsbapnis
+
+${ACTION_PRICE}			1.00
+${ACTION_UNIT}			0
+${ACTION_ID}			111
+${ACTION_IMP_ID}		222
+
+
+
+
+
+

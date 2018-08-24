@@ -1,0 +1,730 @@
+*** Settings ***
+Library    	    DateTime
+
+*** Keywords ***
+ACE API
+	[Arguments]    ${connection_type}=https							#http or https
+    ...            ${server}=${QA_ACE}								#qa-api.4info.com
+    ...            ${port}=${QA_ACE_PORT}							#443 for https or 8080 for http
+    ...            ${uri}=											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   ${request_type}=GET								#GET, POST, PUT
+    ...			   ${data}=None										#POST or PUT normally goes with data
+    ...            ${expected_status_code}=200						#normally 200 for working condition, 400 for failure
+    ...            ${success}=NA									#true if response is 200, false if response is 400
+	Run Keyword If	'${request_type}'=='GET'	API GET			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='POST'	API POST			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='PUT'	API PUT			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='PATCH'	API PATCH			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='DELETE'	API DELETE			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+
+#-------------------------------------------------------------------------------------
+xxxGet UI element accesses from page URL
+	[Arguments]     ${uri}=
+    ...             ${expected_status_code}=200
+    ...             ${success}=NA
+    #Create Session   docker    https://${QA_ACE}:${QA_ACE_PORT}
+    #${headers}    Create Dictionary     Accept=application/json
+    #${resp}=    Get Request     docker  ${uri}          headers=${headers}
+    #Set Test Variable       ${resp}     ${resp}
+    #Log    Response: '${resp.content}'
+    #Set Suite Variable       ${body}     ${resp.content}
+    #Run Keyword If  '${expected_status_code}'=='200'        Should Be Valid Json     ${body}
+    #Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...			   data=${data}
+    ...            expected_status_code=${expected_status_code}						#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+
+
+Validate List Of Keywords
+    [Arguments]     ${keyword_string}=${body}
+    ...             ${keyword}=NA
+    Log    ${keyword_string}
+    @{keyword_list}=    String.Split String    ${keyword}    ,
+    ${keyword_count}=    Get Length    ${keyword_list}
+    :FOR    ${index}    IN RANGE   0    ${keyword_count}
+    \    Log     Index: ${index}
+    \    ${keyword_temp}=    Get From List    ${keyword_list}    ${index}
+    \    Log    ${keyword_temp}
+    \    Log    ${keyword_string}
+    \    Should Match Regexp    ${keyword_string}    ${keyword_temp}
+
+
+Validate total DB record counts with response
+    [Documentation]     Use sql to get all record counts to compare with response body
+    [Arguments]     ${query}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    ${query}
+    Set Test Variable    ${query_result}      ${queryResults[0][0]}
+    Disconnect From Database
+
+#-------------------------------------------------------------------------------------
+# 2.1 Get Ace Report detail
+
+Validate ACE 2.1 Keys response code 200 for Location Append
+    ${report}=              Get Json Value          ${body}             /report
+    Set Test Variable       ${keyword_string}       id,dataSource,name,createdBy,status,date,fileName
+    Validate List Of Keywords       keyword_string=${report}          keyword=${keyword_string}
+
+
+Validate ACE 2.1 Keys response code 200 for Geofence
+    ${report}=              Get Json Value          ${body}             /report
+    Set Test Variable       ${keyword_report}       id,dataSource,name,createdBy,status,date,radius,minRadius,segmentMap
+    Validate List Of Keywords    keyword_string=${report}    keyword=${keyword_report}
+
+    ${segmentMap}=    Get Json Value    ${body}    /report/segmentMap
+    Log    ${segmentMap}
+    Set Test Variable    ${keyword_segmentMap}    id,name,poiNames
+    Log    ${keyword_segmentMap}
+    Validate List Of Keywords    keyword_string=${segmentMap}    keyword=${keyword_segmentMap}
+
+
+Validate ACE 2.1 Keys response code 200 for Retargeting
+    ${report}=              Get Json Value          ${body}             /report
+    Set Test Variable       ${keyword_report}       id,dataSource,name,createdBy,status,date,segmentMap,fileName,poiDataSource
+    Validate List Of Keywords       keyword_string=${report}          keyword=${keyword_report}
+
+    ${segmentMap}=          Get Json Value          ${body}             /report/segmentMap
+    Set Test Variable       ${keyword_segmentMap}       id,name,campaign
+    Validate List Of Keywords       keyword_string=${segmentMap}          keyword=${keyword_segmentMap}
+
+
+
+#-------------------------------------------------------------------------------------
+# 2.3 Get List of Target Data Sources by Group Id
+
+Get List of Target Data Sources by Group Id
+    [Arguments]     ${groupId}=
+    ...             ${uri}=
+    ...             ${expected_status_code}=
+    ...             ${success}=
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=${expected_status_code}					#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+    Run Keyword If   '${resp.status_code}'=='200'   Validate ACE 2.3 Keys for response code 200
+    #Set Test Variable   ${query}  select count(distinct id) as cnt from
+    #Run Keyword If   '${resp.status_code}'=='200'   Validate total DB record counts with response   query=${query}
+
+
+Validate ACE 2.3 Keys for response code 200
+    ${dslist}       Get Json Value          ${body}             /dslist
+    Set Test Variable       ${keyword_dslist}       id,name
+    Validate List Of Keywords    keyword_string=${dslist}    keyword=${keyword_dslist}
+
+
+
+
+
+#-------------------------------------------------------------------------------------
+#3.2
+
+Create Geofence
+    [Arguments]         ${uri}=
+    ...                 ${email}=${QA_DEFAULT_USER}
+    ...                 ${segmentEntryList}=50:182
+    ...                 ${dataSource}=9
+    ...                 ${groupId}=1
+    ...                 ${segmentSources}=gf
+    ...                 ${minRadius}=1.0
+    ...                 ${radius}=10.0
+    ...                 ${reportName}="dummy_gf_segment"
+    ...                 ${poiDataSource}=2
+    ...                 ${response_code}=200
+    ...                 ${success}=true
+    #Create Session   docker    https://${QA_ACE}:${QA_ACE_PORT}
+    #${headers}    Create Dictionary     Content-type=application/json       Accept=application/json
+    Log         ${reportName}
+
+    Run keyword if  '${reportName}'!='null'     Set Test Variable   ${data}    {"email":"${email}","segmentEntryList":"${segmentEntryList}","dataSource":${dataSource},"groupId":"${groupId}","segmentSources":"${segmentSources}","minRadius":${minRadius},"radius":${radius},"reportName":"${reportName}","poiDataSource":${poiDataSource}}
+    ...         ELSE     Set Test Variable   ${data}      {"email":"${email}","segmentEntryList":"${segmentEntryList}","dataSource":${dataSource},"groupId":"${groupId}","segmentSources":"${segmentSources}","minRadius":${minRadius},"radius":${radius},"reportName":null,"poiDataSource":${poiDataSource}}
+
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING to Create Geofence via API
+    Log             ${data}
+    #${resp}=    RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}
+    #Log    Response: '${resp.content}'
+    #Set Suite Variable       ${body}     ${resp.content}
+    #Log     ${body}
+    #Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}
+    ...            expected_status_code=${response_code}						#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+    Json Value Should Equal      ${body}       /success        ${success}
+    Run Keyword If   '${resp.status_code}'=='200'   Should Be Valid Json     ${body}
+
+
+Remove Json Key Contain MISSING to Create Geofence via API
+    ${data}=        Remove String       ${data}     "email":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentEntryList":"MISSING",
+    ${data}=        Remove String       ${data}     "dataSource":MISSING,
+    ${data}=        Remove String       ${data}     "groupId":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentSources":"MISSING",
+    ${data}=        Remove String       ${data}     "minRadius":MISSING,
+    ${data}=        Remove String       ${data}     "radius":MISSING,
+    ${data}=        Remove String       ${data}     "reportName":"MISSING",
+    ${data}=        Remove String       ${data}     "poiDataSource":MISSING
+    ${data}=        Evaluate    '${data}'.replace(", }",'}').replace(",}",'}')
+    Set Test Variable       ${data}     ${data}
+
+
+Compare response data with API Get Ace Report detail
+    [Arguments]         ${email}=
+    ...                 ${segmentEntryList}=
+    ...                 ${dataSource}=
+    ...                 ${groupId}=
+    ...                 ${segmentSources}=
+    ...                 ${minRadius}=
+    ...                 ${radius}=
+    ...                 ${reportName}=
+    ...                 ${poiDataSource}=
+    ${reportId}=     Get Json Value   ${body}   /id
+    Sleep           30s
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+    #${result}=  RequestsLibrary.Get Request  docker     ${uri}
+    #Log    Response: '${result.content}'
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+    Set Test Variable       ${body_GetRequest}     ${body}
+    #Should Be Equal As Strings   ${result.status_code}   200
+
+    ${Response_reportId}=    Get Json Value    ${body_GetRequest}   /report/id
+    Should Be Equal      ${Response_reportId}       ${reportId}
+
+    ${Response_dataSource}=   Get Json Value   ${body_GetRequest}   /report/dataSource
+    Should Be Equal      ${Response_dataSource}     "Geo Fence"
+
+    ${Response_name}=   Get Json Value   ${body_GetRequest}   /report/name
+    Should Be Equal      ${Response_name}       "${reportName}"
+
+    ${Response_createdBy}=   Get Json Value   ${body_GetRequest}   /report/createdBy
+    Should Be Equal      ${Response_createdBy}      "${email}"
+
+    ${Response_status}=   Get Json Value   ${body_GetRequest}   /report/status
+    Should Be Equal      ${Response_status}         "Finished - Zero Results"       # "New"
+
+    ${Response_minRadius}=   Get Json Value   ${body_GetRequest}   /report/minRadius
+    Should Be Equal      ${Response_minRadius}      ${minRadius}
+
+    ${Response_maxRadius}=   Get Json Value   ${body_GetRequest}   /report/radius
+    Should Be Equal      ${Response_maxRadius}      ${radius}
+
+    ${Response_poiDataSourceID}=   Get Json Value   ${body_GetRequest}   /report/poiDataSource
+    Should Be Equal      ${Response_poiDataSourceID}      ${poiDataSource}
+
+
+Remove New Geofence via DB
+	[Arguments]		${name}=ACE_Regression_Geofence
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string     delete from rhino.ace_report where name like '${name}%' ;
+    execute_sql_string     delete from rhino.target_geofence_segments where segment_name like '${name}%' ;
+    Disconnect From Database
+
+#-------------------------------------------------------------------------------------
+#3.3
+
+Create Custom Geofence
+    [Arguments]         ${uri}=
+    ...                 ${email}=${QA_DEFAULT_USER}
+    ...                 ${segmentEntryList}=-1:-1
+    ...                 ${dataSource}=10
+    ...                 ${groupId}="1"
+    ...                 ${segmentSources}=gfc
+    ...                 ${minRadius}=1.0
+    ...                 ${radius}=10.0
+    ...                 ${reportName}="dummy_gf_segment"
+    ...                 ${poiDataSource}=2
+    ...                 ${fileName}="POI.csv"
+    ...                 ${response_code}=200
+    ...                 ${success}=true
+    #Create Session   docker    https://${QA_ACE}:${QA_ACE_PORT}
+    #${headers}    Create Dictionary     Content-type=application/json       Accept=application/json
+    Log         ${reportName}
+
+    Run keyword if  '${reportName}'!='null'     Set Test Variable   ${data}    {"email":"${email}","segmentEntryList":"${segmentEntryList}","dataSource":${dataSource},"groupId":${groupId},"segmentSources":"${segmentSources}","minRadius":${minRadius},"radius":${radius},"reportName":"${reportName}","poiDataSource":${poiDataSource},"fileName":${fileName}}
+    ...         ELSE     Set Test Variable   ${data}      {"email":"${email}","segmentEntryList":"${segmentEntryList}","dataSource":${dataSource},"groupId":${groupId},"segmentSources":"${segmentSources}","minRadius":${minRadius},"radius":${radius},"reportName":null,"poiDataSource":${poiDataSource},"fileName":${fileName}}
+
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING to Create Custom Geofence via API
+    Log             ${data}
+    #${resp}=    RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}
+    #Log    Response: '${resp.content}'
+    #Set Suite Variable       ${body}     ${resp.content}
+    #Log     ${body}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}
+    ...            expected_status_code=${response_code}						#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+    #Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    #Json Value Should Equal      ${body}       /success        ${success}
+    Run Keyword If   '${resp.status_code}'=='200'   Should Be Valid Json     ${body}
+
+
+Remove Json Key Contain MISSING to Create Custom Geofence via API
+    ${data}=        Remove String       ${data}     "email":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentEntryList":"MISSING",
+    ${data}=        Remove String       ${data}     "dataSource":MISSING,
+    ${data}=        Remove String       ${data}     "groupId":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentSources":"MISSING",
+    ${data}=        Remove String       ${data}     "minRadius":MISSING,
+    ${data}=        Remove String       ${data}     "radius":MISSING,
+    ${data}=        Remove String       ${data}     "reportName":"MISSING",
+    ${data}=        Remove String       ${data}     "fileName":"MISSING",
+    ${data}=        Remove String       ${data}     "poiDataSource":MISSING
+    Set Test Variable       ${data}     ${data}
+
+Compare response data with API Get Ace Report detail for Custom Geofence
+    [Arguments]         ${email}=
+    ...                 ${segmentEntryList}=
+    ...                 ${dataSource}=
+    ...                 ${groupId}=
+    ...                 ${segmentSources}=
+    ...                 ${minRadius}=
+    ...                 ${radius}=
+    ...                 ${reportName}=
+    ...                 ${poiDataSource}=
+    ${reportId}=     Get Json Value   ${body}   /id
+
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+    #${result}=  RequestsLibrary.Get Request  docker     ${uri}
+    #Log    Response: '${result.content}'
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+    Set Suite Variable       ${body_GetRequest}     ${body}
+    #Should Be Equal As Strings   ${result.status_code}   200
+
+    ${Response_reportId}=    Get Json Value    ${body_GetRequest}   /report/id
+    Should Be Equal      ${Response_reportId}       ${reportId}
+
+    ${Response_dataSource}=   Get Json Value   ${body_GetRequest}   /report/dataSource
+    Should Be Equal      ${Response_dataSource}     "Geo Fence: Custom Dataset"
+
+    ${Response_name}=   Get Json Value   ${body_GetRequest}   /report/name
+    Should Be Equal      ${Response_name}       "${reportName}"
+
+    ${Response_createdBy}=   Get Json Value   ${body_GetRequest}   /report/createdBy
+    Should Be Equal      ${Response_createdBy}      "${email}"
+
+    ${Response_status}=   Get Json Value   ${body_GetRequest}   /report/status
+    Should Be Equal      ${Response_status}         "New"       # "Finished - Zero Results"
+
+    ${Response_minRadius}=   Get Json Value   ${body_GetRequest}   /report/minRadius
+    Should Be Equal      ${Response_minRadius}      ${minRadius}
+
+    ${Response_radius}=   Get Json Value   ${body_GetRequest}   /report/radius
+    Should Be Equal      ${Response_radius}      ${radius}
+
+
+#----------------------------------------------------------------------------------
+#3.4  Trade Area (4INFO Trade Area, Catalina Trade Area)
+
+Create Trade Area
+    [Arguments]         ${uri}=
+    ...                 ${email}=${QA_DEFAULT_USER}
+    ...                 ${segmentEntryList}=50:182
+    ...                 ${minRadius}=0.3
+    ...                 ${radius}=10.0
+    ...                 ${dataSource}=9
+    ...                 ${reportName}=ACE_Regression_Trade_Area_4info
+    ...                 ${groupId}=1
+    ...                 ${segmentSources}=gf
+    ...                 ${poiDataSource}=2
+    ...                 ${minradius_datacheck_flag}=1
+    ...                 ${response_code}=200
+    ...                 ${success}=true
+    #Create Session   docker    https://${QA_ACE}:${QA_ACE_PORT}
+    #${headers}    Create Dictionary     Content-type=application/json       Accept=application/json
+    Log         ${reportName}
+
+    Run keyword if  '${reportName}'!='null'     Set Test Variable   ${data}    {"email":"${email}","segmentEntryList":"${segmentEntryList}","dataSource":${dataSource},"groupId":"${groupId}","segmentSources":"${segmentSources}","minRadius":${minRadius},"radius":${radius},"reportName":"${reportName}","poiDataSource":${poiDataSource}}
+    ...         ELSE     Set Test Variable   ${data}      {"email":"${email}","segmentEntryList":"${segmentEntryList}","dataSource":${dataSource},"groupId":"${groupId}","segmentSources":"${segmentSources}","minRadius":${minRadius},"radius":${radius},"reportName":null,"poiDataSource":${poiDataSource}}
+
+    Run keyword if  '${email}'=='null'     Set Test Variable   ${data}    {"email":null,"segmentEntryList":"${segmentEntryList}","dataSource":${dataSource},"groupId":"${groupId}","segmentSources":"${segmentSources}","minRadius":${minRadius},"radius":${radius},"reportName":"${reportName}","poiDataSource":${poiDataSource}}
+
+    Run keyword if  '${segmentEntryList}'=='null'     Set Test Variable   ${data}    {"email":"${email}","segmentEntryList":null,"dataSource":${dataSource},"groupId":"${groupId}","segmentSources":"${segmentSources}","minRadius":${minRadius},"radius":${radius},"reportName":"${reportName}","poiDataSource":${poiDataSource}}
+
+    Run keyword if  '${groupId}'=='null'     Set Test Variable   ${data}    {"email":"${email}","segmentEntryList":"${segmentEntryList}","dataSource":${dataSource},"groupId":null,"segmentSources":"${segmentSources}","minRadius":${minRadius},"radius":${radius},"reportName":"${reportName}","poiDataSource":${poiDataSource}}
+
+    Run keyword if  '${segmentSources}'=='null'     Set Test Variable   ${data}    {"email":"${email}","segmentEntryList":"${segmentEntryList}","dataSource":${dataSource},"groupId":"${groupId}","segmentSources":null,"minRadius":${minRadius},"radius":${radius},"reportName":"${reportName}","poiDataSource":${poiDataSource}}
+
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING to Create Trade Area via API
+    Log             ${data}
+    #${resp}=    RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}
+    #Log    Response: '${resp.content}'
+    #Set Suite Variable       ${body}     ${resp.content}
+    #Log     ${body}
+    #Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    #Json Value Should Equal      ${body}       /success        ${success}
+	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}
+    ...            expected_status_code=${response_code}						#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+
+
+
+Remove Json Key Contain MISSING to Create Trade Area via API
+    ${data}=        Remove String       ${data}     "email":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentEntryList":"MISSING",
+    ${data}=        Remove String       ${data}     "dataSource":MISSING,
+    ${data}=        Remove String       ${data}     "groupId":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentSources":"MISSING",
+    ${data}=        Remove String       ${data}     "minRadius":MISSING,
+    ${data}=        Remove String       ${data}     "radius":MISSING,
+    ${data}=        Remove String       ${data}     "reportName":"MISSING",
+    ${data}=        Remove String       ${data}     "poiDataSource":MISSING
+    ${data}=        Evaluate    '${data}'.replace(", }",'}').replace(",}",'}')
+    Set Test Variable       ${data}     ${data}
+
+
+Compare response data with API Get Ace Report detail for Create Trade Area via API
+    [Arguments]         ${email}=
+    ...                 ${segmentEntryList}=
+    ...                 ${dataSource}=
+    ...                 ${groupId}=
+    ...                 ${segmentSources}=
+    ...                 ${minRadius}=
+    ...                 ${radius}=
+    ...                 ${reportName}=""
+    ...                 ${poiDataSource}=
+    ...                 ${minradius_datacheck_flag}=
+    ${reportId}=     Get Json Value   ${body}   /id
+    #Sleep           30s
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+    #${result}=  RequestsLibrary.Get Request  docker     ${uri}
+    #Log    Response: '${result.content}'
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+    Set Test Variable       ${body_GetRequest}     ${body}
+    #Should Be Equal As Strings   ${result.status_code}   200
+
+    ${Response_reportId}=    Get Json Value    ${body_GetRequest}   /report/id
+    Should Be Equal      ${Response_reportId}       ${reportId}
+    Log    ${dataSource}
+    Set Test Variable    ${datasourceName}    ""
+    Run Keyword If    ${dataSource}==33     Set Test Variable    ${datasourceName}     "Trade Area"
+    Run Keyword If    ${dataSource}==24     Set Test Variable    ${datasourceName}     "Catalina Trade Area"
+    Run Keyword If    ${dataSource}==41     Set Test Variable    ${datasourceName}     "Undertone Trade Area"
+    Run Keyword If    ${dataSource}==44     Set Test Variable    ${datasourceName}     "Demo Trade Area"
+
+    Log    ${dataSource}:${datasourceName}
+
+    ${Response_dataSource}=   Get Json Value   ${body_GetRequest}   /report/dataSource
+    Should Be Equal      ${Response_dataSource}     ${datasourceName}
+
+    ${Response_name}=   Get Json Value   ${body_GetRequest}   /report/name
+    Should Be Equal      ${Response_name}       "${reportName}"
+
+    ${Response_createdBy}=   Get Json Value   ${body_GetRequest}   /report/createdBy
+    Should Be Equal      ${Response_createdBy}      "${email}"
+
+    ${Response_status}=   Get Json Value   ${body_GetRequest}   /report/status
+    Should Be Equal      ${Response_status}         "Finished - Zero Results"       #  "New"       #
+
+    # Log    ${minradius_datacheck_flag}
+    # Run Keyword If    '${minradius_datacheck_flag}'!='0'    Set Test Variable    ${Response_minRadius}    Get Json Value    ${body_GetRequest}    /report/minRadius
+    # Run Keyword If    '${minradius_datacheck_flag}'!='0'    Should Be Equal      ${Response_minRadius}      ${minRadius}
+
+    # Set Test Variable    ${Response_minRadius}    Get Json Value    ${body_GetRequest}    /report/minRadius
+    # Should Be Equal      ${Response_minRadius}      ${minRadius}
+
+    ${Response_maxRadius}=   Get Json Value   ${body_GetRequest}   /report/radius
+    Should Be Equal      ${Response_maxRadius}      ${radius}
+
+    ${Response_poiDataSourceID}=   Get Json Value   ${body_GetRequest}   /report/poiDataSource
+    Should Be Equal      ${Response_poiDataSourceID}      ${poiDataSource}
+
+
+
+#----------------------------------------------------------------------------------
+#3.5  Create Custom Trade Area (4INFO Custom Trade Area, Catalina Custom Trade Area)
+
+Create Custom Trade Area
+    [Arguments]         ${uri}=
+    ...                 ${email}=${QA_DEFAULT_USER}
+    ...                 ${minRadius}=1.0
+    ...                 ${radius}=10.0
+    ...                 ${dataSource}=35
+    ...                 ${reportName}=ACE_Regression_Trade_Area_4info
+    ...                 ${groupId}=1
+    ...                 ${fileName}=CustomFileTAorGEO.csv
+    ...                 ${segmentSources}=gfc
+    ...                 ${segmentEntryList}=-1:-1
+    ...                 ${minradius_datacheck_flag}=0
+    ...                 ${response_code}=200
+    ...                 ${success}=true
+    #Create Session   docker    https://${QA_ACE}:${QA_ACE_PORT}
+    #${headers}    Create Dictionary     Content-type=application/json       Accept=application/json
+    Log         ${segmentEntryList}
+    #{"email":"${email}","minRadius":${minRadius},"radius":${radius},"dataSource":${dataSource},"reportName":"${reportName}","groupId":"${groupId}","fileName":${fileName}"segmentSources":"${segmentSources}","segmentEntryList":"${segmentEntryList}"}
+    Run keyword if  '${reportName}'!='null'         Set Test Variable   ${data}    {"email":"${email}","minRadius":${minRadius},"radius":${radius},"dataSource":${dataSource},"reportName":"${reportName}","groupId":"${groupId}","fileName":"${fileName}","segmentSources":"${segmentSources}","segmentEntryList":"${segmentEntryList}"}
+    ...         ELSE     Set Test Variable                              ${data}    {"email":"${email}","minRadius":${minRadius},"radius":${radius},"dataSource":${dataSource},"reportName":null,"groupId":"${groupId}","fileName":"${fileName}","segmentSources":"${segmentSources}","segmentEntryList":"${segmentEntryList}"}
+    Run keyword if  '${email}'=='null'              Set Test Variable   ${data}    {"email":null,"minRadius":${minRadius},"radius":${radius},"dataSource":${dataSource},"reportName":"${reportName}","groupId":"${groupId}","fileName":"${fileName}","segmentSources":"${segmentSources}","segmentEntryList":"${segmentEntryList}"}
+    Run keyword if  '${segmentEntryList}'=='null'   Set Test Variable   ${data}    {"email":"${email}","minRadius":${minRadius},"radius":${radius},"dataSource":${dataSource},"reportName":"${reportName}","groupId":"${groupId}","fileName":"${fileName}","segmentSources":"${segmentSources}","segmentEntryList":null}
+    Run keyword if  '${groupId}'=='null'            Set Test Variable   ${data}    {"email":"${email}","minRadius":${minRadius},"radius":${radius},"dataSource":${dataSource},"reportName":"${reportName}","groupId":null,"fileName":"${fileName}","segmentSources":"${segmentSources}","segmentEntryList":"${segmentEntryList}"}
+    Run keyword if  '${segmentSources}'=='null'     Set Test Variable   ${data}    {"email":"${email}","minRadius":${minRadius},"radius":${radius},"dataSource":${dataSource},"reportName":"${reportName}","groupId":"${groupId}","fileName":${fileName},"segmentSources":null,"segmentEntryList":"${segmentEntryList}"}
+    Run keyword if  '${fileName}'=='null'           Set Test Variable   ${data}    {"email":"${email}","minRadius":${minRadius},"radius":${radius},"dataSource":${dataSource},"reportName":"${reportName}","groupId":"${groupId}","fileName":null,"segmentSources":"${segmentSources}","segmentEntryList":"${segmentEntryList}"}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING to Create Custom Trade Area via API
+    Log             ${data}
+    #${resp}=    RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}
+    #Log    Response: '${resp.content}'
+    #Set Suite Variable       ${body}     ${resp.content}
+    #Log     ${body}
+    #Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    #Json Value Should Equal      ${body}       /success        ${success}
+	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}
+    ...            expected_status_code=${response_code}						#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+
+
+Remove Json Key Contain MISSING to Create Custom Trade Area via API
+    Log    ${data}
+    ${data}=        Remove String       ${data}     "email":"MISSING",
+    ${data}=        Remove String       ${data}     "dataSource":MISSING,
+    ${data}=        Remove String       ${data}     "groupId":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentSources":"MISSING",
+    ${data}=        Remove String       ${data}     "minRadius":MISSING,
+    ${data}=        Remove String       ${data}     "radius":MISSING,
+    ${data}=        Remove String       ${data}     "reportName":"MISSING",
+    ${data}=        Remove String       ${data}     "fileName":MISSING,
+    ${data}=        Remove String       ${data}     "segmentEntryList":"MISSING"
+    ${data}=        Evaluate    '${data}'.replace(", }",'}').replace(",}",'}')
+    Set Test Variable       ${data}     ${data}
+    Log    ${data}
+
+
+Compare response data with API Get Ace Report detail for Create Custom Trade Area via API
+    [Arguments]         ${email}=
+    ...                 ${segmentEntryList}=
+    ...                 ${dataSource}=
+    ...                 ${groupId}=
+    ...                 ${segmentSources}=
+    ...                 ${minRadius}=
+    ...                 ${radius}=
+    ...                 ${reportName}=
+    ...                 ${fileName}=
+    ...                 ${minradius_datacheck_flag}=
+    ${reportId}=     Get Json Value   ${body}   /id
+    #Sleep           30s
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+    #${result}=  RequestsLibrary.Get Request  docker     ${uri}
+    #Log    Response: '${result.content}'
+    #Set Test Variable       ${body_GetRequest}     ${result.content}
+    #Should Be Equal As Strings   ${result.status_code}   200
+	ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+    Set Test Variable       ${body_GetRequest}     ${body}
+    #Should Be Equal As Strings   ${result.status_code}   200
+    ${Response_reportId}=    Get Json Value    ${body_GetRequest}   /report/id
+    Should Be Equal      ${Response_reportId}       ${reportId}
+
+    ${Response_dataSource}=   Get Json Value   ${body_GetRequest}   /report/dataSource
+    Run Keyword If    '${dataSource}'=='35'     Set Test Variable    ${datasourceName}     "Custom Trade Area"
+    # Run Keyword If    '${dataSource}'=='31'     Set Test Variable    ${datasourceName}     "Catalina Custom Trade Area"
+    # Run Keyword If    '${dataSource}'=='43'     Set Test Variable    ${datasourceName}     "Undertone Custom Trade Area"
+    # Run Keyword If    '${dataSource}'=='46'     Set Test Variable    ${datasourceName}     "Demo Custom Trade Area"
+    Log    ${datasourceName}
+    Should Be Equal      ${Response_dataSource}     ${datasourceName}
+
+    ${Response_name}=   Get Json Value   ${body_GetRequest}   /report/name
+    Should Be Equal      ${Response_name}       "${reportName}"
+
+    ${Response_createdBy}=   Get Json Value   ${body_GetRequest}   /report/createdBy
+    Should Be Equal      ${Response_createdBy}      "${email}"
+
+    ${Response_status}=   Get Json Value   ${body_GetRequest}   /report/status
+    Should Be Equal      ${Response_status}         "Finished "    # "New"       # "Finished - Zero Results"
+
+    Run Keyword If   '${minradius_datacheck_flag}'!='0'      Set Test Variable    ${Response_minRadius}   Get Json Value   ${body_GetRequest}   /report/minRadius
+    Run Keyword If   '${minradius_datacheck_flag}'!='0'    Should Be Equal      ${Response_minRadius}      ${minRadius}
+
+    ${Response_maxRadius}=   Get Json Value   ${body_GetRequest}   /report/radius
+    Should Be Equal      ${Response_maxRadius}      ${radius}
+
+
+
+#-------------------------------------------------------------------------------------
+#ACE 3.6 Create Retargeting Segment
+
+Create Retargeting Segment
+    [Arguments]         ${uri}=
+    ...                 ${email}=${QA_DEFAULT_USER}
+    ...                 ${segmentEntryList}=1117:0
+    ...                 ${dataSource}=34
+    ...                 ${groupId}=1
+    ...                 ${segmentSources}=rt
+    ...                 ${response_code}=200
+    ...                 ${success}=true
+    #Create Session   docker    https://${QA_ACE}:${QA_ACE_PORT}
+    #${headers}    Create Dictionary     Content-type=application/json       Accept=application/json
+    #Sleep           60s         # as report name is populated automatically and it takes timestamp upto seconds, here wait for one minute is mentioned.
+    Set Test Variable       ${data}     {"email":"${email}","segmentEntryList":"${segmentEntryList}","dataSource":${dataSource},"groupId":"${groupId}","segmentSources":"${segmentSources}"}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING to Create Retargeting via API
+    Log             ${data}
+    #${resp}=    RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}
+    #Log    Response: '${resp.content}'
+    #Set Suite Variable       ${body}     ${resp.content}
+    #Log     ${body}
+    #Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    #Json Value Should Equal      ${body}       /success        ${success}
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}
+    ...            expected_status_code=${response_code}						#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+    Run Keyword If   '${resp.status_code}'=='200'   Should Be Valid Json     ${body}
+    Run Keyword If   '${resp.status_code}'=='200'   Compare 200 response data for Create Retargeting
+    ...                 ${email}
+    ...                 ${segmentEntryList}
+    ...                 ${dataSource}
+    ...                 ${groupId}
+    ...                 ${segmentSources}
+
+
+
+Remove Json Key Contain MISSING to Create Retargeting via API
+    ${data}=        Remove String       ${data}     "email":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentEntryList":"MISSING",
+    ${data}=        Remove String       ${data}     "dataSource":MISSING,
+    ${data}=        Remove String       ${data}     "groupId":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentSources":"MISSING"
+    ${data}=        Evaluate    '${data}'.replace(", }",'}').replace(",}",'}')
+    Set Test Variable       ${data}     ${data}
+    Log    ${data}
+
+
+Compare 200 response data for Create Retargeting
+    [Arguments]         ${email}=
+    ...                 ${segmentEntryList}=
+    ...                 ${dataSource}=
+    ...                 ${groupId}=
+    ...                 ${segmentSources}=
+    ${reportId}=     Get Json Value   ${body}   /id
+    Set Test Variable   ${uri}      /ace/api/v2/report/detail?reportId=${reportId}
+    #${result}=  RequestsLibrary.Get Request  docker     ${uri}
+    #Log    Response: '${result.content}'
+    ACE API        uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=GET								#GET, POST, PUT
+    ...            expected_status_code=200					#normally 200 for working condition, 400 for failure
+    ...            success=true
+    Set Suite Variable       ${body_GetRequest}     ${body}
+    #Should Be Equal As Strings   ${result.status_code}   200
+
+    ${Response_reportId}=    Get Json Value    ${body_GetRequest}   /report/id
+    Should Be Equal      ${Response_reportId}       ${reportId}
+
+    ${dataSource}=     Evaluate    "${dataSource}".replace("34", "Retargeting").replace("25", "Catalina Retargeting").replace("42", "Undertone Retargeting").replace("45", "Demo Retargeting")
+
+    ${Response_dataSource}=   Get Json Value   ${body_GetRequest}   /report/dataSource
+    Should Be Equal      ${Response_dataSource}     "${dataSource}"
+
+    ${Response_createdBy}=   Get Json Value   ${body_GetRequest}   /report/createdBy
+    Should Be Equal      ${Response_createdBy}      "${email}"
+
+
+Remove New Retargeting via DB
+    [Arguments]     ${dataSource}=25
+    ...             ${email}=${QA_DEFAULT_USER}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string     delete from rhino.ace_report where datasource_id=${dataSource} and email= '${email}';
+    execute_sql_string     commit;
+    Disconnect From Database
+
+#-------------------------------------------------------------------------------------
+
+# 3.7 Location Append
+
+
+Location Append
+    [Arguments]         ${email}="${QA_DEFAULT_USER}"
+    ...                 ${fileName}=SampleGeocodingFileNEW.xlsx
+    ...                 ${dataSource}=36
+    ...                 ${groupId}=1
+    ...                 ${segmentSources}=la
+    ...                 ${segmentEntryList}="-1:-1"
+    ...                 ${url}=/ace/api/v2/report/create
+    ...                 ${response_code}=400
+    ...                 ${success}=false
+    #Create Session   docker    https://${QA_ACE}:${QA_ACE_PORT}
+    #${headers}    Create Dictionary     Content-type=application/json       Accept=application/json
+    Set Test Variable       ${data}     {"email":${email},"fileName":"${fileName}","dataSource":${dataSource},"groupId":"${groupId}","segmentSources":"${segmentSources}","segmentEntryList":${segmentEntryList}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING to Location Append via API
+    Log             ${url}
+    Log             ${data}
+    #${resp}=    RequestsLibrary.Post Request     docker     ${url}     data=${data}     headers=${headers}
+    #Log    Response: '${resp.content}'
+    #Set Suite Variable       ${body}     ${resp.content}
+    #Log     ${body}
+    #Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+    #Json Value Should Equal      ${body}       /success        ${success}
+	ACE API        uri=${url}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}
+    ...            expected_status_code=${response_code}						#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+
+Remove Json Key Contain MISSING to Location Append via API
+    ${data}=        Remove String       ${data}     "email":"MISSING",
+    ${data}=        Remove String       ${data}     "fileName":"MISSING",
+    ${data}=        Remove String       ${data}     "dataSource":MISSING,
+    ${data}=        Remove String       ${data}     "groupId":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentSources":"MISSING",
+    ${data}=        Remove String       ${data}     "segmentEntryList":MISSING
+    ${data}=        Evaluate    '${data}'.replace(", }",'}').replace(",}",'}')
+    Set Test Variable       ${data}     ${data}
+    Log    ${data}
+
+
+#-------------------------------------------------------------------------------------

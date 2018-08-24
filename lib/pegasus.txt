@@ -1,0 +1,299 @@
+
+
+*** Keywords ***
+#DB KEYWORDS
+Get Token
+	execute_sql_string	select token_id from oauth_access_token where client_id like ('jdoe%');
+	
+#UI KEYWORDS
+Start Pegasus UI 
+      #[Arguments]    ${URL}    ${BROWSER}
+      [Tags]	link
+      Open Browser              ${PEGASUS_DASHBOARD_URL}    ${BROWSER}
+      Sleep   3s
+      Set Selenium Speed        ${SEL_SPEED}
+	  #Close browser
+  
+Enter Username
+	 Input Text   ${USERNAME_XPATH}  ${USER_UI}
+
+Enter Wrong Username
+	 Input Text   ${USERNAME_XPATH}  ${WRONG_USER_UI}
+	 
+Enter Password
+      Input Text   ${PASSWORD_XPATH} 	${PASSWORD_UI}
+      
+Login 
+      Click Element  ${LOGIN_BTN}
+     
+Login into Pegasus Dashboard
+	  Open Browser              ${PEGASUS_DASHBOARD_URL}    ${BROWSER}
+      Sleep   3s
+ 	  Input Text   ${USERNAME_XPATH}  ${USER_UI}
+ 	  Input Text   ${PASSWORD_XPATH} 	${PASSWORD_UI}
+ 	  Click Element  ${LOGIN_BTN}
+ 	  
+Login again into Pegasus Dashboard
+	  Input Text   ${USERNAME_XPATH}  ${USER_UI}
+ 	  Input Text   ${PASSWORD_XPATH} 	${PASSWORD_UI}
+ 	  Click Element  ${LOGIN_BTN}
+ 	  
+Verify Footer and Header Elements
+	  	#Login into Pegasus Dashboard
+		@{FOOTER_LIST}=	Create List		${4INFO_LOGO}	${DROP_DOWN_USERNAME}	${LINKEDIN}		${TWITTER}		${FACEBOOK}		${GOOGLE}		${YOUTUBE}		${PRIVACY}		${TERMS}	${COPYRIGHT}
+		:FOR  ${element}	in		@{FOOTER_LIST}	
+		\	Element Should Be Visible 	${element}
+
+Logout
+	  Click Element	${DROP_DOWN_USERNAME}
+	  Click Element	${LOGOUT}
+ 	  
+Validate DropDown Menu options
+		Click Element	${DROP_DOWN_USERNAME}
+		Sleep 	2s
+		Element Should Be Visible	${DROPDOWN_PROFILE}
+		Element Should Be Visible	${DROPDOWN_LOGOUT}
+ 	    Click Element	${DROPDOWN_LOGOUT}
+ 	    Sleep	2s
+ 	    Element Should Be Visible 	${LOGIN_IMAGE}
+ 	  
+Validate Advertisers List Table Headers  
+      #Page Should Contain Element        ${ADVERTISER_NAME} 
+		Table Header Should Contain        ${ADVERTISERS_TABLE}		Advertiser Name
+        Table Header Should Contain        ${ADVERTISERS_TABLE}		Campaigns
+        Table Header Should Contain        ${ADVERTISERS_TABLE}		Live
+        Table Header Should Contain        ${ADVERTISERS_TABLE}		Paused
+        Table Header Should Contain        ${ADVERTISERS_TABLE}		Completed
+
+Validate View All Campaigns Button on hover
+	 	#Execute Javascript	${SCROLL_DOWN}
+	 	#Sleep 	2s
+	 	Click Element			${FILTER}
+	 	Click Element			${FILTER_ALPHANUMERIC}	
+	 	Wait Until Page Contains Element	${04_TEST_ADVERTISER}
+		Mouse Over 							${04_TEST_ADVERTISER}
+		#Mouse Over		${VIEW_ALL_CAMPAIGNS}
+		Element Should Be Visible	${VIEW_ALL_CAMPAIGNS}
+		#Sleep	4s
+		
+Click View All Campaigns Button
+	 		#Click Element			${FILTER}
+	 		#Sleep 	2s
+	 		#Click Element			${FILTER_ALPHANUMERIC}	
+	 		#Wait Until Page Contains Element	${04_TEST_ADVERTISER}
+		Mouse Over 		              ${MOUSEOVER_04_TEST_ADVERTISER}
+		Click Element 		${VIEW_ALL_CAMPAIGNS}
+		Sleep	5s
+
+Shake The Page
+		Execute Javascript		 ${SCROLL_TO_BOTTOM}
+		Sleep 	2s
+		Execute Javascript		 ${SCROLL_TOP}
+ 
+Get Total Columns of Search in ${ADV_SEARCH} 
+	  ${total_search_columns}=		Get Matching Xpath Count 	  ${ADV_SEARCH}
+	  #//div[@class="campaign-adv-heading-container"]//span[@class="card-title ng-binding ng-scope" and text()[contains(.,*)]]
+	  Log   Total Rows: ${total_search_columns}
+	  #Set Test Variable   ${Results_Returned}   ${total_search_columns}
+	 Set Suite Variable 	${total_search_columns}
+		
+Get Search Dropdown Data  
+      [Arguments]    ${ADV_SEARCH}=    ${ROW}=    
+      ${dropdown_value}=    Get Text    xpath=${ADV_SEARCH}[${ROW}] 
+      Log   Dropdown: ${dropdown_value}
+      Set Test Variable   ${RETURNED_ROW_VALUE}    ${dropdown_value}
+       
+Get Select AdGroup Data 
+      [Arguments]    ${SELECT_GROUP}=    ${ROW}=    
+      ${group_value}=    Get Text    xpath=${SELECT_GROUP_DRPDOWN}[${ROW}] 
+      Log   Dropdown: ${group_value}
+      Set Test Variable   ${RETURNED_GROUP}    ${group_value}
+
+Get to Campaign Summaries Page      
+      Login into Pegasus Dashboard
+	  Sleep		2s
+	  Click View All Campaigns Button
+	  Sleep		3s
+	  
+#API KEYWORDS      
+PEGASUS Pegasus Get Token      
+    Create Session   pegasus    http://qa-engine-05:8080
+    ${headers}      Create Dictionary     Content-type=application/x-www-form-urlencoded		Accept=application/json
+    ${content}      Create Dictionary     client_id=jdoe@4info.com		client_secret=welcome123	grant_type=client_credentials
+    Set Test Variable    ${headers}    ${headers}
+ 	Set Test Variable    ${content}    ${content}
+	${resp}=	Post Request	pegasus		/pegasus/oauth/token	data=${content}		headers=${headers}		
+	${token}=    	extract_matching_regex	'${resp.content}'	"access_token":"(.*)","token_type"
+	Set Test Variable 	 ${resp}  	${resp}
+	Set Test Variable	 ${token}	${token}
+
+PEGASUS Pegasus Get Token new user     
+	[Arguments]		${token}= 	${user_name}=	 ${password}=	  ${client_credentials}=	${expected_status_code}=200
+    Create Session   pegasus    http://qa-engine-05:8080
+    ${headers}      Create Dictionary     Content-type=application/x-www-form-urlencoded		Accept=application/json
+    ${content}      Create Dictionary     client_id=${user_name}@4info.com		client_secret=${password}	grant_type=client_credentials
+    Set Test Variable    ${headers}    ${headers}
+ 	Set Test Variable    ${content}    ${content}
+	${resp}=	Post Request	pegasus		/pegasus/oauth/token	data=${content}		headers=${headers}		
+	${token}=    	extract_matching_regex	'${resp.content}'	"access_token":"(.*)","token_type"
+	Set Test Variable 	 ${resp}  	${resp}
+	Set Test Variable	 ${token}	${token}
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+	
+PEGASUS Login Request
+	[Arguments]		 ${expected_status_code}=200
+	PEGASUS Pegasus Get Token
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+
+
+PEGASUS Pegasus Request
+	[Arguments]		${uri}=    ${expected_status_code}=200
+	PEGASUS Pegasus Get Token
+	${headers}    Create Dictionary     Authorization=bearer ${token}
+	Set Test Variable   ${headers}     ${headers}
+	${resp}=	Get Request		pegasus		${uri}		headers=${headers}
+	Log   Resp: ${resp}
+	Set Test Variable		${resp}		${resp}
+	Log    Code: ${resp.status_code}
+	Log    Response: '${resp.content}'
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+	
+PEGASUS Pegasus Request old token
+	[Arguments]		${uri}=    ${expected_status_code}=404
+	PEGASUS Pegasus Get Token
+	${headers}    Create Dictionary     Authorization=bearer ${token_old}
+	Set Test Variable   ${headers}     ${headers}
+	${resp}=	Get Request		pegasus		${uri}		headers=${headers}
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+	
+PEGASUS Pegasus Request bad Token	
+	[Arguments]		${uri}=	 	${expected_status_code}=404
+	Create Session   pegasus    http://qa-engine-05:8080
+	${headers}    Create Dictionary     Authorization=bearer ${wrong_token}
+	${resp}=	Get Request		pegasus		${uri}			headers=${headers}
+	Set Test Variable		${resp}		${resp}
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+	
+PEGASUS Pegasus Request missing Token
+	[Arguments]		${uri}=		${expected_status_code}=401
+	Create Session   pegasus    http://qa-engine-05:8080
+	${headers}    Create Dictionary     Authorization=bearer ${no_token}
+	${resp}=	Get Request		pegasus		${uri}			headers=${headers}
+	Set Test Variable		${resp}		${resp}	
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+
+PEGASUS Pegasus Request with expired token
+	[Arguments]		${uri}=    ${expected_status_code}=200
+	PEGASUS Pegasus Get Token
+	Sleep  60 seconds  	 Waiting 5 hours until token becomes expired.
+	${headers}    Create Dictionary     Authorization=bearer ${token}
+	Set Test Variable   ${headers}     ${headers}
+	${resp}=	Get Request		pegasus		${uri}		headers=${headers}
+	Log   Resp: ${resp}
+	Set Test Variable		${resp}		${resp}
+	Log    Code: ${resp.status_code}
+	Log    Response: '${resp.content}'
+	Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code} 
+      
+#UI KEYWORDS      
+      
+Get All Pegasus Advertiser Total Rows 
+     Get Total Rows Available In Table ${PEGAGUS_ADVERTISER_TABLE_ROW_XPATH}
+     Set Suite Variable          ${total_pegasus_advertiser_records}               ${Results_Returned}
+     Log    Total Rows in Pegagus Advertisers: ${total_pegasus_advertiser_records}
+
+Retrieve All Pegasus Advertiser Into List
+	Get All Pegasus Advertiser Total Rows 
+	@{all_pegasus_advertiser_list}=       Create List 
+	Capture Page Screenshot
+	Page Should Contain Element   		${PEGAGUS_ADVERTISER_TABLE}
+	Mouse Over     xpath=//div[@class='dropdown']
+	Sleep  1s
+	:FOR    ${index}    IN RANGE   2    ${total_pegasus_advertiser_records}+2
+	\		Get Table Data       TABLE_LOCATOR=${PEGAGUS_ADVERTISER_TABLE}    ROW=${index}    COLUMN=1 
+	\		Set Test Variable     ${Current_Advertiser}    ${RETURNED_CELL_VALUE}
+	\		Append To List    ${all_pegasus_advertiser_list}    ${Current_Advertiser}
+	Log Many      ${all_pegasus_advertiser_list}	
+	Set Suite Variable   	${all_pegasus_advertiser_list}		${all_pegasus_advertiser_list}
+		
+Retrieve Search Data Into List
+	Get Total Columns of Search in ${ADV_SEARCH}
+	@{all_pegasus_dropdown_list}=       Create List
+	:FOR    ${index}    IN RANGE	1	${total_search_columns}+1
+	\		Get Search Dropdown Data	${ADV_SEARCH}		ROW=${index}
+	\		Set Test Variable     ${Current_Dropdown}    ${RETURNED_ROW_VALUE}
+	\		Append To List    ${all_pegasus_dropdown_list}    ${Current_Dropdown}
+	Log Many		${all_pegasus_dropdown_list} 
+	Set Suite Variable		${all_pegasus_dropdown_list}		${all_pegasus_dropdown_list}
+
+Get to Campaign View Page
+		Login into Pegasus Dashboard
+		Sleep	15s
+		Click View All Campaigns Button
+		Sleep	4s	
+		Click Element	${CAMPAIGNS_ALL}
+
+#through "Theresa Test"	
+Get to Insights Page	
+		Login into Pegasus Dashboard
+		Sleep	8s
+		Click View All Campaigns Button
+		Sleep	4s
+		Click Element	${CAMPAIGNS_ALL}
+		Mouse Over		${CAMPAIGN_OVERLAY}
+		Wait Until Element Is Visible	${VIEW_CAMPAIGN_TEST_CAMAPAIGN}
+		Double Click Element			${VIEW_CAMPAIGN_TEST_CAMAPAIGN}
+		Sleep 	2s
+
+#trough  "4info pixel testing"
+Get to Select Adgroups		
+		Login into Pegasus Dashboard
+		Sleep  15s
+		Click View All Campaigns Button
+		Sleep	4s
+		Wait Until Element Is Visible	${CAMPAIGNS_ALL}
+		Click Element 	${CAMPAIGNS_ALL}
+		Sleep 	6s
+		Mouse Over		${100_CP_CAMPAIGN}
+		Sleep 	2s
+		#${VIEW_CAMPAIGN_4INFO}
+		Wait Until Element Is Visible	${VIEW_CAMPAIGN_100_CP}
+		Click Element					${VIEW_CAMPAIGN_100_CP}
+		Sleep 	2s
+		
+Retrieve Adgroup Data Into List
+	Get Total Columns of Search in ${SELECT_GROUP_DRPDOWN}	
+	@{all_adgroup_dropdown_list}=       Create List
+	:FOR    ${index}    IN RANGE	1	${total_search_columns}+1		
+	\		Get Select AdGroup Data		${SELECT_ADGROUP}			ROW=${index}
+	\		Set Test Variable     		${Current_Dropdown}    	${RETURNED_GROUP}
+	\		Append To List    ${all_adgroup_dropdown_list}    	${Current_Dropdown}
+	Log Many		${all_adgroup_dropdown_list} 
+	Set Suite Variable		${all_adgroup_dropdown_list}		${all_adgroup_dropdown_list}	
+	
+Verify Header and Footer Elements
+		@{ELEMENTS}= 	Create List	${4INFO_LOGO}	${DROP_DOWN_USERNAME}	${LINKEDIN}  ${TWITTER}  ${FACEBOOK}  ${GOOGLE}  ${YOUTUBE}  ${PRIVACY}  ${TERMS}  ${COPYRIGHT}	
+		:FOR 	${element}	IN	 @{ELEMENTS}
+		\		Page Should Contain Element  ${element}
+		#\       Element Should Contain	${element}		IMPRESSION
+		\		Element Should Be Visible	${element}
+
+Get to Edit Profile Page		
+		Login into Pegasus Dashboard
+    	Sleep 	10s
+    	Click Element 	${DROP_DOWN_USERNAME}
+    	Sleep 	2s
+    	Click Element 	${DROPDOWN_PROFILE}
+    	Sleep  2s
+    	#Click Element	${RIGHT_FIELD}
+    	#Sleep  2s
+    	
+Set Name as Jane Doe
+	    Sleep	2s
+	    Input Text 	${PROFILE_USERNAME_FIRST}	Jane
+    	Input Text 	${PROFILE_USERNAME_LAST}	Doe
+    	Click Element 			${SAVE_CHANGES_BTN}
+    	Sleep 	2s
+
+Input Email Text     	
+		Input Text   ${PROFILE_EMAIL}  ${USER_UI}

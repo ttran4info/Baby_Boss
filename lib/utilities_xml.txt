@@ -1,0 +1,44 @@
+*** Settings ***
+Library    XML
+
+
+*** Keywords ***
+
+Validate XML Response
+    [Documentation]    Validate any xml response by taking in a dictionary containing keys which map the the xpath and values as the expected values.
+    ...                Arguments:
+    ...                ${xml_response} - the raw xml response to validate against
+    ...                ${expected_values_dictionary} - the key (xpath) and value (expected results) to validate against.
+    ...                Example:   
+    ...                Example:   
+    ...                    expected_values_dictionary = {'id':'1234567890','another_id':'98765'}
+    ...                    When the above dictionary is passed in, the json validation will be as follows:  
+    ...                    The element with xpath (id) must match 1234567890
+    ...                    The element with xpath (another_id) must match 98765
+    [Arguments]     ${xml_response}=   ${expected_values_dictionary}=
+    Log   ${expected_values_dictionary}   
+    @{keys}=    Get Dictionary Keys    ${expected_values_dictionary}
+    :FOR    ${item}   IN   @{keys}
+    \        ${value}=   Get From Dictionary   ${expected_values_dictionary}   ${item}
+    \        Retrieve Element And Validate Value Match    xml_response=${xml_response}    element_xpath=${item}   expected_value=${value}   
+    
+    
+Retrieve Element And Validate Value Match  
+    [Documentation]   Validate the element from an xpath matches the expected output in the xml_response that is passed in.
+    ...               Arguments:
+    ...               ${xml_response} - the raw xml response to validate against
+    ...               ${element_xpath} - the xpath of the element to validate against
+    ...               ${expected_value} - the expected value to validate against
+    ...               Example:  
+    [Arguments]     ${xml_response}=    ${element_xpath}=   ${expected_value}=    
+    ${root}=     Parse XML       ${xml_response}   
+    ${text_found}=      Get Element Text     ${root}     ${element_xpath} 
+    Log     Text Found:${text_found} Expected:${expected_value}    DEBUG
+    Should Be Equal     ${text_found}    ${expected_value} 
+    
+    
+    
+    
+    
+    
+    

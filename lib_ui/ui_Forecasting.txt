@@ -1,0 +1,730 @@
+Library    phoenix_ui.txt
+
+
+*** Keywords ***
+#----------------------------------------------------------------------------------
+# Login To Phoenix UI2
+#     [Arguments]     ${username}=${QA_DEFAULT_USER}
+#     ...             ${password}=${QA_DEFAULT_PASSWORD}
+#     ...             ${url}=${LOGIN_URL}    #http://qa-dswarm-01:28082/phoenix/#/login
+#     ...             ${browser}=Chrome
+#     Log    ${QA_DEFAULT_USER}
+#     Log    ${LOGIN_NAME_TEXTBOX}
+#     Close All Browsers
+#     Open Browser    url=${url}    browser=${browser}
+#     Wait Until Page Contains Element    ${LOGIN_NAME_TEXTBOX}
+#     Maximize Browser Window
+#     Input Text      ${LOGIN_NAME_TEXTBOX}        ${QA_DEFAULT_USER}
+#     Input Text      ${LOGIN_PASSWORD_TEXTBOX}    ${password}
+#     Click Button    ${LOGIN_BUTTON}
+
+Clear All Users Created For Forecasting UI Tests
+    Delete a user       username=${username}
+
+
+Create Pre-requisite users to test Forecasting
+    Log To Console    Creating a new user ${username}
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="${Pass}"
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=[{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Log To Console    ${username} User Created
+
+    Comment    Catalina Group
+    Log To Console    Adding Catalina Group Permissions
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=6
+    ...    permissionid=1
+    ...    productid=1
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=6
+    ...    permissionid=2
+    ...    productid=1
+
+    Comment    Catalina Self Service Group
+    Log To Console    Adding Catalina Self Service Group Permissions
+    Set Required Permissions To User    username=${username}
+    ...    groupid=15
+    ...    permissionid=1
+    ...    productid=1
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=15
+    ...    permissionid=2
+    ...    productid=1
+
+    Comment    Datamyx Group
+    Log To Console    Adding Datamyx Group Permissions
+    Set Required Permissions To User    username=${username}
+    ...    groupid=17
+    ...    permissionid=1
+    ...    productid=1
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=17
+    ...    permissionid=2
+    ...    productid=1
+
+    Comment    ATT Group
+    Log To Console    Adding ATT Group Permissions
+    Set Required Permissions To User    username=${username}
+    ...    groupid=12
+    ...    permissionid=1
+    ...    productid=1
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=12
+    ...    permissionid=2
+    ...    productid=1
+
+
+
+
+Get Locator attribute value and compare result
+    [Arguments]     ${locator}=
+    ...             ${attributename}=
+    ...             ${Value}=false
+    Log    ${locator}
+    Log    ${attributename}
+    Log    ${Value}
+    ${attributevalue}=       Get Element Attribute  ${locator}@${attributename}
+    Sleep    3s
+    Should Contain    ${attributevalue}    ${Value}
+
+
+Get Forecasting Page
+    Click Link    ${Header_Ribbon_Forecasting_Link}
+    Sleep   2s
+
+
+Check Line Item (Ad Group) elements are present
+    Comment    Line Item (Ad Group)
+    Element Should Be Visible    ${Label_LineItem_Adgroup}
+    Element Should Contain       ${Label_LineItem_Adgroup}    Line Item (Ad Group)
+    Element Should Be Visible    ${Label_LineItem_Duration}
+    Element Should Contain       ${Label_LineItem_Duration}    DURATION :
+    Element Should Be Visible    ${Text_LineItem_Duration}
+    Element Should Be Visible    ${Label_LineItem_Days}
+    Element Should Contain       ${Label_LineItem_Days}    Days
+    Element Should Be Visible    ${Label_LineItem_GOAL}
+    Element Should Contain       ${Label_LineItem_GOAL}    GOAL :
+    Element Should Be Visible    ${Text_LineItem_GOAL}
+    Element Should Be Visible    ${Label_LineItem_Impressions}
+    Element Should Contain       ${Label_LineItem_Impressions}    Impressions
+    Element Should Be Visible    ${Label_LineItem_DailyGoal}
+    Element Should Contain       ${Label_LineItem_DailyGoal}    DAILY GOAL:
+    # Element Should Be Visible    ${Label_LineItem_50000}
+    Element Should Contain       ${Label_LineItem_50000}    50,000
+    Element Should Be Visible    ${Label_LineItem_Impressions}
+    Element Should Contain       ${Label_LineItem_50000IMPRESSIONS}    IMPRESSIONS
+    Capture Page Screenshot With Timestamp
+
+
+Check Household Segment elements are present
+    Comment    Household Segment
+    Element Should Be Visible    ${Label_HouseholdSegment}
+    Element Should Contain       ${Label_HouseholdSegment}    Household Segment
+    Element Should Be Visible    ${Label_DATAPROVIDERS}
+    Element Should Contain       ${Label_DATAPROVIDERS}    DATA PROVIDERS:
+    Element Should Be Visible    ${Select_DATAPROVIDERS}
+    Element Should Be Visible    ${Label_SEGMENTSIZE}
+    Element Should Contain       ${Label_SEGMENTSIZE}    SEGMENT SIZE :
+    Element Should Be Visible    ${input_SEGMENTSIZE}
+    Element Should Be Visible    ${Label_HouseholdFCap}
+    Element Should Contain       ${Label_HouseholdFCap}    HOUSEHOLD F-CAP :
+    Element Should Be Visible    ${Label_Households}
+    Element Should Contain       ${Label_Households}    Households
+    Element Should Be Visible    ${Text_householdCap}
+    # Element Should Be Visible    ${Label_ImpressionsssPer}
+    Element Should Contain       ${Label_ImpressionsPer}    Impressions per
+    Element Should Be Visible    ${Text_householdCapDays}
+    Element Should Be Visible    ${Label_Days}
+    Element Should Contain       ${Label_Days}    Days
+    Focus    ${Text_householdCap}
+    Capture Page Screenshot With Timestamp
+
+
+Check Creative elements are present
+    [Arguments]    ${CreativeType}=NA
+    Element Should Be Visible    ${Label_Creative}
+    Element Should Contain       ${Label_Creative}          Creative
+    Element Should Be Visible    ${Label_CreativeType}
+    Element Should Contain       ${Label_CreativeType}      CREATIVE TYPE :
+    Element Should Be Visible    ${Select_CreativeType}
+    Select From List    ${Select_CreativeType}    ${CreativeType}
+    Sleep  1s
+    Run Keyword If    '${CreativeType}'=='Banner'    Check Creative elements are present for Banner
+    Run Keyword If    '${CreativeType}'=='Video'    Check elements for Video, Native or Unknown
+    Run Keyword If    '${CreativeType}'=='Native'    Check elements for Video, Native or Unknown
+    Run Keyword If    '${CreativeType}'=='Unknown'    Check elements for Video, Native or Unknown
+
+
+Check Creative elements are present for Banner
+    Element Should Be Visible    ${Checkbox_120x20}
+    Element Should Be Visible    ${Label_120x20}
+    Element Should Contain       ${Label_120x20}            120x20
+    Element Should Be Visible    ${Checkbox_168x28}
+    Element Should Be Visible    ${Label_168x28}
+    Element Should Contain       ${Label_168x28}            168x28
+    Element Should Be Visible    ${Checkbox_216x36}
+    Element Should Be Visible    ${Label_216x36}
+    Element Should Contain       ${Label_216x36}            216x36
+    Element Should Be Visible    ${Checkbox_300x50}
+    Element Should Be Visible    ${Label_300x50}
+    Element Should Contain       ${Label_300x50}            300x50
+    Element Should Be Visible    ${Checkbox_320x50}
+    Element Should Be Visible    ${Label_320x50}
+    Element Should Contain       ${Label_320x50}            320x50
+    Element Should Be Visible    ${Checkbox_300x250}
+    Element Should Be Visible    ${Label_300x250}
+    Element Should Contain       ${Label_300x250}           300x250
+    Element Should Be Visible    ${Checkbox_728x90}
+    Element Should Be Visible    ${Label_728x90}
+    Element Should Contain       ${Label_728x90}            728x90
+    Element Should Be Visible    ${Checkbox_160x600}
+    Element Should Be Visible    ${Label_160x600}
+    Element Should Contain       ${Label_160x600}           160x600
+    Element Should Be Visible    ${Checkbox_468x60}
+    Element Should Be Visible    ${Label_468x60}
+    Element Should Contain       ${Label_468x60}            468x60
+    Element Should Be Visible    ${Checkbox_120x600}
+    Element Should Be Visible    ${Label_120x600}
+    Element Should Contain       ${Label_120x600}           120x600
+    Element Should Be Visible    ${Checkbox_1024x90}
+    Element Should Be Visible    ${Label_1024x90}
+    Element Should Contain       ${Label_1024x90}           1024x90
+    Element Should Be Visible    ${Checkbox_320x480}
+    Element Should Be Visible    ${Label_320x480}
+    Element Should Contain       ${Label_320x480}           320x480
+    Element Should Be Visible    ${Checkbox_300x600}
+    Element Should Be Visible    ${Label_300x600}
+    Element Should Contain       ${Label_300x600}           300x600
+    Element Should Be Visible    ${Checkbox_180x150}
+    Element Should Be Visible    ${Label_180x150}
+    Element Should Contain       ${Label_180x150}           180x150
+    Element Should Be Visible    ${Checkbox_968x1024}
+    Element Should Be Visible    ${Label_968x1024}
+    Element Should Contain       ${Label_968x1024}          968x1024
+    Element Should Be Visible    ${Checkbox_768x1024}
+    Element Should Be Visible    ${Label_768x1024}
+    Element Should Contain       ${Label_768x1024}          768x1024
+    Element Should Be Visible    ${Label_RichMediaType}
+    Element Should Contain       ${Label_RichMediaType}     RICH MEDIA TYPE:
+    Element Should Be Visible    ${Label_SecureLog}
+    Element Should Contain       ${Label_SecureLog}     SECURE LOG:
+    Element Should Be Visible    ${Select_SecureLog}
+    Focus                ${Checkbox_isTrafficTypeChecked}
+    Capture Page Screenshot With Timestamp
+
+
+Check elements for Video, Native or Unknown
+    Element Should Be Visible    ${Label_SecureLog}
+    Element Should Contain       ${Label_SecureLog}     SECURE LOG:
+    Element Should Be Visible    ${Select_SecureLog}
+    Focus                ${Checkbox_isTrafficTypeChecked}
+    Capture Page Screenshot With Timestamp
+
+
+Check Inventory elements when Traffic Type is not selected
+    Element Should Be Visible    ${Label_Inventory}
+    Element Should Contain       ${Label_Inventory}     Inventory
+
+    Element Should Be Visible    ${Checkbox_isTrafficTypeChecked}
+
+    Element Should Be Visible    ${Label_Traffic}
+    Element Should Contain       ${Label_Traffic}     Traffic type
+
+    Element Should Not Be Visible    ${Checkbox_MobileWeb}
+    Element Should Not Be Visible    ${Label_MobileWeb}
+
+    Element Should Not Be Visible    ${Checkbox_App}
+    Element Should Not Be Visible    ${Label_App}
+
+    Element Should Not Be Visible    ${Checkbox_Desktop}
+    Element Should Not Be Visible    ${Label_Desktop}
+
+    # Click Element    ${Label_Clusters}
+    Capture Page Screenshot With Timestamp
+
+
+Check Inventory elements when Traffic Type is selected
+    Click Element      ${checkbox_Country}
+    Sleep    2s
+    Element Should Be Visible    ${Label_Inventory}
+    Element Should Contain       ${Label_Inventory}     Inventory
+
+    Check checkbox    ElementXpath=${Checkbox_isTrafficTypeChecked}
+
+    Element Should Be Visible    ${Label_Traffic}
+    Element Should Contain       ${Label_Traffic}     Traffic type
+
+    Element Should Be Visible    ${Checkbox_MobileWeb}
+    Element Should Be Visible    ${Label_MobileWeb}
+    Element Should Contain       ${Label_MobileWeb}     Mobile Web
+
+    Element Should Be Visible    ${Checkbox_App}
+    Element Should Be Visible    ${Label_App}
+    Element Should Contain       ${Label_App}     App
+
+    Element Should Be Visible    ${Checkbox_Desktop}
+    Element Should Be Visible    ${Label_Desktop}
+    Element Should Contain       ${Label_Desktop}     Desktop
+
+    Focus    ${checkbox_Country}
+    Capture Page Screenshot With Timestamp
+
+
+Check checkbox
+    [Arguments]    ${ElementXpath}=
+    Element Should Be Visible    ${ElementXpath}
+    Click Element                ${ElementXpath}
+    # Select Checkbox    ${ElementXpath}
+    Sleep    5s
+
+Verify Checkbox Mobile Web is checked when clicked on Mobile Web
+    Focus    ${checkbox_Country}
+    Check checkbox    ElementXpath=${Checkbox_MobileWeb}
+    Focus    ${checkbox_Country}
+    Sleep    2s
+    Capture Page Screenshot With Timestamp
+
+
+Verify Checkbox App is checked when clicked on App
+    Check checkbox    ElementXpath=${Checkbox_App}
+    Focus    ${checkbox_Country}
+    Sleep    2s
+    Capture Page Screenshot With Timestamp
+
+
+Verify Checkbox Desktop is checked when clicked on Desktop
+    Check checkbox    ElementXpath=${Checkbox_Desktop}
+    Focus    ${checkbox_Country}
+    Sleep    2s
+    Capture Page Screenshot With Timestamp
+
+
+Check Inventory elements are visible when Clusters is selected
+    Element Should Be Visible    ${Label_Inventory}
+    Element Should Contain       ${Label_Inventory}     Inventory
+
+    Element Should Be Visible    ${Checkbox_Clusters}
+
+    Element Should Be Visible    ${Label_Clusters}
+    Element Should Contain       ${Label_Clusters}     Clusters
+
+    Element Should Be Visible    ${Label_AvailableClusters}
+    Element Should Contain       ${Label_AvailableClusters}     AVAILABLE CLUSTERS
+
+    Element Should Be Visible    ${Label_IncludedClusters}
+    Element Should Contain       ${Label_IncludedClusters}     INCLUDED CLUSTERS
+
+    Element Should Be Visible    ${Label_ExcludedClusters}
+    Element Should Contain       ${Label_ExcludedClusters}     EXCLUDED CLUSTERS
+
+    Element Should Be Visible    ${Button_IncludeClusters}
+    Element Should Contain       ${Button_IncludeClusters}     Include
+
+    Element Should Be Visible    ${Button_ExcludeClusters}
+    Element Should Contain       ${Button_ExcludeClusters}    Exclude
+
+    Focus    ${checkbox_Country}
+    Sleep    2s
+    Capture Page Screenshot With Timestamp
+
+
+Check Inventory elements are visible when Clusters is not selected
+
+    Element Should Be Visible    ${Label_Inventory}
+    Element Should Contain       ${Label_Inventory}     Inventory
+
+    Element Should Be Visible    ${Checkbox_Clusters}
+    Check checkbox    ElementXpath=${Checkbox_Clusters}
+
+    Element Should Be Visible    ${Label_Clusters}
+    Element Should Contain       ${Label_Clusters}     Clusters
+
+    Element Should Not Be Visible    ${Label_AvailableClusters}
+    Element Should Not Be Visible    ${Label_IncludedClusters}
+    Element Should Not Be Visible    ${Label_ExcludedClusters}
+    Element Should Not Be Visible    ${Button_IncludeClusters}
+    Element Should Not Be Visible    ${Button_ExcludeClusters}
+
+    Focus    ${checkbox_Country}
+    Sleep    2s
+    Capture Page Screenshot With Timestamp
+
+
+Run Forecast
+    Click Element    ${Button_RunForecast}
+    Sleep    5s
+
+
+Empty budget field, returns old results
+    Wait Until Page Contains Element    ${Table_Forecasting}    timeout=1000s
+    Element Should Be Visible    ${Table_Forecasting}
+    Wait Until Page Contains Element    ${Label_Graph}    timeout=1000s
+    Element Should Be Visible    ${Label_Graph}
+    Wait Until Page Contains Element    ${Graph}    timeout=1000s
+    Element Should Be Visible    ${Graph}
+    Wait Until Page Contains Element    ${table_tblClearingPrice}    timeout=1000s
+    Element Should Be Visible    ${table_tblClearingPrice}
+    ${count}    Get Matching Xpath Count    ${tblClearingPrice_Headers}
+    Log    ${count}
+    :FOR    ${index}    IN RANGE    1    ${count} + 1
+    \    Log    ${index}
+    \    ${HeaderName}=    Get Text    ${tblClearingPrice_Headers}[${index}]
+    \    Log    ${HeaderName}
+    \    Run Keyword If    ${index} == 1    Should Match Regexp    ${HeaderName}    Clearing Price
+    \    Run Keyword If    ${index} == 2    Should Match Regexp    ${HeaderName}    Households
+    \    Run Keyword If    ${index} == 3    Should Match Regexp    ${HeaderName}    Segment Reach
+    \    Run Keyword If    ${index} == 4    Should Match Regexp    ${HeaderName}    Impressions
+
+
+
+With Budget, new results are returned
+    Wait Until Page Contains Element    ${Table_Forecasting}    timeout=1000s
+    Element Should Be Visible    ${Table_Forecasting}
+    Wait Until Page Contains Element    ${Label_Graph}    timeout=1000s
+    Element Should Be Visible    ${Label_Graph}
+    Wait Until Page Contains Element    ${Graph}    timeout=1000s
+    Element Should Be Visible    ${Graph}
+    Element Should Be Visible    ${table_tblBudgetDebugMode}
+    ${DetailedTablesCount}    Get Matching Xpath Count    ${table_tblBudgetDebugMode}
+    Log    ${DetailedTablesCount}
+    :FOR    ${index1}    IN RANGE    1    ${DetailedTablesCount} + 1
+    \    Log    ${index1}
+    \    Get Table Headers For New Result    WebElementXpath=${tblBudget_Headers}
+
+
+Get Table Headers For New Result
+    [Arguments]    ${WebElementXpath}=
+    ${count}    Get Matching Xpath Count    ${WebElementXpath}
+    Log    ${count}
+    :FOR    ${index}    IN RANGE    1    ${count} + 1
+    \    Log    ${index}
+    \    ${HeaderName}=    Get Text    ${WebElementXpath}[${index}]
+    \    Log    ${HeaderName}
+    \    Run Keyword If    ${index} == 1    Should Match Regexp    ${HeaderName}    Budget
+    \    Run Keyword If    ${index} == 2    Should Match Regexp    ${HeaderName}    Households
+    \    Run Keyword If    ${index} == 3    Should Match Regexp    ${HeaderName}    Segment Reach
+    \    Run Keyword If    ${index} == 4    Should Match Regexp    ${HeaderName}    Impressions
+
+
+With budget value, additional results before new results in debug mode
+    Log    ${table_tblBudgetDebugMode}
+    ${table_tblBudgetDebugMode_count}    Get Matching Xpath Count    ${table_tblBudgetDebugMode}
+    Log    ${table_tblBudgetDebugMode_count}
+    :FOR    ${index1}    IN RANGE    1    ${table_tblBudgetDebugMode_count} + 1
+    \    Log    ${index1}
+    \    Run Keyword If    ${index1} == 1    Get additional results before new results    WebElementXpath=${tblBudgetDebugMode_Headers}
+    \    Run Keyword If    ${index1} == 2    Get Table Headers For New Result    WebElementXpath=${tblBudgetDebugMode_Headers}
+
+
+
+Get additional results before new results
+    [Arguments]    ${WebElementXpath}=
+    ${count}    Get Matching Xpath Count    ${WebElementXpath}
+    Log    ${count}
+    :FOR    ${index}    IN RANGE    1    7 # ${count} + 1
+    \    Log    ${index}
+    \    ${HeaderName}=    Get Text    ${WebElementXpath}[${index}]
+    \    Log    ${HeaderName}
+    \    Run Keyword If    ${index} == 1    Should Match Regexp    ${HeaderName}    Clearing Price
+    \    Run Keyword If    ${index} == 2    Should Match Regexp    ${HeaderName}    Households
+    \    Run Keyword If    ${index} == 3    Should Match Regexp    ${HeaderName}    Impressions
+    \    Run Keyword If    ${index} == 4    Should Match Regexp    ${HeaderName}    Partner CPM
+    \    Run Keyword If    ${index} == 5    Should Match Regexp    ${HeaderName}    Calculated Budget
+    \    Run Keyword If    ${index} == 6    Should Match Regexp    ${HeaderName}    Budget
+    \    Run Keyword If    ${index} == 7    Should Match Regexp    ${HeaderName}    Incremental Margin
+
+
+Check Budget Field Is Present in Forecasting2 Page
+    Element Should Be Visible    ${Label_Budget}
+    Element Should Contain       ${Label_Budget}    BUDGET:
+    Element Should Be Visible    ${Input_Budget}
+    # Element Should Be Visible    ${Label_$>10000}
+    # Element Should Contain       ${Label_$>10000}    Dollars( >$10000)
+
+
+Check Budget Field Is Not Present in Forecasting2 Page
+    Element Should Not Be Visible    ${Label_Budget}
+    Element Should Not Be Visible    ${Input_Budget}
+    Element Should Not Be Visible    ${Label_$>10000}
+
+
+Check Required Asterick Mark is Present for Budget
+    ${AsterickMark}=    Get Element Attribute    ${Label_Budget}@ng-reflect-ng-class
+    Log    ${AsterickMark}
+    Should Match Regexp    ${AsterickMark}    reqFieldIcon
+
+
+Check Required Asterick Mark is not Present for Budget
+    ${NoAsterickMark}=    Get Element Attribute    ${Label_Budget}@ng-reflect-ng-class
+    Log    ${NoAsterickMark}
+    Should Match Regexp    '${NoAsterickMark}'    'None'
+
+
+Goto Forecasting URL
+    Go To    ${Home_page}${ForecastingPage}
+    Sleep    10s
+    Execute javascript  document.body.style.zoom="100%"
+    Wait Until Page Contains Element    ${Button_RunForecast}    timeout=120s
+
+
+
+Goto Forecasting URL In Debug Mode
+    Go To    ${Home_page}${ForecastingPage_DebugTrue}
+    Sleep    4s
+    Execute javascript  document.body.style.zoom="100%"
+    Wait Until Page Contains Element    ${Button_RunForecast}    timeout=120s
+
+
+Goto Forecasting2 URL
+    Go To    ${Home_page}${ForecastingPage2}
+    Sleep    10s
+    Execute javascript  document.body.style.zoom="100%"
+    Wait Until Page Contains Element    ${Button_RunForecast}    timeout=120s
+
+
+Goto Forecasting2 URL In Debug Mode
+    Go To    ${Home_page}${ForecastingPage2_DebugTrue}
+    Sleep    4s
+    Execute javascript  document.body.style.zoom="100%"
+    Wait Until Page Contains Element    ${Button_RunForecast}    timeout=120s
+
+
+Select Group in Select Dropdown
+    [Arguments]    ${GroupName}=
+    Set Test Variable    ${GroupSelect}    ${GROUP_SELECT_DROPDOWN}/option[text()='${GroupName}']
+    Log    ${GroupSelect}
+    Click Element    ${GroupSelect}
+    Sleep    8s
+
+
+Validate Items Visible after Run Forecast Button
+    Check Line Item (Ad Group) elements are present
+    Check Household Segment elements are present
+
+
+#----------------------------------------------------------------------------------
+# QA Task : FOR-46  & Dev Task : FOR-38
+
+Set Channel Partner at UI page
+    [Arguments]    ${ChannelPartner}=
+    Log    ${ChannelPartner}
+    Wait Until Page Contains Element    ${Select_CHANNELPARTNERS}    timeout=120s
+    Element Should Be Visible    ${Select_CHANNELPARTNERS}
+    Select From List By Label    ${Select_CHANNELPARTNERS}    ${ChannelPartner}
+    Sleep    2s
+
+Select Creative Type in forecasting2 page
+    [Arguments]     ${CreativeType}=
+    Element Should Be Visible    ${Select_CreativeType}
+    Select From List    ${Select_CreativeType}    ${CreativeType}
+    Sleep    5s
+    Capture Page Screenshot With Timestamp
+
+
+Select Banner Size at UI
+    [Arguments]    ${BannerSize}=
+    Log    ${BannerSize}
+
+    Focus    ${Checkbox_768x1024}
+    Sleep    3s
+
+    Run Keyword If    '${BannerSize}' == '120x20'
+    ...    Click Element    ${Checkbox_120x20}
+
+    Run Keyword If    '${BannerSize}' == '168x28'
+    ...    Click Element    ${Checkbox_168x28}
+
+    Run Keyword If    '${BannerSize}' == '216x36'
+    ...    Click Element    ${Checkbox_216x36}
+
+    Run Keyword If    '${BannerSize}' == '300x50'
+    ...    Click Element    ${Checkbox_300x50}
+
+    Run Keyword If    '${BannerSize}' == '320x50'
+    ...    Click Element    ${Checkbox_320x50}
+
+    Run Keyword If    '${BannerSize}' == '300x250'
+    ...    Click Element    ${Checkbox_300x250}
+
+    Run Keyword If    '${BannerSize}' == '728x90'
+    ...    Click Element    ${Checkbox_728x90}
+
+    Run Keyword If    '${BannerSize}' == '160x600'
+    ...    Click Element    ${Checkbox_160x600}
+
+    Run Keyword If    '${BannerSize}' == '468x60'
+    ...    Click Element    ${Checkbox_468x60}
+
+    Run Keyword If    '${BannerSize}' == '120x600'
+    ...    Click Element    ${Checkbox_120x600}
+
+    Run Keyword If    '${BannerSize}' == '1024x90'
+    ...    Click Element    ${Checkbox_1024x90}
+
+    Run Keyword If    '${BannerSize}' == '320x480'
+    ...    Click Element    ${Checkbox_320x480}
+
+    Run Keyword If    '${BannerSize}' == '300x600'
+    ...    Click Element    ${Checkbox_300x600}
+
+    Run Keyword If    '${BannerSize}' == '180x150'
+    ...    Click Element    ${Checkbox_180x150}
+
+    Run Keyword If    '${BannerSize}' == '968x1024'
+    ...    Click Element    ${Checkbox_968x1024}
+
+    Run Keyword If    '${BannerSize}' == '768x1024'
+    ...    Click Element    ${Checkbox_768x1024}
+
+    Sleep    5s
+
+Select Device Type in forecasting2 page
+    [Arguments]    ${DeviceType}=
+    Log    ${DeviceType}
+    Click Element    ${TARGETING_DEVICE_TYPE}
+    Sleep    5s
+
+    Focus    ${DEVICE_TYPE_TABLET}
+    Sleep    3s
+
+    Run Keyword If    '${DeviceType}' == 'Tablet'
+    ...    Click Element    ${DEVICE_TYPE_TABLET}
+    Run Keyword If    '${DeviceType}' == 'Phone'
+    ...    Click Element    ${DEVICE_TYPE_PHONE}
+    Run Keyword If    '${DeviceType}' == 'Other'
+    ...    Click Element    ${DEVICE_TYPE_OTHER}
+    Sleep    10s
+    Capture Page Screenshot With Timestamp
+
+
+Select Traffic Type in forecasting2 page
+    [Arguments]    ${TrafficType}=
+    Click Element    ${TARGETING_TRAFFIC_TYPE}
+    Sleep    2s
+    Focus    ${TRAFFIC_TYPE_MOBILE_WEB}
+    Sleep    3s
+
+    Run Keyword If    '${TrafficType}' == 'Mobile Web'
+    ...    Click Element    ${TRAFFIC_TYPE_MOBILE_WEB}
+    Run Keyword If    '${TrafficType}' == 'App'
+    ...    Click Element    ${TRAFFIC_TYPE_APP}
+    Run Keyword If    '${TrafficType}' == 'Desktop'
+    ...    Click Element    ${TRAFFIC_TYPE_DESKTOP}
+    Sleep    2s
+    Capture Page Screenshot With Timestamp
+
+
+Get HH Ids and fcRequests in Response
+    Focus    ${UI_fcRequests_in_response}
+    Sleep    5s
+
+    ${temp_HH_Ids}    Get Text    ${UI_hhids_in_response}
+    ${temp_HH_Ids} =    Remove String    ${temp_HH_Ids}    hhids in response =
+    Set Suite Variable    ${HH_IdsInResponse}    ${temp_HH_Ids}
+    Log    ${HH_IdsInResponse}
+
+    ${temp_fcRequests}    Get Text    ${UI_fcRequests_in_response}
+    ${temp_fcRequests} =    Remove String    ${temp_fcRequests}    fcRequests in response =
+    Set Suite Variable    ${fcRequests_InResponse}    ${temp_fcRequests}
+    Log    ${fcRequests_InResponse}
+
+
+Get UI Average CPM For Selected Options
+    Focus    ${UI_AverageCPM}
+    Sleep    5s
+    ${AvgCPMValue_UI}    Get Text    ${UI_AverageCPM}
+    ${AvgCPMValue_UI} =    Remove String    ${AvgCPMValue_UI}    ** Average Cpm is =${Space}
+    Log    ${AvgCPMValue_UI}
+    Set Suite Variable    ${UI_AvgCPM}    ${AvgCPMValue_UI}
+
+
+
+Scroll Page To Location
+#     [Arguments]     ${X_location}=
+#     ...             ${Y_location}=
+#     Execute JavaScript    window.scrollTo(${X_location}, ${Y_location})
+    Execute Javascript    window.document.evaluate("${UI_AverageCPM}", document, null, ${UI_AverageCPM}.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.scrollIntoView(true);
+
+Validate DB CPM value with UI CPM Value
+    [Arguments]     ${ChannelPartner}=
+    ...             ${CreativeType}=
+    ...             ${DB_BannerSizes}=
+    ...             ${DB_TrafficTypes}=
+    ...             ${DB_DeviceTypes}=
+
+    Log    ${ChannelPartner}
+    Log    ${CreativeType}
+    Log    ${DB_BannerSizes}
+    Log    ${DB_TrafficTypes}
+    Log    ${DB_DeviceTypes}
+
+    ${DeviceType_Lower}    Convert To Lowercase    ${DeviceType}
+
+    Run Keyword If    '${CreativeType}' == 'Banner'
+    ...    Set Test Variable    ${Query}    select td.datasource_name, bft.format_name, tdt.type, ttt.display_name, avg(IFNULL(fcc.cpm, 0)) as avgCpm from rhino.forecast_channel_cpm fcc join rhino.target_datasource td on fcc.target_datasource_id = td.id and td.datasource_name = '${ChannelPartner}' join rhino.target_traffic_type ttt on fcc.traffic_type_id = ttt.id and ttt.display_name in ${DB_TrafficTypes} join rhino.target_device_type tdt on fcc.device_type_id = tdt.id and tdt.type in ${DB_DeviceTypes} join rhino.banner_format_types bft on fcc.banner_size_id = bft.id and bft.format_name in ${DB_BannerSizes} where fcc.creative_type = '${CreativeType}' group by td.datasource_name, bft.format_name, tdt.type, ttt.display_name;
+
+    Run Keyword If    '${CreativeType}' == 'Video'
+    ...    Set Test Variable    ${Query}    select td.datasource_name, 'Video' as creative_type, tdt.type, ttt.display_name, avg(IFNULL(fcc.cpm, 0)) as avgCpm from rhino.forecast_channel_cpm fcc join rhino.target_datasource td on fcc.target_datasource_id = td.id and td.datasource_name = '${ChannelPartner}' join rhino.target_traffic_type ttt on fcc.traffic_type_id = ttt.id and ttt.display_name in ${DB_TrafficTypes} join rhino.target_device_type tdt on fcc.device_type_id = tdt.id and tdt.type in ${DB_DeviceTypes} where fcc.creative_type = '${CreativeType}' group by td.datasource_name, tdt.type, ttt.display_name;
+
+    Log    ${Query}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    ${Query}
+    ${temp_DB_AvgCPM} =      Set Variable    ${query_results[0][4]}
+    Set Test Variable    ${DB_AvgCPM}    ${temp_DB_AvgCPM}
+    Disconnect From Database
+    ${DB_AvgCPM}=    Convert To Number  ${DB_AvgCPM}  2
+    ${DB_AvgCPM} =    Evaluate    "%.2f" % ${DB_AvgCPM}
+    Log    ${DB_AvgCPM}
+    Should Be Equal As Strings    ${UI_AvgCPM}    ${DB_AvgCPM}
+
+#----------------------------------------------------------------------------------
+Validate all datasources have value 0.8 for forecast_datapartner_reach table in DB
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    @{query_results}     Query    SELECT distinct reach FROM rhino.forecast_datapartner_reach;
+    ${count}=           Get Length  ${query_results}
+    :FOR    ${index}    IN RANGE   0    ${count}
+    \    Log     Index: ${index}
+    \    ${temp_reach}=    Set Variable  ${query_results[${index}][0]}
+    \    Should Be Equal As Numbers    ${temp_reach}    0.8
+    \    sleep   3s
+    Disconnect From Database
+
+
+Verify DB values for cpm value for each row for particular datasourse
+    [Arguments]     ${datasource_name}
+    ...             ${creative_type}
+    ...             ${Expected_CPM}
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    @{query_results}     Query    SELECT distinct cpm FROM rhino.forecast_channel_cpm where creative_type = '${creative_type}' and target_datasource_id = (SELECT id FROM rhino.target_datasource where datasource_name = '${datasource_name}');
+    ${count}=           Get Length  ${query_results}
+    :FOR    ${index}    IN RANGE   0    ${count}
+    \    Log     Index: ${index}
+    \    ${temp_reach}=    Set Variable  ${query_results[${index}][0]}
+    \    Should Be Equal As Numbers    ${temp_reach}    ${Expected_CPM}
+    \    sleep   3s
+    Disconnect From Database
+
+#----------------------------------------------------------------------------------

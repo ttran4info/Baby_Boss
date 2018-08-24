@@ -1,0 +1,428 @@
+
+*** Variables ***
+
+# UI COMPONENTS FOR AdvertisersAddEdit.html
+
+${NAME_TEXTBOX}     id=name
+${GUID_TEXTBOX}      id=companyGuid
+${ADDRESS1_TEXTBOX}     id=address1
+${ADDRESS2_TEXTBOX}     id=address2
+${CITY_TEXTBOX}     id=city
+${STATE_TEXTBOX}     id=state
+${ZIP_TEXTBOX}     id=zip
+${CONTACT_TEXTBOX}     id=contact
+${PHONE_TEXTBOX}     id=phone
+${EMAIL_TEXTBOX}     id=email
+
+${IS_AGENCY_CHECKBOX}     id=chkGroupType
+${BELONGS_TO_AGENCY_CHECKBOX}     id=chkAgencyMember
+${BELONGS_TO_AGENCY_SELECT}     id=parentId
+
+${ADVERTISER_SAVE_BUTTON}          css=input.btnSave.createNew
+${ADVERTISER_CANCEL_BUTTON}     id=btnCancel
+
+${ADVERTISER_EDIT_LINK}                 Edit
+
+
+
+#  CAMPAIGN COMPONENTS FOR campaignsAddEdit.html
+${CAMPAIGN_NAME_TEXTBOX}       		id=name
+${CAMPAIGN_IO_TEXTBOX}             	id=insertionOrder
+#${CAMPAIGN_START_TEXTBOX}      	id=startDate
+#${CAMPAIGN_END_TEXTBOX}          	id=endDate
+${CAMPAIGN_TIME_ZONE_SELECT}		id=selectTimeZone
+${CAMPAIGN_START_TEXTBOX}      		id=startDateFormatted
+${CAMPAIGN_END_TEXTBOX}          	id=endDateFormatted
+${CAMPAIGN_TOTAL_BUDGET_TEXTBOX}    id=totalBudgetDisplay
+${CAMPAIGN_VERTICAL_SELECT}     	id=taxonomyLevel0
+${CAMPAIGN_SEGMENT_SELECT}     		id=taxonomyLevel1
+${CAMPAIGN_CATEGORY_SELECT}   		id=taxonomyLevel2
+${CAMPAIGN_OBJECTIVES_ADD_SELECT}   id=campaignObjectives
+${CAMPAIGN_BRAND_KEYWORD_TEXTBOX}   id=keywords
+${CAMPAIGN_PAUSED_CHECKBOX}         id=chkIsPaused
+${CAMPAIGN_SAVE_BUTTON}             css=input.btnSave
+${CAMPAIGN_CANCEL_BUTTON}           id=btnCancel
+${CAMPAIGN_DATA_SOURCE_SELECT}		id=datasourceAI
+
+#  ADGROUP COMPONENTS FOR adGroupsAddEdit.html
+${CREATE_ADGROUP_LINK}         link=Create ad group
+# 5.9 and prior uses ' Create ad group' while 5.10 started using ' Create mobile ad group'
+#${CREATE_ADGROUP_LINK_TOP}     		xpath=//a[@class=\'blueItalic\' and text()=\' Create ad group\']
+${CREATE_ADGROUP_LINK_TOP}              xpath=//a[@class=\'blueItalic\' and text()=\' Create mobile ad group\']
+${CREATE_ADGROUP_ONLINE_LINK_TOP}       xpath=//a[@class=\'blueItalic\' and text()=\' Create online ad group\']
+#${CREATE_CHILD_ADGROUP_LINK}			xpath=//a[@class=\'blueItalic\' and text()=\'Create Child AdGroup\']
+${CREATE_CHILD_ADGROUP_LINK}			id=createChildAdgroup
+
+# 6.0
+${CREATE_ADGROUP_LINK_TOP_6_0}         	xpath=//a[@class=\'blueItalic \' and text()=\' Create parent ad group\']
+#Remove as of 7.8 (merge 2 link into 1 above)
+#${CREATE_ADGROUP_LINK_TOP_6_0}         	xpath=//a[@class=\'blueItalic \' and text()=\' Create mobile parent ad group\']
+#${CREATE_ADGROUP_ONLINE_LINK_TOP_6_0}   xpath=//a[@class=\'blueItalic \' and text()=\'Create online parent ad group\']
+
+${AG_NAME_TEXTBOX}                	id=name
+${AG_TEST_AG_CHECKBOX}         		id=chkLiveAdGroup
+${AG_START_TEXTBOX}                	id=startDateFormatted
+${AG_END_TEXTBOX}                   id=endDateFormatted
+${AG_DELIVERY_STRATEGY_SELECT}     	id=deliveryStrategy
+${AG_PACING_SELECT}            		id=pacingId
+${AG_PAYMENT_MODEL_SELECT}       	id=paymentType
+${AG_CPM_CPC_VALUE_TEXTBOX}       	id=costPerUnitString
+${AG_IMPRESSION_GOAL_TEXTBOX}       id=unitsSoldDisplay
+${AG_IMPRESSION_GOAL_IO_TEXTBOX}    id=unitsSoldIODisplay
+${AG_BUDGET_TEXTBOX}                id=txtBudget
+${AG_AD_DELIVERY_RADIO_GROUP_NAME}    optimizeBundle
+${AG_OPTIMIZE_FOR_CONVERSION_RADIO_BUTTON_VALUE}     true
+${AG_SET_AD_WEIGHTS_MANUALLY_RADIO_BUTTON_VALUE}     false
+
+
+${AG_FREQUENCY_CAP_DAILY_CHECKBOX}                  id=chkHouseholdFrequencyCappedDailyUnits
+${AG_FREQUENCY_CAP_DAILY_UNITS_TEXTBOX}           	id=householdFrequencyCapDailyUnits
+${AG_FREQUENCY_CAP_DAILY_NO_DAYS_TEXTBOX}           id=householdFrequencyCapDays
+${AG_FREQUENCY_CAP_OVERALL_CHECKBOX}              	id=chkHouseholdFrequencyCappedOverallUnits
+${AG_FREQUENCY_CAP_OVERALL_UNITS_TEXTBOX}         	id=householdFrequencyCapOverallUnits
+
+${AG_DEVICE_FREQUENCY_CAP_DAILY_CHECKBOX}           id=chkFrequencyCappedDailyUnits
+${AG_DEVICE_FREQUENCY_CAP_DAILY_UNITS_TEXTBOX}      id=frequencyCapDailyUnits
+${AG_DEVICE_FREQUENCY_CAP_DAILY_NO_DAYS_TEXTBOX}    id=frequencyCapDays
+${AG_DEVICE_FREQUENCY_CAP_OVERALL_CHECKBOX}         id=chkFrequencyCappedOverallUnits
+${AG_DEVICE_FREQUENCY_CAP_OVERALL_UNITS_TEXTBOX}    id=frequencyCapOverallUnits
+
+${AG_IP_FREQUENCY_CAP_DAILY_CHECKBOX}           	id=chkIpFrequencyCappedDailyUnits
+${AG_IP_FREQUENCY_CAP_DAILY_UNITS_TEXTBOX}      	id=ipFrequencyCapDailyUnits
+${AG_IP_FREQUENCY_CAP_DAILY_NO_DAYS_TEXTBOX}        id=ipFrequencyCapDays
+${AG_IP_FREQUENCY_CAP_OVERALL_CHECKBOX}         	id=chkIpFrequencyCappedOverallUnits
+${AG_IP_FREQUENCY_CAP_OVERALL_UNITS_TEXTBOX}    	id=ipFrequencyCapOverallUnits
+
+${AG_ENABLE_CONVERSION_TRACKING_CHECKBOX}			id=isConversionTracked
+
+${AG_MEASUREMENT_SELECT}							id=measurementId
+${AG_DATA_PARTNER_SELECT}							id=dataPartnerId
+
+#HOUSE HOLD SEGMENT TARGETING
+${AG_HH_DATASOURCE_CHECKBOX}						id=chkHouseHoldSegment
+${AG_HH_DATASOURCE_SELECT}							id=hhDatasourceId
+${AG_HH_SEGMENT_SEARCH_TEXTBOX}						id=searchDatasourceSegment
+${AG_HH_DATASOURCE_BOOST_CHECKBOX}					id=chkBoost
+
+#DEVICE ID SEGMENT TARGETING
+${AG_DEVICE_ID_DATASOURCE_CHECKBOX}					id=chkDeviceIdSegment
+${AG_DEVICE_ID_DATASOURCE_SELECT}					id=dsDatasourceId
+${AG_DEVICE_ID_SEGMENT_SEARCH_TEXTBOX}				id=searchDatasourceDeviceSegment
+
+${AG_APP_DOWNLOAD_TRACKING_CHECKBOX}         id=appDLFlag
+${AG_APP_ID_TEXTBOX}      					id=appId
+${AG_GEO_TARGETING_DATA_SOURCE_RADIO_GROUP_NAME}              allowIPtoGeo
+${AG_GEO_TARGETING_DATA_SOURCE_RADIO_BUTTON_VALUE}                 0
+${AG_GEO_TARGETING_DATA_SOURCE_IP_WIFI_RADIO_BUTTON_VALUE}     1
+${AG_GEO_TARGETING_DATA_SOURCE_IP_ALL_RADIO_BUTTON_VALUE}      2
+${AG_USE_PLACEIQ_CHECKBOX}        			id=usePlaceiq
+${AG_4INFO_MARGIN_TEXTBOX}					id=marginRTB
+${AG_4INFO_MAX_BID_PRICE_TEXTBOX}			id=bidValueCPUString
+#      Removed in Release 5.6    JIRA-4468
+#${AG_USE_SPOC_CHECKBOX}              id=useSpocTargeting
+${AG_PAUSED_CHECKBOX}                 id=isPaused
+${AG_ENABLE_BEHAVIOR_TARGETING_CHECKBOX}              id=isBehavioralTargeted
+${AG_DOMAIN_TEXTBOX}                   id=domain
+
+# ADGROUP Online/Mobile field
+${AG_ONLINE_MOBILE_RADIO_MOBILE}		id=mobile
+${AG_ONLINE_MOBILE_RADIO_ONLINE}		id=online
+
+# ADGROUP TARGETTING COMPONENTS
+# TRAFFIC TYPE
+${AG_TRAFFIC_TYPE_CHECKBOX}                                  	id=chkTrafficType
+${AG_TRAFFIC_TYPE_CHECKBOX_ID}                             		id=chkTrafficType-
+
+# CATEGORY
+${AG_TARGETING_CATEGORY_CHECKBOX}                         		id=chkCategory
+${AG_TARGETING_CATGEORY_SELECT_CHECKBOX_ID}       				id=chkCategory-
+
+# PLACEMENT
+${AG_TARGETING_PLACEMENT_CHECKBOX}								id=chkPlacement
+${AG_TARGETING_PLACEMENT_SEARCH_TEXTBOX}						id=searchPlacement
+${AG_TARGETING_PLACEMENT_SELECTOR_ALL}							id=chk_div_placement_selector_section_1
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_PARTNER}     			id=div_div_placement_selector_expand_partner_0
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_PARTNER_SITE}			id=div_div_placement_selector_expand_partner_0_site_2
+${AG_TARGETING_PLACEMENT_SELECT_CHECKBOX_ID}          			id=chk_div_placement_selector_Placement-
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_NETWORK}         		id=div_div_placement_selector_expand_section_0
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_4INFO}               	id=div_div_placement_selector_expand_rtb_0_partner_10
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_4INFO_TEST_PAGES}    	id=div_div_placement_selector_expand_rtb_0_partner_10_site_4
+
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_EXCHANGE}				id=div_div_placement_selector_expand_section_1
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_MOPUB}               	id=div_div_placement_selector_expand_rtb_1_partner_0
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_MOPUB_APP_IOS}    		id=div_div_placement_selector_expand_rtb_1_partner_0_site_0
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_MOPUB_Site}			id=div_div_placement_selector_expand_rtb_1_partner_0_site_2
+
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_INTERACTIVE}           id=div_div_placement_selector_expand_rtb_1_partner_2
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_INTERACTIVE_APP}    	id=div_div_placement_selector_expand_rtb_1_partner_2_site_0
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_INTERACTIVE_Site}		id=div_div_placement_selector_expand_rtb_1_partner_2_site_1
+
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_NEXAGE}               	id=div_div_placement_selector_expand_rtb_1_partner_11
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_NEXAGE_APP}    		id=div_div_placement_selector_expand_rtb_1_partner_11_site_0
+${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_NEXAGE_Site}			id=div_div_placement_selector_expand_rtb_1_partner_11_site_1
+
+
+# DAY OF WEEK
+${AG_TARGETING_DAYOFWEEK_CHECKBOX}                         		id=chkDayofWeek
+${AG_TARGETING_DAYOFWEEK_CHECKBOX_ID}                   		id=chkDayofWeek-
+
+# TIME OF DAY
+${AG_TARGETING_TIMEOFDAY_CHECKBOX}                      		id=chkTimeofDay
+${AG_TARGETING_TIMEOFDAY_FROM_SELECT}                  			id=targetingList
+${AG_TARGETING_TIMEOFDAY_TO_SELECT}                      		xpath=(//select[@id='targetingList'])[2]
+${AG_TARGETING_TIMEOFDAY_TIMEZONE_SELECT}           			id=timeZone
+
+# STATE
+${AG_TARGETING_STATE_CHECKBOX}             						id=chkState
+${AG_TARGETING_STATE_CHECKBOX_ID}        						id=chkState-
+${AG_TARGETING_REQUEST_STATE_CHECKBOX} 							id=chkRequestState
+${AG_TARGETING_REQUEST_STATE_CHECKBOX_ID} 						id=chkRequestState-
+${AG_TARGETING_HH_STATE_CHECKBOX} 								id=chkHouseholdState
+${AG_TARGETING_HH_STATE_CHECKBOX_ID} 							id=chkHouseholdState-
+
+# COUNTRY
+${AG_TARGETING_COUNTRY_CHECKBOX}                  				id=chkCountry
+${AG_TARGETING_COUNTRY_CHECKBOX_ID}             				id=chkCountry-
+
+# DMA
+${AG_TARGETING_DMA_CHECKBOX}           							id=chkDMA
+${AG_TARGETING_DMA_CHECKBOX_ID}    								id=chkDMA-
+${AG_TARGETING_REQUEST_DMA_CHECKBOX}           					id=chkRequestDMA
+${AG_TARGETING_REQUEST_DMA_CHECKBOX_ID}    						id=chkRequestDMA-
+${AG_TARGETING_HH_DMA_CHECKBOX}           						id=chkHouseholdDMA
+${AG_TARGETING_HH_DMA_CHECKBOX_ID}    							id=chkHouseholdDMA-
+
+
+# ZIP
+#${AG_TARGETING_ZIP_CHECKBOX}              	id=chkZip    # 6.3 change to chkRequestZip
+${AG_TARGETING_ZIP_CHECKBOX}              	id=chkRequestZip
+${AG_TARGETING_ZIP_TEXTBOX}                 id=zipList
+${AG_TARGETING_HH_ZIP_CHECKBOX}           						id=chkHouseholdZip
+${AG_TARGETING_HH_ZIP_CHECKBOX_ID}    							id=chkHouseholdZip-
+
+# CONNECTION TYPE
+${AG_TARGETING_CONNECTION_TYPE_CHECKBOX}       		id=chkConnectionType
+${AG_TARGETING_CONNECTION_TYPE_CHECKBOX_ID}       	id=chkConnectionType-
+
+# CARRIER
+${AG_TARGETING_CARRIER_CHECKBOX}                  	id=chkCarrier
+${AG_TARGETING_CARRIER_CHECKBOX_ID}              	id=chkCarrier-
+
+# GENDER
+${AG_TARGETING_GENDER_CHECKBOX}                     id=chkGender
+${AG_TARGETING_GENDER_CHECKBOX_ID}                  id=chkGender-
+
+# AGE RANGE
+${AG_TARGETING_AGE_RANGE_CHECKBOX}                            id=chkAgeRange
+${AG_TARGETING_AGE_RANGE_ZIPTODEMO_CHECKBOX}        id=z2dchkAgeRange
+${AG_TARGETING_AGE_RANGE_CHECKBOX_ID}                      id=chkAgeRange-
+
+# INCOME
+${AG_TARGETING_INCOME_CHECKBOX}                                  id=chkIncome
+${AG_TARGETING_INCOME_ZIPTODEMO_CHECKBOX}              id=z2dchkIncome
+${AG_TARGETING_INCOME_CHECKBOX_ID}                             id=chkIncome-
+
+# DEVICE OS
+${AG_TARGETING_DEVICEOS_CHECKBOX}                           id=chkDeviceOS
+${AG_TARGETING_DEVICEOS_CHECKBOX_ID}                      id=chkDeviceOS-
+
+# DEVICE TYPE
+${AG_TARGETING_DEVICETYPE_CHECKBOX}                         id=chkDeviceType
+${AG_TARGETING_DEVICETYPE_CHECKBOX_ID}                    id=chkDeviceType-
+
+# DEVICE ID
+${AG_TARGETING_DEVICEID_CHECKBOX}                                id=chkDeviceID
+${AG_TARGETING_DEVICEID_UNHASH_CHECKBOX}                 id=requiresRawDeviceID
+${AG_TARGETING_DEVICEID_CHECKBOX_ID}                      id=chkDeviceID-
+
+# DEVICE MANUFACTURER
+${AG_TARGETING_DEVICEMFG_CHECKBOX}                    id=chkDeviceManufacturer
+${AG_TARGETING_DEVICEMFG_CHECKBOX_ID}               id=M
+
+# APPNEXUS OS
+${AG_TARGETING_APPNEXUS_OS_CHECKBOX}                  id=chkAppNexusOperatingSystem
+${AG_TARGETING_APPNEXUS_OS_CHECKBOX_ID}             id=chkAppNexusOperatingSystem-
+
+# APPNEXUS BROWSER
+${AG_TARGETING_APPNEXUS_BROWSER_CHECKBOX}                  id=chkAppNexusBrowser
+${AG_TARGETING_APPNEXUS_BROWSER_CHECKBOX_ID}             id=chkAppNexusBrowser-
+
+# Household Segments
+${AG_TARGETING_AUDIENCE_CHECKBOX}                      id=chkAudience
+${AG_TARGETING_AUDIENCE_SELECT}                            id=audienceSegmentId
+${AG_TARGETING_AUDIENCE_DETAILS_LINK}                      id=segmentDetails
+${AG_TARGETING_AUDIENCE_DETAILS_TEXT}                view household segment
+
+# Geofence
+${AG_TARGETING_GEOFENCE_CHECKBOX}                     id=chkGeofence
+${AG_TARGETING_NEGATIVE_GEOFENCE_CHECKBOX}            id=chkExcludeGeofence
+${AG_TARGETING_GEOFENCE_SELECT}                       id=geofenceSegmentId
+${AG_TARGETING_GEOFENCE_DETAILS_LINK}                 id=aEditGeofence
+
+# COOKIE
+${AG_TARGETING_COOKIE_CHECKBOX}                     		id=chkCookie
+${AG_TARGETING_COOKIE_SELECT}                           	id=cookieSegmentId
+${AG_TARGETING_COOKIE_DETAILS_LINK}                 		id=aEditCookie
+${AG_TARGETING_COOKIE_ADD_BUTTON}							css=p > input.btnSave
+
+
+# LOCATION_TYPE
+${AG_TARGETING_LOCATION_TYPE_CHECKBOX}						id=chkLocationType
+${AG_TARGETING_LOCATION_TYPE_UNDETERMINED_CHECKBOX}			id=chkLocationType-2
+${AG_TARGETING_LOCATION_TYPE_AWAY_CHECKBOX}					id=chkLocationType-3
+${AG_TARGETING_LOCATION_TYPE_HOME_CHECKBOX}					id=chkLocationType-4
+
+# LANGUAGE
+${AG_TARGETING_LANGUAGE_CHECKBOX}							id=chkLanguage
+${AG_TARGETING_LANGUAGE_ENGLISH_CHECKBOX}					id=chkLanguage-38
+${AG_TARGETING_LANGUAGE_SPANISH_CHECKBOX}					id=chkLanguage-149
+
+#PRIVATE MARKETPLACES
+${AG_TARGETING_PRIVATE_MARKETPLACES_CHECKBOX}						id=chkDeal
+${AG_TARGETING_PRIVATE_MARKETPLACES_EXCHANGE_SELECTION}				id=targetDeal.exchange
+${AG_TARGETING_PRIVATE_MARKETPLACES_DEAL_ID_TEXTBOX}				id=targetDeal.dealIds
+
+#VIDEO STREAMING POSITION
+${AG_TARGETING_VIDEO_STREAMING_POSITION_CHECKBOX}						id=chkVideoStreamingPosition
+${AG_TARGETING_VIDEO_STREAMING_POSITION_INTERSTITIAL_CHECKBOX}						id=chkVideoStreamingPosition-5
+${AG_TARGETING_VIDEO_STREAMING_POSITION_MIDROLL_CHECKBOX}						id=chkVideoStreamingPosition-3
+${AG_TARGETING_VIDEO_STREAMING_POSITION_POSTROLL_CHECKBOX}						id=chkVideoStreamingPosition-4
+${AG_TARGETING_VIDEO_STREAMING_POSITION_PREROLL_CHECKBOX}						id=chkVideoStreamingPosition-2
+
+${AG_CANCEL_BUTTON}        css=button.whiteBorder
+${AG_SAVE_BUTTON}             css=input.btnSave
+
+
+# AD COMPONENTS FOR ad.html
+${AG_AD_TYPE_RADIO_GROUP_NAME}             adType
+${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}                 BANNER
+${AG_AD_TYPE_VIDEO_RADIO_BUTTON_VALUE}                  VIDEO
+${AG_AD_TYPE_NATIVE_RADIO_BUTTON_VALUE}                  NATIVEAD
+${AG_CREATIVE_TYPE_BANNER_RADIO_BUTTON}				id=adTypeId1
+${AG_CREATIVE_TYPE_VIDEO_RADIO_BUTTON}				id=adTypeId2
+${AG_CREATIVE_TYPE_NATIVE_RADIO_BUTTON}				id=adTypeId4
+${AG_CREATIVE_BANNER_TYPE_STATIC_IMAGE_RADIO_BUTTON}	id=bannerTypeId1
+${AG_CREATIVE_BANNER_TYPE_RICH_MEDIA_RADIO_BUTTON}		id=bannerTypeId2
+${AG_CREATIVE_BANNER_TYPE_3RD_PARTY_TAG_RADIO_BUTTON}	id=bannerTypeId3
+${AG_AD_CREATIVE_NAME}			id=bannerAdCommand.bannerFiles40.name
+${AG_AD_ADNAME_TEXTBOX}        id=adName
+${AG_AD_ADTEXT_TEXTBOX}         id=adText
+${AG_AD_BANNERTYPE_RADIO_GROUP_NAME}             bannerAdCommand.bannerType
+${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}                 STATICIMAGE
+${AG_AD_BANNERTYPE_RICHMEDIA_RADIO_BUTTON_VALUE}                  RICHMEDIA
+${AG_AD_BANNERTYPE_THIRDPARTYTAG_RADIO_BUTTON_VALUE}        	THIRDPARTYTAG
+${AG_AD_VIDEOTYPE_RADIO_GROUP_NAME}			 	videoBundleCommand.type
+${AG_AD_VIDEOTYPE_VAST_WRAPPER_URL_RADIO_BUTTON_VALUE}                 3
+${AG_AD_VIDEOTYPE_VAST_TAG_RADIO_BUTTON_VALUE}                 		   2
+${AG_AD_VIDEOTYPE_UPLOAD_VIDEO_RADIO_BUTTON_VALUE}        			   1
+${AG_AD_VIDEO_NAME_TEXTBOX}							id=videoBundleCommand.listVideoAds0.name
+${AG_AD_VIDEO_EXTERNAL_ID_TEXTBOX}					id=videoBundleCommand.listVideoAds0.externalId
+${AG_AD_VIDEO_FILE_PATH_TEXTBOX}					id=videoBundleCommand.listVideoAds0.videoMultipartFile
+${AG_AD_VIDEO_DURATION_TEXTBOX}						id=videoBundleCommand.listVideoAds0.duration
+${AG_AD_VIDEO_DESTINATION_URL_TEXTBOX}				id=videoBundleCommand.listVideoAds0.clickThroughUrl
+${AG_AD_VIDEO_REDIRECTION_SELECT}					id=videoBundleCommand.listVideoAds0.redirectionCount
+${AG_AD_DEFAULT_DESTINATION_TYPE_SELECT}                        id=bannerAdCommand.destinationType
+${AG_AD_DEFAULT_DESTINATION_URL_TEXTBOX}                       id=bannerAdCommand.destinationUrlView
+${AG_AD_DEFAULT_3RD_PARTY_IMPRESSION_TRACKING_URL_TEXTBOX}     id=thirdPartyImpressionTrackingUrl
+${AG_AD_DEFAULT_3RD_PARTY_CLICK_TRACKING_URL_TEXTBOX}              id=thirdPartyClickTrackingUrl
+${AG_AD_WEIGHT_TEXTBOX}         id=weight
+${AG_AD_ALLOCATION_GAIN_SELECT}                     id=gainId
+${AG_AD_ALLOCATION_OVERWRITE_CHECKBOX}            id=chkAllocationOverwite
+${AG_AD_BANNER_SIZE_120X20_CHECKBOX}                  id=bannerAdCommand.bannerSizes1
+${AG_AD_BANNER_SIZE_168X28_CHECKBOX}                 id=bannerAdCommand.bannerSizes2
+${AG_AD_BANNER_SIZE_216X36_CHECKBOX}                id=bannerAdCommand.bannerSizes3
+${AG_AD_BANNER_SIZE_300X50_CHECKBOX}            id=bannerAdCommand.bannerSizes4
+${AG_AD_BANNER_SIZE_320X50_CHECKBOX}            id=bannerAdCommand.bannerSizes5
+${AG_AD_BANNER_SIZE_300X250_CHECKBOX}            id=bannerAdCommand.bannerSizes6
+${AG_AD_BANNER_SIZE_728X90_CHECKBOX}            id=bannerAdCommand.bannerSizes7
+${AG_AD_BANNER_SIZE_160X600_CHECKBOX}            id=bannerAdCommand.bannerSizes8
+${AG_AD_BANNER_SIZE_468X60_CHECKBOX}            id=bannerAdCommand.bannerSizes9
+${AG_AD_BANNER_SIZE_120X600_CHECKBOX}            id=bannerAdCommand.bannerSizes10
+${AG_AD_BANNER_SIZE_1024X90_CHECKBOX}            id=bannerAdCommand.bannerSizes11
+${AG_AD_BANNER_SIZE_320X480_CHECKBOX}            id=bannerAdCommand.bannerSizes12
+${AG_AD_BANNER_SIZE_968X1024_CHECKBOX}            id=bannerAdCommand.bannerSizes13
+${AG_AD_BANNER_SIZE_768X1024_CHECKBOX}            id=bannerAdCommand.bannerSizes14
+
+#Native ad 6.0
+${AG_AD_NATIVE_NAME}				id=nativeAdCommand.nativeFiles00.name
+${AG_AD_NATIVE_EXTERNAL_ID}			id=nativeAdCommand.nativeFiles00.externalId
+${AG_AD_NATIVE_WEIGHT}				id=nativeAdCommand.nativeFiles00.weight
+${AG_AD_NATIVE_TITLE}				id=nativeAdCommand.nativeFiles00.title
+${AG_AD_NATIVE_CONTENT_TEXT}		id=nativeAdCommand.nativeFiles00.text
+${AG_AD_NATIVE_CTA_TEXT}			name=nativeAdCommand.nativeFiles[0][0].ctatext
+${AG_AD_NATIVE_ICON_FILE_PATH_TEXTBOX}				id=nativeAdCommand.nativeFiles00.iconMultipartFile
+${AG_AD_NATIVE_BANNER_FILE_PATH_TEXTBOX}			id=nativeAdCommand.nativeFiles00.imageMultipartFile
+${AG_AD_NATIVE_SPECIFIC_DESTINATION_URL_TEXTBOX}	id=nativeAdCommand.nativeFiles00.clkUrl
+
+# 6.0 Release Updates
+${AG_AD_FILE_PATH_TEXTBOX}                                        	id=bannerAdCommand.bannerFiles40.multipartFile
+${AG_AD_SPECIFIC_DESTINATION_URL_TEXTBOX}                         	id=bannerAdCommand.bannerFiles40.destinationUrl
+${AG_AD_SPECIFIC_3RD_PARTY_IMPRESSION_TRACKING_URL_TEXTBOX}       	id=bannerAdCommand.bannerFiles40.thirdpartyImpressionUrl
+${AG_AD_SPECIFIC_3RD_PARTY_CLICK_TRACKING_URL_TEXTBOX}            	id=bannerAdCommand.bannerFiles40.thirdpartyClickUrl
+${AG_AD_TRUSTE_ICON_LOCATION_SELECT}                              	id=bannerAdCommand.bannerFiles40.optOutIconLocation
+${AG_AD_SPECIFIC_RICH_MEDIA_TEXTBOX}            					id=bannerAdCommand.bannerFiles40.richmediaMarkup
+${AG_AD_SPECIFIC_3RD_PARTY_TAG_TEXTBOX}            					id=bannerAdCommand.bannerFiles40.thirdPartyTag
+${AG_AD_SPECIFIC_3RD_PARTY_TAG_DESTINATION_URL_TEXTBOX}            	id=bannerAdCommand.bannerFiles40.thirdPartyDestinationUrl
+
+${AG_AD_SECURE_CHECKBOX}			id=chkSecure
+${AG_AD_PAUSED_CHECKBOX}            id=chkPaused
+${AG_AD_CANCEL_BUTTON}        id=btnCancel
+${AG_AD_SAVE_BUTTON}             css=input.btnSave
+
+
+
+# ADGROUP campaignView.html
+#New Adgroup bundle sample: css=#tr14299 > td.adGroupName.c1 > ul > li > a.create
+${AG_CREATE_ELEMENT_PRE}        css=#tr
+${AG_CREATE_ELEMENT_POST}         > td.adGroupName.c1 > ul > li > a.create
+#Clone Adgroup sample:  //tr[@id='tr14299']/td/ul/li[2]/a
+${AG_CLONE_ELEMENT_PRE}        //tr[@id='
+${AG_CLONE_ELEMENT_POST}      ']/td[2]/ul/li/a/i
+#${AG_CLONE_ELEMENT_POST}      ']/td/ul/li[2]/a
+# Delete AdGroup
+# //a[@onclick="Util.confirmAction('delete', 'adGroupsDelete.html?partnerId=360&campaignId=702&adGroupBundleDeleteId=14262', 'the ad group Test02');return false;"]
+${AG_DELETE_ELEMENT_PRE}        a[@onclick="Util.confirmAction('delete', 'adGroupsDelete.html?
+${AG_DELETE_ELEMENT_POST}     );return false;"]
+# Intermediate - need to pass in:  partnerId=360&campaignId=702&adGroupBundleDeleteId=14262', 'the ad group Test02'
+
+#PARTNERS	partner.html
+${TAB_PARTNERS} 			link=Supply
+${CREATE_NEW_PARTNERS}		css=#createPartners > a
+${PARTNER_NAME}             id=name
+${PARTNER_GUID}             id=companyGuid
+${PARTNER_ADDRESS1}         id=address1
+${PARTNER_ADDRESS2}         id=address2
+${PARTNER_CITY}          	id=city
+${PARTNER_STATE}            id=state
+${PARTNER_ZIP}              id=zip
+${PARTNER_CONTACT}          id=contact
+${PARTNER_EMAIL}            id=email
+${PARTNER_PHONE}            id=phone
+${PARTNER_RTB}              id=chkIsRTBPartner
+${PARTNER_SPEC}             id=exchangeSpec
+${PARTNER_PROTOCOL}         id=exchangeProtocol
+${PARTNER_RESPONSE}         id=exchangeResponseType
+
+#PARTNER DETAILS	partnerDetails.html
+${PLACEMENT_TYPE_CREATE}		css=#createSite > a
+
+#PLACEMENT TYPE		site.html
+${PLACEMENT_TYPE_APP}			id=siteTypeUI1
+${PLACEMENT_TYPE_SITE}			id=siteTypeUI2
+${PLACEMENT_TYPE_ONLINE}		id=siteTypeUI3
+${PLACEMENT_TYPE_NAME}			id=name
+${PLACEMENT_TYPE_APP_PLATFORM_IOS}			id=platform1
+${PLACEMENT_TYPE_APP_PLATFORM_ANDROID}		id=platform2
+${PLACEMENT_TYPE_APP_PLATFORM_WP7}			id=platform3
+${PLACEMENT_TYPE_SITE_URL}		id=siteUrl
+
+#PLACEMENT PAGE 	placement.html
+${PLACEMENT_STATUS_TEST_SITE}			id=placementStatusId1
+${PLACEMENT_STATUS_LIVE_SITE}			id=placementStatusId2
+${PLACEMENT_STATUS_DISABLED}			id=placementStatusId3
+${PLACEMENT_TRAFFIC_TYPE_APP}			id=trafficTypeId1
+${PLACEMENT_TRAFFIC_TYPE_MOBILE_WEB}	id=trafficTypeId2
+${PLACEMENT_TRAFFIC_TYPE_ONLINE}		id=trafficTypeId3
+${PLACEMENT_NAME}						id=placement
+${PLACEMENT_RTB_BID_ATTRIBUTE}			id=rtbTargetIdSelection
+${PLACEMENT_RTB_BID_ATTRIBUTE_VALUE}	id=rtbTargetValue

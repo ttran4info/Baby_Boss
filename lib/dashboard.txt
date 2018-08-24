@@ -1,0 +1,53 @@
+
+
+*** Settings ***
+Resource            ui_object_library.txt
+Resource            common_config.txt
+
+*** Keywords ****
+
+Go To Dashboard Tab
+      Click Link         ${TAB_DASHBOARD}
+      Wait Until Page Contains Element     ${START_DATE}
+
+View Dashboard Report
+      [Arguments]    ${start}=    ${end}=    ${option}=Revenue
+      Go To Dashboard Tab
+      Input Text         ${START_DATE}     ${start}  
+      Input Text         ${END_DATE}       ${end}
+      Click Element      ${DASHBOARD_SUBMIT_BUTTON}
+      Sleep   10s
+      Verify Default Page Information
+      Capture Page Screenshot With Timestamp
+      List Selection Should Be   ${DASHBOARD_OPTIONS}    ${DEFAULT_REPORT_OPTION}
+      Select From List     ${DASHBOARD_OPTIONS}    ${option}
+      Sleep   5s
+      List Selection Should Be   ${DASHBOARD_OPTIONS}    ${option}
+      Sleep   10s
+      Capture Page Screenshot With Timestamp
+      Validate Report Table Header
+      Get Total Rows Available In Dashboard Report Table
+      ${days_should_be}=   get_days_count       ${start}     ${end}  
+#      Should Be Equal    ${Results_Returned}    ${days_should_be}
+
+      
+Validate Report Table Header
+      Page Should Contain Element        ${DASHBOARD_REPORT_TABLE}
+      Get Table Data       TABLE_LOCATOR=${DASHBOARD_REPORT_TABLE}    ROW=1    COLUMN=1    
+      Log   RETURNED_CELL_VALUE: ${RETURNED_CELL_VALUE}
+      Table Header Should Contain        ${DASHBOARD_REPORT_TABLE}    DATE
+      Table Header Should Contain        ${DASHBOARD_REPORT_TABLE}    REQUESTS
+      Table Header Should Contain        ${DASHBOARD_REPORT_TABLE}    FILL RATE (%)
+      Table Header Should Contain        ${DASHBOARD_REPORT_TABLE}    REVENUE ($)
+      Table Header Should Contain        ${DASHBOARD_REPORT_TABLE}    IMPRESSIONS
+      Table Header Should Contain        ${DASHBOARD_REPORT_TABLE}    eCPM ($)
+      Table Header Should Contain        ${DASHBOARD_REPORT_TABLE}    CLICKS
+
+Get Total Rows Available In Dashboard Report Table
+      Get Total Rows Available In Table ${DASHBOARD_TABLE_ROW_XPATH}
+
+      
+      
+      
+      
+      

@@ -1,0 +1,54 @@
+# UI Components for Reporting
+
+*** Variables ****
+
+${ADVERTISER_TYPE_LINK}     Advertiser
+${PUBLISHER_TYPE_LINK}        Publisher
+
+
+#ADVERTISER REPORTS
+${AD_REPORT_TYPE_DROPDOWN}                              	id=reportType
+${AD_REPORT_SECTIONS_COUNTRY_CHECKBOX}       	id=geoCountry
+${AD_REPORT_SECTIONS_STATE_CHECKBOX}             	id=geoState
+${AD_REPORT_SECTIONS_DMA_CHECKBOX}           		id=geoDma
+${AD_ADVERTISER_DROPDOWN}                    				id=advertiser
+${AD_ADVERTISER_DROPDOWN_INPUT}                         css=input[type="text"]
+${AD_CAMPAIGN_DROPDOWN}                      				id=campaignId
+${AD_ADGROUPS_SELECTION}                     					id=adgroup
+${AD_TIMEZONE_DROPDOWN}                      					id=timeZoneList
+${AD_SUMMARIZE_CREATIVES_BYDAY_LINK}         			By Day
+${AD_SUMMARIZE_CREATIVES_BYWEEK_LINK}       			By Week
+${AD_START_DATE_SELECTION}                   					id=filter1
+${AD_END_DATE_SELECTION}                     					id=filter2
+${AD_EXPORT_AS_CSV_LINK}                     					CSV
+${AD_EXPORT_AS_XLS_LINK}                     						XLS
+${AD_SUBMIT_BUTTON}                          						advertiserSubmit
+
+
+
+# PUBLISHER REPORTS
+${PUB_REPORT_TYPE_DROPDOWN}                 				id=reportType
+${PUB_PUBLISHER_DROPDOWN}                      				id=publisher
+${PUB_PLACEMENT_IDS_SELECTIONS}              				id=placementIds
+${PUB_START_DATE_SELECTION}                     				id=filter1
+${PUB_END_DATE_SELECTION}                        				id=filter2
+${PUB_TIME_ZONE_DROPDOWN}                     				id=timeZoneList
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

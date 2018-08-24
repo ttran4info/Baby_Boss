@@ -1,0 +1,1272 @@
+
+*** Settings ***
+Resource    adhaven_general.txt
+
+*** Keywords ****
+
+#####    MOCK KEYWORDS
+Create CP_ALL_LIVE_ADGROUPS_VIEW
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql Script    ../sql_scripts/mock_create_cp_all_live_adgroups_view.sql
+    Disconnect From Database
+
+
+Create CP_DMA_VIEW
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql Script    ../sql_scripts/mock_create_cp_dma_view.sql
+    Disconnect From Database
+
+
+Create CP_VOLUME_ESTIMATION_VIEW
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql Script    ../sql_scripts/mock_create_cp_volume_estimation_view.sql
+    Disconnect From Database
+
+
+Update Bidder Version on QA
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    update rhino.bidder_versions set version_name = 'qa10_v0.10' where version_key = 'VER_DEFAULT';
+    Disconnect From Database
+
+
+Update Regression Appnexus Banner
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    update banner_details set audit_status='1' where ext_creative_id='59354322';
+    Disconnect From Database
+
+
+Update Regression Frequency Cap
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    update ad_group set household_freq_cap_overall_units='999999' where id='37229';
+    Disconnect From Database
+
+
+#####    END MOCK KEYWORDS
+
+Remove GEOFENCE Reports From DB
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_geofence_reports_generated.sql
+    Disconnect From Database
+
+
+Remove PRIZM Reports From DB
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_prizm_reports_generated.sql
+    Disconnect From Database
+
+
+Remove CONNEXIONS Reports From DB
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_connexions_reports_generated.sql
+    Disconnect From Database
+
+
+Remove DLX Reports From DB
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_dlx_reports_generated.sql
+    Disconnect From Database
+
+
+Remove Placement from System By ID
+    [Arguments]      ${placement_id}
+    Log    Removing Placement with ID: ${placement_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    delete from rhino.placement_target_list where placement_id in (${placement_id});
+    execute_sql_string    delete from rhino.target_list where target_placement in (${placement_id});
+    execute_sql_string    delete from rhino.placement where id in (${placement_id});
+    Disconnect From Database
+
+
+Remove Site from System By Name
+    [Arguments]      ${site_name}
+    Log    Removing Site With Name: ${site_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select * from rhino.partner_site where name = '${site_name}';
+    Log Many     @{query_results}
+    execute_sql_string    delete from rhino.partner_site where name = '${site_name}';
+    Disconnect From Database
+
+
+Remove Advertiser By ID
+    [Arguments]      ${advertiser_id}
+    Log    Removing Advertiser With Name: ${advertiser_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select * from rhino.partner where id = '${advertiser_id}';
+    Log Many     @{query_results}
+    execute_sql_string    delete from rhino.partner where id = '${advertiser_id}';
+    Disconnect From Database
+
+
+Remove Advertiser By Name
+    [Arguments]      ${advertiser_name}
+    Log    Removing Advertiser With Name: ${advertiser_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select * from rhino.partner where name like '${advertiser_name}%';
+    Log Many     @{query_results}
+    Run Keyword And Ignore Error    execute_sql_string    delete from groups_advertiser where partner_id in (select id from rhino.partner where name = '${advertiser_name}');
+    execute_sql_string    delete from rhino.partner where name = '${advertiser_name}';
+    Disconnect From Database
+
+
+Retrieve Campaign_ID By Campaign Name
+     [Arguments]      ${campaign_name}
+     Log    Querying Campaign Name: ${campaign_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from rhino.campaign where name = '${campaign_name}';
+#    Set Suite Variable    ${campaign_id}      @{query_results}[0]
+    Set Suite Variable    ${campaign_id}      ${queryResults[0][0]}
+    Log         Campaign ID: ${campaign_id}
+    Disconnect From Database
+
+
+Remove Campaign By CampaignID
+    [Arguments]      ${campaign_id}
+    Log        Removing Adgroup: Parent and Child
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from `ad_group` where campaign_id='${campaign_id}';
+    Disconnect From Database
+    ${count}=           Get Length  ${query_results}
+    :FOR    ${index}    IN RANGE   0    ${count}
+    \       Log     Index: ${index}
+    \       ${temp_adgroup_id}=        Set Variable  ${query_results[${index}][0]}
+    \       Remove AdGroup By BundleID        ag_bundle_id=${temp_adgroup_id}
+    Log     Campaign ID To Be Removed: ${campaign_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    # execute_sql_string    delete from bidder_adgroup_assignment where adgroup_id in (select id from ad_group where campaign_id in (select id from campaign where id in (${campaign_id})));
+    # execute_sql_string    delete from ad_group where campaign_id in (select id from campaign where id in (${campaign_id}));
+    execute_sql_string    delete from rhino.campaign_taxonomy_levels where campaign_id in (${campaign_id});
+    execute_sql_string      delete from rhino.campaign_adgroup_visibility where campaign_id in (${campaign_id});
+    execute_sql_string      delete from rhino.campaign_groups where campaign_id in (${campaign_id});
+    execute_sql_string      delete from rhino.campaign_store_visits where campaign_id in (${campaign_id});
+    execute_sql_string      delete from rhino.gesture_ad where ad_id in (select id from rhino.ads where campaign_id in (${campaign_id}));
+    execute_sql_string      delete from rhino.ads where campaign_id in (${campaign_id});
+    execute_sql_string    delete from rhino.campaign where id in (${campaign_id});
+    execute_sql_string    commit;
+    Disconnect From Database
+
+
+Set Campaign Name To Expired
+    [Arguments]      ${campaign_name}=
+    Log    Querying Campaign Name: ${campaign_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select start_time,end_time,start_time_ui,end_time_ui from rhino.campaign where name = '${campaign_name}';
+    Log        @{query_results}
+    execute_sql_string        UPDATE rhino.campaign SET start_time='${REGRESSION_EXPIRED_START_DATE_DB}', end_time='${REGRESSION_EXPIRED_END_DATE_DB}',start_time_ui='${REGRESSION_EXPIRED_START_DATE_DB}', end_time_ui='${REGRESSION_EXPIRED_END_DATE_DB}' where name='${campaign_name}';
+    @{query_results}     Query    select start_time,end_time,start_time_ui,end_time_ui from rhino.campaign where name = '${campaign_name}';
+    Log        @{query_results}
+    Disconnect From Database
+
+
+Retrieve Adgroup_ID By Adgroup Name
+     [Arguments]      ${ag_adgroup_name}
+     Log    Querying Adgroup Name: ${ag_adgroup_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from rhino.ad_group where name = '${ag_adgroup_name}';
+    Set Suite Variable    ${ag_adgroup_id}      ${queryResults[0][0]}
+    Log         Adgroup ID: ${ag_adgroup_id}
+    Disconnect From Database
+
+
+#If we know the child adgroup, we can get parent adgroup.
+Retrieve Parent_Adgroup By Child_Adgroup
+     [Arguments]      ${child_ag_id}=NA
+     Log    Querying Adgroup ID: ${child_ag_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select bundle_parent_id from rhino.ad_group where id = '${child_ag_id}';
+    Set Suite Variable    ${parent_adgroup_id}      ${queryResults[0][0]}
+    Log         Adgroup ID: ${parent_adgroup_id}
+    Disconnect From Database
+
+
+Remove AdGroup By BundleID
+    [Arguments]      ${ag_bundle_id}
+    Log     Adgroup To Be Removed: ${ag_bundle_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string     delete from rhino.bidder_adgroup_assignment where adgroup_id in (${ag_bundle_id});
+    execute_sql_string     delete from rhino.gesture_ad where ad_id in (select id from rhino.ads where ad_group_id in (${ag_bundle_id}));
+    execute_sql_string     delete from rhino.ads where ad_group_id in (${ag_bundle_id});
+    execute_sql_string     delete from rhino.adgroup_targetlist where adgroup_id in (${ag_bundle_id});
+    execute_sql_string     delete from rhino.bidder_pricing_map where adgroup_id in (${ag_bundle_id});
+    execute_sql_string       delete from rhino.adgroup_optimization where adgroup_id in (${ag_bundle_id});
+    execute_sql_string       delete from rhino.viewability_optimization where ad_group_id in (${ag_bundle_id});
+    execute_sql_string       delete from rhino.adgroup_metrics where adgroup_id in (${ag_bundle_id});
+    execute_sql_string       delete from rhino.adgroup_ui_to_bidder where adgroup_id in (${ag_bundle_id});
+    execute_sql_string       delete from rhino.campaign_adgroup_visibility where adgroup_id in (${ag_bundle_id});
+    execute_sql_string       delete from rhino.adgroups_measurement_datasource where adgroup_id in (${ag_bundle_id});
+    execute_sql_string        delete from rhino.bidder_adgroup_assignment where adgroup_id in (${ag_bundle_id});
+    execute_sql_string     delete from rhino.ad_group where id in (${ag_bundle_id});
+    #execute_sql_string       delete from rhino.adgroups_measurement_datasource where adgroup_id in (${ag_bundle_id});
+    #execute_sql_string     delete from rhino.ad_group where id in (${ag_bundle_id});
+    Disconnect From Database
+
+
+Retrieve Ad_ID By Ad Name And Ad_Group_Bundle
+    [Arguments]      ${child_ag_ad_name}=      ${parent_ag_bundle_id}=
+    Log     Child Ad Name: ${child_ag_ad_name} & AdGroup_Bundle_ID: ${parent_ag_bundle_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from rhino.ad_group where name = '${child_ag_ad_name}' and bundle_parent_id = ${parent_ag_bundle_id};
+    ${length}=     Get Length     ${query_results}
+    Log     query_results length: ${query_results}
+    ${temp_ag_id}=        Set Variable If
+    ...                                    ${length} == 1        ${queryResults[0][0]}
+    ...                                    ${length} <> 1        0
+    Set Suite Variable    ${child_ad_group_id}      ${temp_ag_id}
+    Log    Child AdGroup ID: ${child_ad_group_id}
+    Run Keyword If        ${child_ad_group_id}==0       Fail    Query did not return any results
+    @{query_results}     Query    select id from rhino.ads where ad_group_id = ${child_ad_group_id};
+    ${length}=     Get Length     ${query_results}
+    Log     query_results length: ${length}
+    ${temp_ad_id}=        Set Variable If
+    ...                                    ${length} == 1        ${queryResults[0][0]}
+    ...                                    ${length} <> 1        0
+    Set Suite Variable    ${child_ad_id}      ${temp_ad_id}
+    Log    Child Ad ID: ${child_ad_id}
+    Run Keyword If        ${child_ad_id} ==0        Fail   Query did not return any results
+    Disconnect From Database
+
+Remove Ad By Child_AdGroup_ID And Child_Ad_ID
+    [Arguments]         ${child_ad_group_id}=      ${child_ad_id}=
+    Log   Child_AdGroup_ID:child_ad_group_id Child_Ad_ID:${child_ad_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string        delete from rhino.gesture_ad where ad_id = ${child_ad_id};
+    execute_sql_string        delete from rhino.ads where ad_group_id = ${child_ad_group_id};
+    execute_sql_string        delete from rhino.adgroup_targetlist where adgroup_id = ${child_ad_group_id};
+    execute_sql_string        delete from rhino.ad_group where id = ${child_ad_group_id};
+    Disconnect From Database
+
+Retrieve Campaigns From Advertisers By Advertiser Name
+    [Arguments]        ${advertiser_name}=
+    Log     Retrieving campaign ids for Advertiser: ${advertiser_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from rhino.campaign where partner_id in (select id from rhino.partner where name like '${advertiser_name}' and type_id = 1);
+    Set Suite Variable    @{CAMPAIGN_ID_LIST}     @{query_results}
+    Log Many      @{CAMPAIGN_ID_LIST}
+    Disconnect From Database
+
+Retrieve AdvertiserID By Advertiser Name
+    [Arguments]        ${advertiser_name}=
+    Log     Retrieving advertiser id for Advertiser: ${advertiser_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from rhino.partner where name like '${advertiser_name}' and type_id = 1;
+    Set Suite Variable    @{ADVERTISER_ID_LIST}     @{query_results}
+    Log Many      @{ADVERTISER_ID_LIST}
+    Disconnect From Database
+
+Retrieve API Key And PartnerID From Partner Name
+    [Arguments]        ${partner_name}=
+    Log     Retrieving API Key and PartnerID From Partner: ${partner_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    #@{query_results}     Query    select id, external_partner_id from rhino.partner where type_id = 2 and name like '${partner_name}';
+    @{query_results}     Query    select id, external_partner_id from rhino.partner where type_id = 5 and name='${partner_name}';
+    Set Suite Variable    ${partner_id}      ${query_results[0][0]}
+    Set Suite Variable    ${api_key}          ${query_results[0][1]}
+    Disconnect From Database
+
+Retrieve Placements Belonging to Partner By PartnerID
+    [Arguments]        ${partner_id}=
+    Log     Retrieving placement list from partner id: ${partner_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from rhino.placement where partner_site_id in (select id from rhino.partner_site where partner_id = ${partner_id});
+    Disconnect From Database
+    Set Suite Variable    @{PLACEMENT_ID_LIST}     @{query_results}
+    Log Many      @{PLACEMENT_ID_LIST}
+
+Retrieve Placements ID From Placement Name
+    [Arguments]        ${placement_name}=
+    Log     Retrieving placement ID from placement name: ${placement_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+#    ${placement_id}=     Query    select id from rhino.placement where placement=${placement_name};
+    @{query_results}     Query    select id from rhino.placement where placement=${placement_name};
+    Disconnect From Database
+#    Set Suite Variable    ${placement_id}    ${placement_id}
+    Set Suite Variable    ${placement_id}      ${queryResults[0][0]}
+    Log Many     Found Placement ID:${placement_id}
+
+
+Retrieve Placement Names For Site And App 4INFO Test Pages
+    Log     Retrieving placement_id and name for site and app 4INFO test pages
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select p.placement from rhino.placement p, rhino.partner_site ps where p.partner_site_id = ps.id and ps.name = '4INFO test pages' order by p.placement asc;
+    Disconnect From Database
+    Log Many      @{query_results}
+    ${rows}=       Get Length        ${query_results}
+    Set Suite Variable    ${total_rows}    ${rows}
+    @{all_placements_list}=    Create List
+    :FOR    ${index}    IN RANGE   0    ${rows}
+     \        Log      Temp: ${query_results[${index}][0]}
+     \       Append To List    ${all_placements_list}         ${query_results[${index}][0]}
+    Set Suite Variable    ${placement_names}                  ${all_placements_list}
+
+Retrieve Information For Placement For Site And App
+     [Arguments]      ${placement_name}=            ${site_name}=4INFO test pages
+     Log     Retrieving Placement Information (ID,Name,Status) for site and app 4INFO test pages
+     Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+     @{query_results}     Query    select p.placement, p.id, p.live from rhino.placement p, rhino.partner_site ps where p.partner_site_id = ps.id and ps.name = '${site_name}' and p.placement = '${placement_name}';
+     Log Many      @{query_results}
+     ${rows}=       Get Length        ${query_results}
+     Run Keyword If         '${rows}'<>'1'         Log       More Than 1 results returned for ${placement_name} and 1st one is picked      WARN
+     Set Suite Variable          ${db_placement_id}                 ${queryResults[0][1]}
+     Set Suite Variable          ${db_placement_status}             ${queryResults[0][2]}
+     Disconnect From Database
+
+#also known as Partner site id
+Retrieve Placement Type ID From Placement Type Name
+    [Arguments]        ${placement_type_name}=NA    ${partner_id}=NA
+    Log     Retrieving Partner Site ID from Placement Type name: ${placement_type_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from rhino.partner_site where name='${placement_type_name}' and partner_id='${partner_id}';
+    Disconnect From Database
+    Set Suite Variable    ${placement_type_id}      ${queryResults[0][0]}
+    Log Many     Found Placement ID:${placement_type_id}
+
+Insert Placement Into DB
+    [Arguments]      ${p_name}=NA            ${pl_type_name}=NA        ${pl_name}=NA    ${pl_status}=LIVE    ${pl_traffic_type}=NA    ${pl_bid_attribute}=NA        ${pl_bid_attribute_Value}=NA
+
+    Run Keyword If        '${pl_status}'=='LIVE'        Set Test Variable        ${pl_status_var}        1
+    #traffic 1=all, 3=web, 4=app,5=online
+    Run Keyword If        '${pl_traffic_type}'=='ALL'        Set Test Variable        ${pl_traffic_type_var}        1
+    Run Keyword If        '${pl_traffic_type}'=='SITE'    Set Test Variable        ${pl_traffic_type_var}        3
+    Run Keyword If        '${pl_traffic_type}'=='APP'        Set Test Variable        ${pl_traffic_type_var}        4
+    Run Keyword If        '${pl_traffic_type}'=='ONLINE'    Set Test Variable        ${pl_traffic_type_var}        5
+
+    #rtb_target 1=null, 2=site id, 3 = app id, 4=pub id, 5 iab/itune content cat, 6=app bundle id, 7=app store url, 8 = site domain, 9 = app domain
+    Run Keyword If        '${pl_bid_attribute}'=='NULL'                                                    Set Test Variable        ${pl_bid_attribute_var}        1
+    Run Keyword If        '${pl_bid_attribute}'=='Site ID (exchange specific)'                            Set Test Variable        ${pl_bid_attribute_var}        2
+    Run Keyword If        '${pl_bid_attribute}'=='App ID (exchange specific)'                                Set Test Variable        ${pl_bid_attribute_var}        3
+    Run Keyword If        '${pl_bid_attribute}'=='Publisher ID (exchange specific)'                        Set Test Variable        ${pl_bid_attribute_var}        4
+    Run Keyword If        '${pl_bid_attribute}'=='IAB/iTunes Content Category (exchange agnostic)'        Set Test Variable        ${pl_bid_attribute_var}        5
+    Run Keyword If        '${pl_bid_attribute}'=='App Bundle ID (exchange agnostic)'                        Set Test Variable        ${pl_bid_attribute_var}        6
+    Run Keyword If        '${pl_bid_attribute}'=='App Store URL (exchange agnostic)'                        Set Test Variable        ${pl_bid_attribute_var}        7
+    Run Keyword If        '${pl_bid_attribute}'=='Site Domain (exchange agnostic)'                        Set Test Variable        ${pl_bid_attribute_var}        8
+    Run Keyword If        '${pl_bid_attribute}'=='App Domain (exchange agnostic)'                            Set Test Variable        ${pl_bid_attribute_var}        9
+
+    #generate ${partner_id} and ${api_key}
+    Retrieve API Key And PartnerID From Partner Name    partner_name=${p_name}
+    #generate ${placement_type_id}
+     Retrieve Placement Type ID From Placement Type Name        placement_type_name=${pl_type_name}        partner_id=${partner_id}
+     Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql String    INSERT INTO rhino.placement(placement,partner_site_id,created_dt,modified_dt,live,total_units_delivered,total_money_made,internal,remnant_banner,remnant_video,remnant_html5,remnant_cpc_floor,remnant_cpm_floor,remnant_cpc,remnant_cpm,placement_type,traffic_type,rtb_target_id,rtb_target_value,ormma_compliant,video_compatibility_id,mraid_compliant,html5_video_compatible,vast_video_compatible,lda_compliant) VALUES ('${pl_name}','${placement_type_id}',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'${pl_status_var}','0','0','0','1','1','1','0','0','1','1','1','${pl_traffic_type_var}','${pl_bid_attribute_var}','${pl_bid_attribute_Value}','0','0','0','0','0','0');
+    @{query_results}     Query        select id from rhino.placement where placement='${pl_name}' and partner_site_id='${placement_type_id}';
+    Set Test Variable    ${placement_id}      ${queryResults[0][0]}
+    Log     Placement ID:${placement_id}
+    Execute Sql String    INSERT INTO rhino.`placement_target_list`(placement_id,target_category_id,created_dt,modified_dt) VALUES('${placement_id}','1',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
+    Disconnect From Database
+
+Cleanup Campaign Data By Campaign Name
+    [Arguments]    ${campaign_name}=
+    Log     Cleaning up data for campaign: ${campaign_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+#    execute_sql_string        delete from rhino.bidder_adgroup_assignment where adgroup_id in (select id from rhino.ad_group where campaign_id in (select id from rhino.campaign where name like '${campaign_name}%'));
+#    execute_sql_string        delete from rhino.gesture_ad where ad_id in (select id from rhino.ads where ad_group_id in ( select id from rhino.ad_group where campaign_id in (select id from rhino.campaign where name like '${campaign_name}%')));
+#    execute_sql_string        delete from rhino.ads where ad_group_id in ( select id from rhino.ad_group where campaign_id in (select id from rhino.campaign where name like '${campaign_name}%'));
+#    execute_sql_string        delete from rhino.adgroup_targetlist where adgroup_id in ( select id from rhino.ad_group where campaign_id in (select id from rhino.campaign where name like '${campaign_name}%'));
+#    execute_sql_string        delete from rhino.ad_group where campaign_id in (select id from rhino.campaign where name like '${campaign_name}%');
+#    execute_sql_string        delete from rhino.campaign_taxonomy_levels where campaign_id in (select id from rhino.campaign where name like '${campaign_name}%');
+#    execute_sql_string        delete from rhino.campaign where name like '${campaign_name}%';
+##    execute_sql_string        update rhino.campaign set status = 2 where name like '${campaign_name}%';
+    Run Keyword If                        '${campaign_name}' == '12_TEST_CAMPAIGN'        Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_test_campaigns.sql
+    Run Keyword If                        '${campaign_name}' == '01_TEST_CAMPAIGN'        Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_test_campaigns_01.sql
+    Run Keyword If                        '${campaign_name}' == '03_TEST_CAMPAIGN'        Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_test_campaigns_03.sql
+    Run Keyword If                        '${campaign_name}' == '04_FREQCAP_CAMPAIGN'     Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_test_campaigns_04.sql
+#    Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_test_campaigns.sql
+#    Log    Not removing any campaigns to test deadlock
+    Disconnect From Database
+
+Update QA DB Admin User Information For Mock
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string        update rhino.users set password = '161ebd7d45089b3446ee4e0d86dbcf92', enabled = 1 where username = 'admin@4info.net';
+    Disconnect From Database
+
+Update QA DB User Status
+    [Arguments]    ${user_name}=        ${status}=1
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string        update rhino.users set enabled = ${status} where username = '${user_name}';
+    Disconnect From Database
+
+Insert Reporting User Into Table
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string        INSERT INTO rhino.users(username,password,enabled,authority,first_name,last_name,reset_request_date,reset_done,last_modified_by,last_modified_date) VALUES ('Reporting@4info.com','305f0c1ee3de0178a4b4c51cb2b412af','1','ROLE_REPORT','Reporting','Reporting',NULL,NULL,'Reporting@4info.com',NOW());
+    Disconnect From Database
+
+Update All Impression Goals For Test Campaigns That Came From Production For Regression Testing
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query     select * from rhino.ad_group where campaign_id in (708,709,710,712);
+    Log Many    @{query_results}
+    execute_sql_string        update rhino.ad_group set units_sold = 100000000, pacing_units_sold = 100000000 where campaign_id in (708,709,710,712);
+    @{query_results}     Query     select * from rhino.ad_group where campaign_id in (708,709,710,712);
+    Log Many    @{query_results}
+    Disconnect From Database
+
+Pause All Campaigns From Production After Mock
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query     select * from rhino.campaign where status =1;
+    Log Many    @{query_results}
+    execute_sql_string        update rhino.campaign set status = 2 where status = 1;
+    @{query_results}     Query     select * from rhino.campaign where status =1;
+    Log Many    @{query_results}
+    Disconnect From Database
+
+#require Advertiser name. Status 2=pause, status 1=live
+Pause Unpause All Campaign Within Advertiser
+    [Arguments]    ${advertiser_name}=        ${status}=2
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query     select * from rhino.campaign where partner_id=(select id from rhino.partner where name='${advertiser_name}');
+    Log Many    @{query_results}
+    execute_sql_string        update rhino.campaign set status=${status} where partner_id=(select id from rhino.partner where name='${advertiser_name}');
+    @{query_results}     Query     select * from rhino.campaign where partner_id=(select id from rhino.partner where name='${advertiser_name}');
+    Log Many    @{query_results}
+    Disconnect From Database
+
+#require Advertiser name. bid_value_cpu
+Update Bid Price For All Adgroup Within Advertiser
+    [Arguments]    ${advertiser_name}=        ${bid_value_cpu}=0.01
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query     select id,name,bid_value_cpu from ad_group where campaign_id in (select distinct id from rhino.campaign where partner_id in (select id from rhino.partner where name='${advertiser_name}'));
+    Log Many    @{query_results}
+    execute_sql_string        update rhino.ad_group set bid_value_cpu=${bid_value_cpu} where campaign_id in (select distinct id from rhino.campaign where partner_id in (select id from rhino.partner where name='${advertiser_name}'));
+    @{query_results}     Query     select id,name,bid_value_cpu from ad_group where campaign_id in (select distinct id from rhino.campaign where partner_id in (select id from rhino.partner where name='${advertiser_name}'));
+    Log Many    @{query_results}
+    Disconnect From Database
+
+Unpause All Regression Test Campaigns From Production
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query     select * from rhino.campaign where id in (708,709,710,712);
+    Log Many    @{query_results}
+    execute_sql_string        update rhino.campaign set status = 1 where id in (708,709,710,712);
+    @{query_results}     Query     select * from rhino.campaign where id in (708,709,710,712);
+    Log Many    @{query_results}
+    Disconnect From Database
+
+Update geonames.loc.api.host In Table rhino.system_settings To Archive1
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string        update rhino.system_settings set value = 'archive1' where name = 'geonames.loc.api.host';
+    Disconnect From Database
+
+Update rhino.system_settings
+	[Arguments]			${name}=			${value}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string        update rhino.system_settings set value = '${value}' where name = '${name}';
+    Disconnect From Database
+
+Update rhino.pricing_parameter
+	[Arguments]			${adgroup_id}=		${name}=			${value}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string        update rhino.pricing_parameter set ${name} = '${value}' where adgroup_id='${adgroup_id}';
+    Disconnect From Database
+        
+Retrieve ID For POI Category
+    [Arguments]          ${category_name}=        ${poi_name}=
+    Log    Retrieving POI Category: ${category_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from rhino.target_poi_category where name = '${category_name}';
+    Set Suite Variable    ${poi_category_id}      ${queryResults[0][0]}
+    Log         POI Category ID For ${category_name} is ${poi_category_id}
+    @{query_results}     Query    select id from rhino.target_poi_name where poi_category_id = ${poi_category_id} and name = '${poi_name}';
+    Set Suite Variable    ${poi_id}      ${queryResults[0][0]}
+    Log         POI ID: ${poi_id}
+    Disconnect From Database
+
+Retrieve POI Count For Target Set
+    [Arguments]      ${poi_category_id}=${poi_category_id}          ${poi_id}=${poi_id}           ${dma}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select count(*) from rhino.poi where category_id = ${poi_category_id} and name_id = ${poi_id} and dma = ${dma};
+    Set Suite Variable    ${poi_db_count}      ${queryResults[0][0]}
+    Disconnect From Database
+
+Retrieve Advertiser Details From Database
+     [Arguments]        ${advertiser_id}
+     Log     Retrieving Advertiser Information From Database For Advertiser ID: ${advertiser_id}
+     Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+     @{query_results}     Query    select id,external_partner_id,name,address_1,address_2,city,state,zip,country,contact,email,type_id,payment_terms,company_guid,created_dt,modified_dt,optimize_remnant_ad_sources,status,parent_id,group_id,adhaven_revshare,phone,api_access,exch_spec,exch_proto,exch_response_type,posse_id from rhino.partner where id = ${advertiser_id};
+     Log Many      @{query_results}
+     Set Test Variable       @{query_results}
+     Disconnect From Database
+
+Cleanup SMB Test Advertisers
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_smb_advertisers.sql
+    Disconnect From Database
+
+Retrieve All Non-SMB Advertisers
+     Log     Retrieving All partners where type_id is not 6 (Non-SMB)
+     Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+     @{query_results}     Query    select id from rhino.partner where type_id != 6;
+     Disconnect From Database
+     Log Many      @{query_results}
+     ${rows}=       Get Length        ${query_results}
+     Log                     Total Records Found: ${rows}
+     @{all_non_smb_list}=    Create List
+    :FOR    ${index}    IN RANGE   0    ${rows}
+     \        Log      Temp: ${query_results[${index}][0]}
+     \       Append To List    ${all_non_smb_list}              ${query_results[${index}][0]}
+    Set Suite Variable    ${all_non_smb_list}                  ${all_non_smb_list}
+
+Retrieve All SMB Advertisers
+    [Arguments]                ${posse_id}=2
+     Log     Retrieving All partners where type_id is 6 (SMB)
+     Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+     @{query_results}     Query    select id from rhino.partner where type_id = 6 and posse_id = ${posse_id};
+     Disconnect From Database
+     Log Many      @{query_results}
+     ${rows}=       Get Length        ${query_results}
+     Log                     Total Records Found: ${rows}
+     @{all_smb_list}=    Create List
+    :FOR    ${index}    IN RANGE   0    ${rows}
+     \       Log      Temp: ${query_results[${index}][0]}
+     \       Append To List    ${all_smb_list}              ${query_results[${index}][0]}
+    Set Test Variable    ${all_smb_list}                  ${all_smb_list}
+
+
+Clean Up SMB Campaign
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql Script     ../sql_cleanup_scripts/cleanup_all_smb_campaigns_for_advertiser_DNR_pause.sql
+    Sleep   2s
+    Execute Sql Script     ../sql_cleanup_scripts/cleanup_all_smb_campaigns_for_advertiser_UPDATE_pause.sql
+    Sleep   2s
+    Disconnect From Database
+
+Retrieve SMB Hierarchy Information By Campaign ID
+    [Arguments]        ${campaign_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query            select id from rhino.ads where ad_group_id in (select id from rhino.ad_group where campaign_id in (${campaign_id}));
+    Length Should Be      ${query_results}     1
+    Set Suite Variable           ${smb_ad_id}       ${queryResults[0][0]}
+    @{query_results}     Query            select id from rhino.ad_group where campaign_id in (${campaign_id}) and bundle = 0;
+    Length Should Be      ${query_results}     1
+    Set Suite Variable           ${smb_child_adgroup_id}       ${queryResults[0][0]}
+    @{query_results}     Query            select id from rhino.ad_group where campaign_id in (${campaign_id}) and bundle = 1;
+    Length Should Be      ${query_results}     1
+    Set Suite Variable           ${smb_parent_adgroup_id}      ${queryResults[0][0]}
+    Disconnect From Database
+
+Retrieve SMB Ad Information
+    [Arguments]        ${campaign_id}
+    Log     Ad ID for Campaign: ${campaign_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from rhino.ads where ad_group_id in (select id from rhino.ad_group where campaign_id in (${campaign_id}));
+    Log Many      @{query_results}
+    Length Should Be      ${query_results}     1
+    Set Suite Variable    ${smb_ad_id}      ${queryResults[0][0]}
+    Log    AdID:${smb_ad_id}
+    @{query_results}     Query    select id, url, duration, version, DATE_FORMAT(created_dt, "%Y-%m-%d") as created_dt, DATE_FORMAT(modified_dt, "%Y-%m-%d") as modified_dt, video_ad_id, banner_ad_id, html5_ad_id, text_ad_id, ad_group_id, status from rhino.ads where id=${smb_ad_id};
+    Disconnect From Database
+    Log Many      @{query_results}
+    Length Should Be      ${query_results}     1
+    ${ad_information}=            Create Dictionary            rhino_ad_id=${queryResults[0][0]}
+    ...                                                        rhino_ad_url=${queryResults[0][1]}
+    ...                                                        rhino_ad_duration=${queryResults[0][2]}
+    ...                                                        rhino_ad_version=${queryResults[0][3]}
+    ...                                                        rhino_ad_create_dt=${queryResults[0][4]}
+    ...                                                        rhino_ad_modified_dt=${queryResults[0][5]}
+    ...                                                        rhino_ad_video_ad_id=${queryResults[0][6]}
+    ...                                                        rhino_ad_banner_ad_id=${queryResults[0][7]}
+    ...                                                        rhino_ad_html5_ad_id=${queryResults[0][8]}
+    ...                                                        rhino_ad_text_ad_id=${queryResults[0][9]}
+    ...                                                         rhino_ad_ad_group_id=${queryResults[0][10]}
+    ...                                                        rhino_ad_status=${queryResults[0][11]}
+    Set Suite Variable     ${ad_information}        ${ad_information}
+    Log Dictionary       ${ad_information}
+
+Retrieve SMB Adgroup Information
+    [Arguments]        ${campaign_id}=         ${bundle}=
+    Log     Adgroup ID for Campaign: ${campaign_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from rhino.ad_group where campaign_id = ${campaign_id} and bundle = ${bundle};
+    Log Many      @{query_results}
+    Length Should Be      ${query_results}     1
+    Set Suite Variable    ${smb_adgroup_id}      ${queryResults[0][0]}
+    Log    Adgroup ID:${smb_adgroup_id}
+    @{query_results}     Query    select id, name, start_date, end_date, start_date_ui, end_date_ui, zoneinfo_time_zone, units_sold, units_delivered, round(cost_per_unit,3) as cost_per_unit, spend, delivered_impressions, delivered_clicks, delivered_acquisitions, budget, pacing_id, exclusive, guaranteed, remnant, remnant_external, house, status, DATE_FORMAT(created_dt, "%Y-%m-%d"), DATE_FORMAT(modified_dt, "%Y-%m-%d"), campaign_id, screen_type, frequency_cap_id, ad_group_payment_type_id, bonus_parent_ad_group_id, ecpm, optimize_bundle, bundle_parent_id, bundle, weight, allocation, bid_value_cpu, adhaven_margin, custom_dates, custom_frequency_cap, custom_targeting, time_zone, time_zone_user, ui_weight, test_ads, ip_to_geo_allowed_type, pacing_units_sold, pacing_units_delivered, pacing_start_date, pacing_end_date, pacing_recalculation, ad_text, track_client_impression, use_spoc_targeting, requires_raw_device_id, app_id, use_placeiq, daily_cap_enabled, daily_cap_units_sold, daily_cap_units_delivered, is_behavioral_targeted, domain, freq_cap_daily_units, freq_cap_overall_units, household_freq_cap_daily_units, household_freq_cap_overall_units, ioimpressiongoal, freq_cap_days, household_freq_cap_days, boost from rhino.ad_group where campaign_id in (${campaign_id}) and bundle = ${bundle};
+    Disconnect From Database
+    Log Many      @{query_results}
+    Length Should Be      ${query_results}     1
+    ${adgroup_db_information}=        Create Dictionary            rhino_adgroup_id=${queryResults[0][0]}
+    ...                            rhino_adgroup_name=${queryResults[0][1]}
+    ...                            rhino_adgroup_start_date=${queryResults[0][2]}
+    ...                            rhino_adgroup_end_date=${queryResults[0][3]}
+    ...                            rhino_adgroup_start_date_ui=${queryResults[0][4]}
+    ...                            rhino_adgroup_end_date_ui=${queryResults[0][5]}
+    ...                            rhino_adgroup_zoneinfo_time_zone=${queryResults[0][6]}
+    ...                            rhino_adgroup_units_sold=${queryResults[0][7]}
+    ...                            rhino_adgroup_units_delivered=${queryResults[0][8]}
+    ...                            rhino_adgroup_cost_per_unit=${queryResults[0][9]}
+    ...                            rhino_adgroup_spend=${queryResults[0][10]}
+    ...                            rhino_adgroup_delivered_impressions=${queryResults[0][11]}
+    ...                            rhino_adgroup_delivered_clicks=${queryResults[0][12]}
+    ...                            rhino_adgroup_delivered_acquisitions=${queryResults[0][13]}
+    ...                            rhino_adgroup_budget=${queryResults[0][14]}
+    ...                            rhino_adgroup_pacing_id=${queryResults[0][15]}
+    ...                            rhino_adgroup_exclusive=${queryResults[0][16]}
+    ...                            rhino_adgroup_guaranteed=${queryResults[0][17]}
+    ...                            rhino_adgroup_remnant=${queryResults[0][18]}
+    ...                            rhino_adgroup_remnant_external=${queryResults[0][19]}
+    ...                            rhino_adgroup_house=${queryResults[0][20]}
+    ...                            rhino_adgroup_status=${queryResults[0][21]}
+    ...                            rhino_adgroup_created_dt=${queryResults[0][22]}
+    ...                            rhino_adgroup_modified_dt=${queryResults[0][23]}
+    ...                            rhino_adgroup_campaign_id=${queryResults[0][24]}
+    ...                            rhino_adgroup_screen_type=${queryResults[0][25]}
+    ...                            rhino_adgroup_frequency_cap_id=${queryResults[0][26]}
+    ...                            rhino_adgroup_ad_group_payment_type_id=${queryResults[0][27]}
+    ...                            rhino_adgroup_bonus_parent_ad_group_id=${queryResults[0][28]}
+    ...                            rhino_adgroup_ecpm=${queryResults[0][29]}
+    ...                            rhino_adgroup_optimized_bundle=${queryResults[0][30]}
+    ...                            rhino_adgroup_bundle_parent_id=${queryResults[0][31]}
+    ...                            rhino_adgroup_bundle=${queryResults[0][32]}
+    ...                            rhino_adgroup_weight=${queryResults[0][33]}
+    ...                            rhino_adgroup_allocation=${queryResults[0][34]}
+    ...                            rhino_adgroup_bid_value_cpu=${queryResults[0][35]}
+    ...                            rhino_adgroup_adhaven_margin=${queryResults[0][36]}
+    ...                            rhino_adgroup_custom_dates=${queryResults[0][37]}
+    ...                            rhino_adgroup_custom_frequency_cap=${queryResults[0][38]}
+    ...                            rhino_adgroup_custom_targeting=${queryResults[0][39]}
+    ...                            rhino_adgroup_time_zone=${queryResults[0][40]}
+    ...                            rhino_adgroup_time_zone_user=${queryResults[0][41]}
+    ...                            rhino_adgroup_ui_weight=${queryResults[0][42]}
+    ...                            rhino_adgroup_test_ads=${queryResults[0][43]}
+    ...                            rhino_adgroup_ip_to_geo_allowed_type=${queryResults[0][44]}
+    ...                            rhino_adgroup_pacing_units_sold=${queryResults[0][45]}
+    ...                            rhino_adgroup_pacing_units_delivered=${queryResults[0][46]}
+    ...                            rhino_adgroup_pacing_start_date=${queryResults[0][47]}
+    ...                            rhino_adgroup_pacing_end_date=${queryResults[0][48]}
+    ...                            rhino_adgroup_pacing_recalculation=${queryResults[0][49]}
+    ...                            rhino_adgroup_ad_text=${queryResults[0][50]}
+    ...                            rhino_adgroup_track_client_impression=${queryResults[0][51]}
+    ...                            rhino_adgroup_use_spoc_targeting=${queryResults[0][52]}
+    ...                            rhino_adgroup_requires_raw_device_id=${queryResults[0][53]}
+    ...                            rhino_adgroup_app_id=${queryResults[0][54]}
+    ...                            rhino_adgroup_use_placeiq=${queryResults[0][55]}
+    ...                            rhino_adgroup_daily_cap_enabled=${queryResults[0][56]}
+    ...                            rhino_adgroup_daily_cap_units_sold=${queryResults[0][57]}
+    ...                            rhino_adgroup_daily_cap_units_delivered=${queryResults[0][58]}
+    ...                            rhino_adgroup_is_behavior_targeted=${queryResults[0][59]}
+    ...                            rhino_adgroup_domain=${queryResults[0][60]}
+    ...                            rhino_adgroup_freq_cap_daily_units=${queryResults[0][61]}
+    ...                            rhino_adgroup_freq_cap_overall_units=${queryResults[0][62]}
+    ...                            rhino_adgroup_household_freq_cap_daily_units=${queryResults[0][63]}
+    ...                            rhino_adgroup_household_freq_cap_overall_units=${queryResults[0][64]}
+    ...                            rhino_adgroup_ioimpressiongoal=${queryResults[0][65]}
+    ...                            rhino_adgroup_freq_cap_days=${queryResults[0][66]}
+    ...                            rhino_adgroup_household_freq_days=${queryResults[0][67]}
+    ...                            rhino_adgroup_boost_flag=${queryResults[0][68]}
+    Set Suite Variable     ${adgroup_db_information}        ${adgroup_db_information}
+    Log Dictionary       ${adgroup_db_information}
+
+Retrieve SMB Impression Goal Information
+    [Arguments]            ${duration}=           ${digital_qty}=         ${posse_id}=NULL
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Log    Duration:${duration}
+    Log    Digital Qty: ${digital_qty}
+    Run Keyword If                 '${posse_id}'=='NULL'                SMB Impression Information Default
+    Run Keyword Unless             '${posse_id}'=='NULL'                SMB Impression Information With Posse_id    posse_id=${posse_id}
+    #@{query_results}=     Query    select id, duration, impression_goal, price from rhino.smb_package where start_range <= ${digital_qty} and ${digital_qty} <= end_range and duration = ${duration};
+    Disconnect From Database
+    Log Many      @{query_results}
+    Length Should Be      ${query_results}     1
+    ${smb_impressions_goal_information}=            Create Dictionary       package_id=${queryResults[0][0]}
+    ...                            smb_duration=${queryResults[0][1]}
+    ...                            smb_impression_goal=${queryResults[0][2]}
+    ...                            smb_price=${queryResults[0][3]}
+    Set Suite Variable            ${smb_impressions_goal_information}            ${smb_impressions_goal_information}
+SMB Impression Information Default
+    @{query_results}=     Query    select id, duration, impression_goal, price from rhino.smb_package where start_range <= ${digital_qty} and ${digital_qty} <= end_range and duration = ${duration} and posse_id is null;
+    Set Test Variable        @{query_results}        @{query_results}
+#posse_id =4 is Datamix
+SMB Impression Information With Posse_id
+    [Arguments]             ${posse_id}=
+    @{query_results}=     Query    select id, duration, impression_goal, price from rhino.smb_package where start_range <= ${digital_qty} and ${digital_qty} <= end_range and duration = ${duration} and posse_id=${posse_id} ;
+    Set Test Variable        @{query_results}        @{query_results}
+Retrieve Campaign Information
+    [Arguments]        ${campaign_id}=
+    Log     Campaign ID: ${campaign_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id, partner_id, name, start_time, restart_time, end_time, start_time_ui, end_time_ui, zoneinfo_time_zone, impressions_sold, impressions_delivered, budget, status, insertion_order, DATE_FORMAT(created_dt, "%Y-%m-%d"), DATE_FORMAT(modified_dt, "%Y-%m-%d"), keywords, measurement_id, order_id, txn_ref_id, txn_date, txn_status, txn_return_code, duration, internal_duration, target_list_URL, target_list_ID, creative_id, billing_id, available_qty, selected_qty, matched_qty from rhino.campaign where id in (${campaign_id});
+    Disconnect From Database
+    Log Many      @{query_results}
+    Length Should Be      ${query_results}     1
+    ${campaign_db_information}=            Create Dictionary            rhino_campaign_id=${queryResults[0][0]}
+    ...                            rhino_campaign_partner_id=${queryResults[0][1]}
+    ...                            rhino_campaign_name=${queryResults[0][2]}
+    ...                            rhino_campaign_start_time=${queryResults[0][3]}
+    ...                            rhino_campaign_restart_time=${queryResults[0][4]}
+    ...                            rhino_campaign_end_time=${queryResults[0][5]}
+    ...                            rhino_campaign_start_time_ui=${queryResults[0][6]}
+    ...                            rhino_campaign_end_time_ui=${queryResults[0][7]}
+    ...                            rhino_campaign_zoneinfo_time_zone=${queryResults[0][8]}
+    ...                            rhino_campaign_impressions_sold=${queryResults[0][9]}
+    ...                            rhino_campaign_impressions_delivered=${queryResults[0][10]}
+    ...                            rhino_campaign_budget=${queryResults[0][11]}
+    ...                            rhino_campaign_status=${queryResults[0][12]}
+    ...                            rhino_campaign_insertion_order=${queryResults[0][13]}
+    ...                            rhino_campaign_created_dt=${queryResults[0][14]}
+    ...                            rhino_campaign_modified_dt=${queryResults[0][15]}
+    ...                            rhino_campaign_keywords=${queryResults[0][16]}
+    ...                            rhino_campaign_measurement_id=${queryResults[0][17]}
+    ...                            rhino_campaign_order_id=${queryResults[0][18]}
+    ...                            rhino_campaign_txn_ref_id=${queryResults[0][19]}
+    ...                            rhino_campaign_txn_date=${queryResults[0][20]}
+    ...                            rhino_campaign_txn_status=${queryResults[0][21]}
+    ...                            rhino_campaign_txn_return_code=${queryResults[0][22]}
+    ...                            rhino_campaign_duration=${queryResults[0][23]}
+    ...                            rhino_campaign_internal_duration=${queryResults[0][24]}
+    ...                            rhino_campaign_target_list_URL=${queryResults[0][25]}
+    ...                            rhino_campaign_target_list_ID=${queryResults[0][26]}
+    ...                            rhino_campaign_creative_id=${queryResults[0][27]}
+    ...                            rhino_campaign_billing_id=${queryResults[0][28]}
+    ...                            rhino_campaign_available_qty=${queryResults[0][29]}
+    ...                            rhino_campaign_selected_qty=${queryResults[0][30]}
+    ...                            rhino_campaign_matched_qty=${queryResults[0][31]}
+    Set Suite Variable     ${campaign_db_information}        ${campaign_db_information}
+    Log Dictionary       ${campaign_db_information}
+
+Remove The All Placement From SMB Campaign
+    [Arguments]            ${child_adgroup_id}
+    Log     Adgroup ID: ${child_adgroup_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    delete from rhino.adgroup_targetlist where adgroup_id=${child_adgroup_id} and target_list_id = 398;
+    Disconnect From Database
+
+Add Default SMB Placement To SMB Campaigns
+    [Arguments]            ${child_adgroup_id}
+    Log     Adgroup ID: ${child_adgroup_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    insert into rhino.adgroup_targetlist (adgroup_id,target_list_id,created_dt,modified_dt,use_zip_demo,ace_report_id) VALUES (${child_adgroup_id},${SMB_DEFAULT_PLACEMENT_TARGET_LIST_ID},now(),now(),0,NULL);
+    Disconnect From Database
+
+#used by SMB and is no longer relevant
+Remove Creative By ID
+    [Arguments]         ${creative_id}=
+    Log   Creative ID: ${creative_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select * from rhino.creative where id = ${creative_id};
+    Log Many      @{query_results}
+    execute_sql_string        delete from rhino.creative where id = ${creative_id};
+    Disconnect From Database
+
+Retrieve Creative Details By Creative
+    [Arguments]            ${creative_id}
+    Log   Creative ID: ${creative_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id,name,advertiser_id,format_id,source_url,url,destination_url,created_dt,modified_dt,ext_creative_id,audit_status,audit_feedback,is_expired,language,brand,category from rhino.creative where id = ${creative_id};
+    Log Many      @{query_results}
+    Length Should Be      ${query_results}     1
+    ${creative_db_information}=            Create Dictionary            rhino_creative_id=${queryResults[0][0]}
+    ...                            rhino_creative_name=${queryResults[0][1]}
+    ...                            rhino_creative_advertiser_id=${queryResults[0][2]}
+    ...                            rhino_creative_format_id=${queryResults[0][3]}
+    ...                            rhino_creative_source_url=${queryResults[0][4]}
+    ...                            rhino_creative_url=${queryResults[0][5]}
+    ...                            rhino_creative_destination_url=${queryResults[0][6]}
+    ...                            rhino_creative_created_dt=${queryResults[0][7]}
+    ...                            rhino_creative_modified_dt=${queryResults[0][8]}
+    ...                            rhino_creative_ext_creative_id=${queryResults[0][9]}
+    ...                            rhino_creative_audit_status=${queryResults[0][10]}
+    ...                            rhino_creative_audit_feedback=${queryResults[0][11]}
+    ...                            rhino_creative_is_expired=${queryResults[0][12]}
+    ...                            rhino_creative_language=${queryResults[0][13]}
+    ...                            rhino_creative_brand=${queryResults[0][14]}
+    ...                            rhino_creative_category=${queryResults[0][15]}
+    Set Suite Variable        ${creative_db_information}                    ${creative_db_information}
+
+
+Retrieve All Target Set For Adgroup By ID
+    [Arguments]            ${adgroup_id}=
+    Retrieve Target Set For Adgroup By ID                        adgroup_id=${adgroup_id}           expected_records_returned=ALL
+
+
+Retrieve Target Set For Adgroup By ID
+    [Documentation]            Retrieve the target set based on the adgroup id, what column to query, the # of records to be returned.
+    [Arguments]            ${adgroup_id}=            ${target_name}=          ${expected_records_returned}=1
+    Log   [AdgroupID: ${adgroup_id}] [TargetName:${target_name}] [ExpectRecordsReturned:${expected_records_returned}]
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Run Keyword If                        '${expected_records_returned}' == 'ALL'         Set Suite Variable    ${query_string}    select id,target_geo_country,target_geo_state,target_geo_city,target_age,target_gender,target_device_manufacturer,target_device_os,target_device_os_version,target_device_model,target_device_type,target_device_capability,target_category,target_publisher,target_carrier,target_time_of_day,target_day_of_week,target_income,target_dob,target_education_level,target_marital_status,target_no_children,target_ethnicity,target_keywords,target_geo_zip,target_geo_dma,target_shortcodes,target_placement,target_site_type,target_time_of_day_static,DATE_FORMAT(created_dt, "%Y-%m-%d"), DATE_FORMAT(modified_dt, "%Y-%m-%d"),target_occupation,target_browser_native_language,target_time_of_day_user,target_device_id,target_connection,target_datasource,target_datasource_segment,target_geofence_segment,target_traffic_type,target_cookie_segment,target_an_browser,target_an_os from rhino.target_list where id in (select target_list_id from rhino.adgroup_targetlist where adgroup_id = ${adgroup_id});
+    Run Keyword Unless                '${expected_records_returned}' == 'ALL'         Set Suite Variable    ${query_string}    select id,target_geo_country,target_geo_state,target_geo_city,target_age,target_gender,target_device_manufacturer,target_device_os,target_device_os_version,target_device_model,target_device_type,target_device_capability,target_category,target_publisher,target_carrier,target_time_of_day,target_day_of_week,target_income,target_dob,target_education_level,target_marital_status,target_no_children,target_ethnicity,target_keywords,target_geo_zip,target_geo_dma,target_shortcodes,target_placement,target_site_type,target_time_of_day_static,DATE_FORMAT(created_dt, "%Y-%m-%d"), DATE_FORMAT(modified_dt, "%Y-%m-%d"),target_occupation,target_browser_native_language,target_time_of_day_user,target_device_id,target_connection,target_datasource,target_datasource_segment,target_geofence_segment,target_traffic_type,target_cookie_segment,target_an_browser,target_an_os from rhino.target_list where id in (select target_list_id from rhino.adgroup_targetlist where adgroup_id = ${adgroup_id}) and ${target_name} is not null;
+    Log     Query String: [${query_string}]
+    @{query_results}     Query    ${query_string}
+    Log Many      @{query_results}
+    ${results_returned}=                    Get Length    ${query_results}
+    Log         Results returned: ${results_returned}
+    Run Keyword Unless                '${expected_records_returned}' == 'ALL'         Length Should Be      ${query_results}     ${expected_records_returned}
+    ${targetlist_db_information}=            Create Dictionary                  db_records_found=${results_returned}
+    :FOR    ${index}    IN RANGE   0    ${results_returned}
+    \        Log     Index: ${index}
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_targetlist_id_${index}='${queryResults[${index}][0]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_geo_country_${index}='${queryResults[${index}][1]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_geo_state _${index}='${queryResults[${index}][2]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_geo_city_${index}='${queryResults[${index}][3]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_age_${index}='${queryResults[${index}][4]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_gender_${index}='${queryResults[${index}][5]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_device_manufacturer_${index}='${queryResults[${index}][6]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_device_os_${index}='${queryResults[${index}][7]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_device_os_version_${index}='${queryResults[${index}][8]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_device_model_${index}='${queryResults[${index}][9]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_device_type_${index}='${queryResults[${index}][10]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_device_capability_${index}='${queryResults[${index}][11]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_category_${index}='${queryResults[${index}][12]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_publisher_${index}='${queryResults[${index}][13]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_carrier_${index}='${queryResults[${index}][14]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_time_of_day_${index}='${queryResults[${index}][15]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_day_of_week_${index}='${queryResults[${index}][16]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_income_${index}='${queryResults[${index}][17]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_dob_${index}='${queryResults[${index}][18]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_education_level_${index}='${queryResults[${index}][19]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_marital_status_${index}='${queryResults[${index}][20]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_no_children_${index}='${queryResults[${index}][21]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_ethnicity_${index}='${queryResults[${index}][22]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_keywords_${index}='${queryResults[${index}][23]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_geo_zip_${index}='${queryResults[${index}][24]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_geo_dma_${index}='${queryResults[${index}][25]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_shortcodes_${index}='${queryResults[${index}][26]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_placement_${index}='${queryResults[${index}][27]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_site_type_${index}='${queryResults[${index}][28]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_time_of_day_static_${index}='${queryResults[${index}][29]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_created_dt_${index}='${queryResults[${index}][30]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_modified_dt_${index}='${queryResults[${index}][31]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_occupation_${index}='${queryResults[${index}][32]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_browser_native_language_${index}='${queryResults[${index}][33]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_time_of_day_user_${index}='${queryResults[${index}][34]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_device_id_${index}='${queryResults[${index}][35]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_connection_${index}='${queryResults[${index}][36]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_datasource_${index}='${queryResults[${index}][37]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_datasource_segment_${index}='${queryResults[${index}][38]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_geofence_segment_${index}='${queryResults[${index}][39]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_traffic_type_${index}='${queryResults[${index}][40]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_cookie_segment_${index}='${queryResults[${index}][41]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_an_browser_${index}='${queryResults[${index}][42]}'
+    \        Set To Dictionary            ${targetlist_db_information}                rhino_target_an_os_${index}='${queryResults[${index}][43]}'
+    Set Suite Variable        ${targetlist_db_information}                ${targetlist_db_information}
+    Log Dictionary              ${targetlist_db_information}
+
+
+Check And Remove Opt Out ID
+    [Arguments]      ${device_id}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select * from rhino.opt_outs where opt_out_id='${device_id}';
+    ${length}=     Get Length     ${query_results}
+    Should Be Equal As Integers        ${length}        1
+    Log     query_results length: ${length}
+    Run Keyword If    '${length}'=='1'    execute_sql_string     delete from rhino.opt_outs where opt_out_id='${device_id}'
+    Disconnect From Database
+
+
+Approve SMB Creative
+    [Arguments]      ${creative_id}=${creative_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string      update rhino.creative set ext_creative_id = '999999999', audit_status=1 where id=${creative_id};
+    Disconnect From Database
+
+
+Retrieve SMB Creative Information
+    [Arguments]      ${creative_id}=${creative_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select * from rhino.creative where id=${creative_id};
+    Log Many      @{query_results}
+    Disconnect From Database
+
+
+Update SMB List Status
+    [Arguments]      ${campaign_id}=${campaign_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select * from rhino.campaign where id=${campaign_id};
+    Log Many      @{query_results}
+    execute_sql_string      update rhino.campaign set smb_list_status = 1 where id=${campaign_id};
+    @{query_results}     Query    select * from rhino.campaign where id=${campaign_id};
+    Log Many      @{query_results}
+    Disconnect From Database
+
+
+Retrieve SMB List Status
+    [Arguments]      ${campaign_id}=${campaign_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select smb_list_status from rhino.campaign where id=${campaign_id};
+    Log Many      @{query_results}
+    Set Suite Variable    ${smb_list_status}      ${queryResults[0][0]}
+    Log         SMB LIST STATUS:[${smb_list_status}]
+    Disconnect From Database
+
+
+Remove SMB Campaign And Associated Adgroups
+    [Arguments]            ${campaign_id}        ${parent_adgroup_id}=        ${child_adgroup_id}=
+    Remove Campaign By CampaignID            ${campaign_id}
+    Remove AdGroup By BundleID                ${child_adgroup_id}
+    Remove AdGroup By BundleID                ${parent_adgroup_id}
+
+
+###############################
+#Database For Partners Tab
+#################################
+Cleanup Partner And Placement
+    [Arguments]        ${p_name}=12_REGRESSION_PARTNER
+    Log     Cleaning up data for partner: ${p_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Execute Sql Script    ../sql_cleanup_scripts/cleanup_all_regression_partner_12.sql
+    Disconnect From Database
+
+
+Check Database For Partner Name
+      [Arguments]                   ${partner_name}=12_REGRESSION_PARTNER
+    Log     Checking Database rhino.partner for ${partner_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    ${partner_id}=     Query    select id from rhino.partner where name='${partner_name}';
+    Should Not Be Empty        ${partner_id}
+    Log         Partner ID: ${partner_id}
+    Disconnect From Database
+
+
+Check Database For Placement Name
+      [Arguments]                   ${placement_name}=12_REGRESSION_PLACEMENT
+    Log     Checking Database rhino.partner for ${partner_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    ${placement_id}=     Query    select id,traffic_type from rhino.placement where placement='${placement_name}';
+    Should Not Be Empty        ${placement_id}
+    Log         Partner ID: ${placement_id}
+    Disconnect From Database
+
+
+###############################
+#Segment
+##############################
+Retrieve Data Source Segment ID From Segment Name
+    [Arguments]        ${segment_name}=
+    Log     Retrieving segment ID from segment name: ${segment_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}=     Query    select id,datasource_id from rhino.target_datasource_segments where segment_name='${segment_name}';
+    Disconnect From Database
+    Log Many      @{query_results}
+    Set Suite Variable    ${segment_id}    ${queryResults[0][0]}
+    Set Suite Variable    ${datasource_id}    ${queryResults[0][1]}
+    Log Many     Found Segment ID:${segment_id}
+
+
+Retrieve Device Segment ID From Segment Name
+    [Arguments]        ${segment_name}=
+    Log     Retrieving segment ID from segment name: ${segment_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    ${segment_id}=     Query    select id from rhino.target_device_segments where name='${segment_name}';
+    Disconnect From Database
+    Set Suite Variable    ${segment_id}    ${segment_id}
+    Log Many     Found Segment ID:${segment_id}
+
+
+#########################################
+# GeoFence
+#########################################
+Retrieve Target Geo Dma ID From Dma Name
+    [Arguments]        ${dma_name}=
+    Log     Retrieving target geo dma by name: ${dma_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}=     Query    select dma_code from rhino.target_geo_dma where dma_area='${dma_name}';
+    Disconnect From Database
+    Log Many      @{query_results}
+    Set Suite Variable    ${dma_code}    ${queryResults[0][0]}
+    Log Many     Found Segment ID:${dma_code}
+
+
+#########################################
+# UI vs API
+#########################################
+    #compare two rows for UI & API:
+Get table data populated form UI
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{descr_1842}=     Description     select * from rhino.ads a, rhino.video_ad va, rhino.video_bundle vb where a.video_ad_id = va.video_bundle_id and a.video_ad_id = vb.id and va.id in (1842);
+    Disconnect From Database
+    @{t1}=    Log Many   @{descr_1842}
+    Set Suite Variable    @{descr_1842}    @{descr_1842}
+
+
+Get table data populated form API
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{descr_1607}=     Description       select * from rhino.ads a, rhino.video_ad va, rhino.video_bundle vb where a.video_ad_id = va.video_bundle_id and a.video_ad_id = vb.id and va.id in (1607);
+    Disconnect From Database
+    @{t2}=    Log Many   @{descr_1607}
+    Set Suite Variable    @{descr_1607}    @{descr_1607}
+
+     #compare values for native ads from UI & API:
+Get values populated by UI for native ads
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{ui_data}         Query  select * from rhino.ads where native_ad_id in (58);
+    Disconnect From Database
+     Log Many    @{ui_data}
+     Set Suite Variable    @{ui_data}    @{ui_data}
+
+
+Get values populated by API for native ads
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{api_data}        Query  select * from rhino.ads where native_ad_id in (107);
+    Disconnect From Database
+    Log Many    @{api_data}
+    Set Suite Variable    @{api_data}    @{api_data}
+
+    #verify native_ad_id value
+Get native_ad_id
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{ui_data}     Query  select * from rhino.ads where native_ad_id in (58);
+    Disconnect From Database
+    Log Many    @{ui_data}
+    Set Suite Variable    @{ui_data}    @{ui_data}
+
+
+    #getting ad id
+Get ad id for native query
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{ui_data}  Query  select * from rhino.ads where native_ad_id in (${ad_id});
+    Disconnect From Database
+    Set Suite Variable    @{ui_data}    @{ui_data}
+
+Get ad id for banner query
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{ui_data}  Query  select * from rhino.ads where banner_ad_id in (${ad_id});
+    Disconnect From Database
+    Set Suite Variable    @{ui_data}    @{ui_data}
+
+Get ad id for video query
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{ui_data}  Query  select * from rhino.ads a, rhino.video_ad va, rhino.video_bundle vb where a.video_ad_id = va.video_bundle_id and a.video_ad_id = vb.id and va.id in (${ad_id});
+    Disconnect From Database
+    Set Suite Variable    @{ui_data}    @{ui_data}
+
+    #data gets populated in tables for native & banner
+Get native ad data query
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{ui_data}  Query    select * from rhino.native_ad where name IN (${native_ad_name});
+    Disconnect From Database
+    Set Suite Variable    @{ui_data}    @{ui_data}
+
+Get banner ad data query
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{ui_data}  Query    select * from rhino.banner_ad where name IN (${banner_ad_name});
+    Disconnect From Database
+    Set Suite Variable    @{ui_data}    @{ui_data}
+
+Get video ad data query
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{ui_data}  Query    select * from rhino.video_ad where name IN (${video_ad_name});
+    Disconnect From Database
+    Set Suite Variable    @{ui_data}    @{ui_data}
+
+### HYDRA ### CREATIVE API
+
+#This is obsolete unless we are using default name.
+Cleanup Creative All By Namex
+    [Arguments]        ${creative_name}=TestREGRESSION_CREATIVE
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{creative_list_banner}    Query    select distinct(name) from rhino.banner_ad where name like '%${creative_name}%';
+    @{creative_list_video}    Query    select distinct(name) from rhino.video_bundle where name like '%${creative_name}%';
+    @{creative_list_native}    Query    select distinct(name) from rhino.native_ad where name like '%${creative_name}%';
+    Disconnect From Database
+
+    Log Many     @{creative_list_banner}
+    ${banner_count}=           Get Length  ${creative_list_banner}
+    :FOR    ${index}    IN RANGE   0    ${banner_count}
+    \       Log     Index: ${index}
+    \       ${temp_name}=        Set Variable  ${creative_list_banner[${index}][0]}
+    \       Cleanup Creative Banner By Name           creative_name=${temp_name}
+
+    Log Many     @{creative_list_video}
+    ${video_count}=           Get Length  ${creative_list_video}
+    :FOR    ${index}    IN RANGE   0    ${video_count}
+    \       Log     Index: ${index}
+    \       ${temp_name}=        Set Variable  ${creative_list_video[${index}][0]}
+    \       Cleanup Creative Video By Name           creative_name=${temp_name}
+
+    Log Many     @{creative_list_native}
+    ${native_count}=           Get Length  ${creative_list_native}
+    :FOR    ${index}    IN RANGE   0    ${native_count}
+    \       Log     Index: ${index}
+    \       ${temp_name}=        Set Variable  ${creative_list_native[${index}][0]}
+    \       Cleanup Creative Native By Name           creative_name=${temp_name}
+
+
+#Remove all ads, creative, child, parent, campaign, advertiser
+Cleanup Advertiser From DB
+    [Arguments]        ${advertiser_name}=
+    Log    ${advertiser_name}
+    Retrieve Campaigns From Advertisers By Advertiser Name        advertiser_name=${advertiser_name}
+    #generate @{CAMPAIGN_ID_LIST}
+    ${campaign_count}=           Get Length  ${CAMPAIGN_ID_LIST}
+    :FOR    ${index}    IN RANGE   0    ${campaign_count}
+    \       Log     Index: ${index}
+    \       ${temp_campaign_id}=        Set Variable  ${CAMPAIGN_ID_LIST[${index}][0]}
+    \        Cleanup Campaign From DB By Campaign ID                campaign_id=${temp_campaign_id}
+    Remove Advertiser By Name        advertiser_name=${advertiser_name}
+
+Cleanup Campaign From DB By Campaign ID
+    [Arguments]        ${campaign_id}=
+    Cleanup All Ads From Campaign ID                       campaign_id=${campaign_id}
+    Cleanup All Creative Templates From Campaign ID        campaign_id=${campaign_id}
+    Remove Campaign By CampaignID                        campaign_id=${campaign_id}
+
+
+Cleanup All Ads From Campaign ID
+    [Arguments]        ${campaign_id}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+#This only delete all ads under campaign
+    @{creative_list_banner}    Query    select banner_ad_id from ads where ((ad_group_id in (select id from rhino.ad_group where campaign_id='${campaign_id}')) AND (banner_ad_id IS NOT NULL));
+    @{creative_list_video}    Query    select video_ad_id from ads where ((ad_group_id in (select id from rhino.ad_group where campaign_id='${campaign_id}')) AND (video_ad_id IS NOT NULL));
+    @{creative_list_native}    Query    select native_ad_id from ads where ((ad_group_id in (select id from rhino.ad_group where campaign_id='${campaign_id}')) AND (native_ad_id IS NOT NULL));
+#    Disconnect From Database
+    Log Many     @{creative_list_banner}
+    ${banner_count}=           Get Length  ${creative_list_banner}
+    :FOR    ${index}    IN RANGE   0    ${banner_count}
+    \       Log     Index: ${index}
+    \       ${temp_id}=        Set Variable  ${creative_list_banner[${index}][0]}
+    \       Cleanup Creative Banner By ID           creative_id=${temp_id}
+
+    Log Many     @{creative_list_video}
+    ${video_count}=           Get Length  ${creative_list_video}
+    :FOR    ${index}    IN RANGE   0    ${video_count}
+    \       Log     Index: ${index}
+    \       ${temp_id}=        Set Variable  ${creative_list_video[${index}][0]}
+    \       Cleanup Creative Video By ID           creative_id=${temp_id}
+
+    Log Many     @{creative_list_native}
+    ${native_count}=           Get Length  ${creative_list_native}
+    :FOR    ${index}    IN RANGE   0    ${native_count}
+    \       Log     Index: ${index}
+    \       ${temp_id}=        Set Variable  ${creative_list_native[${index}][0]}
+    \       Cleanup Creative Native By ID           creative_id=${temp_id}
+    Disconnect From Database
+
+
+Cleanup All Creative Templates From Campaign ID
+    [Arguments]        ${campaign_id}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+#This only delete all ads under campaign
+    @{creative_list_banner}    Query    select banner_ad_id from rhino.ads where campaign_id='${campaign_id}' AND (banner_ad_id IS NOT NULL);
+    @{creative_list_video}    Query    select video_ad_id from rhino.ads where campaign_id='${campaign_id}' AND (video_ad_id IS NOT NULL);
+    @{creative_list_native}    Query    select native_ad_id from rhino.ads where campaign_id='${campaign_id}' AND (native_ad_id IS NOT NULL);
+#    Disconnect From Database
+    Log Many     @{creative_list_banner}
+    ${banner_count}=           Get Length  ${creative_list_banner}
+    :FOR    ${index}    IN RANGE   0    ${banner_count}
+    \       Log     Index: ${index}
+    \       ${temp_id}=        Set Variable  ${creative_list_banner[${index}][0]}
+    \       Cleanup Creative Banner By ID           creative_id=${temp_id}
+
+    Log Many     @{creative_list_video}
+    ${video_count}=           Get Length  ${creative_list_video}
+    :FOR    ${index}    IN RANGE   0    ${video_count}
+    \       Log     Index: ${index}
+    \       ${temp_id}=        Set Variable  ${creative_list_video[${index}][0]}
+    \       Cleanup Creative Video By ID           creative_id=${temp_id}
+
+    Log Many     @{creative_list_native}
+    ${native_count}=           Get Length  ${creative_list_native}
+    :FOR    ${index}    IN RANGE   0    ${native_count}
+    \       Log     Index: ${index}
+    \       ${temp_id}=        Set Variable  ${creative_list_native[${index}][0]}
+    \       Cleanup Creative Native By ID           creative_id=${temp_id}
+    Disconnect From Database
+
+
+Cleanup Creative Banner By Name
+    [Documentation]        remove banner creative by name
+    [Arguments]        ${creative_name}=
+    Log        Clean up Banner creative with name starting with: ${creative_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    delete from rhino.creative_audit where banner_details_id in (select id from rhino.banner_details where banner_ad_id in (select id from rhino.banner_ad where name='${creative_name}'));
+    execute_sql_string    delete from rhino.target_creative_battr where banner_details_id in (select id from rhino.banner_details where banner_ad_id in (select id from rhino.banner_ad where name='${creative_name}'));
+    execute_sql_string    delete from rhino.banner_details where (banner_ad_id in (select id from rhino.banner_ad where name='${creative_name}')) AND campaign_creative_id is not NULL;
+    execute_sql_string    delete from rhino.banner_details where banner_ad_id in (select id from rhino.banner_ad where name='${creative_name}');
+    execute_sql_string    delete from rhino.gesture_ad where ad_id in (select id from rhino.ads where banner_ad_id in (select id from rhino.banner_ad where name='${creative_name}'));
+    execute_sql_string    delete from rhino.ads where banner_ad_id in (select id from rhino.banner_ad where name='${creative_name}');
+    execute_sql_string    delete from rhino.banner_ad where name='${creative_name}';
+    Disconnect From Database
+
+
+Cleanup Creative Banner By ID
+    [Documentation]        remove banner creative by banner_ad id
+    [Arguments]        ${creative_id}=
+    Log        Clean up Banner creative with id=${creative_id}
+#removing connection/disconnect to database to speed up time
+#    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    delete from rhino.creative_audit where banner_details_id in (select id from rhino.banner_details where banner_ad_id='${creative_id}');
+    execute_sql_string    delete from rhino.target_creative_battr where banner_details_id in (select id from rhino.banner_details where banner_ad_id='${creative_id}');
+    execute_sql_string    delete from rhino.banner_details where banner_ad_id='${creative_id}';
+    #execute_sql_string    delete from rhino.banner_details where banner_ad_id='${creative_id}';
+    execute_sql_string    delete from rhino.gesture_ad where ad_id in (select id from rhino.ads where banner_ad_id='${creative_id}');
+    execute_sql_string    delete from rhino.ads where banner_ad_id='${creative_id}';
+    execute_sql_string    delete from rhino.banner_ad where id='${creative_id}';
+#    Disconnect From Database
+
+Cleanup Creative Video By Name
+    [Documentation]        Remove Video creative by name
+    [Arguments]        ${creative_name}=
+    Log        Clean up Video creative with name starting with: ${creative_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    delete from rhino.video_mime_types where video_ad_id in (select id from rhino.video_ad where video_bundle_id in (select id from rhino.video_bundle where name='${creative_name}'));
+    execute_sql_string    delete from rhino.video_details where video_ad_id in (select id from rhino.video_ad where video_bundle_id in (select id from rhino.video_bundle where name='${creative_name}'));
+    execute_sql_string    delete from rhino.creative_audit where video_ad_id in (select id from rhino.video_ad where video_bundle_id in (select id from rhino.video_bundle where name='${creative_name}'));
+    execute_sql_string    delete from rhino.target_creative_battr where video_ad_id in (select id from rhino.video_ad where video_bundle_id in (select id from rhino.video_bundle where name='${creative_name}'));
+    execute_sql_string    delete from rhino.video_ad where video_bundle_id in (select id from rhino.video_bundle where name='${creative_name}') AND campaign_creative_id is not NULL;;
+    execute_sql_string    delete from rhino.video_ad where video_bundle_id in (select id from rhino.video_bundle where name='${creative_name}');
+    execute_sql_string    delete from rhino.gesture_ad where ad_id in (select id from rhino.ads where video_ad_id in (select id from rhino.video_bundle where name='${creative_name}'));
+    execute_sql_string    delete from rhino.ads where video_ad_id in (select id from rhino.video_bundle where name='${creative_name}');
+    execute_sql_string    delete from rhino.video_bundle where name='${creative_name}';
+    Disconnect From Database
+
+
+Cleanup Creative Video By ID
+    [Documentation]        video_ad_id is taken from rhino.ads -> rhino.video_bundle (creative_id)
+    [Arguments]        ${creative_id}=
+    Log        Clean up Video creative with id=${creative_id}
+#    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    delete from rhino.video_mime_types where video_ad_id in (select id from rhino.video_ad where video_bundle_id='${creative_id}');
+    execute_sql_string    delete from rhino.video_details where video_ad_id in (select id from rhino.video_ad where video_bundle_id='${creative_id}');
+    execute_sql_string    delete from rhino.creative_audit where video_ad_id in (select id from rhino.video_ad where video_bundle_id='${creative_id}');
+    execute_sql_string    delete from rhino.target_creative_battr where video_ad_id in (select id from rhino.video_ad where video_bundle_id='${creative_id}');
+    #execute_sql_string    delete from rhino.video_ad where video_bundle_id in (select id from rhino.video_bundle where name='${creative_name}');
+    execute_sql_string    delete from rhino.video_ad where video_bundle_id='${creative_id}' AND campaign_creative_id is not NULL;
+    execute_sql_string    delete from rhino.video_ad where video_bundle_id='${creative_id}';
+    execute_sql_string    delete from rhino.gesture_ad where ad_id in (select id from rhino.ads where video_ad_id='${creative_id}');
+    execute_sql_string    delete from rhino.ads where video_ad_id='${creative_id}';
+    execute_sql_string    delete from rhino.video_bundle where id='${creative_id}';
+#    Disconnect From Database
+
+
+Cleanup Creative Native By Name
+    [Documentation]        Remove Native creative by name
+    [Arguments]        ${creative_name}=
+    Log        Clean up Native creative with name starting with: ${creative_name}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    delete from rhino.gesture_ad where ad_id in (select id from rhino.ads where native_ad_id in (select id from rhino.native_ad where name='${creative_name}'));
+    execute_sql_string    delete from rhino.ads where native_ad_id in (select id from rhino.native_ad where name='${creative_name}');
+    execute_sql_string    delete from rhino.native_details where native_ad_id in (select id from rhino.native_ad where name='${creative_name}') AND campaign_creative_id is NOT NULL;
+    execute_sql_string    delete from rhino.native_details where native_ad_id in (select id from rhino.native_ad where name='${creative_name}');
+    execute_sql_string    delete from rhino.native_ad where name='${creative_name}';
+    Disconnect From Database
+    ########Incomplete, using video_ad is not convenient
+    #execute_sql_string    delete from rhino.video_mime_types where video_ad_id in (select id from rhino.video_ad where name like '${creative_name}%');
+    #execute_sql_string    delete from rhino.video_mime_types where video_ad_id in (select distinct campaign_creative_id from rhino.video_ad where name like '${creative_name}%');
+    #execute_sql_string    delete from rhino.video_details where video_ad_id in (select id from rhino.video_ad where name like '${creative_name}%');
+    #execute_sql_string    delete from rhino.video_details where video_ad_id in (select distinct campaign_creative_id from rhino.video_ad where name like '${creative_name}%');
+    #execute_sql_string    delete from rhino.creative_audit where video_ad_id in (select id from rhino.video_ad where name like '${creative_name}%');
+    #execute_sql_string    delete from rhino.creative_audit where video_ad_id in (select distinct campaign_creative_id from rhino.video_ad where name like '${creative_name}%');
+    #execute_sql_string    delete from rhino.target_creative_battr where video_ad_id in (select id from rhino.video_ad where name like '${creative_name}%');
+    #execute_sql_string    delete from rhino.target_creative_battr where video_ad_id in (select distinct campaign_creative_id from rhino.video_ad where name like '${creative_name}%');
+    #execute_sql_string    delete from rhino.gesture_ad where video_ad_id in (select id from rhino.video_ad where name like '${creative_name}%');
+    #execute_sql_string    delete from rhino.gesture_ad where video_ad_id in (select distinct campaign_creative_id from rhino.video_ad where name like '${creative_name}%');
+
+    #execute_sql_string    delete from rhino.ads where video_ad_id in (select video_bundle_id from rhino.video_ad where name like '${creative_name}%')
+    #execute_sql_string    delete from rhino.video_bundle where in (select id from rhino.video_ad where name like '${creative_name}%');
+    #execute_sql_string    delete from rhino.video_ad where name like '${creative_name}%' AND campaign_creative_id is not NULL;
+
+
+Cleanup Creative Native By ID
+    [Documentation]        native_ad_id is taken from rhino.ads -> rhino.native_ad (creative_id)
+    [Arguments]        ${creative_id}=
+    Log        Clean up Native creative with id=${creative_id}
+#    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string    delete from rhino.gesture_ad where ad_id in (select id from rhino.ads where native_ad_id='${creative_id}');
+    execute_sql_string    delete from rhino.ads where native_ad_id='${creative_id}';
+    execute_sql_string    delete from rhino.native_details where native_ad_id='${creative_id}';
+    execute_sql_string    delete from rhino.native_ad where id='${creative_id}';
+#    Disconnect From Database
+
+Get Pricing_Parameter
+    [Arguments]        ${adgroup_id}=        ${column_name}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select ${column_name} from rhino.pricing_parameter where adgroup_id = '${adgroup_id}';
+    Log Many     @{query_results}
+    Set Test Variable    ${pricing_parameter_result}      ${queryResults[0][0]}
+    Disconnect From Database

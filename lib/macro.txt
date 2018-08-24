@@ -1,0 +1,60 @@
+
+
+*** Keywords ***
+Go To Page ${page_url}	
+		Go To    ${page_url}	
+
+Extract Data For Macro And Verify 3rd Party
+		[Arguments]      ${page_url}			${macro_name}=			
+		Go To Page ${page_url}	
+		${raw_text}=				Get Text       //td[@id='${macro_name}']
+		Log      Raw Data: ${raw_text}
+		Set Suite Variable    ${raw_text}			${raw_text}
+		${raw_text}=				Get Text       //td[@id='${macro_name}']
+		Get 4INFO_TP_DEST Other Macros
+
+Get 4INFO_TP_DEST Other Macros
+		${4info_tp_dest}=				Get Text       //td[@id='4INFO_TP_DEST']
+		Log     4INFO_TP_DEST: ${4info_tp_dest}
+#		${extracted_drid}=       extract_matching_regex          ${4info_tp_dest}       ^.*drId=(.+?)&
+#		Log  		Extracted DRID: ${extracted_drid}
+#		Set Suite Variable   	${extracted_drid}		${extracted_drid}
+#drid is no longer use, we'll use reqid
+		${extracted_reqid}=       extract_matching_regex          ${4info_tp_dest}       ^.*reqid=(.+?)&
+		Log  		Extracted REQID: ${extracted_reqid}
+		Set Suite Variable   	${extracted_reqid}		${extracted_reqid}
+
+		${extracted_cid}=       extract_matching_regex          ${4info_tp_dest}        &cId=(.+?)&
+		Log  		Extracted cId: ${extracted_cid}
+		Set Suite Variable   	${extracted_cid}		${extracted_cid}
+		${extracted_encrypted_hhid}=       extract_matching_regex          ${4info_tp_dest}        &d=(.+?)&
+		Log  		Extracted Encrypted HH ID (d=): ${extracted_encrypted_hhid}
+		Set Suite Variable   	${extracted_encrypted_hhid}			${extracted_encrypted_hhid}
+		
+		
+Extract Data For Macro And Verify Rich Media
+		[Arguments]      ${page_url}			${macro_name}=			
+		Go To Page ${page_url}	
+		${raw_text}=				Get Text       //td[@id='${macro_name}']
+		Log      Raw Data: ${raw_text}
+		Set Suite Variable    ${raw_text}			${raw_text}
+		${raw_text}=				Get Text       //td[@id='${macro_name}']
+		Get 4INFO_click Other Macros
+
+Get 4INFO_click Other Macros
+		${4info_click}=				Get Text       //td[@id='4INFO_click']
+		Log     4INFO_TP_DEST: ${4info_click}
+#		${extracted_drid}=       extract_matching_regex          ${4info_click}      ^.*drId=(.+?)&
+#		Log  		Extracted DRID: ${extracted_drid}
+#		Set Suite Variable   	${extracted_drid}		${extracted_drid}
+#reqid will be the new data id.
+		${extracted_reqid}=       extract_matching_regex          ${4info_click}       ^.*reqid=(.+?)&
+		Log  		Extracted REQID: ${extracted_reqid}
+		Set Suite Variable   	${extracted_reqid}		${extracted_reqid}
+
+		${extracted_cid}=       extract_matching_regex          ${4info_click}        &cId=(.+?)&
+		Log  		Extracted cId: ${extracted_cid}
+		Set Suite Variable   	${extracted_cid}		${extracted_cid}
+		${extracted_encrypted_hhid}=       extract_matching_regex          ${4info_click}        &d=(.+?)&
+		Log  		Extracted Encrypted HH ID (d=): ${extracted_encrypted_hhid}
+		Set Suite Variable   	${extracted_encrypted_hhid}			${extracted_encrypted_hhid}		

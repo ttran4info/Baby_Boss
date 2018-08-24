@@ -1,0 +1,184 @@
+*** Settings ***
+Library        OperatingSystem
+Resource     ssh_lib.txt
+
+*** Keywords ***
+
+Compile PrototypeDAO For cbtools
+		Log      Compiling PrototypeDAO
+		Retrieve Tools File Path			cbtools
+		${output}=         Run 			cd ${tools_directory}; javac -classpath $(echo . *.jar | tr ' ' ':') PrototypeDAO.java
+		Log      Output:${output}
+		OperatingSystem.File Should Exist     ${tools_directory}/PrototypeDAO.class
+
+Compile UploadIP2HH For cbtools
+		Log      Compiling PrototypeDAO
+		Retrieve Tools File Path			cbtools
+		${output}=         Run 			cd ${tools_directory}; javac -classpath $(echo . *.jar | tr ' ' ':') UploadIP2HH.java
+		Log      Output:${output}
+		OperatingSystem.File Should Exist     ${tools_directory}/UploadIP2HH.class
+
+Compile UploadData For cbtools
+		Log      Compiling PrototypeDAO
+		Retrieve Tools File Path			cbtools
+		${output}=         Run 			cd ${tools_directory}; javac -classpath $(echo . *.jar | tr ' ' ':') UploadData.java
+		Log      Output:${output}
+		OperatingSystem.File Should Exist     ${tools_directory}/UploadData.class
+
+Compile PrototypeDAO For couchbase_test
+		Log      Compiling PrototypeDAO For couchbase_test
+		Retrieve Tools File Path			couchbase_test
+		Log 			Tools Path: ${tools_directory}    
+		${output}=         Run 			cd ${tools_directory}; javac -classpath $(echo . *.jar | tr ' ' ':') PrototypeDAO.java
+		Log      Output:${output}
+		OperatingSystem.File Should Exist     ${tools_directory}/PrototypeDAO.class
+
+Retrieve Device2HH File From S3 Production And Validate Couchbase Production For Date Specified
+		[Arguments]				${date}=				${file_name}=part-00000.gz
+		Download Sample Device2HH File From S3 Production			date=${date}					file_name=${file_name}
+		Should Match Regexp 			${output}				Downloaded from bucket
+		Unzip File Log File					${local_path}/${file_name}
+#		Log 			File Content: ${file_content}
+		Retrieve First 10 Lines In File ${extracted_file_name}
+		Log Many       @{data_list}
+		Validate Device2HH Data Is Loaded Correctly Into Prod			@{data_list} 
+
+Retrieve IP2HH File From S3 Production And Validate Couchbase Production For Date Specified
+		[Arguments]				${date}=				${file_name}=part-00000.gz
+		Download Sample IP2HH File From S3 Production			date=${date}					file_name=${file_name}
+		Should Match Regexp 			${output}				Downloaded from bucket
+		Unzip File Log File					${local_path}/${file_name}
+#		Log 			File Content: ${file_content}
+		Retrieve First 10 Lines In File ${extracted_file_name}
+		Log Many       @{data_list}
+		Validate IP2HH Data Is Loaded Correctly Into Prod			@{data_list} 
+
+Download Log File From S3
+		[Arguments]				${bucket_name}=			${s3_file_path}=			${local_path}=
+		Log      Bucket Name:${bucket_name}
+		Log      S3 File Path:${s3_file_path}
+		Log      Local Path:${local_path}
+		${output}=         Run 			python ../python/get-aws-logs.py -a ${S3_ACCESS_KEY_ID} -s ${S3_ACCESS_KEY_SECRET} -b ${bucket_name} -l ${local_path} -p ${s3_file_path} -d
+		Log      Output:${output}
+		Set Suite Variable      ${output}			${output}
+		Set Test Variable      		${local_path}			${local_path}
+		
+
+Download Sample Device2HH File From S3 Production
+	[Arguments]					${date}=					${file_name}=part-00000.gz
+		Retrieve Output File Path				s3_downloads
+		Log     Output Directory:${output_directory}
+		Remove File 			${output_directory}/${file_name}
+#		Download Log File From S3			bucket_name=adhaven-input-prd			s3_file_path=research/data/devhh/incremental/${date}/${file_name}			local_path=${output_directory}/
+		Download Log File From S3			bucket_name=adhaven-mrscripts-qa		s3_file_path=tables-research/devhh2/incremental/${date}/${file_name}		local_path=${output_directory}/
+
+Download Sample IP2HH File From S3 Production
+	[Arguments]					${date}=					${file_name}=part-00000.gz
+		Retrieve Output File Path				s3_downloads
+		Log     Output Directory:${output_directory}
+		Remove File 			${output_directory}/${file_name}
+		Download Log File From S3			bucket_name=adhaven-input-prd			s3_file_path=research/data/extract_incremental/${date}/${file_name}			local_path=${output_directory}/
+
+	
+Unzip File Log File
+		[Arguments]					${file_name}=
+		${yyyy}		${mm}		${dd}		${hour}   ${min}		${sec}=			Get Time 			year month day hour min sec			UTC
+		Set Test Variable 				${file_name_ts}			${file_name}_${yyyy}${mm}${dd}_${hour}_${min}_${sec}
+		${output}=         Run 			gunzip -N -v -c ${file_name} > ${file_name_ts}
+		Log       Output: ${output}
+		OperatingSystem.File Should Exist  					${file_name_ts}
+		${output}=         Run 			head -100 ${file_name_ts}
+		Log       Output: ${output}
+		Set Test Variable 					${file_content}			${output}
+		${file_size}=			Get File Size					${file_name_ts}
+		Log		File Size: ${file_size}
+		Set Test Variable          ${extracted_file_name}			${file_name_ts}
+		Remove File 			${file_name}
+		
+Retrieve First ${n} Lines In File ${file_name}
+		${total_lines}=				Get Total Line Count 		${file_name}
+		Log  		Total Lines: ${total_lines}
+    		@{data_list}=			Create List       ${total_lines}
+		:FOR    ${index}    IN RANGE   	${n}
+		\			${temp_line}=						Read Line From File 			${extracted_file_name}				${index}
+		\			Append To List         		${data_list}			${temp_line}
+		Set Suite Variable 				@{data_list}			@{data_list}
+
+Validate Device2HH Data Is Loaded Correctly Into Prod
+		[Arguments]			@{data_list}			
+		${n}=      Get Length        ${data_list}		
+		Log Many 			@{data_list}
+		:FOR    ${index}    IN RANGE   	1		${n}
+		\ 			@{temp_data_device_id}=				String.Split String 			@{data_list}[${index}]       |
+		\			Log       DeviceID: @{temp_data_device_id}[0]
+		\			Find Device2HH Data From Couchbase In Prod				@{temp_data_device_id}[0]
+		\			${couchbase_prod_data_device_id}=			Get From Dictionary        ${couchbase_device2hh_data_dictionary}				device_id
+		\			Should Be Equal As Strings 				@{temp_data_device_id}[0]				${couchbase_prod_data_device_id}
+
+Validate IP2HH Data Is Loaded Correctly Into Prod
+		[Arguments]			@{data_list}			
+		${n}=      Get Length        ${data_list}		
+		Log Many 			@{data_list}
+		:FOR    ${index}    IN RANGE   	1		${n}
+		\ 			@{temp_data_ip}=				String.Split String 			@{data_list}[${index}]       |
+		\			Log       IP: @{temp_data_ip}[0]
+		\			Find IP2HH Data From Couchbase In Prod				@{temp_data_ip}[0]
+		\			${couchbase_prod_data_ip}=			Get From Dictionary        ${couchbase_ip2hh_data_dictionary}				ip
+		\			Should Be Equal As Strings 				@{temp_data_ip}[0]				${couchbase_prod_data_ip}
+
+
+Find Device2HH Data From Couchbase In Prod
+		[Arguments]			${device_id}			
+		Retrieve Tools File Path			couchbase_test
+		Log 			Tools Path: ${tools_directory}    
+		${output}=         Run 			cd ${tools_directory}; java -classpath $(echo . *.jar | tr ' ' ':') PrototypeDAO consumer cid_hh_${device_id}			
+		Log      Output:${output}
+		${new_object}=       extract_matching_regex          ${output}        New Object (.+?)$
+		Log       New Object:[${new_object}]
+		@{object_returned_data}=				String.Split String 			${new_object}       |
+		${couchbase_device2hh_data_dictionary}=			Create Dictionary        	device_id=@{object_returned_data}[0]
+		...																			firstUnixtime=@{object_returned_data}[1]
+		...																			unixtime=@{object_returned_data}[2]
+		...																			numUpdates=@{object_returned_data}[3]
+		...																			numLocationChanges=@{object_returned_data}[4]
+		...																			latitude=@{object_returned_data}[5]
+		...																			longitude=@{object_returned_data}[6]
+		...																			probability=@{object_returned_data}[7]
+		...																			score=@{object_returned_data}[8]												
+		...																			requests=@{object_returned_data}[9]
+		...																			minDistance=@{object_returned_data}[10]
+		...																			numHouseholds=@{object_returned_data}[11]
+		...																			households=@{object_returned_data}[12]
+		Set Test Variable     		${couchbase_device2hh_data_dictionary}			${couchbase_device2hh_data_dictionary}
+
+Find IP2HH Data From Couchbase In Prod
+		[Arguments]			${ip}			
+		Retrieve Tools File Path			couchbase_test
+		Log 			Tools Path: ${tools_directory}    
+		${output}=         Run 			cd ${tools_directory}; java -classpath $(echo . *.jar | tr ' ' ':') PrototypeDAO consumer ip_hh_${ip}			
+		Log      Output:${output}
+		${new_object}=       extract_matching_regex          ${output}        New Object (.+?)$
+		Log       New Object:[${new_object}]
+		@{object_returned_data}=				String.Split String 			${new_object}       |
+		${couchbase_ip2hh_data_dictionary}=			Create Dictionary        	ip=@{object_returned_data}[0]
+		...																		min_sec_epoch=@{object_returned_data}[1]
+		...																		max_sec_epoch=@{object_returned_data}[2]
+		...																		no_clusters=@{object_returned_data}[3]
+		...																		no_time_assign_change=@{object_returned_data}[4]
+		...																		latitude=@{object_returned_data}[5]
+		...																		longitude=@{object_returned_data}[6]
+		...																		probability=@{object_returned_data}[7]
+		...																		score=@{object_returned_data}[8]												
+		...																		requests=@{object_returned_data}[9]
+		...																		total_requests=@{object_returned_data}[10]
+		...																		no_requests_with_deviceid=@{object_returned_data}[11]
+		...																		ratio_unique_ids=@{object_returned_data}[12]
+		...																		entropy=@{object_returned_data}[13]
+		...																		distance_to_hh=@{object_returned_data}[14]
+		...																		distance_to_next_hh=@{object_returned_data}[15]
+		...																		hh_assigned_flag=@{object_returned_data}[16]
+		...																		households=@{object_returned_data}[17]	
+		Set Test Variable     		${couchbase_ip2hh_data_dictionary}			${couchbase_ip2hh_data_dictionary}
+	
+		
+				

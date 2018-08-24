@@ -1,0 +1,187 @@
+*** Settings ***
+Resource    ui_placement.txt
+Resource    ui_advertiser.txt
+
+*** Variables ****
+
+#    LOGIN GUI COMPONENTS
+${USERNAME_FIELD}              j_username
+${PASSWORD_FIELD}              j_password
+${LOG_IN_BUTTON}               submit
+${LOG_OUT_LINK}                lnkLogout
+${LOGIN_TITLE}                 adhaven
+${WELCOME_USER_MSG}           Logged in as: 
+${4INFO_LOGO}                  id=adHavenLogo
+${REVISION_TITLE}              adhaven-ui version
+
+#    HOME PAGE COMPONENTS
+${HOME_TITLE}                  adhaven
+${ADHAVEN_LOGO}                AdHavenlogo
+
+#    ADHAVEN TABS
+${TAB_DASHBOARD}               		Dashboard
+${TAB_ADVERTISERS}             		Demand
+${TAB_ADVERTISERS_6_0}             	Demand
+${TAB_PARTNERS}                 	Supply
+${TAB_AD_SOURCE}               		Ad Source
+${TAB_ACE}                          ACE
+#${TAB_GEOFENCE}                     Geofence
+${TAB_AUDIENCE}						Audience
+${TAB_REPORTING}               		Reports
+${TAB_ADMIN}                      	Admin
+${TAB_ADVERTISERS_SMB}             	SMB
+
+#   DASHBOARD
+${START_DATE}                  //div[@id='dashboardTableHolder']/ul/li/input
+${END_DATE}                    //div[@id='dashboardTableHolder']/ul/li[2]/input
+${DASHBOARD_OPTIONS}           xpath=//select
+${DASHBOARD_SUBMIT_BUTTON}     css=input.btnSave
+${DEFAULT_REPORT_OPTION}       Revenue
+${DASHBOARD_REPORT_TABLE}      css=table.dashboardData
+${DASHBOARD_TABLE_ROW_XPATH}   //div[@id='dashboardTableHolder']/table/tbody/tr
+
+
+#   ADVERTISERS
+${CREATE_NEW_ADVERTISER_LINK}        css=#createAdv > a
+${ADVERTISER_TABLE}                  css=table.list.advertiserList
+${ADVERTISER_TABLE_ROW_XPATH}        //div[@id='wrapper']/div/div[3]/div[4]/table/tbody/tr
+${ADVERTISER_TABLE_COLUMN_XPATH}     //div[@id='wrapper']/div/div[3]/div[4]/table/thead/tr/th
+${CREATE_NEW_CAMPAIGN_LINK}          css=#createCamp > a
+
+#   PARTNERS
+${CREATE_NEW_PARTNER_LINK}            link=Partners
+${PARTNERS_TABLE}                                ${ADVERTISER_TABLE}
+${PARTNERS_TABLE_ROW_XPATH}           ${ADVERTISER_TABLE_ROW_XPATH}
+${PARTNERS_TABLE_COLUMN_XPATH}        ${ADVERTISER_TABLE_COLUMN_XPATH}
+${PARTNERS_SUGGEST_SEARCH_TEXTBOX}    id=autosuggest
+${PARTNERS_SUGGEST_SEARCH_LABEL}      Suggested Search (Partner / Site / Placement)
+
+${CREATE_NEW_SITE_APP_LINK}                css=#createSite > a
+#${PARTNERS_INFO_TABLE}                      css=table.list.siteDetails
+${PARTNERS_INFO_TABLE}                        css=table.list.siteDetails
+${PARTNERS_INFO_TABLE_ROW_XPATH}            ${ADVERTISER_TABLE_ROW_XPATH}
+${PARTNERS_INFO_TABLE_COLUMN_XPATH}      ${ADVERTISER_TABLE_COLUMN_XPATH}
+
+${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON}                         siteTypeUI
+${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_APP}              id=siteTypeUI1
+${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_APP_INDEX}        1
+${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_WEBSITE}          id=siteTypeUI2
+${PARTNERS_INFO_SITE_TYPE_RADIO_BUTTON_MOBILE_WEBSITE_INDEX}    5
+${PARTNERS_INFO_PLATFORM_RADIO_BUTTON_iOS}                  id=platform1
+${PARTNERS_INFO_PLATFORM_RADIO_BUTTON_ANDROID}              id=platform2
+${PARTNERS_INFO_PLATFORM_RADIO_BUTTON_WP7}                  id=platform3
+${PARTNERS_INFO_NAME_FIELD}           id=name
+${PARTNERS_INFO_LINK_TO_APP_FIELD}    id=siteUrl
+${PARTNERS_INFO_SITE_URL_FIELD}       id=siteUrl
+${PARTNERS_INFO_CANCEL_BUTTON}        id=btnCancelTwo
+${PARTNERS_INFO_SAVE_BUTTON}          css=#frmCreateSite > input.btnSave
+${PARTNERS_INFO_EDIT_SITE_LINK}       link=Edit
+
+
+
+
+
+#   AD_SOURCE
+
+
+
+#   ACE
+${CREATE_NEW_TARGET_BUTTON}             id=btnNewTargetingSet
+${AUDIENCE_CREATE_SAVE_BUTTON}          css=input.btnSave
+${ACE_REPORT_TABLE}                     css=table.list.adSourceData
+${ACE_TABLE_ROW_XPATH}                  //div[@id='wrapper']/div/div[3]/div[4]/table/tbody/tr
+${DLX_PARENT_SEGMENT_SEARCH_FIELD}      id=searchParentSegment
+${DLX_SUB_SEGMENT_CODE_PREFIX}          css=li.
+${PARENT_DMA_SEARCH_FIELD}              id=searchDma
+${SUB_DMA_CODE_PREFIX}                  id=chk-
+${EMAIL_ADDRESS_FIELD}                  id=email
+${TARGET_SET_NAME_FIELD}                id=targetingsetname
+${SEGMENT_SELECTION_LIST}               id=selectDatasource
+${VOLUME_ESTIMATION_DIV}                id=divVolumeEstimate
+${PRIZM_SEGMENT_SELECTION_PREFIX}       id=cb_ds_2_
+${CONNEXIONS_SEGMENT_SELECTION_PREFIX}  id=cb_ds_3_
+${DLXHH_SEGMENT_SELECTION_PREFIX}       id=cb_ds_7_
+${NCS_SEGMENT_SELECTION_PREFIX}         id=cb_ds_9_
+${GEOFENCE_POI_SEARCH_FIELD}               id=searchPOI
+${GEOFENCE_POI_RADIUS_FIELD}                id=poiRadius
+
+
+${SEGMENT_SELECTION_POSTFIX}            _0
+
+
+
+#   HOUSEHOLD
+${LOOKUP_A_HOUSEHOLD_BUTTON}            id=btnHouseholdLookup
+${HOUSEHOLD_LATITUDE_FIELD}             lat
+${HOUSEHOLD_LONGITUDE_FIELD}            lon
+${HOUSEHOLD_LOOKUP_A_LOCATION_BUTTON}   id=btnLookupByLocation
+${HOUSEHOLD_ADDRESS_FIELD}              addy
+${HOUSEHOLD_LOOKUP_AN_ADDRESS_BUTTON}   id=btnLookupByAddress
+${HOUSEHOLD_TARGET_SEGMENT_TABLE}       css=div.whiteBG > table
+
+#   AD SERVING
+${IMAGE_ELEMENT}                        css=a > img
+${OLD_AD_NOT_SERVED_HTML_VALIDATION}                          <html xmlns="http://www.w3.org/1999/xhtml"><head></head><body><pre></pre></body></html>
+${AD_NOT_SERVED_HTML_VALIDATION}                                  <html xmlns="http://www.w3.org/1999/xhtml"><head></head><body><pre></pre></body></html>|<html xmlns="http://www.w3.org/1999/xhtml"><head><link title="Wrap Long Lines" href="resource://gre-resources/plaintext.css" type="text/css" rel="alternate stylesheet" /></head><body><pre></pre></body></html>
+
+#	ADVERTISERS LEVEL
+${SEARCH}					id=autosuggest
+#	CREATIVE LEVEL
+##  BANNER
+${BANNER_PREVIEW_LINK}		//img[1]
+${PREVIEW_TOP_LINK}			//tr[5]/td[9]/a
+#//tr[7]/td[19]/a	
+#//a[contains(@href,"ads.html?campaignId=2041&adgroupId=36736&ajax=false")]				
+#//tr[4]/td[9]/a
+${BANNER_BUTTON}			id=BannerTypeRadio
+${POSITION_UNKNOWN}			id=bannerDTO.positionList1
+
+${IS_SECURE}				id=chkSecure
+${IS_SECURE_CHECKED}		//input[@id="chkSecure" and @checked="checked"]
+#${BANNER_CR_B60298}		//td[@class="rg" and contains(.,"B60298")]
+#${BANNER_B60298}			//td[@id="clickTypeId" and contains(.,"B60298")]
+${BANNER_CR_60687}			//td[contains(.,"60687")]
+#•
+${BANNER_CR_67420}			//td[contains(.,"67420")]
+#xpath=(//td[@id='clickTypeId'])[4]
+#//td[text()="C1"]
+#//*[@id="clickTypeId" and text()="60687"]			
+#${BANNER_AD_60691}			//td[contains(.,"60691")]
+${BANNER_AD_67425}			//td[contains(.,"67425")]
+${TEST_AD}					//td[contains(.,"test")]
+${EXTERNAL_ID}				id=bannerDTO.externalId
+${DESTINATION_URL}			id=bannerDTO.destinationUrl
+${DESTINATION_URL_NATIVE}	id=nativeDTO.clickDestinationUrl
+${DESTINATION_URL_VIDEO}	id=videoDTO.clickThroughUrl
+
+
+${ALERT_OK}					document.write('<a href="javascript:history.go(-1)">Go back</a>');
+${SAVE}						id=submitBtn
+${SCROLL_RIGHT}				window.scrollTo(0,document.body.scrollWidth/2)
+##  NATIVE
+${AD_NAME_NATIVE}			id=nativeDTO.adName
+${EXTERNAL_ID_NATIVE}		id=nativeDTO.externalId
+${TEST_AD_NATIVE}			//td[contains(.,"test native")]
+#•
+${NATIVE_CR_1451}			//td[contains(.,"1451")]
+${NATIVE_CR_434}			//td[contains(.,"434")]
+${NATIVE_AD_435}		    //td[contains(.,"435")]
+##  VIDEO
+${AD_NAME_VIDEO}			id=videoDTO.name
+${EXTERNAL_ID_VIDEO}		id=videoDTO.externalId
+${TEST_AD_VIDEO}			//td[contains(.,"test video")]
+${AUDIO_ONOFF}				id=videoDTO.extendedAttributes15
+#${VIDEO_CR_V4209}			//td[@class="rg" and contains(.,"V4209")]
+#•
+${VIDEO_CR_4726}			//td[contains(.,"4726")]
+${VIDEO_CR_4212}			//td[contains(.,"4212")]
+#•
+${VIDEO_CR_4771}			//td[contains(.,"4771")]
+#•
+${VIDEO_AD_4772}			//td[contains(.,"4772")]
+${VIDEO_AD_4218}			//td[contains(.,"4218")]
+${VIDEO_CR_ID}				4726
+${VIDEO_CR_ID_RESULT}		//a[contains(., "4726")]
+${VIDEO_AD_ID}				4727
+${VIDEO_AD_ID_RESULT}		//a[contains(., "4727")]
+${IS_SECURE_VIDEO}			id=videoDTO.secure1

@@ -1,0 +1,417 @@
+Library    phoenix_ui.txt
+
+
+*** Keywords ***
+#----------------------------------------------------------------------------------
+# Create Group
+Clear Newly Created UI groups
+    Clean UP Created Groups By Name             groupName=TestRegressionGroup
+    Clean UP Created Groups By Name             groupName=TestRegressionGroup_001
+    Clean UP Created Groups By Name             groupName=TestRegressionGroup-001
+    Clean UP Created Groups By Name             groupName=Test Regression Group 001
+    Clean UP Created Groups By Name             groupName=TestRegressionGroup022
+    Clean UP Created Groups By Name             groupName=TestRegressionGroup023
+    Clean UP Created Groups By Name             groupName=TestRegressionGroup031
+    Clean UP Created Groups By Name             groupName=Test.Regression..Group.001
+
+    Clean UP Created Groups By Name             groupName=TstRegressionGroup
+    Clean UP Created Groups By Name             groupName=TstRegressionGroup_001
+    Clean UP Created Groups By Name             groupName=TstRegressionGroup-001
+    Clean UP Created Groups By Name             groupName=Tst Regression Group 001
+    Clean UP Created Groups By Name             groupName=TstRegressionGroup022
+    Clean UP Created Groups By Name             groupName=TstRegressionGroup023
+    Clean UP Created Groups By Name             groupName=TstRegressionGroup031
+    Clean UP Created Groups By Name             groupName=Tst.Regression..Group.001
+
+
+Clear Regression UI groups from DB
+	[Arguments]		${GroupNameUI}=
+	Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    execute_sql_string     delete from rhino.groups where group_name like '${GroupNameUI}%';
+    execute_sql_string     commit;
+    Disconnect From Database
+    Sleep    5s
+    Comment    Confirm whether deleted record do not exist in the databse
+    Confirm Newly Created Group By UI is saved in DB    GroupNameUI=${GroupNameUI}    count=0
+
+
+
+Confirm Newly Created Group By UI is saved in DB
+	[Arguments]    ${GroupNameUI}=
+	...    ${count}=
+	Log    ${GroupNameUI}
+	Set Test Variable    ${Query}    select count(1) as cnt FROM rhino.groups a where a.group_name='${GroupNameUI}'
+	Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    @{query_results}     Query    ${Query}
+    Set Test Variable    ${DB_group}    ${query_results[0][0]}
+    Log    ${DB_group}
+    Disconnect From Database
+
+    Should Be Equal As Strings    ${DB_group}    ${count}
+
+
+Save Newly Created Group
+    Click Element    ${button_btnGroupEditOk}
+    Sleep    7s
+
+
+Enter Group Name
+    [Arguments]    ${GroupName}=
+    Log    ${GroupName}
+    Input Text    ${input_groupName}    ${GroupName}
+    Sleep    1s
+    ${Textwww}=    Get Text    ${input_groupName}
+
+
+Enter status
+    [Arguments]    ${Status}=
+    Log    ${Status}
+    Select From List By Label    ${select_Status}    ${Status}
+    Sleep    2s
+
+
+
+
+
+Confirm Group Name is Disabled for editing
+    ${attributevalue}=       Get Element Attribute  ${input_groupName}@ng-reflect-is-disabled
+    Sleep    3s
+    Should Contain    ${attributevalue}    true
+
+
+Confirm status in db for group
+    [Arguments]   ${groupName}=
+    ...           ${status}=
+    Log    ${groupName}
+    Set Test Variable    ${Query}    select CASE when CONVERT(enabled USING utf8)=0 then 'Inactive' when CONVERT(enabled USING utf8) = 1 then 'Active' END as status FROM rhino.groups a where a.group_name='${groupName}'
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    @{query_results}     Query    ${Query}
+    Set Test Variable    ${DB_status}    ${query_results[0][0]}
+    Log    ${DB_status}
+    Disconnect From Database
+
+    Should Be Equal As Strings    ${DB_status}    ${status}
+
+
+
+Go To Manage Groups Page
+    Execute javascript  document.body.style.zoom="50%"
+    Sleep    3s
+    Mouse Over    ${Header_setting-select}
+    # Sleep    7s
+    Wait Until Page Contains Element    ${Link_ManageGroups}
+    Click Element    ${Link_ManageGroups}
+    Wait Until Page Contains Element    ${button_CreateGroup}
+
+#----------------------------------------------------------------------------------
+# Edit Group
+Go To Edit Groups Page
+    [Arguments]    ${groupName}=
+    Set Test Variable    ${GroupLink}    //a[text()='${groupName}']
+    Click Element    ${GroupLink}
+    Sleep    7s
+
+#----------------------------------------------------------------------------------
+
+# 18_Manage_groups :
+
+Login To QA Env
+    [Arguments]         ${username}=${QA_DEFAULT_USER}
+    ...                 ${password}=${QA_DEFAULT_PASSWORD}
+    ...                 ${url}=https://qa-customer.4info.com/dashboard/#/home
+    Open Browser        ${url}    ${Browser}
+    Delete All Cookies
+    Maximize Browser Window
+    Sleep    10s
+    Wait Until Element Is Visible    ${LOGIN_NAME_TEXTBOX}    timeout=40s
+    Input Text         ${LOGIN_NAME_TEXTBOX}                ${username}
+    Input Text         ${LOGIN_PASSWORD_TEXTBOX}        ${password}
+    Click Button       ${LOGIN_BUTTON}
+    Sleep    5s
+    Wait Until Page Contains Element    ${Dashboard_AudienceSolutions}    timeout=20s
+    Wait Until Page Contains Element    ${Dashboard_CampaignManager}      timeout=20s
+    Wait Until Page Contains Element    ${Dashboard_Insights&Analytics}   timeout=20s
+
+Sort By Name
+    Click Element       ${SORT_BY_NAME}
+    Sleep    3s
+
+
+Sort By Modified By ASC
+    Click Element       ${SORT_BY_MODIFIED_BY}
+    Sleep    3s
+
+
+Sort By Modified By DESC
+    Click Element       ${SORT_BY_MODIFIED_BY}
+    Sleep    3s
+    Click Element       ${SORT_BY_MODIFIED_BY}
+    Sleep    3s
+
+
+Sort By Modified Date ASC
+    Click Element       ${SORT_BY_MODIFIED_DT}
+    Sleep    3s
+
+
+Sort By Modified Date DESC
+    Click Element       ${SORT_BY_MODIFIED_DT}
+    Sleep    3s
+    Click Element       ${SORT_BY_MODIFIED_DT}
+    Sleep    3s
+
+
+Verify The Appearnce of Manage Group Button In Settings
+    Mouse Over          ${Header_setting-select}
+    ${isPresent}=       Run Keyword And Return Status       Page Should Contain     Manage Groups
+    ${isPresent}=       Convert To String                   ${isPresent}
+    Set Test Variable   ${isPresent}    ${isPresent}
+    Run Keyword If  '${isPresent}'=='True'       Log     Manage Group Button Present
+    Run Keyword If  '${isPresent}'=='False'      Log     Manage Group Button Is Not Present
+
+
+Change Group Permissions From UI
+    [Arguments]         ${Element}=
+    ...                 ${permission}=
+    Log    ${Element}
+    Log    ${permission}s
+    Run Keyword If      '${permission}'=='HIDE'             Click Element       //td[contains(.,"${Element}")]//following-sibling::td//following-sibling::td//md-radio-group//md-radio-button[@value='HIDE']
+    Run Keyword If      '${permission}'=='SHOW'             Click Element       //td[contains(.,"${Element}")]/following-sibling::td/md-radio-group//md-radio-button[@value="SHOW"]
+    Run Keyword If      '${permission}'=='MANDATORY'        Click Element       //td[contains(.,"${Element}")]/following-sibling::td/md-radio-group//md-radio-button[@value="MANDATORY"]
+
+
+CleanUp Created Group For 18 Manage Group
+    Clean UP Created Groups By Name             groupName=${QA_TEST_GROUP}_01
+
+
+
+
+
+Change Group Permissions For Segment Data-Sources
+    [Arguments]             ${dataSource}=
+    Sleep     2s
+    Click Element           xpath=(//p[contains(text(),"${dataSource}")])/parent::label
+    Click Element           xpath=${INPUT_DATASOURCE_BUTTON}[1]
+
+Change Group Permissions For Measurement Data-Sources
+    [Arguments]             ${dataSource}=
+    Sleep     2s
+    Click Element           xpath=(//p[contains(text(),"${dataSource}")])[2]/parent::label
+    Click Element           xpath=${INPUT_DATASOURCE_BUTTON}[2]
+
+Change Group Permissions For Target Data-Sources
+    [Arguments]             ${dataSource}=
+    Sleep     2s
+    Click Element           xpath=(//p[contains(text(),"${dataSource}")])[last()]/parent::label
+    Click Element           xpath=${INPUT_DATASOURCE_BUTTON}[3]
+
+
+#----------------------------------------------------------------------------------
+# Campaign Manage Setup :
+
+Save Campaign Manager Setup
+    Click Element                   ${CAMPAIGN_MANAGER_SETUP_SAVE_BOTTOM}
+    Sleep    4s
+
+
+
+Clean up Campaign Manager Setup Groups
+    Clean UP Created Groups By Name             groupName=${QA_TEST_GROUP}
+
+
+Go To Cmpaign Manage Group Page
+    [Arguments]    ${groupID}=
+    Log       ${groupID}
+    # Click Element     ${groupButtonElement}
+    Go To     https://qa-customer.4info.com/dashboard/#/campaignManagerSetup/${groupID}
+    Sleep    7s
+    Wait Until Page Contains Element    ${Label_CampaignManagerSetup}    timeout=120s
+    Wait Until Page Contains Element    ${CAMPAIGN_MANAGER_SETUP_Cancel_TOP}    timeout=120s
+    Capture Page Screenshot With Timestamp
+
+
+Validate Campaign Manager Setup Page Elements
+    Page Should Contain    CAMPAIGN MANAGER SETUP
+    Page Should Contain    GENERAL INFORMATION
+    Page Should Contain    UI ACCESS
+    Page Should Contain Element    ${CAMPAIGN_MANAGER_SETUP_Cancel_TOP}
+    Page Should Contain Element    ${CAMPAIGN_CHECKBOX}
+    Page Should Contain Element    ${AUDIANCE_CHECKBOX}
+    Page Should Contain Element    ${FORCASTING_CHECKBOX}
+    Sleep   5S
+    Checkbox Should Be Selected    input-5
+    Checkbox Should Be Selected    input-7
+    Checkbox Should Be Selected    input-68
+
+
+Validate columns configurable and description are present in db table ui_element
+    Set Test Variable    ${Query}    SELECT table_schema, table_name, column_name, data_type, ordinal_position, numeric_precision, column_type, column_default, is_nullable, column_comment FROM information_schema.columns WHERE (table_schema='rhino' and table_name = 'ui_element') order by ordinal_position;
+
+    Connect To Database
+    ...    ${DB_API_MODULE_NAME}
+    ...    ${DB_NAME_RHINO}
+    ...    ${DB_USER}
+    ...    ${DB_PASSWORD}
+    ...    ${DB_HOST}
+    ...    ${DB_PORT}
+
+    @{query_results}     Query    ${Query}
+
+    Log Many    @{query_results}
+
+    ${count}=    Get Length  ${query_results}
+    :FOR    ${index}    IN RANGE   0    ${count}
+    \    Log     Index: ${index}
+    \    ${db_columnName}=    Set Variable  ${query_results[${index}][2]}
+    \    ${db_datatype}=    Set Variable  ${query_results[${index}][3]}
+    \    ${db_ordinal_position}=    Set Variable  ${query_results[${index}][4]}
+    \    ${db_column_type}=    Set Variable  ${query_results[${index}][6]}
+    \    ${db_column_default}=    Set Variable  ${query_results[${index}][7]}
+
+    \    Run Keyword If    ${db_ordinal_position} == 4    Should Be Equal As Strings    ${db_columnName}    description
+    \    Run Keyword If    ${db_ordinal_position} == 4    Should Be Equal As Strings    ${db_datatype}    varchar
+    \    Run Keyword If    ${db_ordinal_position} == 4    Should Be Equal As Strings    ${db_column_type}    varchar(300)
+
+    \    Run Keyword If    ${db_ordinal_position} == 7    Should Be Equal As Strings    ${db_columnName}    configurable
+    \    Run Keyword If    ${db_ordinal_position} == 7    Should Be Equal As Strings    ${db_datatype}    tinyint
+    \    Run Keyword If    ${db_ordinal_position} == 7    Should Be Equal As Strings    ${db_column_type}    tinyint(1)
+    \    Run Keyword If    ${db_ordinal_position} == 7    Should Be Equal As Strings    ${db_column_default}    0
+
+    Disconnect From Database
+
+
+
+Validate Set configurable flag to 1 as per ue-desc-4 (2) (1).xlsx file in DB
+    Set Test Variable    ${Query}     Select distinct configurable from ui_element where id in (5,25,32,33,39,58,59,67,70,73,74,75,7,72,68);
+
+    Connect To Database
+    ...    ${DB_API_MODULE_NAME}
+    ...    ${DB_NAME_RHINO}
+    ...    ${DB_USER}
+    ...    ${DB_PASSWORD}
+    ...    ${DB_HOST}
+    ...    ${DB_PORT}
+
+    @{query_results}     Query    ${Query}
+    Set Test Variable    ${configurable_db}      ${query_results[0][0]}
+    Disconnect From Database
+    Should Be Equal As Strings    ${configurable_db}    1
+
+
+Validate Elements mentioned in ue-desc-4 (2) (1).xlsx are displayed at UI as Show for Audience
+    Set Test Variable    ${SQL_ui_elements_Audience}    Select distinct name, description from ui_element where id in (7,72) and type <> 1 order by name;
+
+    Connect To Database
+    ...    ${DB_API_MODULE_NAME}
+    ...    ${DB_NAME_RHINO}
+    ...    ${DB_USER}
+    ...    ${DB_PASSWORD}
+    ...    ${DB_HOST}
+    ...    ${DB_PORT}
+
+    @{query_results}     Query    ${SQL_ui_elements_Audience}
+
+    Log Many    @{query_results}
+
+    ${count}=    Get Length  ${query_results}
+    :FOR    ${index}    IN RANGE   0    ${count}
+    \    Log     Index: ${index}
+    \    ${db_name}=    Set Variable  ${query_results[${index}][0]}
+    \    ${db_description}=    Set Variable  ${query_results[${index}][1]}
+    \    Log    ${db_name} : ${db_description}
+    \    Set Test Variable    ${i}    ${index}+1
+    \    Set Test Variable    ${ui_name_xpath}    ${ui_elements_Audience}//tr[${i}]//td[1]
+    \    Page Should Contain Element    ${ui_name_xpath}    timeout=120s
+    \    Focus    ${ui_name_xpath}
+    \    ${ui_name}=    Get Text    ${ui_name_xpath}
+    \    Set Test Variable    ${ui_description_xpath}    ${ui_elements_Audience}//tr[${i}]//td[2]
+    \    ${ui_description}=    Get Text    ${ui_description_xpath}
+    \    Log    ${ui_name} : ${ui_description}
+    \    Should Be Equal As Strings   ${db_name}     ${ui_name}
+    \    Should Be Equal As Strings   ${db_description}     ${ui_description}
+    Disconnect From Database
+
+
+Validate Elements mentioned in ue-desc-4 (2) (1).xlsx are displayed at UI as Show for Campaigns
+    Set Test Variable    ${SQL_ui_elements_Campaigns}    Select distinct name, description from ui_element where id in (5,25,32,33,39,58,59,67,70,73,74,75, 68) and type <> 1 order by name;
+
+    Connect To Database     
+    ...    ${DB_API_MODULE_NAME}    
+    ...    ${DB_NAME_RHINO}    
+    ...    ${DB_USER}    
+    ...    ${DB_PASSWORD}    
+    ...    ${DB_HOST}   
+    ...    ${DB_PORT}
+
+    @{query_results}     Query    ${SQL_ui_elements_Campaigns}
+
+    Log Many    @{query_results}
+
+    ${count}=    Get Length  ${query_results}
+    :FOR    ${index}    IN RANGE   0    ${count}
+    \    Log     Index: ${index}
+    \    ${db_name}=    Set Variable  ${query_results[${index}][0]}
+    \    ${db_description}=    Set Variable  ${query_results[${index}][1]}
+    \    ${db_description}=       Evaluate    '${db_description}'.replace('${Space}${Space}',' ')
+    \    Log    ${db_name} : ${db_description}
+    \    Set Test Variable    ${i}    ${index}+1
+    \    Set Test Variable    ${ui_name_xpath}    ${ui_elements_campaigns}//tr[${i}]//td[1]
+    \    Page Should Contain Element    ${ui_name_xpath}    timeout=120s
+    \    Focus    ${ui_name_xpath}
+    \    ${ui_name}=    Get Text    ${ui_name_xpath}
+    \    Set Test Variable    ${ui_description_xpath}    ${ui_elements_campaigns}//tr[${i}]//td[2]
+    \    ${ui_description}=    Get Text    ${ui_description_xpath}
+    \    Log    ${ui_name} : ${ui_description}
+    \    Should Be Equal As Strings   ${db_name}     ${ui_name}
+    \    Should Be Equal As Strings   ${db_description}     ${ui_description}
+    Disconnect From Database
+
+
+Set DB column configurable value for ui_element table
+    [Arguments]     ${name}=
+    ...             ${value}=
+    Log    ${name}
+    Log    ${value}
+    Set Test Variable    ${query}    update rhino.ui_element set configurable=${value} where name ='${name}'
+
+    Connect To Database     
+    ...    ${DB_API_MODULE_NAME}    
+    ...    ${DB_NAME_RHINO}    
+    ...    ${DB_USER}    
+    ...    ${DB_PASSWORD}    
+    ...    ${DB_HOST}   
+    ...    ${DB_PORT}
+
+    execute_sql_string    ${query}
+    execute_sql_string    commit;
+
+    Disconnect From Database
+
+
+Validate value for configurable 0 field is not present in UI
+    [Arguments]    ${name}=
+    Log    ${name}
+    Set Test Variable    ${ui_name_xpath}    ${ui_elements_campaigns}//tr[1]//td[1]
+    Page Should Contain Element    ${ui_name_xpath}    timeout=120s
+    Focus    ${ui_name_xpath}
+    ${ui_name}=    Get Text    ${ui_name_xpath}
+    Log    ${ui_name}
+    Capture Page Screenshot With Timestamp
+    Should Not Be Equal As Strings    ${ui_name}    ${name}
+
+#----------------------------------------------------------------------------------

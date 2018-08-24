@@ -1,0 +1,391 @@
+*** Settings ***
+Resource            ui_object_library.txt
+Resource            common_config.txt
+Resource            ui_advertiser.txt
+Resource            advertisers.txt
+
+*** Keywords ****
+Validate Parent Adgroup Added Correctly In Database For Defaults 
+	[Arguments]						${ad_group_freq_cap_daily_units}=
+	  ...							${ad_group_freq_cap_overall_units}=
+	  ...							${ad_group_household_freq_cap_daily_units}=
+	  ...							${ad_group_household_freq_cap_overall_units}=
+	
+	Validate DB AdGroup 		campaign_id=${campaign_id}
+	...							ad_group_name=${ag_adgroup_name}
+	...							ad_group_start_date=${start_date_gmt}
+	...							ad_group_end_date=${end_date_gmt}
+	...							ad_group_start_date_ui=${db_start_date_ui}
+	...							ad_group_end_date_ui=${db_end_date_ui}
+	...							ad_group_zoneinfo_time_zone=America/New_York
+	...							ad_group_units_sold=0
+	...							ad_group_units_delivered=0
+	...							ad_group_cost_per_unit=0	
+	...							ad_group_spend=0
+	...							ad_group_delivered_impressions=0
+	...							ad_group_delivered_clicks=0
+	...							ad_group_delivered_acquisitions=0		
+	...							ad_group_budget=0
+	...							ad_group_pacing_id=6	
+	...							ad_group_exclusive=0	
+	...							ad_group_guaranteed=1
+	...							ad_group_remnant=0
+	...							ad_group_remnant_external=0
+	...							ad_group_house=0
+	...							ad_group_status=1
+	...							ad_group_created_dt=${today}
+	...							ad_group_modified_dt=${today}
+	...							ad_group_campaign_id=${campaign_id}
+	...							ad_group_screen_type=None	
+	#...							ad_group_screen_type=${screen_type} 	Starting in 7.8, parent adgroup screntype is null, database return None
+	...							ad_group_frequency_cap_id=None
+	...							ad_group_ad_group_payment_type_id=1					
+	...							ad_group_bonus_parent_ad_group_id=None
+	...							ad_group_ecpm=0
+	...							ad_group_optimized_bundle=0
+	...							ad_group_bundle_parent_id=None			
+	...							ad_group_bundle=1
+	...							ad_group_weight=None
+	...							ad_group_allocation=1
+	...							ad_group_bid_value_cpu=None
+	...							ad_group_adhaven_margin=None
+	...							ad_group_custom_dates=0
+	...							ad_group_custom_frequency_cap=0
+	...							ad_group_custom_targeting=0
+	...							ad_group_time_zone=None
+	...							ad_group_time_zone_user=None
+	...							ad_group_ui_weight=1
+	...							ad_group_test_ads=0
+	...							ad_group_ip_to_geo_allowed_type=2	
+	...							ad_group_pacing_units_sold=None
+	...							ad_group_pacing_units_delivered=None
+	...							ad_group_pacing_start_date=None
+	...							ad_group_pacing_end_date=None
+	...							ad_group_pacing_recalculation=1
+	...							ad_group_ad_text=None
+	...							ad_group_track_client_impression=1
+	...							ad_group_use_spoc_targeting=0
+	...							ad_group_requires_raw_device_id=0
+	...							ad_group_app_id=None
+	...							ad_group_use_placeiq=0	
+	...							ad_group_daily_cap_enabled=0
+	...							ad_group_daily_cap_units_sold=0
+	...							ad_group_daily_cap_units_delivered=0
+	...							ad_group_is_behavior_targeted=0
+	...							ad_group_domain=None
+	...							ad_group_freq_cap_daily_units=${ad_group_freq_cap_daily_units}
+	...							ad_group_freq_cap_overall_units=${ad_group_freq_cap_overall_units}
+	...							ad_group_household_freq_cap_daily_units=${ad_group_household_freq_cap_daily_units}
+	...							ad_group_household_freq_cap_overall_units=${ad_group_household_freq_cap_overall_units}
+	...							ad_group_ioimpressiongoal=10000
+	...							ad_group_freq_cap_days=1
+	...							ad_group_household_freq_days=1
+
+
+Validate DB AdGroup 
+	[Arguments]         ${campaign_id}=
+	...							${ad_group_name}=
+	...							${ad_group_start_date}=
+	...							${ad_group_end_date}=
+	...							${ad_group_start_date_ui}=
+	...							${ad_group_end_date_ui}=
+	...							${ad_group_zoneinfo_time_zone}=
+	...							${ad_group_units_sold}=
+	...							${ad_group_units_delivered}=
+	...							${ad_group_cost_per_unit}=
+	...							${ad_group_spend}=
+	...							${ad_group_delivered_impressions}=
+	...							${ad_group_delivered_clicks}=
+	...							${ad_group_delivered_acquisitions}=		
+	...							${ad_group_budget}=	
+	...							${ad_group_pacing_id}=
+	...							${ad_group_exclusive}=
+	...							${ad_group_guaranteed}=
+	...							${ad_group_remnant}=
+	...							${ad_group_remnant_external}=
+	...							${ad_group_house}=
+	...							${ad_group_status}=
+	...							${ad_group_created_dt}=
+	...							${ad_group_modified_dt}=	
+	...							${ad_group_campaign_id}=		
+	...							${ad_group_screen_type}=
+	...							${ad_group_frequency_cap_id}=
+	...							${ad_group_ad_group_payment_type_id}=					
+	...							${ad_group_bonus_parent_ad_group_id}=
+	...							${ad_group_ecpm}=
+	...							${ad_group_optimized_bundle}=
+	...							${ad_group_bundle_parent_id}=			
+	...							${ad_group_bundle}=
+	...							${ad_group_weight}=
+	...							${ad_group_allocation}=	
+	...							${ad_group_bid_value_cpu}=
+	...							${ad_group_adhaven_margin}=
+	...							${ad_group_custom_dates}=
+	...							${ad_group_custom_frequency_cap}=
+	...							${ad_group_custom_targeting}=
+	...							${ad_group_time_zone}=
+	...							${ad_group_time_zone_user}=
+	...							${ad_group_ui_weight}=
+	...							${ad_group_test_ads}=
+	...							${ad_group_ip_to_geo_allowed_type}=	
+	...							${ad_group_pacing_units_sold}=
+	...							${ad_group_pacing_units_delivered}=
+	...							${ad_group_pacing_start_date}=	
+	...							${ad_group_pacing_end_date}=
+	...							${ad_group_pacing_recalculation}=
+	...							${ad_group_ad_text}=
+	...							${ad_group_track_client_impression}=
+	...							${ad_group_use_spoc_targeting}=
+	...							${ad_group_requires_raw_device_id}=
+	...							${ad_group_app_id}=
+	...							${ad_group_use_placeiq}=
+	...							${ad_group_daily_cap_enabled}=
+	...							${ad_group_daily_cap_units_sold}=
+	...							${ad_group_daily_cap_units_delivered}=
+	...							${ad_group_is_behavior_targeted}=
+	...							${ad_group_domain}=
+	...							${ad_group_freq_cap_daily_units}=
+	...							${ad_group_freq_cap_overall_units}=
+	...							${ad_group_household_freq_cap_daily_units}=
+	...							${ad_group_household_freq_cap_overall_units}=
+	...							${ad_group_ioimpressiongoal}=		
+	...							${ad_group_freq_cap_days}=
+	...							${ad_group_household_freq_days}=																												
+	Retrieve SMB Adgroup Information			campaign_id=${campaign_id}					bundle=${ad_group_bundle}	
+#	${yyyy_gmt}		${mm_gmt}		${dd_gmt}=			Get Time 			year,month,day      ${start_date}
+#	${end_date}=			smb_end_date_from_duration      ${start_date}     ${duration}
+#	${start_date_gmt_no_time}=            Set Variable             ${yyyy_gmt}-${mm_gmt}-${dd_gmt}
+#	${start_date_gmt}=            Set Variable             ${yyyy_gmt}-${mm_gmt}-${dd_gmt} 00:00:00
+#	${end_date_gmt}=            	 Set Variable             ${end_date} 23:59:59
+#	${end_date_gmt_no_time}=            	 Set Variable             ${end_date}
+#	${yyyy_now}		${mm_now}		${dd_now}=			Get Time 			year,month,day         UTC
+#	${today}=     Set Variable     ${yyyy_now}-${mm_now}-${dd_now}
+#	Log     Start Date GMT Calculated:${start_date_gmt}
+#	Log     End Date GMT Calculated:${end_date_gmt}
+	${db_adgroup_id}=         												Get From Dictionary				${adgroup_db_information}				rhino_adgroup_id  		
+	${db_adgroup_name}=         											Get From Dictionary				${adgroup_db_information}				rhino_adgroup_name      																	
+	${db_adgroup_start_date}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_start_date
+	${db_adgroup_end_date}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_end_date      														
+	${db_adgroup_start_date_ui}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_start_date_ui      															
+	${db_adgroup_end_date_ui}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_end_date_ui      										
+	${db_adgroup_zoneinfo_time_zone}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_zoneinfo_time_zone      							
+	${db_adgroup_units_sold}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_units_sold      											
+	${db_adgroup_units_delivered}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_units_delivered    										
+	${db_adgroup_cost_per_unit}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_cost_per_unit      										
+	${db_adgroup_spend}=         										Get From Dictionary				${adgroup_db_information}				rhino_adgroup_spend      														
+	${db_adgroup_delivered_impressions}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_delivered_impressions      							
+	${db_adgroup_delivered_clicks}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_delivered_clicks      									
+	${db_adgroup_delivered_acquisitions}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_delivered_acquisitions      							
+	${db_adgroup_budget}=         										Get From Dictionary				${adgroup_db_information}				rhino_adgroup_budget      												
+	${db_adgroup_pacing_id}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_id     												
+	${db_adgroup_exclusive}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_exclusive      																		
+	${db_adgroup_guaranteed}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_guaranteed      																	
+	${db_adgroup_remnant}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_remnant      																		
+	${db_adgroup_remnant_external}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_remnant_external      														
+	${db_adgroup_house}=         										Get From Dictionary				${adgroup_db_information}				rhino_adgroup_house      																			
+	${db_adgroup_status}=         										Get From Dictionary				${adgroup_db_information}				rhino_adgroup_status      																			
+	${db_adgroup_created_dt}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_created_dt      																	
+	${db_adgroup_modified_dt}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_modified_dt     																	
+	${db_adgroup_campaign_id}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_campaign_id      																
+	${db_adgroup_screen_type}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_screen_type      																
+	${db_adgroup_frequency_cap_id}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_frequency_cap_id      														
+	${db_adgroup_ad_group_payment_type_id}=         		Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ad_group_payment_type_id      											
+	${db_adgroup_bonus_parent_ad_group_id}=         		Get From Dictionary				${adgroup_db_information}				rhino_adgroup_bonus_parent_ad_group_id      											
+	${db_adgroup_ecpm}=         											Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ecpm     																			
+	${db_adgroup_optimized_bundle}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_optimized_bundle    															
+	${db_adgroup_bundle_parent_id}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_bundle_parent_id      														
+	${db_adgroup_bundle}=         										Get From Dictionary				${adgroup_db_information}				rhino_adgroup_bundle      																		
+	${db_adgroup_weight}=         										Get From Dictionary				${adgroup_db_information}				rhino_adgroup_weight      																		
+	${db_adgroup_allocation}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_allocation      																	
+	${db_adgroup_bid_value_cpu}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_bid_value_cpu      																 
+	${db_adgroup_adhaven_margin}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_adhaven_margin      															
+	${db_adgroup_custom_dates}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_custom_dates      																
+	${db_adgroup_custom_frequency_cap}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_custom_frequency_cap     													
+	${db_adgroup_custom_targeting}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_custom_targeting      														
+	${db_adgroup_time_zone}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_time_zone      																	
+	${db_adgroup_time_zone_user}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_time_zone_user      															
+	${db_adgroup_ui_weight}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ui_weight     																		
+	${db_adgroup_test_ads}=         										Get From Dictionary				${adgroup_db_information}				rhino_adgroup_test_ads      																		
+	${db_adgroup_ip_to_geo_allowed_type}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ip_to_geo_allowed_type      												
+	${db_adgroup_pacing_units_sold}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_units_sold      														
+	${db_adgroup_pacing_units_delivered}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_units_delivered      												
+	${db_adgroup_pacing_start_date}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_start_date      														
+	${db_adgroup_pacing_end_date}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_end_date      															
+	${db_adgroup_pacing_recalculation}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_recalculation      													
+	${db_adgroup_ad_text}=         										Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ad_text      																		
+	${db_adgroup_track_client_impression}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_track_client_impression      												
+	${db_adgroup_use_spoc_targeting}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_use_spoc_targeting      														
+	${db_adgroup_requires_raw_device_id}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_requires_raw_device_id      												
+	${db_adgroup_app_id}=         										Get From Dictionary				${adgroup_db_information}				rhino_adgroup_app_id      																		
+	${db_adgroup_use_placeiq}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_use_placeiq      																	
+	${db_adgroup_daily_cap_enabled}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_daily_cap_enabled      														
+	${db_adgroup_daily_cap_units_sold}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_daily_cap_units_sold      													
+	${db_adgroup_daily_cap_units_delivered}=         			Get From Dictionary				${adgroup_db_information}				rhino_adgroup_daily_cap_units_delivered      											
+	${db_adgroup_is_behavior_targeted}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_is_behavior_targeted      													
+	${db_adgroup_domain}=         										Get From Dictionary				${adgroup_db_information}				rhino_adgroup_domain      																		
+	${db_adgroup_freq_cap_daily_units}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_freq_cap_daily_units     														
+	${db_adgroup_freq_cap_overall_units}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_freq_cap_overall_units      													
+	${db_adgroup_household_freq_cap_daily_units}=     		Get From Dictionary				${adgroup_db_information}				rhino_adgroup_household_freq_cap_daily_units      									
+	${db_adgroup_household_freq_cap_overall_units}=     	Get From Dictionary				${adgroup_db_information}				rhino_adgroup_household_freq_cap_overall_units      								
+	${db_adgroup_ioimpressiongoal}=     							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ioimpressiongoal      														
+	${db_adgroup_freq_cap_days}=     								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_freq_cap_days      															
+	${db_adgroup_household_freq_days}=     						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_household_freq_days     												
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_id}																			${db_adgroup_campaign_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_name}																	${db_adgroup_name}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_start_date}																${db_adgroup_start_date}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_end_date}																${db_adgroup_end_date}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${adgroup_start_date_ui}															${db_adgroup_start_date_ui}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${adgroup_end_date_ui}															${db_adgroup_end_date_ui}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_zoneinfo_time_zone}												${db_adgroup_zoneinfo_time_zone}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_units_sold}																${db_adgroup_units_sold}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_units_delivered}														${db_adgroup_units_delivered}
+	Run Keyword And Continue On Failure							Should Be Equal As Numbers             	${ad_group_cost_per_unit}														${db_adgroup_cost_per_unit}
+	Run Keyword And Continue On Failure							Should Be Equal As Numbers            		${ad_group_spend}																	${db_adgroup_spend}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_delivered_impressions}											${db_adgroup_delivered_impressions}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_delivered_clicks}														${db_adgroup_delivered_clicks}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_delivered_acquisitions}											${db_adgroup_delivered_acquisitions}
+	Run Keyword And Continue On Failure							Should Be Equal As Numbers             	${ad_group_budget}																	${db_adgroup_budget}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_id}																${db_adgroup_pacing_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_exclusive}																${db_adgroup_exclusive}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_guaranteed}															${db_adgroup_guaranteed}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_remnant}																${db_adgroup_remnant}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_remnant_external}													${db_adgroup_remnant_external}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_house}																	${db_adgroup_house}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_status}																	${db_adgroup_status}
+#	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_created_dt}															${db_adgroup_created_dt}
+#	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_created_dt}															${db_adgroup_modified_dt}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_campaign_id}															${db_adgroup_campaign_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_screen_type}															${db_adgroup_screen_type}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_frequency_cap_id}													${db_adgroup_frequency_cap_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_ad_group_payment_type_id}									${db_adgroup_ad_group_payment_type_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_bonus_parent_ad_group_id}									${db_adgroup_bonus_parent_ad_group_id}
+	Run Keyword And Continue On Failure							Run Keyword If         			 			'${ad_group_ecpm}'=='None'							Should Be Equal As Strings             		${ad_group_ecpm}																	${db_adgroup_ecpm}
+	Run Keyword And Continue On Failure							Run Keyword Unless          				'${ad_group_ecpm}'=='None'							Should Be Equal As Numbers             	${ad_group_ecpm}																	${db_adgroup_ecpm}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_optimized_bundle}													${db_adgroup_optimized_bundle}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_bundle_parent_id}													${db_adgroup_bundle_parent_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_bundle}																	${db_adgroup_bundle}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings            		${ad_group_weight}																	${db_adgroup_weight}
+	Run Keyword And Continue On Failure							Should Be Equal As Numbers            		${ad_group_allocation}																${db_adgroup_allocation}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_bid_value_cpu}														${db_adgroup_bid_value_cpu}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_adhaven_margin}													${db_adgroup_adhaven_margin}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_custom_dates}														${db_adgroup_custom_dates}
+#	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_custom_frequency_cap}											${db_adgroup_custom_frequency_cap}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_custom_targeting}													${db_adgroup_custom_targeting}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_time_zone}																${db_adgroup_time_zone}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_time_zone_user}														${db_adgroup_time_zone_user}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_ui_weight}																${db_adgroup_ui_weight}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_test_ads}																${db_adgroup_test_ads}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_ip_to_geo_allowed_type}										${db_adgroup_ip_to_geo_allowed_type}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_units_sold}													${db_adgroup_pacing_units_sold}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_units_delivered}											${db_adgroup_pacing_units_delivered}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_start_date}													${db_adgroup_pacing_start_date}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_end_date}													${db_adgroup_pacing_end_date}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_recalculation}												${db_adgroup_pacing_recalculation}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_ad_text}																	${db_adgroup_ad_text}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_track_client_impression}											${db_adgroup_track_client_impression}	
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_use_spoc_targeting}												${db_adgroup_use_spoc_targeting}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_requires_raw_device_id}											${db_adgroup_requires_raw_device_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_app_id}																	${db_adgroup_app_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_use_placeiq}															${db_adgroup_use_placeiq}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_daily_cap_enabled}													${db_adgroup_daily_cap_enabled}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_daily_cap_units_sold}												${db_adgroup_daily_cap_units_sold}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_daily_cap_units_delivered}										${db_adgroup_daily_cap_units_delivered}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_is_behavior_targeted}												${db_adgroup_is_behavior_targeted}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_domain}																	${db_adgroup_domain}
+#	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_freq_cap_daily_units}												${db_adgroup_freq_cap_daily_units}
+#	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_freq_cap_overall_units}											${db_adgroup_freq_cap_overall_units}
+#	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_household_freq_cap_daily_units}							${db_adgroup_household_freq_cap_daily_units}
+#	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_household_freq_cap_overall_units}							${db_adgroup_household_freq_cap_overall_units}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_ioimpressiongoal}													${db_adgroup_ioimpressiongoal}
+#	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_freq_cap_days}														${db_adgroup_freq_cap_days}
+#	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_household_freq_days}											${db_adgroup_household_freq_days}
+	
+Validate Parent Adgroup Targeting Via DB
+	 [Arguments]           ${adgroup_id}=${parent_adgroup_id}
+	 Retrieve All Target Set For Adgroup By ID						adgroup_id=${adgroup_id}
+     ${records_found}=				Get From Dictionary         ${targetlist_db_information}				db_records_found
+     Should Be Equal As Numbers            ${records_found}				4
+     ${target_datasource_d}=								Get From Dictionary         ${targetlist_db_information}				rhino_target_datasource_0
+     ${target_datasource_segment_d}=				Get From Dictionary         ${targetlist_db_information}				rhino_target_datasource_segment_0
+     ${target_geofence_segment_d}=					Get From Dictionary         ${targetlist_db_information}				rhino_target_geofence_segment_0
+     ${target_cookie_segment_d}=						Get From Dictionary         ${targetlist_db_information}				rhino_target_cookie_segment_0
+
+Validate Child Adgroup Targeting Via DB For Defaults
+	 [Arguments]           ${adgroup_id}=${child_adgroup_id}		${rtb_default_placements}=${DEFAULT_MOPUB_APP_PLACEMENT}
+	 Validate Child Adgroup Targeting Via DB With No Targeting Contains Default Parent Targeting
+	 #
+	 #For country available we use the following code US=2, Canada=3, Puerto Rico = 4, Guam=5						${adgroup_id}					${db_targetset_name}					${records_expected}		${expected_values}
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_geo_country										1      		2
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_geo_state										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_geo_city											1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_age												1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_device_manufacturer								1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_device_os										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_device_os_version								1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_device_model										1	      	1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_device_type										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_device_capability								1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_category											1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_publisher										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_carrier											1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_time_of_day										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_day_of_week										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_income											1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_dob												1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_education_level									1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_marital_status									1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_no_children										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_ethnicity										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_keywords											1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_geo_zip											1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_geo_dma											1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_geo_zip											1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_shortcodes										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_placement										1      		${rtb_default_placements}
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_site_type										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_time_of_day_static								0      		NULL
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_occupation										0      		NULL
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_browser_native_language							0      		NULL
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_time_of_day_user									1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_device_id										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_connection										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_datasource										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_datasource_segment								1     		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_geofence_segment									1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_traffic_type										1      		${traffic_type}
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_cookie_segment									1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_an_browser										1      		1
+	 Run Keyword And Continue On Failure						Validate Individual Targeting For Adgroup 			${adgroup_id}					target_an_os											1      		1
+     
+Validate Child Adgroup Targeting Via DB With No Targeting Contains Default Parent Targeting
+	 [Arguments]           ${adgroup_id}=${child_adgroup_id}
+	 Retrieve All Target Set For Adgroup By ID						adgroup_id=${adgroup_id}
+     ${records_found}=				Get From Dictionary         ${targetlist_db_information}				db_records_found
+     #Starting with 8.3 there are 46 target records
+     Should Be Equal As Numbers            ${records_found}				46
+     Log      Note: By default the number of target set is 40 (without placement). Due to 2 default placement (mediation and rtb) we have a total of 42, and 1 new one for device targeting as of release 7.1 to equal 43
+     ${target_datasource_d}=								Get From Dictionary         ${targetlist_db_information}				rhino_target_datasource_0
+     ${target_datasource_segment_d}=				Get From Dictionary         ${targetlist_db_information}				rhino_target_datasource_segment_0
+     ${target_geofence_segment_d}=					Get From Dictionary         ${targetlist_db_information}				rhino_target_geofence_segment_0
+     ${target_cookie_segment_d}=						Get From Dictionary         ${targetlist_db_information}				rhino_target_cookie_segment_0
+     
+Validate Individual Targeting For Adgroup 
+     [Arguments]           ${adgroup_id}			${db_targetset_name}				${records_expected}				${expected_values}		
+     @{expected_values_to_validate}=			String.Split String         ${expected_values}			,
+	 Retrieve Target Set For Adgroup By ID				adgroup_id=${adgroup_id}			target_name=${db_targetset_name}          expected_records_returned=${records_expected}
+     ${records_found}=				Get From Dictionary         ${targetlist_db_information}				db_records_found
+     Should Be Equal As Numbers            ${records_found}				${records_expected}
+	 Run Keyword Unless   	'${records_expected}'=='0'		Loop Through Individual Targeting and Verify	@{expected_values_to_validate}
+
+Loop Through Individual Targeting and Verify	
+     [Arguments]		@{expected_values_to_validate}
+     :FOR    ${item}    IN 	 @{expected_values_to_validate}
+     \				Log      ITEM: ${item}
+     \				${values}= 			Get Dictionary Values				${targetlist_db_information}
+     \				Log      VALUES: ${values}
+     \				Dictionary Should Contain Value				${targetlist_db_information}				'${item}'
+     
+     
+     
+     
+     

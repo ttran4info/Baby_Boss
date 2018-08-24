@@ -1,0 +1,1397 @@
+*** Variables ***
+${success_false_regex}					{\\s*\\"success\\":false,
+
+*** Keywords ***
+HYDRA API
+	[Arguments]    ${connection_type}=https							#http or https
+    ...            ${server}=${QA_HYDRA}							#qa-api.4info.com
+    ...            ${port}=${QA_HYDRA_PORT}							#443 for https or 8080 for http
+    ...			   ${auth}=${HYDRA_AUTH}							#Authentication
+    ...            ${uri}=											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   ${request_type}=GET								#GET, POST, PUT
+    ...			   ${data}=None										#POST or PUT normally goes with data
+    ...            ${expected_status_code}=200						#normally 200 for working condition, 400 for failure
+    ...            ${success}=NA									#true if response is 200, false if response is 400
+	Run Keyword If	'${request_type}'=='GET'	API GET			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				auth=${auth}
+	...				uri=${uri}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='POST'	API POST			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				auth=${auth}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='PUT'	API PUT			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				auth=${auth}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='DELETE'		API DELETE			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				auth=${auth}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+# CREATIVE	API
+CREATIVE GET Request for CampaignID
+	[Arguments]		${uri}=	 	${expected_status_code}=200    ${auth}=${HYDRA_AUTH}
+	Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+	${headers}    Create Dictionary     Content-Type=application/json	Authorization=${auth}   #Accept=application/json
+	${resp}=	Get Request		creative	${uri}			headers=${headers}
+	Set Test Variable		${resp}		${resp}
+    ${resp}    RequestsLibrary.Get Request    creative   ${uri}    headers=${headers}
+    Log    Response: '${resp.content}'
+	Set Suite Variable       ${body}     ${resp.content}
+
+CREATIVE POST Request for Creative
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${expected_status_code}=200
+	...			${auth}=${HYDRA_AUTH}
+    Set Test Variable      ${data}       ${JSON}
+    Log		                Request: ${data}
+    HYDRA API               uri=/hydra/v1/creative/${uri}
+    ...                     request_type=POST
+    ...                     data=${data}
+    ...                     expected_status_code=${expected_status_code}
+    Run Keyword If         '${expected_status_code}' == '200'           Get DTO_id from response     uri=${uri}
+    Should Be Valid Json 	${body}
+    Run Keyword Unless     '${expected_status_code}' == '200'    		Should Match Regexp				${body}                ${success_false_regex}
+
+
+Update CREATIVE Request for Creative
+	[Arguments]
+    ...			${uri}=
+    ...			${JSON}=
+    ...			${expected_status_code}=200
+    ...			${auth}=${HYDRA_AUTH}
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+    HYDRA API               uri=/hydra/v1/creative/${uri}
+    ...                     request_type=POST
+    ...                     data=${data}
+    ...                     expected_status_code=${expected_status_code}
+
+Get DTO_id from response
+	[Arguments]     ${uri}=
+	#This is the detail id (ie: native_detail, banner_detail, video_detail)
+    ${DTO_id}=    Get Json Value         ${body}         /creativeDetailDTO/${uri}DTO/id
+    Log 	${DTO_id}
+    Set Suite Variable    ${DTO_id}     ${DTO_id}
+    Run Keyword If     '${uri}'=='native' 		Get nativeAdId from response         uri=${uri}
+    Run Keyword If     '${uri}'=='video' 		Get videoBundleId from response      uri=${uri}
+    Run Keyword If     '${uri}'=='banner' 		Get bannerAdId from response         uri=${uri}
+
+
+Get nativeAdId from response
+	[Arguments]     ${uri}=
+	#This is the Adid (ie: native_ad)
+    ${type_Ad_id}=    Get Json Value         ${body}         /creativeDetailDTO/${uri}DTO/${uri}AdId
+    Set Suite Variable      ${type_Ad_id}  		${type_Ad_id}
+Get videoBundleId from response
+    [Arguments]     ${uri}=
+    #This is the Adid (ie: banner_ad)
+    ${type_Ad_id}=    Get Json Value         ${body}         /creativeDetailDTO/${uri}DTO/${uri}BundleId
+    Set Suite Variable      ${type_Ad_id}  		${type_Ad_id}
+Get bannerAdId from response
+    [Arguments]     ${uri}=
+    #This is the Adid (ie: video_ad)
+    ${type_Ad_id}=    Get Json Value         ${body}         /creativeDetailDTO/${uri}DTO/${uri}AdId
+    Set Suite Variable      ${type_Ad_id}  		${type_Ad_id}
+
+Generate JSON For Creative Native
+    [Arguments]         ${campaign_id}=${Campaign_Id}
+    ...					${id}=MISSING,
+    ...					${nativeAdId}=MISSING,
+    ...                 ${externalId}="BVP4Info1230"
+    ...                 ${status}=1
+    ...                 ${assetType}="MoPub"
+    ...                 ${adName}="TestREGRESSION_CREATIVE_NATIVE"
+    ...                 ${weight}=1
+    ...                 ${title}="Title Edit"
+    ...                 ${text}="Text Edit"
+    ...                 ${ctatext}="More ..."
+    ...                 ${clickDestinationUrl}="https://www.4info.com"
+    ...                 ${secure}=false
+    ...                 ${deleteFromUI}=false
+    ...                 ${impressionTracing}=[]
+    Set Test Variable       ${data}     {"campaignId":${campaign_id},"nativeDTO":{"id":${id},"nativeAdId":${nativeAdId},"externalId":${externalId},"status":${status},"assetType":${assetType},"adName":${adName},"weight":${weight},"title":${title},"text":${text},"ctatext":${ctatext},"clickDestinationUrl":${clickDestinationUrl},"secure":${secure},"deleteFromUI":${deleteFromUI},"impressionTracing":${impressionTracing}}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log             ${data}
+
+Generate JSON For Creative Video
+    [Arguments]         ${campaign_id}=${Campaign_Id}
+    ...					${id}=MISSING,
+    ...					${videoBundleId}=MISSING,
+    ...                 ${externalId}="BVP4Info1230"
+    ...                 ${weight}=1
+    ...                 ${name}="TestREGRESSION_CREATIVE_VIDEO"
+    ...                 ${duration}=1
+    ...                 ${videoType}=1
+    ...                 ${clickThroughUrl}="https://www.4info.com"
+    ...                 ${vastTag}=MISSING
+    ...                 ${redirectionCount}=0
+    ...                 ${secure}=false
+    ...                 ${deleteFromUI}=false
+    ...                 ${playbackUrl}="https://www.4info.com"
+    ...                 ${vastWrapperUrl}=MISSING
+    ...                 ${status}=1
+    ...                 ${skipAfterTime}=0
+    ...                 ${mimeTypes}=[1,2]
+    ...                 ${skippable}=false
+    ...                 ${thirdPartyVASTTracker}=[{"destinationType":1,"thirdpartyTrackingUrl":"http://type1.com"},{"destinationType":12,"thirdpartyTrackingUrl":"http://type12.com"}]
+    ...                 ${extendedAttributes}=[1,2]
+    Set Test Variable       ${data}     {"campaignId":${campaign_id},"videoDTO":{"id":${id},"videoBundleId":${videoBundleId}, "externalId":${externalId}, "weight":${weight},"name":${name},"duration":${duration},"videoType":${videoType},"vastTag":${vastTag},"clickThroughUrl":${clickThroughUrl},"vastWrapperUrl":${vastWrapperUrl},"redirectionCount":${redirectionCount},"secure":${secure},"deleteFromUI":${deleteFromUI},"playbackUrl":${playbackUrl},"status":${status},"skipAfterTime":${skipAfterTime},"skippable":${skippable},"mimeTypes":${mimeTypes},"thirdPartyVASTTracker":${thirdPartyVASTTracker},"extendedAttributes":${extendedAttributes}}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log             ${data}
+
+Generate JSON For Creative Banner
+    [Arguments]          ${campaign_id}=${Campaign_Id}
+    ...					 ${id}=MISSING,
+    ...					 ${bannerAdId}=MISSING,
+    ...                  ${externalId}="BVP4Info1230"
+    ...                  ${adName}="TestREGRESSION_CREATIVE_BANNER"
+    ...                  ${weight}=1
+    ...                  ${bannerType}=0
+    ...                  ${formatId}=1
+    ...                  ${externalPreviewLink}=0
+    ...                  ${auditStatus}=0
+    ...                  ${secure}=false
+    ...                  ${deleteFromUI}=false
+    ...                  ${status}=1
+    ...                  ${destinationUrl}="http://www.4info.com"
+    ...                  ${thirdPartyImpression}="http://www.4info.com"
+    ...                  ${alternateLandingUrl}="http://www.4info.com"
+    ...                  ${thirdPartyTag}="sometags"
+    ...                  ${positionList}=[]
+    ...                  ${richMediaTypeList}=[]
+    ...                  ${optOutIconLocation}="tr"
+    ...                  ${extendedAttributes}=[1,2]
+    Log                  ${thirdPartyTag}
+    Set Test Variable       ${data}     {"campaignId":${campaign_id},"bannerDTO":{"id":${id},"bannerAdId":${bannerAdId},"externalId":${externalId},"adName":${adName},"weight":${weight},"bannerType":${bannerType},"formatId":${formatId},"externalPreviewLink":${externalPreviewLink},"auditStatus":${auditStatus},"secure":${secure},"deleteFromUI":${deleteFromUI},"status":${status},"destinationUrl":${destinationUrl},"alternateLandingUrl":${alternateLandingUrl},"thirdPartyTag":${thirdPartyTag},"thirdPartyImpression":${thirdPartyImpression},"positionList":${positionList},"richMediaTypeList":${richMediaTypeList},"optOutIconLocation":${optOutIconLocation},"extendedAttributes":${extendedAttributes}}}
+    Log                 ${data}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log             ${data}
+
+Create ad for Native
+    [Arguments]
+    ...             ${adgroupId}=
+    ...             ${creativeId}=
+    ...             ${externalId}="BVP4Info1230"
+    ...             ${status}=1
+    ...             ${assetType}="MoPub"
+    ...             ${adName}="TestREGRESSION_CREATIVE_3612N"
+    ...             ${weight}=1
+    ...             ${title}="Title Edit"
+    ...             ${text}="Text Edit"
+    ...             ${ctatext}="More ..."
+    ...             ${clickDestinationUrl}="https://www.4info.com"
+    ...             ${secure}=true
+    ...             ${deleteFromUI}=false
+    ...             ${impressionTracing}=[]
+    ...             ${expected_status_code}=200
+    ...             ${auth}=${HYDRA_AUTH}
+    Set Test Variable       ${uri}                   /hydra/v1/ad/native
+    Set Test Variable       ${data}                  {"adgroupId":${adgroupId},"creativeId":${creativeId},"nativeDTO":{"status":${status},"externalId":${externalId},"assetType":${assetType},"adName":${adName},"weight":${weight},"title":${title},"text":${text},"ctatext":${ctatext},"clickDestinationUrl":${clickDestinationUrl},"secure":${secure},"deleteFromUI":${deleteFromUI},"impressionTracing":${impressionTracing}}}
+    ${missing_count}=       Get Count                ${data}         MISSING
+    Run Keyword If          '${missing_count}'>0     Remove Json Key Contain MISSING for Generate JSON
+    Log                     Request: ${data}
+    HYDRA API               uri=${uri}
+    ...                     request_type=POST
+    ...                     data=${data}
+    ...                     expected_status_code=${expected_status_code}
+    Set Suite Variable              ${response_content}     ${resp.content}
+    Set Suite Variable              ${body}                 ${resp.content}
+    Should Be Valid Json            ${response_content}
+    Run Keyword If                  '${expected_status_code}' == '200'         Get Id For Native Ad
+
+
+Get Id For Native Ad
+    ${type_Ad_id}=          Get Json Value          ${body}             /adDetailDTO/nativeDTO/id
+    Set Suite Variable      ${type_Ad_id}           ${type_Ad_id}
+    ${native_Ad_id}=        Get Json Value          ${body}             /adDetailDTO/nativeDTO/nativeAdId
+    Set Suite Variable      ${native_Ad_id}         ${native_Ad_id}
+    Log    id=${type_Ad_id}
+
+
+
+
+
+Create ad for Video
+    [Arguments]
+    ...             ${adgroupId}=
+    ...             ${creativeId}=
+    ...             ${externalId}="BVP4Info1230"
+    ...             ${weight}=1
+    ...             ${name}="TestREGRESSION_CREATIVE_3612V"
+    ...             ${thumbnailFileUrl}="https://4info.pc.cdn.bitgravity.com/ad/video/qa/1372/thumbnail.jpg"
+    ...             ${duration}=12
+    ...             ${clickThroughUrl}="http://caonima.com"
+    ...             ${redirectionCount}=1
+    ...             ${secure}=false
+    ...             ${deleteFromUI}=false
+    ...             ${status}=1
+    ...             ${videoType}=1
+    ...             ${playbackUrl}="https://4info.pc.cdn.bitgravity.com/ad/video/qa/1372/iphone_encoded_video_1372_video_goldbar.mp4"
+    ...             ${skipAfterTime}=0
+    ...             ${skippable}=false
+    ...             ${extendedAttributes}=[3,4],
+    ...             ${thirdPartyVASTTracker}=[]
+    ...             ${mimeTypes}=[1,2]
+    ...             ${expected_status_code}=200
+    ...             ${auth}=${HYDRA_AUTH}
+    Set Test Variable           ${uri}      /hydra/v1/ad/video
+    Set Test Variable           ${data}     {"adgroupId":${adgroupId},"creativeId":${creativeId},"videoDTO":{"externalId":${externalId},"weight":${weight},"name":${name},"thumbnailFileUrl":${thumbnailFileUrl},"duration":${duration},"clickThroughUrl":${clickThroughUrl},"redirectionCount":${redirectionCount},"secure":${secure},"deleteFromUI":${deleteFromUI},"status":${status},"videoType":${videoType},"playbackUrl":${videoType},"skipAfterTime":${skipAfterTime},"skippable":${skippable},"extendedAttributes":${extendedAttributes},"thirdPartyVASTTracker":${thirdPartyVASTTracker},"mimeTypes":${mimeTypes}}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If              '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log                         Request: ${data}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=POST
+    ...                         data=${data}
+    ...                         expected_status_code=${expected_status_code}
+    Set Suite Variable          ${response_content}             ${resp.content}
+    Set Suite Variable          ${body}                         ${resp.content}
+    Should Be Valid Json        ${response_content}
+    Run Keyword If              '${expected_status_code}' == '200'         Get Id For Video Ad
+
+Get Id For Video Ad
+    ${type_Ad_id}=    Get Json Value         ${body}         /adDetailDTO/videoDTO/id
+    Set Suite Variable      ${type_Ad_id}       ${type_Ad_id}
+	${video_bundle_id}=    Get Json Value         ${body}         /adDetailDTO/videoDTO/videoBundleId
+    Set Suite Variable      ${video_bundle_id}       ${video_bundle_id}
+    Log    id=${video_bundle_id}
+    Log    id=${type_Ad_id}
+
+
+
+Create ad for Banner
+    [Arguments]
+    ...         ${adgroupId}=
+    ...         ${creativeId}=
+    ...         ${externalId}="BVP4Info1230"
+    ...         ${adName}="TestREGRESSION_CREATIVE_3612B"
+    ...         ${weight}=1
+    ...         ${bannerType}=1
+    ...         ${formatId}=5
+    ...         ${imageFileUrl}="https://4info.pc.cdn.bitgravity.com/ad/banner/qa/50984/1487972487/banner_71567_image_Lying_320x50_NEW_copy.jpeg"
+    ...         ${thirdPartyImpression}=""
+    ...         ${destinationUrl}="https://www.4info.com"
+    ...         ${externalCreativeId}="62228313"
+    ...         ${externalPreviewLink}=0
+    ...         ${secure}=false
+    ...         ${deleteFromUI}=false
+    ...         ${status}=1
+    ...         ${positionList}=[]
+    ...         ${richMediaTypeList}=[]
+    ...         ${optOutIconLocation}="tr"
+    ...         ${extendedAttributes}=[]
+    ...         ${expected_status_code}=200
+    ...         ${auth}=${HYDRA_AUTH}
+    Set Test Variable           ${uri}      /hydra/v1/ad/banner
+    Set Test Variable           ${data}             {"adgroupId":${adgroupId},"creativeId":${creativeId},"bannerDTO":{"externalId":${externalId},"adName":${adName},"weight":${weight},"bannerType":${bannerType},"formatId":${formatId},"imageFileUrl":${imageFileUrl},"thirdPartyImpression":${thirdPartyImpression},"destinationUrl":${destinationUrl},"externalCreativeId":${externalCreativeId},"externalPreviewLink":${externalPreviewLink},"secure":${secure},"deleteFromUI":${deleteFromUI},"status":${status},"positionList":${positionList},"richMediaTypeList":${richMediaTypeList},"optOutIconLocation":${optOutIconLocation},"extendedAttributes":${extendedAttributes}}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If              '${missing_count}'>0                Remove Json Key Contain MISSING for Generate JSON
+    Log                         Request: ${data}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=POST
+    ...                         data=${data}
+    ...                         expected_status_code=${expected_status_code}
+    Set Suite Variable          ${response_content}         ${resp.content}
+    Set Suite Variable          ${body}     ${resp.content}
+    Should Be Valid Json        ${response_content}
+    Run Keyword If              '${expected_status_code}' == '200'         Get Id For Banner Ad
+
+Get Id For Banner Ad
+    ${type_Ad_id}=          Get Json Value            ${body}                 /adDetailDTO/bannerDTO/id
+    Set Suite Variable      ${type_Ad_id}             ${type_Ad_id}
+    ${banner_ad_id}=        Get Json Value            ${body}                 /adDetailDTO/bannerDTO/bannerAdId
+    Set Suite Variable      ${banner_ad_id}           ${banner_ad_id}
+    Log    id=${banner_ad_id}
+    Log    id=${type_Ad_id}
+
+
+
+Update ad for Native
+    [Arguments]
+    ...             ${type_Ad_id}=${type_Ad_id}
+    ...             ${adgroupId}=${nativeAdgroupId}
+    ...             ${creativeId}=${nativeCreativeId}
+    ...             ${externalId}="BVP4Info1230"
+    ...             ${status}=1
+    ...             ${nativeAdId}=${native_Ad_id}
+    ...             ${assetType}="Mopub"
+    ...             ${adName}="TestREGRESSION_CREATIVE"
+    ...             ${weight}=1
+    ...             ${title}="Title Edit"
+    ...             ${text}="Text Edit"
+    ...             ${ctatext}="More ..."
+    ...             ${clickDestinationUrl}="https://www.4info.com"
+    ...             ${secure}=false
+    ...             ${deleteFromUI}=false
+    ...             ${impressionTracing}=[]
+    ...             ${expected_status_code}=200
+    ...             ${auth}=${HYDRA_AUTH}
+    Set Test Variable    ${uri}      /hydra/v1/ad/native/${type_Ad_id}
+    Set Test Variable      ${data}     {"adgroupId":${adgroupId},"creativeId":${creativeId},"nativeDTO":{"id":"${type_Ad_id}","status":${status},"externalId":${externalId},"nativeAdId":${nativeAdId},"assetType":${assetType},"adName":${adName},"weight":${weight},"title":${title},"text":${text},"ctatext":${ctatext},"clickDestinationUrl":${clickDestinationUrl},"secure":${secure},"deleteFromUI":${deleteFromUI},"impressionTracing":${impressionTracing}}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log     Request: ${data}
+
+    HYDRA API                   uri=${uri}
+    ...                         request_type=POST
+    ...                         data=${data}
+    ...                         expected_status_code=${expected_status_code}
+    Set Suite Variable       ${response_content}     ${resp.content}
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json    ${response_content}
+
+
+
+Update ad for Video
+    [Arguments]
+    ...             ${type_Ad_id}=${type_Ad_id}
+    ...             ${adgroupId}=${videoAdgroupId1}
+    ...             ${video_bundle_id}=${video_bundle_id}
+    ...             ${creativeId}=${videoCreativeId1}
+    ...             ${externalId}="BVP4Info1230"
+    ...             ${weight}=1
+    ...             ${name}="TestREGRESSION_CREATIVE"
+    ...             ${thumbnailFileUrl}="https://4info.pc.cdn.bitgravity.com/ad/video/qa/1372/thumbnail.jpg"
+    ...             ${duration}=12
+    ...             ${clickThroughUrl}="https://www.4infogroup.com"
+    ...             ${redirectionCount}=1
+    ...             ${secure}=false
+    ...             ${deleteFromUI}=false
+    ...             ${status}=1
+    ...             ${videoType}="1"
+    ...             ${playbackUrl}="https://4info.pc.cdn.bitgravity.com/ad/video/qa/1372/iphone_encoded_video_1372_video_goldbar.mp4"
+    ...             ${skipAfterTime}=0
+    ...             ${skippable}=false
+    ...             ${extendedAttributes}=[3,4],
+    ...             ${thirdPartyVASTTracker}=[]
+    ...             ${mimeTypes}=[1,2]
+    ...             ${expected_status_code}=200
+    ...             ${auth}=${HYDRA_AUTH}
+    Set Test Variable    ${uri}      /hydra/v1/ad/video/${type_Ad_id}
+    Set Test Variable      ${data}     {"adgroupId":${adgroupId},"creativeId":${creativeId},"videoDTO":{"id":${type_Ad_id},"videoBundleId":${video_bundle_id},"externalId":${externalId},"weight":${weight},"name":${name},"thumbnailFileUrl":${thumbnailFileUrl},"duration":${duration},"clickThroughUrl":${clickThroughUrl},"redirectionCount":${redirectionCount},"secure":${secure},"deleteFromUI":${deleteFromUI},"status":${status},"videoType":${videoType},"playbackUrl":${videoType},"skipAfterTime":${skipAfterTime},"skippable":${skippable},"extendedAttributes":${extendedAttributes},"thirdPartyVASTTracker":${thirdPartyVASTTracker},"mimeTypes":${mimeTypes}}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log     Request: ${data}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=POST
+    ...                         data=${data}
+    ...                         expected_status_code=${expected_status_code}
+    Set Suite Variable       ${response_content}     ${resp.content}
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json    ${response_content}
+
+
+
+Update ad for Banner
+    [Arguments]
+    ...         ${type_Ad_id}=${type_Ad_id}
+    ...         ${adgroupId}=${bannerAdgroupId1}
+    ...			${banner_ad_id}=${banner_ad_id}
+    ...         ${creativeId}=${bannerCreativeId1}
+    ...         ${externalId}="BVP4Info1230"
+    ...         ${adName}="TestREGRESSION_CREATIVE"
+    ...         ${weight}=1
+    ...         ${bannerType}=1
+    ...         ${formatId}=5
+    ...         ${imageFileUrl}="https://4info.pc.cdn.bitgravity.com/ad/banner/qa/50984/1487972487/banner_71567_image_Lying_320x50_NEW_copy.jpeg"
+    ...         ${thirdPartyImpression}=""
+    ...         ${destinationUrl}="https://www.4info.com"
+    ...         ${externalCreativeId}="62228313"
+    ...         ${externalPreviewLink}=0
+    ...         ${secure}=false
+    ...         ${deleteFromUI}=false
+    ...         ${status}=1
+    ...         ${positionList}=[]
+    ...         ${richMediaTypeList}=[]
+    ...         ${optOutIconLocation}="tr"
+    ...         ${extendedAttributes}=[]
+    ...         ${expected_status_code}=200
+    ...         ${auth}=${HYDRA_AUTH}
+    Set Test Variable    ${uri}      /hydra/v1/ad/banner/${type_Ad_id}
+    Set Test Variable      ${data}       {"adgroupId":${adgroupId},"creativeId":${creativeId},"bannerDTO":{"id":${type_Ad_id},"bannerAdId":${banner_ad_id},"externalId":${externalId},"adName":${adName},"weight":${weight},"bannerType":${bannerType},"formatId":${formatId},"imageFileUrl":${imageFileUrl},"thirdPartyImpression":${thirdPartyImpression},"destinationUrl":${destinationUrl},"externalCreativeId":${externalCreativeId},"externalPreviewLink":${externalPreviewLink},"secure":${secure},"deleteFromUI":${deleteFromUI},"status":${status},"positionList":${positionList},"richMediaTypeList":${richMediaTypeList},"optOutIconLocation":${optOutIconLocation},"extendedAttributes":${extendedAttributes}}}
+    ${missing_count}=           Get Count           ${data}         MISSING
+    Run Keyword If      '${missing_count}'>0        Remove Json Key Contain MISSING for Generate JSON
+    Log     Request: ${data}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=POST
+    ...                         data=${data}
+    ...                         expected_status_code=${expected_status_code}
+    Set Suite Variable       ${response_content}     ${resp.content}
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json     ${response_content}
+
+
+Remove Json Key Contain MISSING for Generate JSON
+    ${data}=        Remove String       ${data}     "campaignId":MISSING,
+    ${data}=        Remove String       ${data}     "id":MISSING,
+    ${data}=        Remove String       ${data}     "adGroupIds":[MISSING]
+    ${data}=        Remove String       ${data}     "adgroupId":MISSING,
+    ${data}=        Remove String       ${data}     "creativeId":MISSING,
+    ${data}=        Remove String       ${data}     "videoBundleId":MISSING,
+    ${data}=        Remove String       ${data}     "bannerAdId":MISSING,
+    ${data}=        Remove String       ${data}     "videoAdId":MISSING,
+    ${data}=        Remove String       ${data}     "externalId":MISSING,
+    ${data}=        Remove String       ${data}     "nativeAdId":MISSING,
+    ${data}=        Remove String       ${data}     "assetType":"MISSING",
+    ${data}=        Remove String       ${data}     "adName":"MISSING",
+    ${data}=        Remove String       ${data}     "externalCreativeId":MISSING,
+    ${data}=        Remove String       ${data}     "weight":MISSING,
+    ${data}=        Remove String       ${data}     "title":MISSING,
+    ${data}=        Remove String       ${data}     "text":"MISSING",
+    ${data}=        Remove String       ${data}     "ctatext":MISSING,
+    ${data}=        Remove String       ${data}     "clickDestinationUrl":MISSING,
+    ${data}=        Remove String       ${data}     "deleteFromUI":MISSING,
+    ${data}=        Remove String       ${data}     "impressionTracing":MISSING,
+    ${data}=        Remove String       ${data}     "name":MISSING
+    ${data}=        Remove String       ${data}     "duration":MISSING,
+    ${data}=        Remove String       ${data}     "videoType":MISSING,
+    ${data}=        Remove String       ${data}     "clickThroughUrl":MISSING,
+    ${data}=        Remove String       ${data}     "redirectionCount":MISSING,
+    ${data}=        Remove String       ${data}     "vastTag":MISSING,
+    ${data}=        Remove String       ${data}     "vastWrapperUrl":MISSING,
+    ${data}=        Remove String       ${data}     "playbackUrl":MISSING,
+    ${data}=        Remove String       ${data}     "skipAfterTime":MISSING,
+    ${data}=        Remove String       ${data}     "skippable":MISSING,
+    ${data}=        Remove String       ${data}     "thirdPartyVASTTracker":MISSING,
+    ${data}=        Remove String       ${data}     "extendedAttributes":[MISSING]
+    ${data}=        Remove String       ${data}     "bannerType":MISSING,
+    ${data}=        Remove String       ${data}     "thumbnailFileUrl":MISSING,
+    ${data}=        Remove String       ${data}     "formatId":MISSING,
+    ${data}=        Remove String       ${data}     "externalPreviewLink":MISSING,
+    ${data}=        Remove String       ${data}     "auditStatus":MISSING,
+    ${data}=        Remove String       ${data}     "imageFileUrl":MISSING,
+    ${data}=        Remove String       ${data}     "mimeTypes":MISSING
+    ${data}=        Remove String       ${data}     "auditEta":MISSING,
+    ${data}=        Remove String       ${data}     "auditFeedback":MISSING,
+    ${data}=        Remove String       ${data}     "secure":MISSING,
+    ${data}=        Remove String       ${data}     "status":MISSING,
+    ${data}=        Remove String       ${data}     "thirdPartyTag":MISSING,
+    ${data}=        Remove String       ${data}     "richMediaMarkup":MISSING,
+    ${data}=        Remove String       ${data}     "destinationUrl":MISSING,
+    ${data}=        Remove String       ${data}     "keyword":MISSING,
+    ${data}=        Remove String       ${data}     "selection":MISSING,
+    ${data}=        Remove String       ${data}     "thirdPartyImpression":MISSING,
+    ${data}=        Remove String       ${data}     "thirdPartyDestinationUrl":MISSING,
+    ${data}=        Remove String       ${data}     "alternateLandingUrl":MISSING,
+    ${data}=        Remove String       ${data}     "positionList":MISSING,
+    ${data}=        Remove String       ${data}     "richMediaTypeList":MISSING,
+    ${data}=        Remove String       ${data}     "optOutIconLocation":MISSING,
+    ${data}=       Evaluate    '${data}'.replace(", }",'}')
+    ${data}=       Evaluate    '${data}'.replace(",}",'}')
+    ${data}=       Evaluate    '${data}'.replace(",,",',')
+    ${data}=       Evaluate    '${data}'.replace("{,",'{')
+    Set Test Variable       ${data}     ${data}
+
+
+
+
+Get Creative and Child Adgroup Information for an Ad
+    [Arguments]             ${type}=
+    ...                     ${detailId}=
+    ...                     ${expected_status_code}=200
+    ...                     ${success}=NA
+    ...                     ${auth}=${HYDRA_AUTH}
+    Set Test Variable       ${uri}        /hydra/v1/ad/creative-adgroup/${type}/${detailId}
+    HYDRA API               uri=${uri}
+    ...                     request_type=GET
+    ...                     expected_status_code=${expected_status_code}
+
+
+
+Delete Request for Ad
+    [Arguments]             ${id}=
+    ...                     ${type}=
+    ...                     ${expected_status_code}=200
+    ...                     ${success}=NA
+    ...                     ${auth}=${HYDRA_AUTH}
+    Set Test Variable       ${uri}           /hydra/v1/ad/${type}/${id}
+    HYDRA API               uri=${uri}
+    ...                     request_type=DELETE
+    ...                     expected_status_code=${expected_status_code}
+
+Delete New Creative via DB
+	[Arguments]         ${name}=PAC_regression_parent
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select id from `native_ad` where name like '${name}%';
+    Delete New Creative via DB
+    ${count}=           Get Length  ${query_results}
+    :FOR    ${index}    IN RANGE   0    ${count}
+    \       Log     Index: ${index}
+    \       ${temp_creative_id}=        Set Variable  ${query_results[${index}][0]}
+    \		Remove Creative By CreativeID           creative_id=${temp_creative_id}
+
+Remove Creative By CreativeID
+	[Arguments]         ${creative_id}=
+    Log   Creative ID: ${creative_id}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+
+    @{query_results}     Query    delete from native_ad where id=${creative_id};
+    @{query_results}     Query    delete from native_details where native_ad_id=${creative_id};
+    Log Many      @{query_results}
+    Disconnect From Database
+
+CREATIVE POST Request for DELETE Creative
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${expected_status_code}=200
+	...			${auth}=${HYDRA_AUTH}
+    Set Test Variable       ${uri}     /hydra/v1/${uri}
+    HYDRA API               uri=${uri}
+    ...                     request_type=DELETE
+    ...                     expected_status_code=${expected_status_code}
+
+
+CREATIVE Get creative id for Native
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${expected_status_code}=200
+	...			${json_response}=
+	...			${xpath}=
+	...			${xpath_0}=
+	...			${xpath_1}=
+	...			${auth}=${HYDRA_AUTH}
+	# Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    Set Test Variable       ${uri}          /hydra/v1/${uri}
+    Set Test Variable       ${data}       ${JSON}
+    Log		Request: ${data}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=POST
+    ...                         data=${data}
+    ...                         expected_status_code=${expected_status_code}
+
+    ${json_response}=	Set Variable		${resp.content}
+
+    ${cr_id0}           Get Json Value     	${json_response}    /${xpath_0}
+
+    ${cr_id1}           Get Json Value     	${cr_id0}    /${xpath_1}
+    #id
+    ${cr_id}            Get Json Value	${cr_id1}	/${xpath}
+    Set Suite Variable 	 ${creative_id}	${cr_id}
+
+AD Get ad id
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${expected_status_code}=200
+	...			${json_response}=
+	...			${xpath}=
+	...			${xpath_0}=
+	...			${xpath_1}=
+	...			${xpath_b}=
+	...			${auth}=${HYDRA_AUTH}
+	# Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+    Set Test Variable    ${uri}     /hydra/v1${uri}
+    # ${headers}       Create Dictionary     Content-Type=application/json		Authorization=${auth}
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=POST
+    ...                         data=${data}
+    ...                         expected_status_code=${expected_status_code}
+    ${json_response}=	Set Variable		${resp.content}
+	#adDetailDTO
+    ${ad_id0}           Get Json Value     	${json_response}    /${xpath_0}
+	#nativeDTO
+    ${ad_id1}	        Get Json Value	    ${ad_id0}	        /${xpath_1}
+	#id
+    ${ad_id3}       Get Json Value	${ad_id1}	/${xpath}
+	#{xpath_b} below is only for video ad, in tests xpath_b is bieing used as a stub (random key from JSON Responce)
+    ${ad_id4}       Get Json Value	${ad_id1}	/${xpath_b}
+    Set Suite Variable 	 ${ad_id}	${ad_id3}
+    Set Suite Variable 	 ${bundle_id}	${ad_id4}
+	# any extra value wich to be varified can be added below as an alias
+	# & assigned to either xpath or xpath_b value in further Keywords
+	# according to its real DB name as per JSON request
+    Set Suite Variable 	 ${video_ad_name}	${ad_id4}
+    Set Suite Variable 	 ${banner_ad_name}	${ad_id3}
+    Set Suite Variable 	 ${native_ad_name}	${ad_id3}
+    Set Suite Variable   ${json}	${json_response}
+    Set Suite Variable	 ${path}	${ad_id1}
+
+CREATIVE Get creative id for Banner
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${expected_status_code}=200
+	...			${json_response}=
+	...			${xpath}=
+	...			${xpath_crDTO}=
+	...			${xpath_0}=
+	...			${xpath_bnDTO}=
+	...			${xpath_viDTO}=
+	...			${auth}=${HYDRA_AUTH}
+	# Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+    # ${headers}       Create Dictionary     Content-Type=application/json	Authorization=${auth}
+    Set Test Variable    ${uri}     /hydra/v1${uri}
+
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+	# ${resp}    RequestsLibrary.Post Request    creative   ${uri}    data=${data} 	headers=${headers}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=POST
+    ...                         data=${data}
+    ...                         expected_status_code=${expected_status_code}
+	${json_response}=	Set Variable		${resp.content}
+	${cr_id0}      Get Json Value     	${json_response}    /${xpath_crDTO}
+	${cr_id1}      Get Json Value     	${cr_id0}   /${xpath_bnDTO}
+	${cr_idbn}       Get Json Value		${cr_id1}	/${xpath}
+	Set Suite Variable 	 ${creative_idBn}	${cr_idbn}
+
+CREATIVE Get creative id for Video
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${expected_status_code}=200
+	...			${json_response}=
+	...			${xpath}=
+	...			${xpath_crDTO}=
+	...			${xpath_0}=
+	...			${xpath_bnDTO}=
+	...			${xpath_viDTO}=
+	...			${auth}=${HYDRA_AUTH}
+	# Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+    # ${headers}       Create Dictionary     Content-Type=application/json	Authorization=${auth}
+    # Set Test Variable    ${headers}    ${headers}
+    Set Test Variable    ${uri}     /hydra/v1${uri}
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+	${resp}    RequestsLibrary.Post Request    creative   ${uri}    data=${data} 	headers=${headers}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=POST
+    ...                         data=${data}
+    ...                         expected_status_code=${expected_status_code}
+    ${json_response}=	Set Variable		${resp.content}
+	#creativeDetailDTO
+	${cr_id0}      Get Json Value     	${json_response}    /${xpath_crDTO}
+	#bannerDTO
+	#${cr_id1}      Get Json Value     	${cr_id0}   /${xpath_bnDTO}
+	#video
+	${cr_id2}      Get Json Value     	${cr_id0}   /${xpath_viDTO}
+	#id
+	#${cr_idbn}       Get Json Value		${cr_id1}	/${xpath}
+	${cr_idvi}       Get Json Value		${cr_id2}	/${xpath}
+	#Set Suite Variable 	 ${creative_idBn}	${cr_idbn}
+	Set Suite Variable 	 ${creative_idVi}	${cr_idvi}
+
+
+CREATIVE Get Error Code 	#for Banner, Video & Native
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${expected_status_code}=
+	...			${json_response}=
+	...			${xpath}=
+	...			${auth}=${HYDRA_AUTH}
+	# Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+    Set Test Variable    ${uri}     /hydra/v1${uri}
+    # ${headers}       Create Dictionary     Content-Type=application/json	Authorization=${auth}
+    # Set Test Variable    ${headers}    ${headers}
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+	# ${resp}    RequestsLibrary.Post Request    creative   ${uri}    data=${data} 	headers=${headers}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=POST
+    ...                         data=${data}
+    ...                         expected_status_code=${expected_status_code}
+	${json_response}=	Set Variable		${resp.content}
+	#creativeDetailDTO
+	${reason_code}      Get Json Value     	${json_response}    /${xpath}
+	Set Suite Variable 	 ${error_code}	${reason_code}
+	Set Suite Variable   ${resp} 	${resp}
+
+Create Native Creative & Ad
+	[Arguments]
+	...			${adName_creative}=
+	...			${adName_ad}=
+	#Create Creative of type native
+	CREATIVE Get creative id for Native  xpath_0=creativeDetailDTO		xpath_1=nativeDTO	xpath=id	uri=/creative/native	 JSON={"campaignId":1780,"nativeDTO":{"externalId":"external_id","status":1,"nativeAdId":1,"assetType":"MoPub","adName":"TEST_NATIVE_CREATIVE_TEST_AUG26","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+	#Create Ad of type native
+	AD Get ad id  xpath_0=adDetailDTO 	xpath_1=nativeDTO 	xpath=adName	 xpath_b=id		 uri=/ad/native		 JSON={"adgroupId":1780,"creativeId":${creative_id},"nativeDTO":{"status":1,"assetType":"MoPub","adName":"TEST_NATIVE_AD1_TEST_AUG26","weight":1,"title":"Title Edit","text":"Text Edit","ctatext":"More ...","clickDestinationUrl":"http://4info.com","secure":false,"deleteFromUI":false,"impressionTracing":[]}}
+
+Create Banner Creative & Ad
+	[Arguments]
+	...			${adName_creative}=
+	...			${adName_ad}=
+	      #Create Creative of type native
+	CREATIVE Get creative id for Banner	 xpath_crDTO=creativeDetailDTO	xpath_bnDTO=bannerDTO	xpath=id	uri=/creative/banner	 JSON={"campaignId":1780,"bannerDTO":{"adName":" BANNER_GESTURE_CREATIVE_BANNER_2_new","weight":1,"bannerType":0,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"auditEta":"auditEta","auditFeedback":"auditfeedback","secure":false,"deleteFromUI":false,"status":0,"thirdPartyTag":"3rdpartytag","richMediaMarkup":"markup","destinationUrl":"http://destinationUrl.con","thirdPartyImpression":"http://3rdimpress.com","thirdPartyDestinationUrl":"http://destination.com","alternateLandingUrl":"http://alternateLandingUrl.com","positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[1,2,3]}}
+		  #Create Ad of type banner
+	AD Get ad id  xpath_0=adDetailDTO 	xpath_1=bannerDTO 	xpath=adName	 xpath_b=id 	uri=/ad/banner		 JSON={"adgroupId":1780,"creativeId":${creative_idBn},"bannerDTO":{"adName":" Darren_AD_CREATE_TEST_2","weight":1,"bannerType":1,"formatId":1,"externalPreviewLink":0,"auditStatus":0,"secure":false,"deleteFromUI":false,"status":0,"positionList":[],"richMediaTypeList":[],"optOutIconLocation":"tr","extendedAttributes":[]}}
+
+Create Video Creative & Ad
+	[Arguments]
+	...			${adName_creative}=
+	...			${adName_ad}=
+		#Create Creative of type native
+	CREATIVE Get creative id for Video	 xpath_crDTO=creativeDetailDTO	xpath_viDTO=videoDTO	 xpath=id	uri=/creative/video	 JSON={"campaignId":1780,"videoDTO":{"weight":1,"name":"TEST_VIDEO_CREATIVE_TEST_AUG26","duration":1,"videoType":1,"clickThroughUrl":"sourceurl","redirectionCount":0,"secure":false,"deleteFromUI":false,"VASTTag":"tag","VASTWrapperUrl":"http://url.com","playbackUrl":"playbackurl","status":0,"skipAfterTime":0,"skippable":false,"thirdPartyVASTTracker":[{"destinationType":1,"thirdpartyTrackingUrl":"http://type1.com"},{"destinationType":12,"thirdpartyTrackingUrl":"http://type12.com"}],"extendedAttributes":[]}}
+		#Create Ad of type native
+	AD Get ad id  xpath_0=adDetailDTO 	xpath_1=videoDTO 	xpath=id	xpath_b=name	 uri=/ad/video		 JSON={"adgroupId":1780,"creativeId":${creative_idVi},"videoDTO":{"weight":1,"name":"TEST_VIDEO_AD3_TEST_AUG26","duration":1,"videoType":1,"redirectionCount":0,"secure":false,"deleteFromUI":false,"status":0,"skipAfterTime":0,"skippable":false,"extendedAttributes":[]}}
+
+
+Upload File And Attach Request
+    [Arguments]     ${id}=
+    ...             ${type}=
+    ...             ${filetype}=
+    ...             ${filename}=
+    ...             ${auth}=${HYDRA_AUTH}
+    ...             ${expected_status_code}=200
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    ${file_data}   Get Binary File       ../test_datafiles/HydraFiles/${filename}
+    ${file_data}    Normalize Path       ${file_data}
+    ${files}    Create Dictionary    file    ${file_data}
+    # ${data}        Create Dictionary     detailId      ${id}
+    Set Test Variable      ${uri}       /hydra/v1/file/${filetype}/${type}?detailId=${id}
+    ${headers}    Create Dictionary          Authorization=${auth}
+    Log     ${data}
+    ${resp}=  RequestsLibrary.Post Request    docker     ${uri}       headers=${headers}     files=${files}             #data=${data}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json     ${body}
+    Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+
+
+Creative GET Request for campaign
+    [Arguments]     ${uri}=
+    ...             ${expected_status_code}=200
+    ...             ${success}=NA
+    ...             ${auth}=${HYDRA_AUTH}
+    Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}
+    ${headers}    Create Dictionary     Accept=application/json     Authorization=${auth}    #Basic Y3BoYW1ANGluZm8uY29tOjVmYjlmYzA2ZTRmODhhNzg2YmEwYTU5MDE1NDVkNzQy
+    # ${resp}=    Get Request     docker  ${uri}          headers=${headers}
+    # Set Test Variable       ${resp}     ${resp}
+    ${resp}    RequestsLibrary.Get Request    docker   ${uri}    headers=${headers}
+    HYDRA API               uri=${uri}
+    ...                     request_type=GET
+    ...                     expected_status_code=${expected_status_code}
+
+    Log    Response: '${resp.content}'
+    Run Keyword If  '${expected_status_code}'=='200'        Set Suite Variable       ${body}     ${resp.content}
+    Run Keyword If  '${expected_status_code}'=='200'        Should Be Valid Json     ${body}
+    Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless  '${success}'=='NA'          Should Match Regexp     ${body}     "success":${success}
+
+
+CREATIVE Get JSON keys - banner
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${json_response}=
+	...			${xpath_00}=creativeDetailDTO
+	...			${xpath_001}=success
+	...			${xpath_002}=transaction_id
+	...			${xpath_003}=errors
+	...			${xpath_01}=id				#not creative_id
+	...			${xpath_02}=campaignId
+	...			${xpath_03}=bannerDTO
+	...	   	 	${xpath_04}=deletable
+	...	    	${xpath_05}=secure
+	...     	${xpath_06}=weight
+	...			${xpath_07}=adName
+	#...		${xpath_08}=weight
+	...			${xpath_09}=bannerAdId
+	...			${xpath_10}=richMediaMarkup
+	...			${xpath_11}=id
+	...			${xpath_12}=deleteFromUI
+	...			${xpath_13}=alternateLandingUrl
+	...			${xpath_14}=formatId
+	...			${xpath_15}=optOutIconLocation
+	#...		${xpath_16}=status
+	...			${xpath_17}=thirdPartyImpression
+	#...		${xpath_18}=secure
+	...			${xpath_19}=extendedAttributes
+	...			${xpath_20}=bannerType
+	...			${xpath_21}=externalPreviewLink
+	...			${xpath_22}=richMediaTypeList
+	...			${xpath_23}=thirdPartyDestinationUrl
+	...			${xpath_24}=destinationUrl
+	...			${xpath_25}=auditFeedback
+	...			${xpath_26}=auditStatus
+	...			${xpath_27}=thirdPartyTag
+	...			${xpath_28}=positionList
+	...			${xpath_29}=auditEta
+	#...		${xpath_30}=success
+	#...		${xpath_31}=transaction_id
+	#...		${xpath_32}=errors
+	...			${auth}=${HYDRA_AUTH}
+	Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+    ${headers}       Create Dictionary     Content-Type=application/json	Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+	${resp}    RequestsLibrary.Post Request    creative   ${uri}    data=${data} 	headers=${headers}
+	Log Many 	resp_code: ${resp}
+	${json_response}=	Set Variable		${resp.content}
+	Log Many 	JSON response: ${json_response}
+	#level 0
+	#creativeDetailDTO
+	${cr_id0}      Get Json Value     	${json_response}    /${xpath_00}
+	Log Many  bannerDTO:${cr_id0}
+	${cr_id_125}       Get Json Value	${json_response}    /${xpath_001}
+	${cr_id_124}       Get Json Value	${json_response}	/${xpath_002}
+	${cr_id_125}       Get Json Value	${json_response}	/${xpath_003}
+	#id
+	${cr_id_01}       Get Json Value	${cr_id0}	/${xpath_01}
+	#campaignId
+	${cr_id_02}       Get Json Value	${cr_id0}	/${xpath_02}
+	#bannerDTO
+	${cr_id_03}       Get Json Value	${cr_id0}	/${xpath_03}
+    ${cr_id_04}       Get Json Value	${cr_id0}	/${xpath_04}
+	#level 1
+	${cr_id_10}       Get Json Value	${cr_id03}	/${xpath_05}
+	${cr_id_11}       Get Json Value	${cr_id03}	/${xpath_06}
+	${cr_id_12}       Get Json Value	${cr_id03}	/${xpath_07}
+	#${cr_id_13}       Get Json Value	${cr_id03}	/${xpath_08}
+	${cr_id_14}       Get Json Value	${cr_id03}	/${xpath_09}
+	${cr_id_15}       Get Json Value	${cr_id03}	/${xpath_10}
+	${cr_id_16}       Get Json Value	${cr_id03}	/${xpath_11}
+	${cr_id_17}       Get Json Value	${cr_id03}	/${xpath_12}
+	${cr_id_18}       Get Json Value	${cr_id03}	/${xpath_13}
+	${cr_id_19}       Get Json Value	${cr_id03}	/${xpath_14}
+	${cr_id_110}       Get Json Value	${cr_id03}	/${xpath_15}
+	#${cr_id_111}       Get Json Value	${cr_id03}	/${xpath_16}
+	${cr_id_112}       Get Json Value	${cr_id03}	/${xpath_17}
+	#${cr_id_113}       Get Json Value	${cr_id03}	/${xpath_18}
+	${cr_id_114}       Get Json Value	${cr_id03}	/${xpath_19}
+	${cr_id_115}       Get Json Value	${cr_id03}	/${xpath_20}
+	${cr_id_116}       Get Json Value	${cr_id03}	/${xpath_21}
+	${cr_id_117}       Get Json Value	${cr_id03}	/${xpath_22}
+	${cr_id_118}       Get Json Value	${cr_id03}	/${xpath_23}
+	${cr_id_119}       Get Json Value	${cr_id03}	/${xpath_24}
+	${cr_id_120}       Get Json Value	${cr_id03}	/${xpath_25}
+	${cr_id_121}       Get Json Value	${cr_id03}	/${xpath_26}
+	${cr_id_122}       Get Json Value	${cr_id03}	/${xpath_27}
+	${cr_id_123}       Get Json Value	${cr_id03}	/${xpath_28}
+	${cr_id_124}       Get Json Value	${cr_id03}	/${xpath_29}
+	Set Suite Variable  ${creative_id}	${cr_id_16}
+
+CREATIVE Get JSON keys - video
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${json_response}=
+	...			${xpath_00}=creativeDetailDTO
+	...			${xpath_001}=success
+	...			${xpath_002}=transaction_id
+	...			${xpath_003}=errors
+	...			${xpath_01}=id
+	...			${xpath_02}=campaignId
+	...			${xpath_03}=videoDTO
+	...			${xpath_04}=deletable
+	...	   	    ${xpath_05}=id
+	...     	${xpath_06}=weight
+	...			${xpath_07}=name
+	...			${xpath_08}=duration
+	...			${xpath_09}=redirectionCount
+	...			${xpath_10}=secure
+	...			${xpath_11}=deleteFromUI
+	...			${xpath_12}=status
+	...			${xpath_13}=videoType
+	...			${xpath_14}=skippable
+	...			${xpath_15}=extendedAttributes
+	...			${xpath_16}=videoBundleId
+	...			${auth}=${HYDRA_AUTH}
+	Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+    ${headers}       Create Dictionary     Content-Type=application/json	Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+	${resp}    RequestsLibrary.Post Request    creative   ${uri}    data=${data} 	headers=${headers}
+	Log Many 	resp_code: ${resp}
+	${json_response}=	Set Variable		${resp.content}
+	Log Many 	JSON response: ${json_response}
+	#creativeDetailDTO level
+	${cr_id0}      Get Json Value     	${json_response}    /${xpath_00}
+	${cr_id_001}      Get Json Value	${json_response}    /${xpath_001}
+	${cr_id_002}      Get Json Value	${json_response}	/${xpath_002}
+	${cr_id_003}      Get Json Value	${json_response}	/${xpath_003}
+	Log Many  videoDTO:${cr_id0}
+	${cr_id_01}       Get Json Value	${cr_id0}	/${xpath_01}
+	${cr_id_02}       Get Json Value	${cr_id0}	/${xpath_02}
+	${cr_id_03}       Get Json Value	${cr_id0}	/${xpath_03}
+	${cr_id_04}       Get Json Value	${cr_id0}	/${xpath_04}
+	#videoDTo level
+	${cr_id_05}       Get Json Value	${cr_id03}	/${xpath_05}
+	${cr_id_06}       Get Json Value	${cr_id03}	/${xpath_06}
+	${cr_id_07}       Get Json Value	${cr_id03}	/${xpath_07}
+	${cr_id_08}       Get Json Value	${cr_id03}	/${xpath_08}
+	${cr_id_09}       Get Json Value	${cr_id03}	/${xpath_09}
+	${cr_id_10}       Get Json Value	${cr_id03}	/${xpath_10}
+	${cr_id_11}       Get Json Value	${cr_id03}	/${xpath_11}
+	${cr_id_12}       Get Json Value	${cr_id03}	/${xpath_12}
+	${cr_id_13}       Get Json Value	${cr_id03}	/${xpath_13}
+	${cr_id_14}       Get Json Value	${cr_id03}	/${xpath_14}
+	${cr_id_15}       Get Json Value	${cr_id03}	/${xpath_15}
+	${cr_id_16}       Get Json Value	${cr_id03}	/${xpath_16}
+	Set Suite Variable  ${creative_id}	${cr_id_05}
+
+
+CREATIVE Get JSON keys - native
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${expected_status_code}=200
+	...			${json_response}=
+	...			${xpath_00}=creativeDetailDTO
+	...			${xpath_001}=success
+	...			${xpath_002}=transaction_id
+	...			${xpath_003}=errors
+	...			${xpath_01}=id
+	...			${xpath_02}=campaignId
+	...			${xpath_03}=nativeDTO
+	...			${xpath_04}=deletable
+	...			${xpath_05}=id
+	...			${xpath_06}=status
+	...			${xpath_07}=externalId
+	...			${xpath_08}=nativeAdId
+	...			${xpath_09}=assetType
+	...			${xpath_10}=adName
+	...			${xpath_11}=weight
+	...			${xpath_12}=title
+	...			${xpath_13}=text
+	...			${xpath_14}=ctatext
+	...			${xpath_15}=clickDestinationUrl
+	...			${xpath_16}=secure
+	...			${xpath_17}=deleteFromUI
+	...			${xpath_18}=impressionTracing
+	...			${auth}=${HYDRA_AUTH}
+	Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+    ${headers}       Create Dictionary     Content-Type=application/json	Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+	${resp}    RequestsLibrary.Post Request    creative   ${uri}    data=${data} 	headers=${headers}
+	${json_response}=	Set Variable		${resp.content}
+	Log Many 	JSON response: ${json_response}
+	#creativeDetailDTO level
+	${cr_id0}      Get Json Value     	${json_response}    /${xpath_00}
+	${cr_id001}      Get Json Value     	${json_response}    /${xpath_001}
+	${cr_id002}      Get Json Value     	${json_response}    /${xpath_002}
+	${cr_id003}      Get Json Value     	${json_response}    /${xpath_003}
+	#nativeDTO level
+	${cr_id01}      Get Json Value     	${cr_id0}    /${xpath_01}
+	${cr_id02}      Get Json Value     	${cr_id0}    /${xpath_02}
+	${cr_id03}      Get Json Value     	${cr_id0}    /${xpath_03}
+	${cr_id04}      Get Json Value     	${cr_id0}    /${xpath_04}
+	#id
+	${cr_id05}       Get Json Value	${cr_id03}	/${xpath_05}
+	${cr_id06}       Get Json Value	${cr_id03}	/${xpath_06}
+	${cr_id07}       Get Json Value	${cr_id03}	/${xpath_07}
+	${cr_id08}       Get Json Value	${cr_id03}	/${xpath_08}
+	${cr_id09}       Get Json Value	${cr_id03}	/${xpath_09}
+	${cr_id10}       Get Json Value	${cr_id03}	/${xpath_10}
+	${cr_id11}       Get Json Value	${cr_id03}	/${xpath_11}
+	${cr_id12}       Get Json Value	${cr_id03}	/${xpath_12}
+	${cr_id13}       Get Json Value	${cr_id03}	/${xpath_13}
+	${cr_id14}       Get Json Value	${cr_id03}	/${xpath_14}
+	${cr_id15}       Get Json Value	${cr_id03}	/${xpath_15}
+	${cr_id16}       Get Json Value	${cr_id03}	/${xpath_16}
+	${cr_id17}       Get Json Value	${cr_id03}	/${xpath_17}
+	${cr_id18}       Get Json Value	${cr_id03}	/${xpath_18}
+	Set Suite Variable  ${creative_id}	${cr_id05}
+
+
+AD Get JSON key - banner
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${json_response}=
+	...			${xpath_0}=adDetailDTO
+	...			${xpath_01}=success
+	...			${xpath_02}=transaction_id
+	...			${xpath_03}=errors
+	...			${xpath_1}=id
+	...			${xpath_2}=adgroupId
+	...			${xpath_3}=creativeId
+	...			${xpath_4}=bannerDTO
+	...			${xpath_5}=id
+	...			${xpath_6}=adName
+	...			${xpath_7}=weight
+	...			${xpath_8}=bannerType
+	...			${xpath_9}=formatId
+	...			${xpath_10}=externalPreviewLink
+	...			${xpath_11}=auditStatus
+	...			${xpath_12}=secure
+	...			${xpath_13}=deleteFromUI
+	...			${xpath_14}=status
+	...			${xpath_15}=positionList
+	...			${xpath_16}=richMediaTypeList
+	...			${xpath_17}=optOutIconLocation
+	...			${xpath_18}=extendedAttributes
+	...			${xpath_19}=bannerAdId
+	...			${auth}=${HYDRA_AUTH}
+	Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+    ${headers}       Create Dictionary     Content-Type=application/json	Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+	${resp}    RequestsLibrary.POST    creative   ${uri}    data=${data} 	headers=${headers}
+	${json_response}=	Set Variable		${resp.content}
+	Log Many 	JSON response: ${json_response}
+	#adDetailDTO level
+	${ad_id_0}      Get Json Value     	${json_response}    /${xpath_0}
+	Log Many  adDetailDTO:${ad_id_0}
+	${ad_id_01}      Get Json Value     	${json_response}    /${xpath_01}
+	${ad_id_02}      Get Json Value     	${json_response}    /${xpath_02}
+	${ad_id_03}      Get Json Value     	${json_response}    /${xpath_03}
+	#bannerDTO level
+	${ad_id1}	   Get Json Value	${ad_id_0}	/${xpath_1}
+	${ad_id2}	   Get Json Value	${ad_id_0}	/${xpath_2}
+	${ad_id3}	   Get Json Value	${ad_id_0}	/${xpath_3}
+	${ad_id_4}	   Get Json Value	${ad_id_0}	/${xpath_4}
+	#under bannerDTO
+	${ad_id5}	   Get Json Value	${ad_id_4}	/${xpath_5}
+	${ad_id6}	   Get Json Value	${ad_id_4}	/${xpath_6}
+	${ad_id7}	   Get Json Value	${ad_id_4}	/${xpath_7}
+	${ad_id8}	   Get Json Value	${ad_id_4}	/${xpath_8}
+	${ad_id9}	   Get Json Value	${ad_id_4}	/${xpath_9}
+	${ad_id10}	   Get Json Value	${ad_id_4}	/${xpath_10}
+	${ad_id11}	   Get Json Value	${ad_id_4}	/${xpath_11}
+	${ad_id12}	   Get Json Value	${ad_id_4}	/${xpath_12}
+	${ad_id13}	   Get Json Value	${ad_id_4}	/${xpath_13}
+	${ad_id14}	   Get Json Value	${ad_id_4}	/${xpath_14}
+	${ad_id15}	   Get Json Value	${ad_id_4}	/${xpath_15}
+	${ad_id16}	   Get Json Value	${ad_id_4}	/${xpath_16}
+	${ad_id17}	   Get Json Value	${ad_id_4}	/${xpath_17}
+	${ad_id18}	   Get Json Value	${ad_id_4}	/${xpath_18}
+	${ad_id19}	   Get Json Value	${ad_id_4}	/${xpath_19}
+
+
+AD Get JSON key - video
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${json_response}=
+	...			${xpath_0}=adDetailDTO
+	...			${xpath_001}=id
+	...			${xpath_002}=adgroupId
+	...			${xpath_003}=creativeId
+	...			${xpath_004}=videoDTO
+	...			${xpath_01}=success
+	...			${xpath_02}=reason_code
+	...			${xpath_03}=reason_desc
+	...			${xpath_04}=errors
+	...			${xpath_05}=transaction_id
+	#videoDTO level
+	...			${xpath_1}=id
+	...			${xpath_2}=weight
+	...			${xpath_3}=name
+	...			${xpath_4}=duration
+	...			${xpath_5}=redirectionCount
+	...			${xpath_6}=secure
+	...			${xpath_7}=deleteFromUI
+	...			${xpath_8}=status
+	...			${xpath_9}=videoType
+	...			${xpath_10}=skipAfterTime
+	...			${xpath_11}=skippable
+	...			${xpath_12}=extendedAttributes
+	...			${xpath_13}=videoBundleId
+	...			${auth}=${HYDRA_AUTH}
+	Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+    ${headers}       Create Dictionary     Content-Type=application/json	Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+	${resp}    RequestsLibrary.POST    creative   ${uri}    data=${data} 	headers=${headers}
+	${json_response}=	Set Variable		${resp.content}
+	Log Many 	JSON response: ${json_response}
+	#adDetailDTO level
+	${ad_id_0}      Get Json Value     	${json_response}    /${xpath_0}
+	${ad_id_01}      Get Json Value     	${json_response}    /${xpath_01}
+	${ad_id_02}      Get Json Value     	${json_response}    /${xpath_02}
+	${ad_id_03}      Get Json Value     	${json_response}    /${xpath_03}
+	#videoDTO
+	${ad_id_04}      Get Json Value     	${json_response}    /${xpath_04}
+	${ad_id_05}      Get Json Value     	${json_response}    /${xpath_05}
+	#videoDTO level
+	${ad_id_001}	   Get Json Value	${ad_id_0}	/${xpath_001}
+	${ad_id_002}	   Get Json Value	${ad_id_0}	/${xpath_002}
+	${ad_id003}	  	 Get Json Value		${ad_id_0}	/${xpath_003}
+	${ad_id_004}	   Get Json Value	${ad_id_0}	/${xpath_004}
+	Log Many  videoDTO:${ad_id_004}
+	Log Many  videoDTO:${ad_id_04}
+	#under videoDTO
+	${ad_id1}	   Get Json Value	${ad_id_004}	/${xpath_1}
+	${ad_id2}	   Get Json Value	${ad_id_004}	/${xpath_2}
+	${ad_id3}	   Get Json Value	${ad_id_004}	/${xpath_3}
+	${ad_id4}	   Get Json Value	${ad_id_004}	/${xpath_4}
+	${ad_id5}	   Get Json Value	${ad_id_004}	/${xpath_5}
+	${ad_id6}	   Get Json Value	${ad_id_004}	/${xpath_6}
+	${ad_id7}	   Get Json Value	${ad_id_004}	/${xpath_7}
+	${ad_id8}	   Get Json Value	${ad_id_004}	/${xpath_8}
+	${ad_id9}	   Get Json Value	${ad_id_004}	/${xpath_9}
+	${ad_id10}	   Get Json Value	${ad_id_004}	/${xpath_10}
+	${ad_id11}	   Get Json Value	${ad_id_004}	/${xpath_11}
+	${ad_id12}	   Get Json Value	${ad_id_004}	/${xpath_12}
+	${ad_id13}	   Get Json Value	${ad_id_004}	/${xpath_13}
+
+AD Get JSON key - native
+	[Arguments]
+	...			${uri}=
+	...			${JSON}=
+	...			${json_response}=
+	...			${xpath_0}=adDetailDTO
+	...			${xpath_001}=id
+	...			${xpath_002}=adgroupId
+	...			${xpath_003}=creativeId
+	...			${xpath_004}=nativeDTO
+	...			${xpath_01}=success
+	...			${xpath_02}=reason_code
+	...			${xpath_03}=reason_desc
+	...			${xpath_04}=transaction_id
+	...			${xpath_05}=errors
+	#nativeDTO level
+	...			${xpath_1}=id
+	...			${xpath_2}=status
+	...			${xpath_3}=nativeAdId
+	...			${xpath_4}=assetType
+	...			${xpath_5}=adName
+	...			${xpath_6}=weight
+	...			${xpath_7}=title
+	...			${xpath_8}=text
+	...			${xpath_9}=ctatext
+	...			${xpath_10}=clickDestinationUrl
+	...			${xpath_12}=secure
+	...			${xpath_13}=deleteFromUI
+	...			${xpath_14}=impressionTracing
+	...			${auth}=${HYDRA_AUTH}
+	Create Session   creative    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1
+    ${headers}       Create Dictionary     Content-Type=application/json	Authorization=${auth}
+    Set Test Variable    ${headers}    ${headers}
+    Set Test Variable      ${data}       ${JSON}
+    Log		Request: ${data}
+	${resp}    RequestsLibrary.Post Request    creative   ${uri}    data=${data} 	headers=${headers}
+	${json_response}=	Set Variable		${resp.content}
+	Log Many 	JSON response: ${json_response}
+	#adDetailDTO level
+	${ad_id_0}      Get Json Value     	${json_response}    /${xpath_0}
+	${ad_id_01}      Get Json Value     	${json_response}    /${xpath_01}
+	${ad_id_02}      Get Json Value     	${json_response}    /${xpath_02}
+	${ad_id_03}      Get Json Value     	${json_response}    /${xpath_03}
+	#nativeDTO
+	${ad_id_04}      Get Json Value     	${json_response}    /${xpath_04}
+	${ad_id_05}      Get Json Value     	${json_response}    /${xpath_05}
+	#nativeDTO level
+	${ad_id_001}	   Get Json Value	${ad_id_0}	/${xpath_001}
+	${ad_id_002}	   Get Json Value	${ad_id_0}	/${xpath_002}
+	${ad_id003}	  	 Get Json Value		${ad_id_0}	/${xpath_003}
+	${ad_id_004}	   Get Json Value	${ad_id_0}	/${xpath_004}
+	Log Many  nativeDTO:${ad_id_004}
+	Log Many  nativeDTO:${ad_id_04}
+	#under nativeDTO
+	${ad_id1}	   Get Json Value	${ad_id_004}	/${xpath_1}
+	${ad_id2}	   Get Json Value	${ad_id_004}	/${xpath_2}
+	${ad_id3}	   Get Json Value	${ad_id_004}	/${xpath_3}
+	${ad_id4}	   Get Json Value	${ad_id_004}	/${xpath_4}
+	${ad_id5}	   Get Json Value	${ad_id_004}	/${xpath_5}
+	${ad_id6}	   Get Json Value	${ad_id_004}	/${xpath_6}
+	${ad_id7}	   Get Json Value	${ad_id_004}	/${xpath_7}
+	${ad_id8}	   Get Json Value	${ad_id_004}	/${xpath_8}
+	${ad_id9}	   Get Json Value	${ad_id_004}	/${xpath_9}
+	${ad_id10}	   Get Json Value	${ad_id_004}	/${xpath_10}
+	${ad_id12}	   Get Json Value	${ad_id_004}	/${xpath_12}
+	${ad_id13}	   Get Json Value	${ad_id_004}	/${xpath_13}
+	${ad_id14}	   Get Json Value	${ad_id_004}	/${xpath_14}
+
+Validate Creative for Native
+     [Arguments]    		${campaignId}=
+     #... 					${id_c}=
+     #... 					${nativeDTO}=
+     #... 					${id_n}=
+     ...                 	${externalId}=
+     ...					${status}=
+     ...					${nativeAdId}=
+     ...					${assetType}=
+     ...					${adName}=
+     ...					${weight}=
+     ...					${title}=
+     ...					${text}=
+     ...					${ctatext}=
+     ...					${clickDestinationUrl}=
+     ...					${secure}=
+     ...					${deleteFromUI}=
+     ...					${impressionTracing}=
+     Log      Native Creative to Validate: ${campaignId}
+     CREATIVE POST Request for Creative   uri=/creative/native	JSON=${JSON_CR_NATIVE}
+     ${validations}=   			 Create Dictionary       		/success=true
+    #Set To Dictionary           ${validations}             		/creativeDetailDTO/id=${id_c}
+    Set To Dictionary           ${validations}                  /creativeDetailDTO/campaignId=${campaignId}
+    #Set To Dictionary           ${validations}                	/creativeDetailDTO/nativeDTO/id=${id_n}
+   	# Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/status=${status_}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/externalId=${externalId}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/assetType=${assetType}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/adName=${adName}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/weight=${weight}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/title=${title}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/text=${text}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/ctatext=${ctatext}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/clickDestinationUrl=${clickDestinationUrl}
+    Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/secure=${secure}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/deleteFromUI=${deleteFromUI}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/nativeDTO/impressionTracing=${impressionTracing}
+    Log Dictionary				${validations}
+    Validate JSON Response     json_response=${response_content}      expected_values_dictionary=${validations}
+
+Validate Creative for Banner
+     [Arguments]			${campaignId}=
+     ...					${adName}=
+     #...					${weight}=
+     ...					${bannerType}=
+     ...					${formatId}=
+     ...					${thirdPartyImpression}=
+     ...					${thirdPartyTag}=
+     ...					${destinationUrl}=
+     ...					${externalPreviewLink}=
+     ...					${auditStatus}=
+     #...					${auditEta}=
+     ...					${auditFeedback}=
+     ...					${secure}=
+     ...					${deleteFromUI}=
+     ...					${status}=
+     ...					${positionList}=
+     ...					${richMediaTypeList}=
+     ...					${optOutIconLocation}=
+     ...					${richMediaMarkup}=
+     ...					${extendedAttributes}=
+     ...					${thirdPartyDestinationUrl}=
+     #...					${alternateLandingUrl}=
+	Log      Banner Creative to Validate: ${campaignId}
+    CREATIVE POST Request for Creative   uri=/creative/banner	JSON=${JSON_CR_BANNER}
+    ${validations}=   			 Create Dictionary       		/success=true
+    Set To Dictionary           ${validations}                  /creativeDetailDTO/campaignId=${campaignId}
+    Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/adName=${adName}
+	#Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/weight =${weight}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/bannerType=${bannerType}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/formatId=${formatId}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/thirdPartyImpression=${thirdPartyImpression}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/thirdPartyTag=${thirdPartyTag}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/destinationUrl=${destinationUrl}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/externalPreviewLink=${externalPreviewLink}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/auditStatus=${auditStatus}
+	#Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/auditEta =${auditEta}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/auditFeedback=${auditFeedback}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/secure=${secure}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/deleteFromUI=${deleteFromUI}
+	#Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/status =${status}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/positionList=${positionList}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/richMediaTypeList=${richMediaTypeList}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/optOutIconLocation=${optOutIconLocation}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/richMediaMarkup=${richMediaMarkup}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/extendedAttributes=${extendedAttributes}
+	Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/thirdPartyDestinationUrl=${thirdPartyDestinationUrl}
+	#Set To Dictionary           ${validations}               	/creativeDetailDTO/bannerDTO/alternateLandingUrl =${alternateLandingUrl}
+    Log Dictionary				${validations}
+    Validate JSON Response     json_response=${response_content}      expected_values_dictionary=${validations}
+
+Validate Creative for Video
+     [Arguments]			${campaignId}=
+     ...					${videoDTO}=
+     ...					${weight}=
+	 ...					${name}=
+	 ...					${duration}=
+	 ...					${videoType}=
+	 ...					${clickThroughUrl}=
+	 ...					${redirectionCount}=
+	 ...					${secure}=
+	 ...					${deleteFromUI}=
+	 ...					${VASTTag}=
+	 ...					${VASTWrapperUrl}=
+	 ...					${playbackUrl}=
+	 ...					${status}=
+	 ...					${skipAfterTime}=
+	 ...					${skippable}=
+	 #...					${destinationType}=
+	 #...					${thirdpartyTrackingUrl}=
+	#...					${destinationType}=
+	#...					${thirdpartyTrackingUrl}=
+	 ...					${extendedAttributes}=
+	 Log      Video Creative to Validate: ${campaignId}
+     CREATIVE POST Request for Creative   uri=/creative/video	JSON=${JSON_CR_VIDEO}
+     ${validations}=   			 Create Dictionary       		/success=true
+    #Set To Dictionary           ${validations}             		/creativeDetailDTO/id=${id_c}
+    Set To Dictionary           ${validations}                  /creativeDetailDTO/campaignId=${campaignId}
+    Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/weight=${weight}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/name=${name}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/duration=${duration}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/videoType=${videoType}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/clickThroughUrl=${clickThroughUrl}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/redirectionCount=${redirectionCount}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/secure=${secure}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/deleteFromUI=${deleteFromUI}
+	#Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/VASTTag=${VASTTag}
+	#Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/VASTWrapperUrl=${VASTWrapperUrl}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/playbackUrl=${playbackUrl}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/status=${status}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/skipAfterTime=${skipAfterTime}
+	#Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/skippable=${skippable}
+	#Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/thirdPartyVASTTracker/destinationType=${destinationType}
+	#Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/thirdPartyVASTTracker/thirdpartyTrackingUrl=${thirdpartyTrackingUrl}
+	#Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/thirdPartyVASTTracker/destinationType=${destinationType}
+	#Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/thirdPartyVASTTracker/thirdpartyTrackingUrl=${thirdpartyTrackingUrl}
+	Set To Dictionary           ${validations}                  /creativeDetailDTO/videoDTO/extendedAttributes=${extendedAttributes}
+	Log Dictionary				${validations}
+    Validate JSON Response     json_response=${response_content}      expected_values_dictionary=${validations}
+
+
+
+Creative DELETE under campaign Request for campaign
+    [Arguments]     ${uri}=
+    ...             ${expected_status_code}=200
+    ...             ${success}=NA
+    ...             ${auth}=${HYDRA_AUTH}
+    ...             ${campaignId}=
+    # Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1/creatives?campaignId=${campaign_id}
+    # ${headers}    Create Dictionary    Content-type=application/json    Accept=application/json     Authorization=${auth}
+    # ${resp}=    Delete Request     docker   ${uri}          headers=${headers}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=DELETE
+    ...                         expected_status_code=${expected_status_code}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    # Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+    # Run Keyword Unless  '${success}'=='NA'          Should Match Regexp     ${body}     "success":${success}
+
+
+Ads DELETE under adgroup Request for campaign
+    [Arguments]     ${uri}=
+    ...             ${expected_status_code}=200
+    ...             ${success}=NA
+    ...             ${auth}=${HYDRA_AUTH}
+    ...             ${adgroupIds}=
+    # Create Session   docker    https://${QA_HYDRA}:${QA_HYDRA_PORT}/hydra/v1/ads
+    # ${headers}    Create Dictionary    Content-type=application/json    Accept=application/json     Authorization=${auth}
+    Set Test Variable      ${data}       {"adGroupIds":${adgroupIds}}
+    # ${resp}=    Delete Request     docker   ${uri}          headers=${headers}    data=${data}
+    HYDRA API                   uri=${uri}
+    ...                         request_type=DELETE
+    ...                         expected_status_code=${expected_status_code}
+    Log    Response: '${resp.content}'
+
+
+
+
+

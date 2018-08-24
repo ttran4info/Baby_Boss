@@ -1,0 +1,339 @@
+
+*** Settings ***
+Resource            ui_object_library.txt
+Resource            common_config.txt
+Resource            ssh_lib.txt
+Resource            file_operations.txt
+Resource            ui_reporting.txt
+Resource 			rtb.txt
+*** Keywords ****
+Start AdHaven UI 
+      [Arguments]    ${URL}    ${BROWSER}
+      Open Browser              ${URL}    ${BROWSER}
+      Sleep   1s
+#      Maximize Browser Window 
+      Set Selenium Speed        ${SEL_SPEED}
+
+
+Login with "${user_name}" and "${password}"
+      Set Global Variable   ${USER_LOGGED_IN}   ${user_name}
+      Input Text         ${USERNAME_FIELD}    ${user_name}
+      Input Text         ${PASSWORD_FIELD}    ${password}
+      Sleep   1s 
+      Click Button       ${LOG_IN_BUTTON}
+      Sleep   1s 
+      Title Should Be    ${HOME_TITLE}
+      Verify Default Page Information
+
+Start the Browser And Login To The Adhaven UI
+       Start AdHaven UI    ${URL}    ${BROWSER}
+       Log   Default User: ${USER} Password: ${PASSWORD} 
+       Login with "${USER}" and "${PASSWORD}"
+      
+Logout of AdHaven UI
+      Run Keyword And Continue On Failure		Click Link       ${LOG_OUT_LINK}
+      Wait Until Page Contains Element   ${LOG_IN_BUTTON}
+      Title Should Be    ${HOME_TITLE}
+      Page Should Not Contain Link       ${LOG_OUT_LINK}
+      Page Should Not Contain            ${WELCOME_USER_MSG}
+      Page Should Not Contain            ${USER_LOGGED_IN}
+      Page Should Contain Element        ${USERNAME_FIELD}
+      Page Should Contain Element        ${PASSWORD_FIELD}
+      Page Should Contain Element        ${LOG_IN_BUTTON}
+          
+
+      
+Verify Default Page Information
+      [Documentation]    Verify that there has not been an error.
+      ...                Check to ensure that the page title is as expected.
+      ...                Check that the Adhaven Logo exists.
+      ...                Check to ensure that the "log out" link exists
+      ...                Check that the text Welcome User (userid) exists. 
+      Title Should Be                ${HOME_TITLE}
+      Page Should Contain Element    ${ADHAVEN_LOGO}
+      Page Should Contain Link       ${LOG_OUT_LINK}      
+      #8.21 Remove the word welcome, now we just show user name
+      #Page Should Contain            ${WELCOME_USER_MSG}
+      Page Should Contain            ${USER_LOGGED_IN}
+      
+Get Table Data  
+      [Arguments]    ${TABLE_LOCATOR}=    ${ROW}=    ${COLUMN}=
+      ${table_cell}=    Get Table Cell    ${TABLE_LOCATOR}    ${ROW}     ${COLUMN}
+      Log   Table Cell (${ROW},${COLUMN}):${table_cell}
+      Set Test Variable   ${RETURNED_CELL_VALUE}    ${table_cell}     
+      
+Get Total Rows Available In Table ${TABLE_XPATH}
+      ${total_rows}=     Get Matching Xpath Count          ${TABLE_XPATH}
+      Log   Total Rows: ${total_rows}
+      Set Test Variable   ${Results_Returned}   ${total_rows}      
+      
+Get Total Columns Available In Table ${TABLE_XPATH}
+      ${total_columns}=     Get Matching Xpath Count          ${TABLE_XPATH}
+      Log   Total Rows: ${total_columns}
+      Set Test Variable   ${Results_Returned}   ${total_columns}      
+            
+Construct REST API Ad Request
+      [Documentation]    Construct REST API Ad Request based on the available parameters documented in ADHaven API Guide.
+      ...                Standard Request Parameters:  ad_engine, port_number, api_key, date, placement_id, header_user-agent, 
+      ...                                              user-agent, client_ip, device_id, ad_width, ad_height
+      ...                Advanced Request Parameters:  session_id, cookie, device_id, user_id, country, language, zip, area_code,
+      ...                                              lat_lon, keyword, page_url, gender, age, date_of_birth, income, education, ethnicity
+      ...                Sample Request:        Construct REST API Ad Resquest     ad_engine=qa-engine1    api_key=350b0f15eefa1b42    
+      ...                                                      date=Tue, 22 Jul 2008 22:56:23 UTC      header_user-agent=iPhone     placement_id=1865
+      [Arguments]    ${ad_engine}=qa-engine1
+      ...            ${port_number}=8080
+      ...            ${api_key}=
+      ...            ${date}=
+      ...            ${placement_id}=
+      ...            ${header_user-agent}=
+      ...            ${user_agent}=
+      ...            ${client_ip}=
+      ...            ${device_id}=
+      ...            ${ad_width}=
+      ...            ${ad_height}=
+      ...            ${session_id}=
+      ...            ${response_type}=markup
+#     ADVANCED PARAMETERS
+      ...            ${cookie}=
+#     ...            ${device_id}=
+      ...            ${user_id}=
+      ...            ${country}=
+      ...            ${language}=
+      ...            ${zip}=
+      ...            ${area_code}=
+      ...            ${lat_lon}=
+      ...            ${keyword}=
+      ...            ${page_url}=
+      ...            ${gender}=
+      ...            ${age}=
+      ...            ${date_of_birth}=
+      ...            ${income}=
+      ...            ${education}=
+      ...            ${ethnicity}=
+
+      ${url}=    Set Variable   http://${ad_engine}:${port_number}/ad-engine/ad-groups/getAd?
+      ####       STANDARD PARAMETERS
+      ${url}     Set Variable If     '${api_key}' <> ''                            ${url}&api_key=${api_key}                                  ${url}      
+      ${url}     Set Variable If     '${date}' <> ''                               ${url}&date=${date}                                        ${url}      
+      ${url}     Set Variable If     '${placement_id}' <> ''                       ${url}&placement_id=${placement_id}                        ${url}      
+      ${url}     Set Variable If     '${header_user-agent}' <> ''                  ${url}&header_user-agent=${header_user-agent}              ${url}      
+      ${url}     Set Variable If     '${user_agent}' <> ''                         ${url}&user_agent=${user_agent}                            ${url}      
+      ${url}     Set Variable If     '${client_ip}' <> ''                          ${url}&client_ip=${client_ip}                              ${url}      
+      ${url}     Set Variable If     '${device_id}' <> ''                          ${url}&device_id=${device_id}                              ${url}      
+      ${url}     Set Variable If     '${ad_width}' <> ''                           ${url}&ad_width=${ad_width}                                ${url}      
+      ${url}     Set Variable If     '${ad_height}' <> ''                          ${url}&ad_height=${ad_height}                              ${url}      
+      ${url}     Set Variable If     '${response_type}' <> ''                      ${url}&response_type=${response_type}                      ${url}      
+      Set Suite Variable     ${standard_ad_request_url}    ${url}
+      ####       ADVANCED PARAMETERS
+      ${url}     Set Variable If     '${session_id}' <> ''                          ${url}&session_id=${session_id}                           ${url}      
+      ${url}     Set Variable If     '${cookie}' <> ''                              ${url}&cookie=${cookie}                                   ${url}      
+      ${url}     Set Variable If     '${user_id}' <> ''                             ${url}&user_id=${user_id}                                 ${url}      
+      ${url}     Set Variable If     '${country}' <> ''                             ${url}&country=${country}                                 ${url}      
+      ${url}     Set Variable If     '${language}' <> ''                            ${url}&language=${language}                               ${url}      
+      ${url}     Set Variable If     '${zip}' <> ''                                 ${url}&zip=${zip}                                         ${url}      
+      ${url}     Set Variable If     '${area_code}' <> ''                           ${url}&area_code=${area_code}                             ${url}      
+      ${url}     Set Variable If     '${lat_lon}' <> ''                             ${url}&lat_lon=${lat_lon}                                 ${url}      
+      ${url}     Set Variable If     '${keyword}' <> ''                             ${url}&keyword=${keyword}                                 ${url}      
+      ${url}     Set Variable If     '${page_url}' <> ''                            ${url}&page_url=${page_url}                               ${url}      
+      ${url}     Set Variable If     '${gender}' <> ''                              ${url}&gender=${gender}                                   ${url}      
+      ${url}     Set Variable If     '${age}' <> ''                                 ${url}&age=${age}                                         ${url}      
+      ${url}     Set Variable If     '${date_of_birth}' <> ''                       ${url}&date_of_birth=${date_of_birth}                     ${url}      
+      ${url}     Set Variable If     '${income}' <> ''                              ${url}&income=${income}                                   ${url}      
+      ${url}     Set Variable If     '${education}' <> ''                           ${url}&education=${education}                             ${url}      
+      ${url}     Set Variable If     '${ethnicity}' <> ''                           ${url}&ethnicity=${ethnicity}                             ${url}      
+      Set Suite Variable     ${ad_request_url}    ${url}
+      Log   Generated Ad Request URL: ${ad_request_url}
+      
+Validate Ad Serving    
+       [Arguments]      ${ad_url}=${ADPICKUP_ENGINE}   
+       ...              ${image_name}=   
+       ...              ${location}=${DEFAULT_BROWSER_HOME}
+       ...              ${page_title}=Google   
+       ...              ${expect_error}=0
+       ...              ${source_validation_string}=${AD_NOT_SERVED_HTML_VALIDATION}
+#       Open Browser     ${ad_request_url}    ${BROWSER}
+       Log    Source_Validation_String: ${source_validation_string}
+       Go To   ${ad_url}
+       Get Cookies 
+	   Capture Page Screenshot With Timestamp
+       Run Keyword If        ${expect_error}==0     Wait Until Page Contains Element      ${IMAGE_ELEMENT}
+       ${source}=   Get Source   
+       Log   ${source}
+       Set Suite Variable     ${temp_source}       		${source}
+       Extract REQID From Source						source=${temp_source}
+       Run Keyword If        ${expect_error}==0         Capture Page Screenshot With Timestamp
+       Run Keyword If        ${expect_error}==0         Validate Ad Is Served And Page Source Contains Image File             ${source}                 ${image_name}
+       Run Keyword Unless    ${expect_error}==0     	Validate Ad Does Not Serve and Page Source Match Expected          source=${source}    source_validation_string=${source_validation_string}
+       Run Keyword If        ${expect_error}==0         Capture Page Screenshot With Timestamp
+       Run Keyword If        ${expect_error}==0         Click Image   ${IMAGE_ELEMENT}
+#       Run Keyword If        ${expect_error}==0     	Validate Location    ${location}
+
+Extract REQID From Source
+	[Arguments]			${source}=NA
+	${reqid}=    	extract_matching_regex			${source}           reqid=(.+?)&amp;ats
+	Log     REQID: ${reqid}
+	Set Test Variable     ${reqid}		${reqid}
+	
+Validate Location 
+		[Arguments]				${location}
+		${retrieved_location}=				Get Location     
+		Should Match Regexp			${retrieved_location}					${location}|https://www.google.com.*|https%3A%2F%2Fwww.google.com%2F
+
+Validate Ad Is Served And Page Source Contains Image File
+       [Arguments]    ${source}    ${image_name}
+#       ${consumer_id_cookie}=     Get Cookie Value     4COOKIE_consumer_id   
+#       Log    Consumer ID: ${consumer_id_cookie}
+       Element Should Be Visible     ${IMAGE_ELEMENT}
+       Should Match Regexp    ${source}         ${image_name}
+#       Should Match Regexp    ${output_match}   ${lat},${lon}
+       
+       
+Validate Ad Does Not Serve and Page Source Match Expected
+       [Arguments]    ${source}     ${source_validation_string}=${AD_NOT_SERVED_HTML_VALIDATION}
+       Log   Source_Validation_String: ${source_validation_string}
+       Element Should Not Be Visible     ${IMAGE_ELEMENT}
+       Should Match Regexp    ${source}    ${source_validation_string}
+
+Enabled Checkbox ${checkbox_locator}
+      Select Checkbox      ${checkbox_locator}
+Disabled Checkbox ${checkbox_locator}
+      Unselect Checkbox    ${checkbox_locator}
+                        
+Validate Checkbox Enabled ${checkbox_locator}
+      Checkbox Should Be Selected     ${checkbox_locator}
+Validate Checkbox Disabled ${checkbox_locator}
+      Checkbox Should Not Be Selected     ${checkbox_locator}
+            
+Retrieve Original Selenium Speed And Implicit Time
+     ${orig_speed}=                       Get Selenium Speed
+     ${implicit_wait_orig}=             Get Selenium Implicit Wait
+     Set Suite Variable      ${orig_speed}                ${orig_speed}
+     Set Suite Variable      ${implicit_wait_orig}      ${implicit_wait_orig}
+      
+Remove Selenium Speed And Implicit Time For Fast Execution
+     Set Selenium Speed                  0 seconds
+     Set Selenium Implicit Wait         0 seconds
+     
+Reset Selenium Speed And Implicit Time To Original
+     Set Selenium Speed                  ${orig_speed}
+     Set Selenium Implicit Wait         ${implicit_wait_orig}
+     
+Get Current Date
+    ${yyyy}    ${mm}    ${dd}    Get Time    year,month,day
+    Set Suite Variable      ${current_year}           ${yyyy}
+    Set Suite Variable      ${current_month}       ${mm}
+    Set Suite Variable      ${current_day}           ${dd} 
+
+Retrieve Formatted UI Date        
+	[Documentation]        Expected Format: 05/01/2014    or 05-01-2014
+	[Arguments] 			${orig_date}=			${delimiter}=		
+	Log     Original Date: ${orig_date}	
+	@{dates}=       String.Split String           ${orig_date}			${delimiter}
+	Log Many       @{dates}
+	# MONTH
+	${item}=		  Set Variable			@{dates}[0]
+	${first_char}=					Get Substring			${item}			0      1
+	${rest_char}=					Get Substring			${item}			1
+	Run Keyword If              '${first_char}' == '0'				           Set Test Variable 				${formatted_month}			${rest_char}
+	Run Keyword Unless      '${first_char}' == '0'				           Set Test Variable 				${formatted_month}			@{dates}[0]
+	# DATE
+	${item}=		  Set Variable			@{dates}[1]
+	${first_char}=					Get Substring			${item}			0      1
+	${rest_char}=					Get Substring			${item}			1
+	Run Keyword If              '${first_char}' == '0'				           Set Test Variable 				${formatted_day}			${rest_char}
+	Run Keyword Unless      '${first_char}' == '0'				           Set Test Variable 				${formatted_day}			@{dates}[1]
+	Set Test Variable				${formatted_date}						  ${formatted_month}${delimiter}${formatted_day}${delimiter}@{dates}[2]
+	Log    Formatted Final:${formatted_date}		
+
+Generate Default Dates For UI Setup
+		${yyyy}		${mm}		${dd}=			Get Time 			year,month,day			UTC - 1 day
+		Set Suite Variable  		${ui_start_date}     				${mm}/${dd}/${yyyy}
+		Set Suite Variable  		${db_start_date}	   				${yyyy}-${mm}-${dd}
+		Set Suite Variable		${db_start_date_ui}  		  		${yyyy}-${mm}-${dd} 00:00:00
+       	${yyyy}		${mm}		${dd}=						Get Time 			year,month,day			UTC + 2 day
+       	${yyyy_e}		${mm_e}		${dd_e}=				Get Time 			year,month,day			UTC + 3 day
+       	Set Suite Variable 					${ui_end_date}  			${mm}/${dd}/${yyyy}
+       	Set Suite Variable 					${db_end_date_ui}  		${yyyy}-${mm}-${dd} 23:59:59
+	    Set Suite Variable  					${db_end_date}	  			${yyyy_e}-${mm_e}-${dd_e}
+	    ${yyyy_now}		${mm_now}		${dd_now}=			Get Time 			year,month,day         UTC -1 day
+	   	Set Suite Variable     		${today}     								${yyyy_now}-${mm_now}-${dd_now}
+#This calculation is base on EASTERN time, it may change for other timezone. Here is the time difference between UTC and eastern time
+	   	Set Suite Variable 			${start_date_gmt} 							${db_start_date} 04:00:00
+	   	Set Suite Variable 			${end_date_gmt} 							${db_end_date} 03:59:59
+	   
+Validate Ad Is Served Once Out Of 10 Times
+		Log     Banner File Name to Validate: ${banner_file_name}
+		Set Test Variable        ${pass_count}					0
+	   :FOR    ${index}    IN RANGE    10
+	   \			${status}=     Run Keyword And Return Status				Placement Ad Serving Test    ad_engine=${DEFAULT_AUDIENCE_ENGINE}     api_key=${DEFAULT_API_KEY}     placement_id=${DEFAULT_PLACEMENT}    image_name=${banner_file_name}
+       \			Log        Status:${status}
+       \			Run Keyword If        '${status}' == 'True'				Increment Pass Count
+       	Log      Pass Count: ${pass_count}
+		Should Be True				${pass_count} > 0
+
+Increment Rerun Pass Count
+	${rerun_pass_count}= 		 Evaluate	   ${rerun_pass_count} + 1
+	Set Test Variable      ${rerun_pass_count}			${rerun_pass_count} 
+	       
+Increment Pass Count
+	${pass_count}= 		 Evaluate	   ${pass_count} + 1
+	Set Test Variable      ${pass_count}			${pass_count}   
+
+Decrement Pass Count
+	${pass_count}= 		 Evaluate	   ${pass_count} - 1
+	Set Test Variable      ${pass_count}			${pass_count}   
+	
+Validate Ad Is Served Once Out Of 10 Times For RTB 
+		Log     Banner File Name to Validate: ${banner_file_name}
+		Set Test Variable        ${pass_count}					0
+	   :FOR    ${index}    IN RANGE    10
+	   \			${status}=     Run Keyword And Return Status				Validate RTB AdServed X Times     			${api_key}=           ${data}=				${requests}=10         ${response_code}=200         ${ad_expected}=NA      ${adgroup_expected}=NA
+       \			Log        Status:${status}
+       \			Run Keyword If        '${status}' == 'True'				Run Keywords 					Increment Pass Count			RTB Events For Client Impression			RTB Events For Client Impression 									
+       	Log      Pass Count: ${pass_count}
+		Should Be True				${pass_count} > 0	
+
+Get Current Date Format YYYY-MM-DD
+    ${yyyy}    ${mm}    ${dd}    Get Time    year,month,day		UTC
+    Set Global Variable      ${current_date_formatted_yyyy_mm_dd}           ${yyyy}-${mm}-${dd}
+
+Get Tomorrow Date Format YYYY-MM-DD
+    ${yyyy}    ${mm}    ${dd}    Get Time    year,month,day		UTC + 1 day
+    Set Global Variable      ${tomorrow_formatted_yyyy_mm_dd}           ${yyyy}-${mm}-${dd}
+
+Reload Cache on Cache Server
+	# Reload the following caches on Cache Server
+	${auth}= 			Create List 			admin			lebowski
+	Create Session   	cache_session    		http://${QA_CACHE_SERVER}:8080 	auth=${auth}
+	${resp}    			RequestsLibrary.Get Request    	cache_session   			cache-service/cache/reload
+    Log    Response: '${resp.content}'
+
+Reload Cache on RTB 
+	[Arguments] 			${HOST}=${RTB_HOST}
+	# Reload the following caches on RTB: System Settings, Publisher, Adgroups
+	${auth}= 			Create List 			admin 		lebowski
+	Create Session   	cache_session    		${HOST} 	auth=${auth}
+	${resp}    			RequestsLibrary.Get Request    	cache_session   			bid-engine/cache/reload   
+    Log    Response: '${resp.content}'
+
+Reload Cache on UI
+	# Reload the following caches on UI: System Settings, Publisher, Adgroups
+	${auth}= 			Create List 			${QA_DEFAULT_USER} 		${QA_DEFAULT_PASSWORD}
+	Create Session   	cache_session    		http://${QA_UI_SERVER}:8080 	auth=${auth}
+	${resp}    			RequestsLibrary.Get Request    	cache_session   			adhaven-ui/reloadCache
+    Log    Response: '${resp.content}'
+	
+	
+Reload All Cache
+	Reload Cache on Cache Server 
+	Reload Cache on RTB
+	Reload Cache on UI
+
+Capture Page Screenshot With Timestamp
+    ${time}    Evaluate    str(time.time())    time
+    Capture Page Screenshot    ${SUITE_NAME}_${time}.png
+    
+    
+    
+    
+    	

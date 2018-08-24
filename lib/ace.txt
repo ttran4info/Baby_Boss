@@ -1,0 +1,243 @@
+
+
+*** Settings ***
+Resource            ui_object_library.txt
+Resource            common_config.txt
+Resource            database.txt
+
+*** Keywords ****
+# As of release 7.2 ACE is changed to "Geofence"
+# As of release 8.5 Geofence is being call Audience
+Go To Geofence Tab
+      Click Link         ${TAB_AUDIENCE}
+      Page Should Contain                  All Targeting Sets
+      Page Should Contain                  Create new targeting set
+      Wait Until Page Contains Element     ${CREATE_NEW_TARGET_BUTTON}
+
+#in 8.8 we remove DMA from geofence
+Create Geofence By Name
+	[Documentation]		Creating new geofence using the UI
+	...					POI can take multiple point separate by ; Each item  take 2 parameter separate by : (ie BOOK STORES:BORDERS;AIRCRAFT:BOEING)
+	...					dma name can take multiple entry separate by ;
+	[Arguments]     	
+	...					${geo_type}
+	...					${geo_poi_radius_min}	
+	...					${geo_poi_radius_max}
+	...					${geo_email}
+	...					${geo_name}
+	...					${geo_poi_name}
+#	...					${geo_dma_name}
+	@{geo_poi_name}=						String.Split String 					${geo_poi_name}				;
+#	@{geo_dma_name}=						String.Split String 					${geo_dma_name}				;
+	Go To Geofence Tab
+      Wait Until Page Contains Element     ${CREATE_NEW_TARGET_BUTTON} 
+      Page Should Contain                  Create new targeting set    
+      Click Button       ${CREATE_NEW_TARGET_BUTTON}                   
+      Sleep    5s
+	  Select From List By Label			id=selectDatasource			Geo Fence
+	:FOR	${name}		IN		@{geo_poi_name}
+	\	@{poi_name}=					String.Split String 					${name}							:
+	\	Add GEOFENCE Segments To Selection       poi_category_name=@{poi_name}[0]       poi_name=@{poi_name}[1]
+
+#	:FOR	${name}		IN		@{geo_dma_name}
+#	\	Input Text						id=searchDma					${name}
+#	\	${name}=          		Replace String Using Regexp             ${name}      	'    	\\'	
+#	\	Retrieve Target Geo Dma ID From Dma Name					dma_name=${name}
+#	\	Log								${dma_code}	
+#	\	Select Checkbox					id=chk-${dma_code}
+
+	Run Keyword If		'${geo_type}'=='Simple'			Click Element		id=geotypeSimple
+	Run Keyword If		'${geo_type}'=='Simple'			Input Text			id=poiRadius		${geo_poi_radius_min}	
+	Run Keyword If		'${geo_type}'=='Ring'			Click Element		id=geotypeRing
+	Run Keyword If		'${geo_type}'=='Ring'			Input Text			id=poiRadiusMin		${geo_poi_radius_min}	
+	Run Keyword If		'${geo_type}'=='Ring'			Input Text			id=poiRadiusMax		${geo_poi_radius_max}
+	Input Text 			id=email						${geo_email}	
+	Input Text			id=targetingsetname				${geo_name}
+	Capture Page Screenshot With Timestamp
+	Click Element                          ${AG_AD_SAVE_BUTTON} 
+#8.x - Removing DMA from GeoFence
+Create Base ACE Targeting With DMA
+      [Documentation]    Setup the basic information needed to create a base ACE targetting set.
+      ...                Steps:   Click on Create a New Targeting Set
+      ...                Enter the DMA from the list
+      ...                Enter the Email Address
+      ...                Enter the Target Set Name      
+      ...                @{dma_list} must be given as a list of DMA codes.  For Example:  San Francisco has DMA code 807.
+      ...                Note:  For DMA, to select ALL pass in "all"
+      [Arguments]        ${email}=ttran@4info.com     
+      ...                ${target_set_name}=NO NAME PROVIDED
+#      ...                @{dma_list}
+      Log      Email: ${email}
+      Log      Target Set Name: ${target_set_name}
+#      Log      DMA List: ${dma_list}
+      Go To Geofence Tab
+      Wait Until Page Contains Element     ${CREATE_NEW_TARGET_BUTTON} 
+      Page Should Contain                  Create new targeting set    
+      Click Button       ${CREATE_NEW_TARGET_BUTTON}                   
+      Sleep    5s
+      Click Element       id=selectDatasource
+      Select From List By Label			id=selectDatasource			Geo Fence
+#	DMA removed from GeoFence, DMA will be select at Child adgroup level
+#      :FOR    ${item}    IN     @{dma_list}
+#      \       Select DMA Code ${item} 
+      Input Text         ${EMAIL_ADDRESS_FIELD}      ${email}  
+      ${timestamp}=      get_timestamp
+      Log   ${timestamp}
+      Input Text         ${TARGET_SET_NAME_FIELD}    ${target_set_name}_${timestamp}
+      Set Test Variable   ${TARGET_SET_NAME_TIMESTAMPED}     ${target_set_name}_${timestamp}
+      
+Select Segment Type For Targetting
+      [Documentation]     Select the Targetting Type from the dropdown menu.
+      ...                DLX, PRIZM, ConneXions
+      [Arguments]     ${Target_Type}
+      ${labels}=    Get Selected List Labels     ${SEGMENT_SELECTION_LIST}
+      Log   All Labels: ${labels}
+      Select From List   ${SEGMENT_SELECTION_LIST}              ${Target_Type}
+      Click Element      css=option[value="${Target_Type}"]
+      Sleep     3s
+
+Add DLX Segment To Selection
+      [Arguments]     ${dlx_parent_segment}= 
+      ...             ${dlx_sub_segment}=       
+      @{split_list} =    adhaven_helper.split_string     ${dlx_sub_segment}    - 
+      Log   @{split_list}[0]
+      Log   @{split_list}[1]
+      Log      ${dlx_parent_Segment}
+      Click Element      ${DLX_SUB_SEGMENT_CODE_PREFIX}@{split_list}[0]
+      Select Checkbox    id=${dlx_sub_segment}
+
+Add PRIZM Segments To Selection
+      [Arguments]    @{prizm_segment_ids}
+      :FOR     ${item}       IN    @{prizm_segment_ids}
+      \        Log    Add: ${item}
+      \        Select Checkbox    ${PRIZM_SEGMENT_SELECTION_PREFIX}${item}${SEGMENT_SELECTION_POSTFIX}
+
+Add Connexions Segments To Selection
+      [Arguments]    @{connexions_segment_ids}
+      :FOR     ${item}       IN    @{connexions_segment_ids}
+      \        Log    Add: ${item}
+      \        Select Checkbox    ${CONNEXIONS_SEGMENT_SELECTION_PREFIX}${item}${SEGMENT_SELECTION_POSTFIX}
+      
+Add DLX House Hold Segments To Selection
+      [Arguments]    @{dlx_hh_segment_ids}
+      :FOR     ${item}       IN    @{dlx_hh_segment_ids}
+      \        Log    Add: ${item}
+      \        Select Checkbox    ${DLXHH_SEGMENT_SELECTION_PREFIX}${item}${SEGMENT_SELECTION_POSTFIX}
+
+Add NCS Segments To Selection
+      [Arguments]    @{ncs_segment_ids}
+      :FOR     ${item}       IN    @{ncs_segment_ids}
+      \        Log    Add: ${item}
+      \        Select Checkbox    ${NCS_SEGMENT_SELECTION_PREFIX}${item}${SEGMENT_SELECTION_POSTFIX}
+      
+           
+Save And Validate ACE Targeting Set
+      [Arguments]    @{values}     
+      Save ACE Target Set      
+      Validate Target Set Is Created Successfully     ${TARGET_SET_NAME_TIMESTAMPED}     @{values}
+
+Save ACE Target Set      
+      Capture Page Screenshot With Timestamp
+      Click Element      ${AUDIENCE_CREATE_SAVE_BUTTON}
+      Sleep     1s
+
+Select DMA Code ${dma_sub_code} 
+      Page Should Contain Checkbox   ${SUB_DMA_CODE_PREFIX}${dma_sub_code} 
+      Select Checkbox    ${SUB_DMA_CODE_PREFIX}${dma_sub_code} 
+      
+Validate ACE Table Headers
+      Page Should Contain Element        ${ACE_REPORT_TABLE}
+      Get Table Data       TABLE_LOCATOR=${ACE_REPORT_TABLE}    ROW=1    COLUMN=1    
+      Log   RETURNED_CELL_VALUE: ${RETURNED_CELL_VALUE}
+      Table Header Should Contain        ${ACE_REPORT_TABLE}    NAME
+      Table Header Should Contain        ${ACE_REPORT_TABLE}    STATUS
+      Table Header Should Contain        ${ACE_REPORT_TABLE}    DATA SOURCE
+      Table Header Should Contain        ${ACE_REPORT_TABLE}    CREATED ON
+      Table Header Should Contain        ${ACE_REPORT_TABLE}    EMAIL
+      Table Header Should Contain        ${ACE_REPORT_TABLE}    DATA FILE
+      
+Retrieve ACE Targeting Sets Available
+      [Arguments]          ${total_records}=ALL
+      ${orig_speed}=     Get Selenium Speed
+      Log   Original Selenium Speed:${orig_speed}
+      Set Selenium Speed   0 seconds
+      Run Keyword If        '${total_records}'=='ALL'         Get All ACE Total Rows 
+      @{all_targets_list}=       Create List 
+      @{dlx_list}=                  Create List 
+      @{prizm_list}=              Create List 
+      @{connexions_list}=     Create List 
+      :FOR    ${index}    IN RANGE   2    ${total_records}+2
+      \       Get Table Data       TABLE_LOCATOR=${ACE_REPORT_TABLE}    ROW=${index}    COLUMN=1    
+      \       Set Test Variable     ${Current_Targetting_Set}    ${RETURNED_CELL_VALUE}
+      \       Append To List    ${all_targets_list}    ${Current_Targetting_Set}
+      \       Get Table Data       TABLE_LOCATOR=${ACE_REPORT_TABLE}    ROW=${index}    COLUMN=3
+      \       Run Keyword If    '${RETURNED_CELL_VALUE}' == 'DLX'           Append To List    ${dlx_list}           ${Current_Targetting_Set}
+      \       Run Keyword If    '${RETURNED_CELL_VALUE}' == 'PRIZM'         Append To List    ${prizm_list}         ${Current_Targetting_Set}
+      \       Run Keyword If    '${RETURNED_CELL_VALUE}' == 'ConneXions'    Append To List    ${connexions_list}    ${Current_Targetting_Set}
+      Set Suite Variable     ${ALL_TARGETS}                  ${all_targets_list}
+      Set Suite Variable     ${ALL_DLX_TARGETTING}           ${dlx_list}
+      Set Suite Variable     ${ALL_PRIZM_TARGETTING}         ${prizm_list}
+      Set Suite Variable     ${ALL_CONNEXIONS_TARGETTING}    ${connexions_list}
+      Log     ${ALL_TARGETS} 
+      Log     ${ALL_DLX_TARGETTING}
+      Log     ${ALL_PRIZM_TARGETTING}
+      ${count}=          Get Length         ${ALL_TARGETS} 
+      Should Be True     0 < ${count} 
+      Set Selenium Speed    ${orig_speed}
+
+Get All ACE Total Rows 
+     Get Total Rows Available In Table ${ACE_TABLE_ROW_XPATH}
+     Set Suite Variables          ${total_records}               ${Results_Returned}
+
+Validate CONNEXIONS Targeting List
+      Validate Targeting List     ${ALL_CONNEXIONS_TARGETTING}
+      :FOR    ${index}    IN      ${ALL_CONNEXIONS_TARGETTING}
+      \       Log    ${ALL_CONNEXIONS_TARGETTING}[${index}]
+      
+Validate PRIZM Targeting List
+      Validate Targeting List     ${ALL_PRIZM_TARGETTING}
+      :FOR    ${index}    IN      ${ALL_PRIZM_TARGETTING}
+      \       Log    ${ALL_PRIZM_TARGETTING}[${index}]
+
+Validate DLX Targeting List
+      Validate Targeting List     ${ALL_DLX_TARGETTING}
+      :FOR    ${index}    IN      ${ALL_DLX_TARGETTING}
+      \       Log    ${ALL_DLX_TARGETTING}[${index}]
+            
+Validate Targeting List
+      [Arguments]      ${target_list}=    
+      ${count}=          Get Length         ${target_list}
+#      Should Be True     0 < ${count}
+      Run Keyword If            ${count}<=0         Log          Targetlist has no records      WARN
+      Log     ${target_list}
+      
+Validate Target Set Is Created Successfully     
+      [Arguments]        ${name}     @{values}
+      Go To Geofence Tab
+      Click Link     ${name}  
+      #Capture Page Screenshot With Timestamp
+      :FOR    ${item}    IN     @{values}
+      \       Page Should Contain    ${item}
+      
+Add GEOFENCE Segments To Selection
+    [Arguments]        ${poi_category_name}=          ${poi_name}=
+    Retrieve ID For POI Category      ${poi_category_name}      ${poi_name}
+    Input Text           ${GEOFENCE_POI_SEARCH_FIELD}       ${poi_name}
+    Sleep     3s
+    Click Element               id=div_div_poi_selector_expand_${poi_category_id}_-1
+    Click Element               id=chk_div_poi_selector_${poi_category_id}_${poi_id}
+    Capture Page Screenshot With Timestamp
+
+Add DMA To New GEOFENCE
+	[Arguments]					${dma_name}=
+	
+
+Add GEOFENCE Radius 
+    [Arguments]           ${radius}=0.1
+    Input Text          ${GEOFENCE_POI_RADIUS_FIELD}     ${radius}
+    Capture Page Screenshot With Timestamp
+    
+    
+    
+    
+    

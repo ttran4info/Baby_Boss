@@ -1,0 +1,1207 @@
+*** Variables ***
+${success_false_regex}					{\\s*\\"success\\":false,
+
+*** Keywords ***
+
+SMB Header Setup      
+    [Arguments]             ${auth}=${SMB_AUTH}      
+    Create Session   smb    ${SMB_HOST} 
+    ${headers}    Create Dictionary     Content-type=application/json		Accept=application/json		Authorization=${auth}
+    Set Suite Variable    ${headers}    ${headers}
+
+SMB Read Advertiser Account
+     [Arguments]          	${advertiser_id}                ${response_code}=200   
+     ${resp}    RequestsLibrary.Get Request    smb   api/v1/advertisers/${advertiser_id}    headers=${headers} 
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}        ${response_code}
+     Should Be Valid Json 	${response_content}
+     Run Keyword Unless         '${response_code}' == '200' 			Should Match Regexp				${response_content}                ${success_false_regex} 
+ 	 
+Validate SMB Advertiser 
+     [Arguments]    		${advertiser_id}=
+     ... 					${advertiser_external_id}=
+     ...                 	${advertiser_name}=
+     ... 					${contact_name}=
+     ...					${contact_address_line1}=
+     ...					${contact_address_line2}=
+     ...					${contact_city}=
+     ...					${contact_state}=
+     ...					${contact_zip}=
+     ...					${contact_country}=
+     ...					${contact_phone}=
+     ...					${contact_email}=
+     ...					${response_content}=
+     Log      Advertiser ID to Validate: ${advertiser_id}
+     SMB Read Advertiser Account           ${advertiser_id}       
+     Log     Address2:[${contact_address_line2}]
+     ${validations}=   			 Create Dictionary       		/success=true
+    Set To Dictionary           ${validations}             		/advertiser/id=${advertiser_id}
+    Set To Dictionary           ${validations}                 	/advertiser/advertiser_external_id="${advertiser_external_id}"    
+    Set To Dictionary           ${validations}                	/advertiser/advertiser_name="${advertiser_name}"
+    Set To Dictionary           ${validations}               	/advertiser/contact/name="${contact_name}"
+    Set To Dictionary           ${validations}               	/advertiser/contact/address/line1="${contact_address_line1}"
+    Run Keyword Unless			'${contact_address_line2}'=='NULL'		Set To Dictionary           ${validations}              /advertiser/contact/address/line2="${contact_address_line2}"    
+    Set To Dictionary           ${validations}              	/advertiser/contact/address/city="${contact_city}"
+    Set To Dictionary           ${validations}                	/advertiser/contact/address/state="${contact_state}"
+    Set To Dictionary           ${validations}               	/advertiser/contact/address/zip="${contact_zip}"
+    Set To Dictionary           ${validations}                	/advertiser/contact/address/country="${contact_country}"
+    Run Keyword Unless			'${contact_phone}'=='NULL'				Set To Dictionary           ${validations}             /advertiser/contact/address/phone="${contact_phone}"
+    Set To Dictionary           ${validations}         
+    Log Dictionary				 ${validations}	
+    Validate JSON Response     json_response=${response_content}      expected_values_dictionary=${validations}     
+
+Create SMB Advertiser 
+     [Arguments]    			${advertiser_external_id}=
+     ...                     	${advertiser_name}=
+     ... 						${contact_name}=
+     ...						${contact_address_line1}=
+     ...						${contact_address_line2}=
+     ...						${contact_city}=
+     ...						${contact_state}=
+     ...						${contact_zip}=
+     ...					    ${contact_country}=
+     ...						${contact_phone}=
+     ...						${contact_email}=
+     ...						${expected_response_code}=
+     ...                        ${timestamp_flag}=1
+     ${timestamp}=      get_timestamp
+     Run Keyword If           	'${timestamp_flag}' == '1'     Set Test Variable    ${advertiser_name}    ${advertiser_name}_${timestamp}
+     Run Keyword Unless        	'${timestamp_flag}' == '1'     Set Test Variable    ${advertiser_name}    ${advertiser_name}
+     Log       Advertiser Name: ${advertiser_name}
+     Set Test Variable      ${data}            {"advertiser_external_id": "${advertiser_external_id}","advertiser_name": "${advertiser_name}","contact": {"name": "${contact_name}","address": {"line1": "${contact_address_line1}","line2": "${contact_address_line2}","city": "${contact_city}","state": "${contact_state}","zip": "${contact_zip}","country": "${contact_country}","phone": "${contact_phone}","email": "${contact_email}"}}}
+     Log		Request: ${data}
+     ${resp}    RequestsLibrary.Post Request    smb   api/v1/advertisers/     data=${data}    headers=${headers}  
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}      ${expected_response_code}
+     Should Be Valid Json 	${response_content}
+     Run Keyword If         '${expected_response_code}' == '200'  		Extract AdvertiserID From Create Response And Validate
+     Run Keyword Unless     '${expected_response_code}' == '200' 		Should Match Regexp				${response_content}              ${success_false_regex}
+     
+     
+Extract AdvertiserID From Create Response And Validate
+     ${advertiser_id}=         Get Json Value     ${response_content}      /advertiser/id
+     Set Suite Variable        ${advertiser_id}    ${advertiser_id}
+     Log     Advertiser ID: ${advertiser_id}
+     Log		Address2: [${contact_address_line2}]
+     Validate SMB Advertiser      	advertiser_id=${advertiser_id}        	advertiser_external_id=${advertiser_external_id}  		advertiser_name=${advertiser_name}			   
+     ...							contact_name=${contact_name}        	contact_address_line1=${contact_address_line1}			contact_address_line2=${contact_address_line2} 				contact_city=${contact_city}
+     ...							contact_state=${contact_state}			contact_zip=${contact_zip}								contact_country=${contact_country}							contact_phone=${contact_phone}
+     ...							contact_email=${contact_email}			response_content=${response_content}              
+   
+Update SMB Advertiser 
+     [Arguments]    			${advertiser_id}=
+     ...						${advertiser_external_id}=
+     ...                     	${advertiser_name}=
+     ... 						${contact_name}=
+     ...						${contact_address_line1}=
+     ...						${contact_address_line2}=
+     ...						${contact_city}=
+     ...						${contact_state}=
+     ...						${contact_zip}=
+     ...					    ${contact_country}=
+     ...						${contact_phone}=
+     ...						${contact_email}=
+     ...						${expected_response_code}=200
+     Log       Advertiser ID to update: ${advertiser_id}
+     Log       Advertiser Name: ${advertiser_name}
+     Set Test Variable      ${data}            {"advertiser_external_id": "${advertiser_external_id}","advertiser_name": "${advertiser_name}","contact": {"name": "${contact_name}","address": {"line1": "${contact_address_line1}","line2": "${contact_address_line2}","city": "${contact_city}","state": "${contact_state}","zip": "${contact_zip}","country": "${contact_country}","phone": "${contact_phone}","email": "${contact_email}"}}}
+     Log		Request: ${data}
+     ${resp}    RequestsLibrary.Post Request    smb    	api/v1/advertisers/${advertiser_id}     data=${data}    headers=${headers}  
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}      ${expected_response_code}
+     Should Be Valid Json 	${response_content}
+#     Run Keyword If         '${expected_response_code}' == '200' 			Should Match Regexp				${response_content}                {\\s*\\"success\\":true,\\"advertiser\\":{\\"id\\":${advertiser_id},
+     Run Keyword If         '${expected_response_code}' == '200' 				Retrieve Element And Validate Value Match JSON			 ${response_content} 					/success	     			true
+     Run Keyword If         '${expected_response_code}' == '200' 				Retrieve Element And Validate Value Match JSON			 ${response_content} 					/advertiser/id	     	${advertiser_id}
+     Run Keyword If         '${expected_response_code}' == '200'  		Extract AdvertiserID From Create Response And Validate
+	 Run Keyword Unless         '${expected_response_code}' == '200' 			Should Match Regexp				${response_content}               ${success_false_regex}
+     
+
+
+SMB Validate Advertiser Added Via UI
+     Log       Start UI Validation
+     ${contact_address_line2_temp}=      Set Variable         ${contact_address_line2}
+     Run Keyword If         '${contact_address_line2}'=='NULL'				Set Address2 Variable To Empty For Validation
+     ${contact_phone_temp}=      Set Variable         ${contact_phone}
+     Run Keyword If         '${contact_phone}'=='NULL'				Set Phone Variable To Empty For Validation
+     Start the Browser And Login To The Adhaven UI
+     ${guid_validation}= 						Get Substring             ${advertiser_name}        0     44
+     Validate SMB Advertiser TAB                 advertiser_name=${advertiser_name}               guid=${guid_validation}
+      ...                        address1=${contact_address_line1}
+      ...                        address2=${contact_address_line2_temp}	
+      ...                        city=${contact_city}
+      ...                        state=${contact_state}
+      ...                        zip=${contact_zip}
+      ...                        contact=${contact_name}
+      ...                        phone=${contact_phone_temp}
+      ...                        email=${contact_email}
+	 Logout of AdHaven UI
+      Close Browser
+
+Set Address2 Variable To Empty For Validation
+	  Set Test Variable 	${contact_address_line2_temp}		${EMPTY}
+Set Phone Variable To Empty For Validation
+	  Set Test Variable 	${contact_phone_temp}		${EMPTY}	  
+
+SMB Validate Advertiser Added Via API Call
+      Log   	Start Validation Using Read Advertiser API
+      Validate SMB Advertiser          		    advertiser_id=${advertiser_id}	              					advertiser_external_id=${advertiser_external_id}              advertiser_name=${advertiser_name}	   
+    	  ...													contact_name=${contact_name}				             	contact_address_line1=${contact_address_line1}				contact_address_line2=${contact_address_line2}		 	contact_city=${contact_city}
+      ...													contact_state=${contact_state}									contact_zip=${contact_zip}												contact_country=${contact_country}							   				contact_phone=${contact_phone}
+      ...													contact_email=${contact_email}          						response_content=${response_content}   
+     
+SMB Validate Advertiser Added Via DB
+     Log       Start Validating in DB for Advertiser: ${advertiser_id}
+     Retrieve Advertiser Details From Database        ${advertiser_id}
+     Should Be Equal As Strings           ${query_results[0][0]}         ${advertiser_id}
+	 Should Be Equal As Strings           ${query_results[0][1]}         ${advertiser_external_id} 
+     Should Be Equal As Strings           ${query_results[0][2]}         ${advertiser_name}
+     Should Be Equal As Strings           ${query_results[0][3]}         ${contact_address_line1}
+     Run Keyword Unless				'${contact_address_line2}'=='NULL'		Should Be Equal As Strings           ${query_results[0][4]}         ${contact_address_line2}
+     Run Keyword If					'${contact_address_line2}'=='NULL'		Should Be Equal As Strings           ${query_results[0][4]}         None
+     Should Be Equal As Strings           ${query_results[0][5]}         ${contact_city}
+     Should Be Equal As Strings           ${query_results[0][6]}         ${contact_state}
+     Should Be Equal As Strings           ${query_results[0][7]}         ${contact_zip}
+     Should Be Equal As Strings           ${query_results[0][8]}         ${contact_country}
+     Should Be Equal As Strings           ${query_results[0][9]}         ${contact_name}
+     Should Be Equal As Strings           ${query_results[0][10]}       ${contact_email}
+     Should Be Equal As Strings           ${query_results[0][11]}       6
+     Should Be Equal As Strings           ${query_results[0][12]}       None
+# Commenting out GUID validation for test.
+	 ${guid_validation}= 						Get Substring             ${advertiser_name}        0     44
+	 Log      First 45 Characters of Advertiser Name: ${guid_validation} 
+     Should Be Equal As Strings           ${query_results[0][13]}       ${guid_validation}
+     Should Be Equal As Strings           ${query_results[0][16]}       0
+     Should Be Equal As Strings           ${query_results[0][17]}       1
+     Should Be Equal As Strings           ${query_results[0][18]}       None
+     Should Be Equal As Strings           ${query_results[0][19]}       None
+     Should Be Equal As Strings           ${query_results[0][20]}       None
+     Run Keyword Unless				'${contact_phone}'=='NULL'		Should Be Equal As Strings           ${query_results[0][21]}       ${contact_phone}
+     Run Keyword If						'${contact_phone}'=='NULL'		Should Be Equal As Strings           ${query_results[0][21]}        None
+     Should Be Equal As Strings           ${query_results[0][22]}       None
+     Should Be Equal As Strings           ${query_results[0][23]}       None
+     Should Be Equal As Strings           ${query_results[0][24]}       None
+     Should Be Equal As Strings           ${query_results[0][25]}       None
+          
+          
+List All Campaigns For Advertiser
+     [Arguments]                  ${advertiser_id}                ${response_code}=200   
+     ${resp}    RequestsLibrary.Get Request   smb   api/v1/campaigns?advId=${advertiser_id}    headers=${headers} 
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}        ${response_code}     
+     Should Be Valid Json 	${response_content}     
+     Run Keyword Unless         '${response_code}' == '200' 			Should Match Regexp				${response_content}               ${success_false_regex}
+
+Create SMB Campaign
+    [Arguments]    					${advertiser_id}=
+     ... 							${campaign_name}=
+     ...							${order_id}=
+     ...							${txn_ref_id}=
+     ...							${txn_date}=
+     ...							${txn_status}=
+     ...							${txn_return_code}=
+     ...							${available_qty}=
+     ...							${selected_qty}=
+     ...							${duration}=
+     ...							${start_date}=
+     ...							${target_list_URL}=
+     ...							${target_list_ID}=
+     ...							${time_zone}=
+     ...							${vertical}=
+     ...							${segment}=
+     ...							${creative_id}=
+     ...							${billing_name}=                                                  
+     ...							${billing_address_line1}=
+     ...							${billing_address_line2}=     
+     ...							${billing_city}=     
+     ...							${billing_state}=     
+     ...							${billing_zip}=        
+     ...							${billing_country}=     
+     ...							${billing_phone}=     
+     ...	   						${billing_email}=     
+     ...							${expected_response_code}=
+     ...                        	${timestamp_flag}=1
+     ${timestamp}=      get_timestamp
+    Set Suite Variable	${advertiser_id} 			${advertiser_id}
+	Set Suite Variable	${order_id}					${order_id}
+	Set Suite Variable	${txn_ref_id}				${txn_ref_id}
+	Set Suite Variable	${txn_date}					${txn_date}
+	Set Suite Variable	${txn_status}				${txn_status}
+	Set Suite Variable	${txn_return_code}			${txn_return_code}
+	Set Suite Variable	${available_qty}			${available_qty}
+	Set Suite Variable	${selected_qty}				${selected_qty}
+	Set Suite Variable	${duration}					${duration}
+	Set Suite Variable	${start_date}				${start_date}
+	Set Suite Variable	${original_start_date}		${start_date}
+	Set Suite Variable	${target_list_URL}			${target_list_URL}
+	Set Suite Variable	${target_list_ID}			${target_list_ID}	
+    Set Suite Variable	${time_zone} 				${time_zone}
+	Set Suite Variable	${vertical}					${vertical}
+	Set Suite Variable	${segment}					${segment}
+	Set Suite Variable	${creative_id}				${creative_id}
+	Set Suite Variable	${billing_name}				${billing_name}
+	Set Suite Variable	${billing_address_line1}	${billing_address_line1}
+	Set Suite Variable	${billing_address_line2}	${billing_address_line2}
+	Set Suite Variable	${billing_city}				${billing_city}
+	Set Suite Variable	${billing_state}			${billing_state}
+	Set Suite Variable	${billing_zip}				${billing_zip}
+	Set Suite Variable	${billing_country}			${billing_country}
+	Set Suite Variable	${billing_phone}			${billing_phone}
+	Set Suite Variable	${billing_email}			${billing_email}
+	Set Suite Variable	${expected_response_code}	${expected_response_code}
+	Set Suite Variable   ${timestamp_flag}			${timestamp_flag}
+     Run Keyword If     	'${timestamp_flag}' == '1'     Set Suite Variable    ${campaign_name}    ${campaign_name}_${timestamp}
+     Run Keyword Unless     '${timestamp_flag}' == '1'     Set Suite Variable    ${campaign_name}    ${campaign_name}
+     Log       Campaign Name: ${campaign_name}
+     Set Test Variable      ${data}            {"advertiser_id": ${advertiser_id},"campaign_name": "${campaign_name}","order_id": "${order_id}","txn_ref_id": "${txn_ref_id}","txn_date": "${txn_date}","txn_status": "${txn_status}","txn_return_code": "${txn_return_code}","available_qty": ${available_qty}, "selected_qty": ${selected_qty}, "duration": ${duration},"start_date": "${start_date}","target_list_URL": "${target_list_URL}","target_list_ID": "${target_list_ID}","time_zone": "${time_zone}","vertical": "${vertical}","segment": "${segment}","creative_id": [${creative_id}],"billing": {"name": "${billing_name}","address": {"line1": "${billing_address_line1}","line2": "${billing_address_line2}","city": "${billing_city}","state": "${billing_state}","zip": "${billing_zip}","country": "${billing_country}","phone": "${billing_phone}","email": "${billing_email}"}}}
+     Log		Request: ${data}
+     ${resp}    RequestsLibrary.Post Request    smb   api/v1/campaigns/     data=${data}    headers=${headers}  
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}      ${expected_response_code}
+     Should Be Valid Json 	${response_content}  
+     Run Keyword If         '${expected_response_code}' == '200'  		Extract CampaignID From Create Response And Validate    
+     Run Keyword Unless     '${expected_response_code}' == '200' 		Should Match Regexp				${response_content}                ${success_false_regex}
+
+Update SMB Campaign
+    [Arguments]    		${campaign_id}=
+     ...							${advertiser_id}=
+     ... 							${campaign_name}=
+     ...							${order_id}=
+     ...							${txn_ref_id}=
+     ...							${txn_date}=
+     ...							${txn_status}=
+     ...							${txn_return_code}=
+     ...							${available_qty}=
+     ...							${selected_qty}=
+     ...							${duration}=
+     ...							${start_date}=
+     ...							${target_list_URL}=
+     ...							${target_list_ID}=
+     ...							${time_zone}=
+     ...							${vertical}=
+     ...							${segment}=
+     ...							${creative_id}=
+     ...							${billing_name}=                                                  
+     ...							${billing_address_line1}=
+     ...							${billing_address_line2}=     
+     ...							${billing_city}=     
+     ...							${billing_state}=     
+     ...							${billing_zip}=        
+     ...							${billing_country}=     
+     ...							${billing_phone}=     
+     ...	   						${billing_email}=     
+     ...							${expected_response_code}=
+     Log       Campaign ID: ${campaign_name}
+     Set Test Variable      ${data}            {"advertiser_id": ${advertiser_id},"campaign_name": "${campaign_name}","order_id": "${order_id}","txn_ref_id": "${txn_ref_id}","txn_date": "${txn_date}","txn_status": "${txn_status}","txn_return_code": "${txn_return_code}","available_qty": ${available_qty}, "selected_qty": ${selected_qty}, "duration": ${duration},"start_date": "${start_date}","target_list_URL": "${target_list_URL}","target_list_ID": "${target_list_ID}","time_zone": "${time_zone}","vertical": "${vertical}","segment": "${segment}","creative_id": [${creative_id}],"billing": {"name": "${billing_name}","address": {"line1": "${billing_address_line1}","line2": "${billing_address_line2}","city": "${billing_city}","state": "${billing_state}","zip": "${billing_zip}","country": "${billing_country}","phone": "${billing_phone}","email": "${billing_email}"}}}
+     Log		Request: ${data}
+     ${resp}    RequestsLibrary.Post Request    smb   api/v1/campaigns/${campaign_id}     data=${data}    headers=${headers}  
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}      ${expected_response_code}
+     Should Be Valid Json 	${response_content}  
+#     Run Keyword If         		'${expected_response_code}' == '200'  		Validate SMB Campaign           campaign_id=${campaign_id}				advertiser_id=${advertiser_id}				campaign_name=${campaign_name}		order_id=${order_id}				txn_ref_id=${txn_ref_id}			txn_date=${txn_date}			txn_status=${txn_status}			txn_return_code=${txn_return_code}		available_qty=${available_qty}			selected_qty=${selected_qty}		duration=${duration}		start_date=${start_date}			target_list_URL=${target_list_URL}			target_list_ID=${target_list_ID}				time_zone=${time_zone} 			vertical=${vertical}		segment=${segment}			creative_id=${creative_id}			billing_name=${billing_name}        billing_address_line1=${billing_address_line1}			billing_address_line2=${billing_address_line2}     		billing_city=${billing_city}     	billing_state=${billing_state}   		billing_zip=${billing_zip}        billing_country=${billing_country}     	billing_phone=${billing_phone}     	billing_email=${billing_email}     	response_content=${response_content}    
+     Run Keyword Unless         '${expected_response_code}' == '200' 			Should Match Regexp				${response_content}                ${success_false_regex}
+
+     
+Extract CampaignID From Create Response And Validate
+     ${campaign_id}=          Get Json Value     ${response_content}      /campaign/id
+     Set Suite Variable        ${campaign_id}         ${campaign_id}
+     Log     Campaign ID: ${campaign_id}
+     Log		Billing Address2: [${billing_address_line2}]
+     Validate SMB Campaign           campaign_id=${campaign_id}
+	 ...							advertiser_id=${advertiser_id}
+     ... 							campaign_name=${campaign_name}
+     ...							order_id=${order_id}				txn_ref_id=${txn_ref_id}			txn_date=${txn_date}			txn_status=${txn_status}			txn_return_code=${txn_return_code}
+     ...							available_qty=${available_qty}		selected_qty=${selected_qty}
+     ...							duration=${duration}		start_date=${start_date}
+     ...							target_list_URL=${target_list_URL}			target_list_ID=${target_list_ID}
+     ...							time_zone=${time_zone}
+     ...							vertical=${vertical}		segment=${segment}
+     ...							creative_id=${creative_id}
+     ...							billing_name=${billing_name}        billing_address_line1=${billing_address_line1}			billing_address_line2=${billing_address_line2}     		billing_city=${billing_city}     	billing_state=${billing_state}   		billing_zip=${billing_zip}        billing_country=${billing_country}     	billing_phone=${billing_phone}     	billing_email=${billing_email}     
+     ...							response_content=${response_content}    
+
+
+SMB Read Campaign      
+     [Arguments]                  ${campaign_id}                ${response_code}=200   
+     ${resp}    RequestsLibrary.Get Request    smb   api/v1/campaigns/${campaign_id}    headers=${headers} 
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}        ${response_code}   
+     Should Be Valid Json 	${response_content}       
+     Run Keyword Unless         '${response_code}' == '200' 			Should Match Regexp				${response_content}               ${success_false_regex}
+     
+     
+Validate SMB Campaign
+	 [Arguments]					${campaign_id}=
+     ...                     		${advertiser_id}=
+     ... 							${campaign_name}=
+     ...							${order_id}=
+     ...							${txn_ref_id}=
+     ...							${txn_date}=
+     ...							${txn_status}=
+     ...							${txn_return_code}=
+     ...					        ${impression_goal}=
+     ...							${budget}=
+     ...							${available_qty}=
+     ...							${selected_qty}=
+     ...							${duration}=
+     ...							${start_date}=
+     ...							${target_list_URL}=
+     ...							${target_list_ID}=
+     ...							${time_zone}=
+     ...							${vertical}=
+     ...							${segment}=
+     ...							${creative_id}=
+     ...							${billing_name}=                                                  
+     ...							${billing_address_line1}=
+     ...							${billing_address_line2}=     
+     ...							${billing_city}=     
+     ...							${billing_state}=     
+     ...							${billing_zip}=        
+     ...							${billing_country}=     
+     ...							${billing_phone}=     
+     ...	   						${billing_email}=     
+     ...							${response_content}=${response_content}
+     Log      Advertiser ID to Validate: ${advertiser_id}
+     Log      Start Date:${start_date}
+     SMB Read Campaign        campaign_id=${campaign_id}       
+     Log      Response Content To Validate: ${response_content}
+    ${validations}=   			 Create Dictionary       									/success=true
+    Set To Dictionary           ${validations}                          					/campaign/id=${campaign_id}
+    Set To Dictionary           ${validations}                          					/campaign/advertiser_id=${advertiser_id}
+    Set To Dictionary           ${validations}                          					/campaign/order_id="${order_id}"
+    Set To Dictionary           ${validations}                          					/campaign/txn_ref_id="${txn_ref_id}"
+    Set To Dictionary           ${validations}                          					/campaign/txn_date="${txn_date}"
+    Set To Dictionary           ${validations}                          					/campaign/txn_status="${txn_status}"
+    Set To Dictionary           ${validations}                          					/campaign/txn_return_code="${txn_return_code}"
+    Set To Dictionary           ${validations}                          					/campaign/available_qty=${available_qty}
+    Set To Dictionary           ${validations}                          					/campaign/selected_qty=${selected_qty}
+    Set To Dictionary           ${validations}                          					/campaign/duration=${duration}
+	Run Keyword Unless		'${start_date}'=='NULL'		        Set To Dictionary           ${validations}                          			/campaign/start_date="${original_start_date}"
+    Set To Dictionary           ${validations}                          					/campaign/target_list_URL="${target_list_URL}"
+    Set To Dictionary           ${validations}                          					/campaign/target_list_ID="${target_list_ID}"
+    Set To Dictionary           ${validations}                          					/campaign/time_zone="${time_zone}"
+    Run Keyword Unless		'${creative_id}'=='${EMPTY}'		Set To Dictionary           ${validations}                          			/campaign/creative_id=[${creative_id}]
+    Set To Dictionary           ${validations}                          					/campaign/billing/name="${billing_name}"
+    Set To Dictionary           ${validations}                          					/campaign/billing/address/line1="${billing_address_line1}"
+	Run Keyword Unless		'${billing_address_line2}'=='NULL'	Set To Dictionary           ${validations}                          			/campaign/billing/address/line2="${billing_address_line2}"
+    Set To Dictionary           ${validations}                          					/campaign/billing/address/city="${billing_city}"
+    Set To Dictionary           ${validations}                          					/campaign/billing/address/state="${billing_state}"
+    Set To Dictionary           ${validations}                          					/campaign/billing/address/zip="${billing_zip}"
+    Set To Dictionary           ${validations}                          					/campaign/billing/address/country="${billing_country}"
+    Set To Dictionary           ${validations}                          					/campaign/billing/address/phone="${billing_phone}"
+    Set To Dictionary           ${validations}                          					/campaign/billing/address/email="${billing_email}"
+    Log Dictionary				${validations}	
+    Validate JSON Response     json_response=${response_content}      expected_values_dictionary=${validations}     
+     
+SMB Validate Campaign Via API Call
+	  Log   	Start Validation Using Read Campaign Call		
+	  Log       Start Date: ${start_date}						
+      Validate SMB Campaign      	campaign_id=${campaign_id}
+     ...                     		advertiser_id=${advertiser_id}
+     ... 							campaign_name=${campaign_name}
+     ...							order_id=${order_id}
+     ...							txn_ref_id=${txn_ref_id}
+     ...							txn_date=${txn_date}
+     ...							txn_status=${txn_status}
+     ...							txn_return_code=${txn_return_code}
+     ...							available_qty=${available_qty}
+     ...							selected_qty=${selected_qty}
+     ...							duration=${duration}
+     ...							start_date=${start_date}
+     ...							target_list_URL=${target_list_URL}
+     ...							target_list_ID=${target_list_ID}
+     ...							time_zone=${time_zone}
+     ...							vertical=${vertical}
+     ...							segment=${segment}
+     ...							creative_id=${creative_id}
+     ...							billing_name=${billing_name}                                                  
+     ...							billing_address_line1=${billing_address_line1}
+     ...							billing_address_line2=${billing_address_line2}     
+     ...							billing_city=${billing_city}     
+     ...							billing_state=${billing_state}     
+     ...							billing_zip=${billing_zip}        
+     ...							billing_country=${billing_country}     
+     ...							billing_phone=${billing_phone}     
+     ...	   						billing_email=${billing_email}     
+     Log   Start Date:${start_date} 
+   
+SMB Validate Campaign Via DB
+	[Arguments]			${campaign_id}
+    Log     Start Date Passed In: ${start_date}
+    ${yyyy_now}		${mm_now}		${dd_now}			Get Time 			year,month,day         UTC
+	Set Test Variable  		${today}   ${yyyy_now}-${mm_now}-${dd_now}
+	Retrieve SMB Campaign Hiearchy Information				campaign_id=${campaign_id} 
+	${yyyy_gmt}		${mm_gmt}		${dd_gmt}			Get Time 			year,month,day      ${start_date}
+	${end_date}=			smb_end_date_from_duration      ${start_date}     ${duration}
+	Run Keyword If     		'${today}'=='${start_date}'				SMB Set Restart Date For When Campaign Starts Current Day		${start_date}
+	Run Keyword Unless     	'${today}'=='${start_date}'				SMB Set Restart Date For When Campaign Starts On Later Day		${start_date}
+	Set Test Variable      	${start_date_gmt_no_time}       ${yyyy_gmt}-${mm_gmt}-${dd_gmt}
+	Set Test Variable      	${start_date_gmt}       ${yyyy_gmt}-${mm_gmt}-${dd_gmt} 00:00:00
+	Set Test Variable    	${end_date_gmt}         ${end_date} 23:59:59
+	Set Test Variable    	${end_date_gmt_no_time}         ${end_date}
+	Set Test Variable 		${start_date}		${start_date} 00:00:00
+	Set Test Variable 		${end_date}			${end_date} 23:59:59
+	Log     Start Date GMT Calculated:${start_date_gmt}
+	Log     End Date GMT Calculated:${end_date_gmt}
+	SMB Validate DB Ad Defaults 			campaign_id=${campaign_id}       ad_create_dt=${start_date_gmt_no_time}        ad_modified_dt=${start_date_gmt_no_time}        ad_ad_group_id=${smb_child_adgroup_id} 
+	SMB Validate DB Child AdGroup
+	SMB Validate DB Parent AdGroup 
+	SMB Validate DB Campaign Defaults
+
+SMB Set Restart Date For When Campaign Starts Current Day
+	[Arguments]				${start_date}
+	[Documentation]			If the campaign starts on the current date, the restart date will be tomorrow.
+	${restart_date_gmt}=	smb_restart_date      	${start_date}     1
+	Set Test Variable  		${restart_date_gmt}		${restart_date_gmt} 00:00:00
+	
+SMB Set Restart Date For When Campaign Starts On Later Day
+	[Documentation]			If the campaign does not starts on the current date, the restart date will be the same as the start date.
+	[Arguments]				${start_date}
+	${restart_date_gmt}=	smb_restart_date      	${start_date}     0
+	Set Test Variable  		${restart_date_gmt}		${restart_date_gmt} 00:00:00
+
+SMB Validate DB Ad Defaults
+	[Arguments]         ${campaign_id}=
+	...							${ad_url}=None
+	...							${ad_duration}=0
+	...							${ad_version}=1
+	...							${ad_create_dt}=
+	...							${ad_modified_dt}=
+	...							${ad_video_ad_id}=None
+	...							${ad_banner_ad_id}=None
+	...							${ad_html5_ad_id}=None
+	...							${ad_text_ad_id}=None
+	...							${ad_ad_group_id}=
+	...							${ad_status}=-1
+	Retrieve SMB Ad Information				${campaign_id}
+	${db_ad_id}=         				Get From Dictionary				${ad_information}     		rhino_ad_id 
+	${db_ad_url}=         				Get From Dictionary				${ad_information}    		rhino_ad_url							
+	${db_ad_duration}=         			Get From Dictionary				${ad_information}    		rhino_ad_duration					
+	${db_ad_version}=         			Get From Dictionary				${ad_information}    		rhino_ad_version						
+	${db_ad_create_dt}=         		Get From Dictionary				${ad_information}    		rhino_ad_create_dt					
+	${db_ad_modified_dt}=        		Get From Dictionary				${ad_information}    		rhino_ad_modified_dt				
+	${db_ad_video_ad_id}=       		Get From Dictionary				${ad_information}    		rhino_ad_video_ad_id				
+	${db_ad_banner_ad_id}=      		Get From Dictionary				${ad_information}    		rhino_ad_banner_ad_id			
+	${db_ad_html5_ad_id}=        		Get From Dictionary				${ad_information}    		rhino_ad_html5_ad_id				
+	${db_ad_text_ad_id}=         		Get From Dictionary				${ad_information}   		rhino_ad_text_ad_id					
+	${db_ad_ad_group_id}=        		Get From Dictionary				${ad_information}    		rhino_ad_ad_group_id				
+	${db_ad_status}=         			Get From Dictionary				${ad_information}    		rhino_ad_status			
+	Log    Ad ID:[${db_ad_id}] 
+	Log    Creative_ID:[${creative_id}]
+		Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_url}						${db_ad_url}		
+		Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_duration}					${db_ad_duration}	
+		Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_version}					${db_ad_version}	
+		Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_video_ad_id}				${db_ad_video_ad_id}
+		Run Keyword If			'${creative_id}'=='${EMPTY}'		Run Keyword And Continue On Failure			Should Be Equal As Strings      ${ad_banner_ad_id}				${db_ad_banner_ad_id}
+#       Updated this after 7.7 because for ads that have a creative attached, the banner_ad_id is not null in the database
+		Run Keyword Unless		'${creative_id}'=='${EMPTY}'		Run Keyword And Continue On Failure			Should Not Match Regexp         '${db_ad_banner_ad_id}'			'None'
+		Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_html5_ad_id}				${db_ad_html5_ad_id}
+		Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_text_ad_id}				${db_ad_text_ad_id}	
+		Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_ad_group_id}				${db_ad_ad_group_id}
+		Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_status}					${db_ad_status}
+
+Calculate Impressions And CPU           
+    [Arguments]     			${available_qty}=				${selected_qty}=				${duration}=
+    ${digital_qty}=					Evaluate 			${selected_qty}*3
+    Run Keyword If         			'${selected_qty}'=='0'             Set Suite Variable      ${digital_qty}				${available_qty}
+    	Run Keyword Unless         '${selected_qty}'=='0'             Set Suite Variable      ${digital_qty}				${digital_qty}
+    	Run Keyword If 					${digital_qty}>=${available_qty}				 Set Suite Variable      ${digital_qty}				${available_qty}
+	Retrieve SMB Impression Goal Information	        duration=${duration}        digital_qty=${digital_qty}
+	${smb_impression_goal}=         				Get From Dictionary				${smb_impressions_goal_information}    	smb_impression_goal
+	${smb_budget}=         											Get From Dictionary				${smb_impressions_goal_information}    	smb_price
+	Set Suite Variable       ${smb_impression_goal}       ${smb_impression_goal}
+	Set Suite Variable 		  ${smb_budget}				${smb_budget}
+	Log     SMB Impression Goal:${smb_impression_goal}
+	Log     SMB Price:${smb_budget}
+	${calculated_cost_per_unit}=          Evaluate           ${smb_budget}/${smb_impression_goal}
+	${calculated_cost_per_unit}=          Convert To Number     ${calculated_cost_per_unit}    3
+	Set Suite Variable        ${calculated_cost_per_unit}				${calculated_cost_per_unit}
+	Log     Calculated CPU:${calculated_cost_per_unit}
+
+Retrieve SMB Campaign Hiearchy Information
+	[Arguments]         ${campaign_id}=
+	Retrieve SMB Hierarchy Information By Campaign ID         campaign_id=${campaign_id}
+
+SMB Validate DB Campaign Defaults
+	Log   Start Date: ${start_date}
+	SMB Validate DB Campaign    campaign_id=${campaign_id}
+	...							campaign_partner_id=${advertiser_id}      																		
+	...							campaign_name=${campaign_name}																				
+	...							campaign_start_time=${start_date}      																	
+	...							campaign_restart_time=${restart_date_gmt}														
+	...							campaign_end_time=${end_date} 																	
+	...							campaign_start_time_ui=${start_date_gmt}      																
+	...							campaign_end_time_ui=${end_date_gmt}      																
+	...							campaign_zoneinfo_time_zone=${time_zone}    													
+	...							campaign_impressions_sold=None     														
+	...							campaign_impressions_delivered=None      												
+	...							campaign_budget=${smb_budget}      																		
+	...							campaign_status=-1   					
+	...							campaign_insertion_order=${campaign_name}     										
+	...							campaign_created_dt=None  																	
+	...							campaign_modified_dt=${today}      															
+	...							campaign_keywords=${EMPTY}      																
+	...							campaign_measurement_id=None 													
+	...							campaign_order_id=${order_id}    																	
+	...							campaign_txn_ref_id=${txn_ref_id}      																	
+	...							campaign_txn_date=${txn_date}      																	
+	...							campaign_txn_status=${txn_status}      																	
+	...							campaign_txn_return_code=${txn_return_code}      														
+	...							campaign_duration=${duration}      																	
+	...							campaign_internal_duration=${duration}      			
+	...							campaign_target_list_URL=${target_list_URL}    											
+	...							campaign_target_list_ID=${target_list_ID}    																
+	...							campaign_creative_id=${creative_id}      																
+	...							campaign_billing_id=${EMPTY}																
+	...							campaign_available_qty=${available_qty}      																
+	...							campaign_selected_qty=${selected_qty}      															
+	...							campaign_matched_qty=None     
+
+
+SMB Validate DB Campaign
+	[Arguments]         ${campaign_id}=
+	...							${campaign_partner_id}=      																		
+	...							${campaign_name}=     																				
+	...							${campaign_start_time}=      																	
+	...							${campaign_restart_time}=      																
+	...							${campaign_end_time}=     																	
+	...							${campaign_start_time_ui}=      																
+	...							${campaign_end_time_ui}=     																
+	...							${campaign_zoneinfo_time_zone}=      													
+	...							${campaign_impressions_sold}=      														
+	...							${campaign_impressions_delivered}=      												
+	...							${campaign_budget}=  
+	...							${campaign_status}=    																		
+	...							${campaign_insertion_order}=      															
+	...							${campaign_created_dt}=      																	
+	...							${campaign_modified_dt}=      															
+	...							${campaign_keywords}=      																
+	...							${campaign_measurement_id}=      													
+	...							${campaign_order_id}=    																	
+	...							${campaign_txn_ref_id}=      																	
+	...							${campaign_txn_date}=      																	
+	...							${campaign_txn_status}=      																	
+	...							${campaign_txn_return_code}=      														
+	...							${campaign_duration}=      																	
+	...							${campaign_internal_duration}=      			
+	...							${campaign_target_list_URL}=    											
+	...							${campaign_target_list_ID}=    																
+	...							${campaign_creative_id}=      																
+	...							${campaign_billing_id}=      																	
+	...							${campaign_available_qty}=      																
+	...							${campaign_selected_qty}=      															
+	...							${campaign_matched_qty}=     
+	Set Test Variable       	${temp_creative_id}               ${campaign_creative_id}
+	Run Keyword If   			'${campaign_creative_id}'=='${EMPTY}'				Set Test Variable       ${temp_creative_id}               None
+	Run Keyword If   			'${campaign_creative_id}'=='NULL'					Set Test Variable       ${temp_creative_id}               None         
+	Retrieve Campaign Information            ${campaign_id}
+	${db_campaign_id}=         									Get From Dictionary				${campaign_db_information}				rhino_campaign_id 		
+	${db_campaign_partner_id}=         							Get From Dictionary				${campaign_db_information}				rhino_campaign_partner_id 	
+	${db_campaign_name}=         								Get From Dictionary				${campaign_db_information}				rhino_campaign_name 	
+	${db_campaign_start_time}=         							Get From Dictionary				${campaign_db_information}				rhino_campaign_start_time 	
+	${db_campaign_restart_time}=         						Get From Dictionary				${campaign_db_information}				rhino_campaign_restart_time  	
+	${db_campaign_end_time}=         							Get From Dictionary				${campaign_db_information}				rhino_campaign_end_time 	
+	${db_campaign_start_time_ui}=         						Get From Dictionary				${campaign_db_information}				rhino_campaign_start_time_ui  	
+	${db_campaign_end_time_ui}=         						Get From Dictionary				${campaign_db_information}				rhino_campaign_end_time_ui 	
+	${db_campaign_zoneinfo_time_zone}=         					Get From Dictionary				${campaign_db_information}				rhino_campaign_zoneinfo_time_zone	
+	${db_campaign_impressions_sold}=         					Get From Dictionary				${campaign_db_information}				rhino_campaign_impressions_sold 	
+	${db_campaign_impressions_delivered}=         				Get From Dictionary				${campaign_db_information}				rhino_campaign_impressions_delivered  	
+	${db_campaign_budget}=         								Get From Dictionary				${campaign_db_information}				rhino_campaign_budget
+	${db_campaign_status}=         								Get From Dictionary				${campaign_db_information}				rhino_campaign_status
+	${db_campaign_insertion_order}=         					Get From Dictionary				${campaign_db_information}				rhino_campaign_insertion_order 
+	${db_campaign_created_dt}=         							Get From Dictionary				${campaign_db_information}				rhino_campaign_created_dt	
+	${db_campaign_modified_dt}=         						Get From Dictionary				${campaign_db_information}				rhino_campaign_modified_dt 	
+	${db_campaign_measurement_id}=         						Get From Dictionary				${campaign_db_information}				rhino_campaign_measurement_id 	
+	${db_campaign_order_id}=         							Get From Dictionary				${campaign_db_information}				rhino_campaign_order_id 	
+	${db_campaign_txn_ref_id}=         							Get From Dictionary				${campaign_db_information}				rhino_campaign_txn_ref_id	
+	${db_campaign_txn_date}=         							Get From Dictionary				${campaign_db_information}				rhino_campaign_txn_date 	
+	${db_campaign_txn_status}=         							Get From Dictionary				${campaign_db_information}				rhino_campaign_txn_status 	
+	${db_campaign_txn_return_code}=         					Get From Dictionary				${campaign_db_information}				rhino_campaign_txn_return_code 	
+	${db_campaign_duration}=         							Get From Dictionary				${campaign_db_information}				rhino_campaign_duration 	
+	${db_campaign_internal_duration}=      						Get From Dictionary				${campaign_db_information}				rhino_campaign_internal_duration 	
+	${db_campaign_target_list_URL}=         					Get From Dictionary				${campaign_db_information}				rhino_campaign_target_list_URL 	
+	${db_campaign_target_list_ID}=         						Get From Dictionary				${campaign_db_information}				rhino_campaign_target_list_ID 	
+	${db_campaign_creative_id}=         						Get From Dictionary				${campaign_db_information}				rhino_campaign_creative_id 	
+	${db_campaign_billing_id}=         							Get From Dictionary				${campaign_db_information}				rhino_campaign_billing_id 	
+	${db_campaign_available_qty}=         						Get From Dictionary				${campaign_db_information}				rhino_campaign_available_qty		
+	${db_campaign_selected_qty}=         						Get From Dictionary				${campaign_db_information}				rhino_campaign_selected_qty  	
+	${db_campaign_matched_qty}=         						Get From Dictionary				${campaign_db_information}				rhino_campaign_matched_qty 	
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_id}									${db_campaign_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_partner_id}							${db_campaign_partner_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_name}								${db_campaign_name}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${start_date_gmt}								${db_campaign_start_time}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_restart_time}						${db_campaign_restart_time}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${end_date_gmt}									${db_campaign_end_time}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_zoneinfo_time_zone}					${db_campaign_zoneinfo_time_zone}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_impressions_sold}					${db_campaign_impressions_sold}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_impressions_delivered}				${db_campaign_impressions_delivered}
+	Run Keyword And Continue On Failure							Should Be Equal As Numbers    				${campaign_budget}								${db_campaign_budget}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_status}								${db_campaign_status}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_insertion_order}						${db_campaign_insertion_order}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_created_dt}							${db_campaign_created_dt}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_measurement_id}						${db_campaign_measurement_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_order_id}							${db_campaign_order_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_txn_ref_id}							${db_campaign_txn_ref_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_txn_date}							${db_campaign_txn_date}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_txn_status}							${campaign_txn_status}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_txn_return_code}						${db_campaign_txn_return_code}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_duration}							${db_campaign_duration}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_internal_duration}					${db_campaign_internal_duration}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_target_list_URL}						${db_campaign_target_list_URL}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_target_list_ID}						${db_campaign_target_list_ID}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${temp_creative_id} 							${db_campaign_creative_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_available_qty}						${db_campaign_available_qty}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_selected_qty}						${db_campaign_selected_qty}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_matched_qty}							${db_campaign_matched_qty}
+	
+
+SMB Validate DB Child AdGroup
+	Calculate Impressions And CPU           available_qty=${available_qty}				selected_qty=${selected_qty}            duration=${duration}
+	SMB Validate DB AdGroup     campaign_id=${campaign_id}
+	...							ad_group_name=${campaign_name}-AdGroup-Child
+	...							ad_group_start_date=${start_date}
+	...							ad_group_end_date=${end_date}
+	...							ad_group_start_date_ui=${start_date_gmt}
+	...							ad_group_end_date_ui=${end_date_gmt}
+	...							ad_group_zoneinfo_time_zone=${time_zone}
+	...							ad_group_units_sold=${smb_impression_goal}
+	...							ad_group_units_delivered=0
+	...							ad_group_cost_per_unit=${calculated_cost_per_unit}		
+	...							ad_group_spend=0
+	...							ad_group_delivered_impressions=0
+	...							ad_group_delivered_clicks=0
+	...							ad_group_delivered_acquisitions=0		
+	...							ad_group_budget=${smb_budget}
+	...							ad_group_pacing_id=6	
+	...							ad_group_exclusive=0	
+	...							ad_group_guaranteed=1
+	...							ad_group_remnant=0
+	...							ad_group_remnant_external=0
+	...							ad_group_house=0
+	...							ad_group_status=-1
+	...							ad_group_created_dt=${today}
+	...							ad_group_modified_dt=${today}
+	...							ad_group_campaign_id=${campaign_id}		
+	...							ad_group_screen_type=1
+	...							ad_group_frequency_cap_id=None
+	...							ad_group_ad_group_payment_type_id=1					
+	...							ad_group_bonus_parent_ad_group_id=None
+	...							ad_group_ecpm=None
+	...							ad_group_optimized_bundle=0
+	...							ad_group_bundle_parent_id=${smb_parent_adgroup_id} 
+	...							ad_group_bundle=0
+	...							ad_group_weight=100
+	...							ad_group_allocation=1
+	...							ad_group_bid_value_cpu=0.0001
+#	...							ad_group_bid_value_cpu=None -> value change as of 8.9 from None to 0.0001
+	...							ad_group_adhaven_margin=None
+	...							ad_group_custom_dates=0
+	...							ad_group_custom_frequency_cap=0
+	...							ad_group_custom_targeting=0
+	...							ad_group_time_zone=None
+	...							ad_group_time_zone_user=None
+	...							ad_group_ui_weight=1
+	...							ad_group_test_ads=0
+	...							ad_group_ip_to_geo_allowed_type=2	
+	...							ad_group_pacing_units_sold=${smb_impression_goal}
+	...							ad_group_pacing_units_delivered=0
+	...							ad_group_pacing_start_date=${start_date}	
+	...							ad_group_pacing_end_date=${end_date}
+	...							ad_group_pacing_recalculation=1
+	...							ad_group_ad_text=None
+	...							ad_group_track_client_impression=1
+	...							ad_group_use_spoc_targeting=0
+	...							ad_group_requires_raw_device_id=0
+	...							ad_group_app_id=
+	...							ad_group_use_placeiq=0	
+	...							ad_group_daily_cap_enabled=1
+#	...							ad_group_daily_cap_enabled=0  -> as of 8.9 value change from 0 to 1
+	...							ad_group_daily_cap_units_sold=0
+	...							ad_group_daily_cap_units_delivered=0
+	...							ad_group_is_behavior_targeted=1
+	...							ad_group_domain=www.4info.com
+	...							ad_group_freq_cap_daily_units=None
+	...							ad_group_freq_cap_overall_units=None
+	...							ad_group_household_freq_cap_daily_units=None
+	...							ad_group_household_freq_cap_overall_units=None
+	...							ad_group_ioimpressiongoal=${smb_impression_goal}		
+	...							ad_group_freq_cap_days=1
+	...							ad_group_household_freq_days=1
+
+SMB Validate DB Parent AdGroup
+	Calculate Impressions And CPU           available_qty=${available_qty}				selected_qty=${selected_qty}            duration=${duration}
+	SMB Validate DB AdGroup     campaign_id=${campaign_id}
+	...							ad_group_name=${campaign_name}-AdGroup-Bundle
+	...							ad_group_start_date=${start_date}
+	...							ad_group_end_date=${end_date}
+	...							ad_group_start_date_ui=${start_date_gmt}
+	...							ad_group_end_date_ui=${end_date_gmt}
+	...							ad_group_zoneinfo_time_zone=${time_zone}
+	...							ad_group_units_sold=${smb_impression_goal}
+	...							ad_group_units_delivered=0
+	...							ad_group_cost_per_unit=${calculated_cost_per_unit}		
+	...							ad_group_spend=0
+	...							ad_group_delivered_impressions=0
+	...							ad_group_delivered_clicks=0
+	...							ad_group_delivered_acquisitions=0		
+	...							ad_group_budget=${smb_budget}
+	...							ad_group_pacing_id=6	
+	...							ad_group_exclusive=0	
+	...							ad_group_guaranteed=1
+	...							ad_group_remnant=0
+	...							ad_group_remnant_external=0
+	...							ad_group_house=0
+	...							ad_group_status=-1
+	...							ad_group_created_dt=${today}
+	...							ad_group_modified_dt=${today}
+	...							ad_group_campaign_id=${campaign_id}		
+	...							ad_group_screen_type=1
+	...							ad_group_frequency_cap_id=None
+	...							ad_group_ad_group_payment_type_id=1					
+	...							ad_group_bonus_parent_ad_group_id=None
+	...							ad_group_ecpm=0
+	...							ad_group_optimized_bundle=0
+	...							ad_group_bundle_parent_id=None			
+	...							ad_group_bundle=1
+	...							ad_group_weight=None
+	...							ad_group_allocation=1
+	...							ad_group_bid_value_cpu=None
+	...							ad_group_adhaven_margin=None
+	...							ad_group_custom_dates=0
+	...							ad_group_custom_frequency_cap=0
+	...							ad_group_custom_targeting=0
+	...							ad_group_time_zone=None
+	...							ad_group_time_zone_user=None
+	...							ad_group_ui_weight=1
+	...							ad_group_test_ads=0
+	...							ad_group_ip_to_geo_allowed_type=2	
+	...							ad_group_pacing_units_sold=None
+	...							ad_group_pacing_units_delivered=None
+	...							ad_group_pacing_start_date=None
+	...							ad_group_pacing_end_date=None
+	...							ad_group_pacing_recalculation=1
+	...							ad_group_ad_text=None
+	...							ad_group_track_client_impression=1
+	...							ad_group_use_spoc_targeting=0
+	...							ad_group_requires_raw_device_id=0
+	...							ad_group_app_id=
+	...							ad_group_use_placeiq=0	
+	...							ad_group_daily_cap_enabled=0
+	...							ad_group_daily_cap_units_sold=0
+	...							ad_group_daily_cap_units_delivered=None
+	...							ad_group_is_behavior_targeted=1
+	...							ad_group_domain=www.4info.com
+	...							ad_group_freq_cap_daily_units=None
+	...							ad_group_freq_cap_overall_units=None
+	...							ad_group_household_freq_cap_daily_units=None
+	...							ad_group_household_freq_cap_overall_units=None
+	...							ad_group_ioimpressiongoal=${smb_impression_goal}		
+	...							ad_group_freq_cap_days=1
+	...							ad_group_household_freq_days=1
+
+SMB Validate DB AdGroup 
+	[Arguments]         ${campaign_id}=
+	...							${ad_group_name}=
+	...							${ad_group_start_date}=
+	...							${ad_group_end_date}=
+	...							${ad_group_start_date_ui}=
+	...							${ad_group_end_date_ui}=
+	...							${ad_group_zoneinfo_time_zone}=
+	...							${ad_group_units_sold}=
+	...							${ad_group_units_delivered}=
+	...							${ad_group_cost_per_unit}=
+	...							${ad_group_spend}=
+	...							${ad_group_delivered_impressions}=
+	...							${ad_group_delivered_clicks}=
+	...							${ad_group_delivered_acquisitions}=		
+	...							${ad_group_budget}=	
+	...							${ad_group_pacing_id}=
+	...							${ad_group_exclusive}=
+	...							${ad_group_guaranteed}=
+	...							${ad_group_remnant}=
+	...							${ad_group_remnant_external}=
+	...							${ad_group_house}=
+	...							${ad_group_status}=
+	...							${ad_group_created_dt}=
+	...							${ad_group_modified_dt}=	
+	...							${ad_group_campaign_id}=		
+	...							${ad_group_screen_type}=
+	...							${ad_group_frequency_cap_id}=
+	...							${ad_group_ad_group_payment_type_id}=					
+	...							${ad_group_bonus_parent_ad_group_id}=
+	...							${ad_group_ecpm}=
+	...							${ad_group_optimized_bundle}=
+	...							${ad_group_bundle_parent_id}=			
+	...							${ad_group_bundle}=
+	...							${ad_group_weight}=
+	...							${ad_group_allocation}=	
+	...							${ad_group_bid_value_cpu}=
+	...							${ad_group_adhaven_margin}=
+	...							${ad_group_custom_dates}=
+	...							${ad_group_custom_frequency_cap}=
+	...							${ad_group_custom_targeting}=
+	...							${ad_group_time_zone}=
+	...							${ad_group_time_zone_user}=
+	...							${ad_group_ui_weight}=
+	...							${ad_group_test_ads}=
+	...							${ad_group_ip_to_geo_allowed_type}=2
+	...							${ad_group_pacing_units_sold}=
+	...							${ad_group_pacing_units_delivered}=
+	...							${ad_group_pacing_start_date}=	
+	...							${ad_group_pacing_end_date}=
+	...							${ad_group_pacing_recalculation}=
+	...							${ad_group_ad_text}=
+	...							${ad_group_track_client_impression}=
+	...							${ad_group_use_spoc_targeting}=
+	...							${ad_group_requires_raw_device_id}=
+	...							${ad_group_app_id}=
+	...							${ad_group_use_placeiq}=
+	...							${ad_group_daily_cap_enabled}=
+	...							${ad_group_daily_cap_units_sold}=
+	...							${ad_group_daily_cap_units_delivered}=
+	...							${ad_group_is_behavior_targeted}=
+	...							${ad_group_domain}=
+	...							${ad_group_freq_cap_daily_units}=
+	...							${ad_group_freq_cap_overall_units}=
+	...							${ad_group_household_freq_cap_daily_units}=
+	...							${ad_group_household_freq_cap_overall_units}=
+	...							${ad_group_ioimpressiongoal}=		
+	...							${ad_group_freq_cap_days}=
+	...							${ad_group_household_freq_days}=	
+	...							${ad_group_boost_flag}=1																											
+	Retrieve SMB Adgroup Information			campaign_id=${campaign_id}					bundle=${ad_group_bundle}	
+	${db_adgroup_id}=         									Get From Dictionary				${adgroup_db_information}				rhino_adgroup_id  		
+	${db_adgroup_name}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_name      																	
+	${db_adgroup_start_date}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_start_date
+	${db_adgroup_end_date}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_end_date      														
+	${db_adgroup_start_date_ui}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_start_date_ui      															
+	${db_adgroup_end_date_ui}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_end_date_ui      										
+	${db_adgroup_zoneinfo_time_zone}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_zoneinfo_time_zone      							
+	${db_adgroup_units_sold}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_units_sold      											
+	${db_adgroup_units_delivered}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_units_delivered    										
+	${db_adgroup_cost_per_unit}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_cost_per_unit      										
+	${db_adgroup_spend}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_spend      														
+	${db_adgroup_delivered_impressions}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_delivered_impressions      							
+	${db_adgroup_delivered_clicks}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_delivered_clicks      									
+	${db_adgroup_delivered_acquisitions}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_delivered_acquisitions      							
+	${db_adgroup_budget}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_budget      												
+	${db_adgroup_pacing_id}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_id     												
+	${db_adgroup_exclusive}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_exclusive      																		
+	${db_adgroup_guaranteed}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_guaranteed      																	
+	${db_adgroup_remnant}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_remnant      																		
+	${db_adgroup_remnant_external}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_remnant_external      														
+	${db_adgroup_house}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_house      																			
+	${db_adgroup_status}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_status      																			
+	${db_adgroup_created_dt}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_created_dt      																	
+	${db_adgroup_modified_dt}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_modified_dt     																	
+	${db_adgroup_campaign_id}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_campaign_id      																
+	${db_adgroup_screen_type}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_screen_type      																
+	${db_adgroup_frequency_cap_id}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_frequency_cap_id      														
+	${db_adgroup_ad_group_payment_type_id}=         		Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ad_group_payment_type_id      											
+	${db_adgroup_bonus_parent_ad_group_id}=         		Get From Dictionary				${adgroup_db_information}				rhino_adgroup_bonus_parent_ad_group_id      											
+	${db_adgroup_ecpm}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ecpm     																			
+	${db_adgroup_optimized_bundle}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_optimized_bundle    															
+	${db_adgroup_bundle_parent_id}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_bundle_parent_id      														
+	${db_adgroup_bundle}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_bundle      																		
+	${db_adgroup_weight}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_weight      																		
+	${db_adgroup_allocation}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_allocation      																	
+	${db_adgroup_bid_value_cpu}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_bid_value_cpu      																 
+	${db_adgroup_adhaven_margin}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_adhaven_margin      															
+	${db_adgroup_custom_dates}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_custom_dates      																
+	${db_adgroup_custom_frequency_cap}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_custom_frequency_cap     													
+	${db_adgroup_custom_targeting}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_custom_targeting      														
+	${db_adgroup_time_zone}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_time_zone      																	
+	${db_adgroup_time_zone_user}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_time_zone_user      															
+	${db_adgroup_ui_weight}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ui_weight     																		
+	${db_adgroup_test_ads}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_test_ads      																		
+	${db_adgroup_ip_to_geo_allowed_type}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ip_to_geo_allowed_type      												
+	${db_adgroup_pacing_units_sold}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_units_sold      														
+	${db_adgroup_pacing_units_delivered}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_units_delivered      												
+	${db_adgroup_pacing_start_date}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_start_date      														
+	${db_adgroup_pacing_end_date}=         						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_end_date      															
+	${db_adgroup_pacing_recalculation}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_pacing_recalculation      													
+	${db_adgroup_ad_text}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ad_text      																		
+	${db_adgroup_track_client_impression}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_track_client_impression      												
+	${db_adgroup_use_spoc_targeting}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_use_spoc_targeting      														
+	${db_adgroup_requires_raw_device_id}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_requires_raw_device_id      												
+	${db_adgroup_app_id}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_app_id      																		
+	${db_adgroup_use_placeiq}=         							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_use_placeiq      																	
+	${db_adgroup_daily_cap_enabled}=         					Get From Dictionary				${adgroup_db_information}				rhino_adgroup_daily_cap_enabled      														
+	${db_adgroup_daily_cap_units_sold}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_daily_cap_units_sold      													
+	${db_adgroup_daily_cap_units_delivered}=         			Get From Dictionary				${adgroup_db_information}				rhino_adgroup_daily_cap_units_delivered      											
+	${db_adgroup_is_behavior_targeted}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_is_behavior_targeted      													
+	${db_adgroup_domain}=         								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_domain      																		
+	${db_adgroup_freq_cap_daily_units}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_freq_cap_daily_units     														
+	${db_adgroup_freq_cap_overall_units}=         				Get From Dictionary				${adgroup_db_information}				rhino_adgroup_freq_cap_overall_units      													
+	${db_adgroup_household_freq_cap_daily_units}=     			Get From Dictionary				${adgroup_db_information}				rhino_adgroup_household_freq_cap_daily_units      									
+	${db_adgroup_household_freq_cap_overall_units}=     		Get From Dictionary				${adgroup_db_information}				rhino_adgroup_household_freq_cap_overall_units      								
+	${db_adgroup_ioimpressiongoal}=     						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_ioimpressiongoal      														
+	${db_adgroup_freq_cap_days}=     							Get From Dictionary				${adgroup_db_information}				rhino_adgroup_freq_cap_days      															
+	${db_adgroup_household_freq_days}=     						Get From Dictionary				${adgroup_db_information}				rhino_adgroup_household_freq_days     												
+	${db_adgroup_boost_flag}=     								Get From Dictionary				${adgroup_db_information}				rhino_adgroup_boost_flag   												
+	Run Keyword And Continue On Failure							Should Be Equal As Strings    				${campaign_id}															${db_adgroup_campaign_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_name}														${db_adgroup_name}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_start_date}													${db_adgroup_start_date}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_end_date}													${db_adgroup_end_date}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${adgroup_start_date_ui}												${db_adgroup_start_date_ui}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${adgroup_end_date_ui}													${db_adgroup_end_date_ui}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_zoneinfo_time_zone}											${db_adgroup_zoneinfo_time_zone}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_units_sold}													${db_adgroup_units_sold}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_units_delivered}												${db_adgroup_units_delivered}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_cost_per_unit}												${db_adgroup_cost_per_unit}
+	Run Keyword And Continue On Failure							Should Be Equal As Numbers            		${ad_group_spend}														${db_adgroup_spend}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_delivered_impressions}										${db_adgroup_delivered_impressions}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_delivered_clicks}											${db_adgroup_delivered_clicks}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_delivered_acquisitions}										${db_adgroup_delivered_acquisitions}
+	Run Keyword And Continue On Failure							Should Be Equal As Numbers             		${ad_group_budget}														${db_adgroup_budget}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_id}													${db_adgroup_pacing_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_exclusive}													${db_adgroup_exclusive}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_guaranteed}													${db_adgroup_guaranteed}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_remnant}														${db_adgroup_remnant}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_remnant_external}											${db_adgroup_remnant_external}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_house}														${db_adgroup_house}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_status}														${db_adgroup_status}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_created_dt}													${db_adgroup_created_dt}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_created_dt}													${db_adgroup_modified_dt}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_campaign_id}													${db_adgroup_campaign_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_screen_type}													${db_adgroup_screen_type}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_frequency_cap_id}											${db_adgroup_frequency_cap_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_ad_group_payment_type_id}									${db_adgroup_ad_group_payment_type_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_bonus_parent_ad_group_id}									${db_adgroup_bonus_parent_ad_group_id}
+	Run Keyword And Continue On Failure							Run Keyword If         			'${ad_group_ecpm}'=='None'							Should Be Equal As Strings             		${ad_group_ecpm}				${db_adgroup_ecpm}
+	Run Keyword And Continue On Failure							Run Keyword Unless          	'${ad_group_ecpm}'=='None'							Should Be Equal As Numbers             	${ad_group_ecpm}					${db_adgroup_ecpm}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_optimized_bundle}											${db_adgroup_optimized_bundle}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_bundle_parent_id}											${db_adgroup_bundle_parent_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_bundle}														${db_adgroup_bundle}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings            		${ad_group_weight}														${db_adgroup_weight}
+	Run Keyword And Continue On Failure							Should Be Equal As Numbers            		${ad_group_allocation}													${db_adgroup_allocation}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_bid_value_cpu}												${db_adgroup_bid_value_cpu}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_adhaven_margin}												${db_adgroup_adhaven_margin}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_custom_dates}												${db_adgroup_custom_dates}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_custom_frequency_cap}										${db_adgroup_custom_frequency_cap}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_custom_targeting}											${db_adgroup_custom_targeting}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_time_zone}													${db_adgroup_time_zone}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_time_zone_user}												${db_adgroup_time_zone_user}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_ui_weight}													${db_adgroup_ui_weight}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_test_ads}													${db_adgroup_test_ads}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_ip_to_geo_allowed_type}										${db_adgroup_ip_to_geo_allowed_type}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_units_sold}											${db_adgroup_pacing_units_sold}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_units_delivered}										${db_adgroup_pacing_units_delivered}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_start_date}											${db_adgroup_pacing_start_date}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_end_date}												${db_adgroup_pacing_end_date}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_pacing_recalculation}										${db_adgroup_pacing_recalculation}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_ad_text}														${db_adgroup_ad_text}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_track_client_impression}										${db_adgroup_track_client_impression}	
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_use_spoc_targeting}											${db_adgroup_use_spoc_targeting}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_requires_raw_device_id}										${db_adgroup_requires_raw_device_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_app_id}														${db_adgroup_app_id}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_use_placeiq}													${db_adgroup_use_placeiq}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_daily_cap_enabled}											${db_adgroup_daily_cap_enabled}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_daily_cap_units_sold}										${db_adgroup_daily_cap_units_sold}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_daily_cap_units_delivered}									${db_adgroup_daily_cap_units_delivered}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_is_behavior_targeted}										${db_adgroup_is_behavior_targeted}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_domain}														${db_adgroup_domain}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_ioimpressiongoal}											${db_adgroup_ioimpressiongoal}
+	Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_freq_cap_days}												${db_adgroup_freq_cap_days}
+    Run Keyword And Continue On Failure							Should Be Equal As Strings             		${ad_group_boost_flag}													${db_adgroup_boost_flag}
+      
+SMB Read Creative 
+	 [Arguments]                  ${creative_id}                ${response_code}=200   
+     ${resp}    RequestsLibrary.Get Request   smb   api/v1/creatives/${creative_id}    headers=${headers} 
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}        ${response_code}   
+     Should Be Valid Json 	${response_content}       
+     Run Keyword Unless         '${response_code}' == '200' 			Should Match Regexp				${response_content}               ${success_false_regex}
+
+SMB Create Creative
+	[Arguments]					${advertiser_id}=
+	...							${creative_name}=
+	...							${creative_url}=
+	...							${creative_destination_url}=
+	...							${creative_width}=
+	...							${creative_height}=
+	...							${expected_response_code}=
+    ...                        	${timestamp_flag}=1
+	${timestamp}=      get_timestamp
+	Set Test Variable       ${advertiser_id}				${advertiser_id}
+	Set Test Variable       ${creative_name}				${creative_name}
+	Set Test Variable		${creative_url}					${creative_url}
+	Set Test Variable 		${creative_destination_url}		${creative_destination_url}
+	Set Test Variable		${creative_width}				${creative_width}
+	Set Test Variable		${creative_height}				${creative_height}
+	Set Test Variable       ${expected_response_code}		${expected_response_code}
+	Set Test Variable 		${timestamp_flag}				${timestamp_flag}
+     Run Keyword If            '${timestamp_flag}' == '1'     Set Test Variable    ${creative_name}    ${creative_name}_${timestamp}
+     Run Keyword Unless        '${timestamp_flag}' == '1'     Set Test Variable    ${creative_name}    ${creative_name}
+     Log       Creative Name: ${creative_name}     
+     Set Test Variable      ${data}            {"advertiser_id": ${advertiser_id},"creative_name": "${creative_name}","creative_url": "${creative_url}","destination_url": "${creative_destination_url}","width":${creative_width},"height":${creative_height}}
+     Log		Request: ${data}				
+     ${resp}    RequestsLibrary.Post Request    smb   api/v1/creatives/     data=${data}    headers=${headers}  
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}      ${expected_response_code}
+     Should Be Valid Json 	${response_content}
+     Run Keyword If        		'${expected_response_code}' == '200'  		Extract CreativeID From Create Response And Validate		
+     Run Keyword Unless         '${expected_response_code}' == '200' 			Should Match Regexp				${response_content}              ${success_false_regex}
+
+Extract CreativeID From Create Response And Validate
+     ${creative_id}=          Get Json Value     ${response_content}      /creative/id
+     Set Suite Variable        ${creative_id}         ${creative_id}
+     Set Test Variable         ${creative_status}			PENDING
+     Log     Creative ID: ${creative_id}
+     Log     Creative Name: ${creative_name}
+     Validate SMB Creative				creative_id=${creative_id}			advertiser_id=${advertiser_id}        	creative_name=${creative_name}    		creative_url=${creative_url}
+	 ...												creative_destination_url=${creative_destination_url}		creative_width=${creative_width}		creative_height=${creative_height}
+	 ...												creative_status=${creative_status}
+	 ...												response_content=${response_content}
+     
+Validate SMB Creative
+	 [Arguments]					${creative_id}=
+	 ...									${advertiser_id}=                     
+	 ...									${creative_name}=
+	 ...									${creative_url}=
+	 ...									${creative_destination_url}=
+	 ...									${creative_width}=
+	 ...									${creative_height}=
+	 ...									${creative_status}=
+	 ...									${response_content}=
+     Log         Creative ID to Validate: ${creative_id}
+     Log 		 Creative Name to Validate: ${creative_name}
+     SMB Read Creative 			creative_id=${creative_id}      
+     ${validations}=    Create Dictionary       	/success=true
+     ...                                        	/creative/id=${creative_id}
+     ...                                        	/creative/advertiser_id=${advertiser_id}
+     ...                                        	/creative/creative_name="${creative_name}"
+     ...                                        	/creative/creative_url="${creative_url}"
+     ...                                        	/creative/destination_url="${creative_destination_url}"
+     ...                                        	/creative/width=${creative_width}
+     ...                                        	/creative/height=${creative_height}
+     ...                                        	/creative/status="${creative_status}"
+     Log Dictionary						${validations}
+     Validate JSON Response     json_response=${response_content}      expected_values_dictionary=${validations}     
+
+SMB Validate Creative Added Via DB
+     Log       Start Validating in DB for Creative: ${creative_id}
+     Run Keyword If                '${creative_status}' == 'PENDING'     		Set Suite Variable    ${creative_status_validation}      	None
+     Run Keyword If			       '${creative_status}' == 'APPROVED'     		Set Suite Variable    ${creative_status_validation}     	1
+     Retrieve Creative Details By Creative        ${creative_id}
+     ${db_creative_id}=         									Get From Dictionary				${creative_db_information}				rhino_creative_id 		
+	 ${db_creative_name}=         									Get From Dictionary				${creative_db_information}				rhino_creative_name 		
+	 ${db_creative_advertiser_id}=         							Get From Dictionary				${creative_db_information}				rhino_creative_advertiser_id     																	
+	 ${db_creative_format_id}=         								Get From Dictionary				${creative_db_information}				rhino_creative_format_id      																	
+	 ${db_creative_source_url}=         							Get From Dictionary				${creative_db_information}				rhino_creative_source_url	 	
+	 ${db_creative_url}=         									Get From Dictionary				${creative_db_information}				rhino_creative_url	 																
+	 ${db_creative_destination_url}=         						Get From Dictionary				${creative_db_information}				rhino_creative_destination_url    																	
+	 ${db_creative_created_dt}=         							Get From Dictionary				${creative_db_information}				rhino_creative_created_dt      																	
+	 ${db_creative_modified_dt}=         							Get From Dictionary				${creative_db_information}				rhino_creative_modified_dt     																	
+	 ${db_creative_ext_creative_id}=         						Get From Dictionary				${creative_db_information}				rhino_creative_ext_creative_id    																	
+	 ${db_creative_audit_status}=         							Get From Dictionary				${creative_db_information}				rhino_creative_audit_status    																	
+	 ${db_creative_audit_feedback}=         						Get From Dictionary				${creative_db_information}				rhino_creative_audit_feedback     																	
+	 ${db_creative_is_expired}=         							Get From Dictionary				${creative_db_information}				rhino_creative_is_expired     																	
+	 ${db_creative_language}=         								Get From Dictionary				${creative_db_information}				rhino_creative_language   																	
+	 ${db_creative_brand}=         									Get From Dictionary				${creative_db_information}				rhino_creative_brand      																	
+	 ${db_creative_category}=         								Get From Dictionary				${creative_db_information}				rhino_creative_category																
+	 Run Keyword And Continue On Failure							Should Be Equal As Strings    	${creative_id}							${db_creative_id}
+	 Run Keyword And Continue On Failure							Should Be Equal As Strings      ${advertiser_id}						${db_creative_advertiser_id}
+	 Run Keyword And Continue On Failure							Should Be Equal As Strings      ${creative_name}						${db_creative_name}
+	 Run Keyword And Continue On Failure							Should Be Equal As Strings      ${creative_url}							${db_creative_source_url}
+	 Run Keyword And Continue On Failure							Should Be Equal As Strings      ${creative_status_validation}			${db_creative_audit_status}
+	          
+     
+List All Creatives For Advertiser
+	 [Arguments]                  ${advertiser_id}=                ${response_code}=200   
+     ${resp}    RequestsLibrary.Get Request   smb   api/v1/creatives?advId=${advertiser_id}    	headers=${headers} 
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}        ${response_code}  
+     Should Be Valid Json 	${response_content}        
+     Run Keyword Unless         '${response_code}' == '200' 			Should Match Regexp				${response_content}               ${success_false_regex}
+
+Attach Creative To SMB Campaign
+    [Arguments]    					${campaign_id}=
+     ...							${creative_id}=
+     ...							${expected_response_code}=
+     Log       Campaign ID: ${campaign_id}
+     Log       Creative ID: ${creative_id}
+     Set Test Variable      ${data}            {"creative_id":["${creative_id}"]}
+     Log		Request: ${data}
+     ${resp}    RequestsLibrary.Post Request    smb   api/v1/campaigns/${campaign_id}     data=${data}    headers=${headers}  
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}      ${expected_response_code}
+     Should Be Valid Json 	${response_content}  
+     
+Update SMB Campaign Start Date And Timezone
+    [Arguments]    					${campaign_id}=
+     ...							${start_date}=
+     ...							${time_zone}=
+     ...							${expected_response_code}=200
+     Log       Campaign ID: ${campaign_name}
+     Log       Start Date: ${start_date}
+     Log       Time Zone: ${time_zone}
+     Set Test Variable      ${data}            {"start_date": "${start_date}","time_zone": "${time_zone}"}
+     Log		Request: ${data}
+     ${resp}    RequestsLibrary.Post Request    smb   api/v1/campaigns/${campaign_id}     data=${data}    headers=${headers}  
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}      ${expected_response_code}
+     Should Be Valid Json 	${response_content}  
+
+Update SMB Campaign Status
+    [Arguments]    					${campaign_id}=
+     ...							${campaign_status}=PAUSE
+     ...							${expected_response_code}=200
+     Log       Campaign ID: ${campaign_name}
+     Set Test Variable      ${data}            {"status": "${campaign_status}"}
+     Log		Request: ${data}
+     ${resp}    RequestsLibrary.Post Request    smb   api/v1/campaigns/${campaign_id}     data=${data}    headers=${headers}  
+     Log    Response: '${resp.content}'
+     Set Suite Variable       ${response_content}     ${resp.content}
+     Should Be Equal As Strings       ${resp.status_code}      ${expected_response_code}
+     Should Be Valid Json 	${response_content}
+     Run Keyword If 		'${campaign_status}'=='SMB_LIST_UPDATED'	Retrieve Element And Validate Value Match JSON      ${response_content}		/campaign/status		"LIVE"		
+     Run Keyword Unless 	'${campaign_status}'=='SMB_LIST_UPDATED'	Retrieve Element And Validate Value Match JSON      ${response_content}		/campaign/status		"${campaign_status}"		
+	 
+Construct Dictionary of Creative Rejection Feedback
+	[Documentation]			The dictionary items contains integers for keys as laid out below.  
+	...						The list below are the rejections that we typically get back from Appnexus.
+	...						When we need to add another rejection message, we can add another dictionary item and update the keyword 
+	...						"Reject Creative With Random Rejection Feedback" with a different count so that the message can be added to the randomizer.
+	${rejections}    Create Dictionary     	1=Destination webpage does not load properly.
+	...										2=Banner has prohibited content.
+	...										3=Banner does not reflect nature of business or offer clearly.
+	...										4=Banner improperly shows multiple brands.
+	...										5=Brand or offer in banner does not match destination webpage.
+	...										6=Banner does not meet minimum standards. Please review guidelines.
+	...										7=The banner is in rejected status due to technical issues. The banner will be approved automatically after the issues are resolved by website support. No user action is necessary.	
+	Set Suite Variable    ${rejections}		${rejections}
+	Log Many      ${rejections}
+	
+Retrieve All Creatives With Reject In The Name That Has Not Been Approved
+	[Documentation]			This keyword will retrieve all creatives that contains "reject" in the name that has not been approved or rejected and return a list to be used for rejections.
+ 	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+    @{reject_creatives_id}      Query     select id from rhino.creative where LOWER(name) like '%reject%' and (audit_status = 0 or audit_status is NULL);
+    Log Many    @{reject_creatives_id} 
+    Disconnect From Database
+    Set Suite Variable    @{reject_creatives_id} 		@{reject_creatives_id} 
+
+Reject Creative With Random Rejection Feedback  
+	[Documentation]			Given a creative id, generate a random message and reject the creative in the database.
+	[Arguments]     		${creative_id}   
+	${random_creative_index}=         Generate Random String		1		1234567
+	Construct Dictionary of Creative Rejection Feedback
+	Log    Random Index Generated:[${random_creative_index}]
+	${creative_rejection_string}=     Get From Dictionary		${rejections}	${random_creative_index}	
+	Log    Creative Rejection String:[${creative_rejection_string}]
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}   
+	execute_sql_string    UPDATE rhino.creative SET ext_creative_id = '999999999', audit_feedback = '${creative_rejection_string}', audit_status=-1 WHERE id = ${creative_id};
+	Disconnect From Database
+	

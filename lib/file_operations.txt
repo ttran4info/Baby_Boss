@@ -1,0 +1,76 @@
+*** Settings ***
+Resource    adhaven_general.txt
+Library       OperatingSystem
+
+*** Keywords ****
+Retrieve The Current Directory
+         Set Suite Variable     ${current_lib_directory}     ${CURDIR}         
+         Log      Current Directory: ${current_lib_directory} 
+         
+Retrieve The Banner Images Root Directory
+         ${path}     ${d}=    Split Path    ${CURDIR} 
+         Log    Path: ${path}
+         ${temp_dir}=      Join Path    ${path}    test_datafiles
+         Set Suite Variable       ${banner_directory}       ${temp_dir}
+         
+Retrieve Direct Path For Banner 
+         [ARGUMENTS]       ${banner_type}=
+         ...                         ${file_name}=         
+         Retrieve The Banner Images Root Directory
+         ${temp_dir}=      Join Path      ${banner_directory}     data_test_banners     ${banner_type}     ${file_name}
+         Set Suite Variable        ${banner_file}        ${temp_dir}
+         Log      Banner File: ${banner_file} 
+         
+Retrieve Output File Path
+         [ARGUMENTS]        ${output_filename}=
+         ${path}     ${d}=    Split Path    ${CURDIR} 
+         ${temp_dir}=      Join Path    ${path}    test_output_files       ${output_filename}
+         Set Suite Variable       ${output_directory}       ${temp_dir}
+         Log     Output Directory: ${output_directory}
+         
+Retrieve Direct Path For BRX Data Files
+         ${path}     ${d}=    Split Path    ${CURDIR} 
+         Log    Path: ${path}
+         ${temp_dir}=      Join Path    ${path}    test_datafiles    brx
+         Set Suite Variable       ${brx_datafiles_directory}       ${temp_dir}
+         
+Retrieve BRX Data File
+         [Arguments]         ${file_name}=        
+         Retrieve Direct Path For BRX Data Files
+         ${brx_file}=     Join Path        ${brx_datafiles_directory}       ${file_name}
+         Log     BRX File: ${brx_file}
+         Set Suite Variable          ${brx_file}      ${brx_file}
+
+Retrieve Tools File Path
+         [ARGUMENTS]        ${tools_folder}=
+         ${path}     ${d}=    Split Path    ${CURDIR} 
+         ${temp_dir}=      Join Path    ${path}    tools       ${tools_folder}
+         Set Suite Variable       ${tools_directory}       ${temp_dir}
+         Log     Tools Directory: ${tools_directory}    
+         
+Retrieve CBTools Temp Data Device2HH
+		 ${path}     ${d}=    Split Path    ${CURDIR} 
+         ${temp_dir}=      Join Path    ${path}    tools       cbtools		TEMP_DATA_LOAD_DEVICE2HH			
+         Set Suite Variable       ${cb_tools_temp_data_load_device2hh}       ${temp_dir}
+         Log     CBTools Data Load Directory For Device2HH: ${cb_tools_temp_data_load_device2hh} 
+         
+Retrieve CBTools Temp Data IP2HH
+		 ${path}     ${d}=    Split Path    ${CURDIR} 
+         ${temp_dir}=      Join Path    ${path}    tools       cbtools		TEMP_DATA_LOAD_IP2HH			
+         Set Suite Variable       ${cb_tools_temp_data_load_ip2hh}       ${temp_dir}
+         Log     CBTools Data Load Directory For IP2HH: ${cb_tools_temp_data_load_ip2hh}          
+         
+Retrieve Bloom Filter Path
+		 ${path}     ${d}=    Split Path    ${CURDIR} 
+         ${temp_dir}=      Join Path    ${path}    bloom-filter		src		
+         Set Suite Variable       ${bloom_filter_home}       ${temp_dir}
+         Log     Bloom Filter Home: ${bloom_filter_home} 
+ 
+Retrieve Tools Keys File
+         [Arguments]         ${file_name}=id_rsa 
+         Log    File name: ${file_name}
+		 ${path}     ${d}=    Split Path    ${CURDIR} 
+         ${temp_dir}=      Join Path    ${path}    tools       keys		
+         ${keys_file}=     Join Path    ${temp_dir}   ${file_name}
+         Set Suite Variable       ${keys_file}		${keys_file}
+

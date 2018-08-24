@@ -1,0 +1,62 @@
+
+
+*** Settings ***
+Resource            ui_object_library.txt
+Resource            common_config.txt
+
+*** Keywords ****
+
+Go To Household Lookup
+       Go To ACE Tab 
+       Wait Until Page Contains Element     ${LOOKUP_A_HOUSEHOLD_BUTTON}
+       Click Button                         ${LOOKUP_A_HOUSEHOLD_BUTTON}
+
+Household Lookup With Address
+       [Arguments]    ${address}=    ${prizm}=    ${connexions}=  
+       Go To Household Lookup    
+       Input Text         ${HOUSEHOLD_ADDRESS_FIELD}     ${address}
+       Click Button       id=btnLookupByAddress
+       Retrieve Target Segments Table Data 
+       LOG    PRIZM SEGMENTS MATCHED: ${RETURNED_HOUSEHOLD_PRIZM_SEGMENTS}
+       LOG    CONNEXIONS SEGMENT MATCHED: ${RETURNED_HOUSEHOLD_CONNEXIONS_SEGMENTS}
+       Retrieve Target Segments Table Data 
+       LOG    PRIZM SEGMENTS MATCHED: ${RETURNED_HOUSEHOLD_PRIZM_SEGMENTS}
+       LOG    CONNEXIONS SEGMENT MATCHED: ${RETURNED_HOUSEHOLD_CONNEXIONS_SEGMENTS}
+       Validate Prizm Household Target Segment Returned           ${prizm}
+       Validate Connexions Household Target Segment Returned      ${connexions}
+       
+              
+Household Lookup With Lat/Lon
+       [Arguments]    ${lat}=    ${lon}=    ${prizm}=    ${connexions}=
+       Go To Household Lookup    
+       Input Text         ${HOUSEHOLD_LATITUDE_FIELD}     ${lat}
+       Input Text         ${HOUSEHOLD_LONGITUDE_FIELD}    ${lon}
+       Click Button       ${HOUSEHOLD_LOOKUP_A_LOCATION_BUTTON} 
+       Retrieve Target Segments Table Data 
+       LOG    PRIZM SEGMENTS MATCHED: ${RETURNED_HOUSEHOLD_PRIZM_SEGMENTS}
+       LOG    CONNEXIONS SEGMENT MATCHED: ${RETURNED_HOUSEHOLD_CONNEXIONS_SEGMENTS}
+       Validate Prizm Household Target Segment Returned           ${prizm}
+       Validate Connexions Household Target Segment Returned      ${connexions}
+
+Validate Prizm Household Target Segment Returned   
+      [Arguments]     ${prizm_target_list_to_validate}
+      ${returned_list}=      split_household_data_into_list     ${RETURNED_HOUSEHOLD_PRIZM_SEGMENTS}
+      Log    Returned List: ${returned_list}
+      ${validation_list}=      split_household_data_into_list     ${prizm_target_list_to_validate}
+      Log    Returned List: ${validation_list}
+      Lists Should Be Equal     ${returned_list}     ${validation_list}
+      
+Validate Connexions Household Target Segment Returned
+      [Arguments]     ${connexions_target_list_to_validate}
+      ${returned_list}=      split_household_data_into_list     ${RETURNED_HOUSEHOLD_CONNEXIONS_SEGMENTS} 
+      Log    Returned List: ${returned_list}
+      ${validation_list}=      split_household_data_into_list     ${connexions_target_list_to_validate}
+      Log    Returned List: ${validation_list}
+      Lists Should Be Equal    ${returned_list}     ${validation_list}
+      
+Retrieve Target Segments Table Data 
+       Get Table Data     TABLE_LOCATOR=${HOUSEHOLD_TARGET_SEGMENT_TABLE}    ROW=1    COLUMN=2    
+       Set Test Variable   ${RETURNED_HOUSEHOLD_PRIZM_SEGMENTS}   ${RETURNED_CELL_VALUE}
+       Get Table Data     TABLE_LOCATOR=${HOUSEHOLD_TARGET_SEGMENT_TABLE}    ROW=1    COLUMN=5
+       Set Test Variable   ${RETURNED_HOUSEHOLD_CONNEXIONS_SEGMENTS}   ${RETURNED_CELL_VALUE}
+       

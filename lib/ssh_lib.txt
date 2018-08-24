@@ -1,0 +1,155 @@
+
+*** Settings ***
+Resource            ui_object_library.txt
+Resource            common_config.txt
+
+
+*** Keywords ****
+SSH Login As Valid User New Environment
+	[Arguments]    ${SSH_HOST}=        ${TIMEOUT}=30
+	SSH Open Connection To Host    SSH_HOST=${SSH_HOST}      TIMEOUT=${TIMEOUT}
+	Login	${EMPTY}    ${EMPTY}
+	${output}=    			Execute Command     sudo su - jboss
+
+SSH Login As Valid User
+	[Arguments]    ${SSH_HOST}=        ${TIMEOUT}=30
+	SSH Login With User Name Password			SSH_HOST=${SSH_HOST}      TIMEOUT=${TIMEOUT}
+	#Run Keyword If	'${ENVIRONMENT}'=='QA'			SSH Login With User Name Password			SSH_HOST=${SSH_HOST}      TIMEOUT=${TIMEOUT}
+	#Run Keyword If	'${ENVIRONMENT}'=='PROD'		SSH Login As Valid User Using Jenkins Key    SSH_HOST=${SSH_HOST}      TIMEOUT=${TIMEOUT}
+		
+SSH Login With User Name Password
+    [Arguments]    ${SSH_HOST}=        ${TIMEOUT}=30
+    SSH Open Connection To Host    SSH_HOST=${SSH_HOST}      TIMEOUT=${TIMEOUT}
+    Login    ${SSH_USER}    ${SSH_PASS}
+
+SSH Login As Valid User Using Jenkins Key
+    [Arguments]    ${SSH_HOST}=        ${TIMEOUT}=30
+    SSH Open Connection To Host    SSH_HOST=${SSH_HOST}      TIMEOUT=${TIMEOUT}
+    Login With Public Key    jenkins    /var/jenkins/.ssh/id_rsa
+ 	${output}=    			Execute Command     sudo su - jboss   
+SSH Open Connection To Host 
+    [Arguments]    ${SSH_HOST}=        ${TIMEOUT}=30
+    Open Connection    host=${SSH_HOST}     timeout=${TIMEOUT}
+    
+SSH Login As ETL User
+    SSH Open Connection To Host    ${TRUSTE_HOST}
+    Login    ${TRUSTE_SSH_USER}    ${TRUSTE_SSH_PASS}
+
+SSH Login As Pacman User
+    SSH Open Connection To Host    ${TRUSTE_HOST}
+    Login    ${SSH_USER}    ${SSH_PASS}
+    
+Validate Workflow Manager Is Running 
+    [Arguments]       ${SSH_HOST} 
+    SSH Login As Valid User    ${SSH_HOST}
+    ${output}=    Execute Command     hostname
+    Log   Host: ${output}
+    ${output}=    			Execute Command     ps -elf | grep "workflowmanager" | grep -v grep 
+    Log   ${output}
+    Should Match Regexp    ${output}    java -Djava.security.policy=policy.all -jar workflowmanager-jar-with-dependencies.jar
+    Should Match Regexp    ${output}    jboss
+    ${output}=        		Execute Command     ps -elf | grep "workflowmanager" | grep -v grep | awk '{print $4}' | wc -l 
+    Should Be Equal            ${output}        1
+    ${process_id}=        	Execute Command     ps -elf | grep "workflowmanager" | grep -v grep | awk '{print $4}'
+    ${memory_size}=    		Execute Command     ps -elf | grep "workflowmanager" | grep -v grep | awk '{print $10}'
+    Log   Process ID: ${process_id}
+    Log   Memory Size: ${memory_size}
+    Close All Connections    
+    
+Validate Log Uploader Is Running
+     [Arguments]       ${SSH_HOST}
+
+	 @{host_names}=						String.Split String 					${SSH_HOST}				;	
+	 
+	:FOR	${name}		IN		@{host_names}
+	 \	Set Test Variable 		${output}				${EMPTY}
+     \	SSH Login As Valid User    ${name}
+     \	${output}=    Execute Command     hostname
+     \	Log   Host: ${output}
+     \	${output}=    			Execute Command     ps -elf | grep "loguploader-jar-with-dependencies" | grep -v grep 
+     \	Log   ${output}
+     \	Should Match Regexp    ${output}    java -Djava.security.policy=policy.all -jar loguploader-jar-with-dependencies.jar
+     \	Should Match Regexp    ${output}    jboss
+     \	${output}=        		Execute Command     ps -elf | grep "loguploader-jar-with-dependencies" | grep -v grep | awk '{print $4}' | wc -l 
+     \	Should Be Equal            ${output}        1
+     \	${process_id}=        	Execute Command     ps -elf | grep "loguploader-jar-with-dependencies" | grep -v grep | awk '{print $4}'
+     \	${memory_size}=    	Execute Command     ps -elf | grep "loguploader-jar-with-dependencies" | grep -v grep | awk '{print $10}'
+     \	Log   Process ID: ${process_id}
+     \	Log   Memory Size: ${memory_size}
+     \	Close All Connections	
+   
+Validate Daily Process Job Is Running
+     [Arguments]       ${SSH_HOST} 
+     @{host_names}=						String.Split String 					${SSH_HOST}				;
+     
+     :FOR	${name}		IN		@{host_names}
+     \	SSH Login As Valid User    ${name}
+     \	${output}=    Execute Command     hostname
+     \	Log   Host: ${output}
+     \	${output}=    Execute Command     ps -elf | grep "dailyProcess" | grep -v grep 
+     \	Log   ${output}
+     \	Should Match Regexp    ${output}    java -Djava.security.policy=policy.all -jar dailyProcess-jar-with-dependencies.jar
+     \	Should Match Regexp    ${output}    jboss
+     \	${output}=        Execute Command     ps -elf | grep "dailyProcess" | grep -v grep | awk '{print $4}' | wc -l 
+     \	Should Be Equal            ${output}        1
+     \	${process_id}=    Execute Command     ps -elf | grep "dailyProcess" | grep -v grep | awk '{print $4}'
+     \	${memory_size}=    Execute Command     ps -elf | grep "dailyProcess" | grep -v grep | awk '{print $10}'
+     \	Log   Process ID: ${process_id}
+     \	Log   Memory Size: ${memory_size}
+     \	Close All Connections
+ 
+Validate Restore Process Job Is Running
+     [Arguments]       ${SSH_HOST} 
+     @{host_names}=					String.Split String 					${SSH_HOST}				;
+     
+     :FOR	${name}		IN		@{host_names}
+     \	SSH Login As Valid User    ${name}
+     \	${output}=    Execute Command     hostname
+     \	Log   Host: ${output}
+     \	${output}=    Execute Command     ps -elf | grep "restore" | grep -v grep 
+     \	Log   ${output}
+     \	Should Match Regexp    ${output}    java -Djava.security.policy=policy.all -jar restore-jar-with-dependencies.jar
+     \	Should Match Regexp    ${output}    jboss
+     \	${output}=        Execute Command     ps -elf | grep "restore" | grep -v grep | awk '{print $4}' | wc -l 
+     \	Should Be Equal            ${output}        1
+     \	${process_id}=    Execute Command     ps -elf | grep "restore" | grep -v grep | awk '{print $4}'
+     \	${memory_size}=    Execute Command     ps -elf | grep "restore" | grep -v grep | awk '{print $10}'
+     \	Log   Process ID: ${process_id}
+     \	Log   Memory Size: ${memory_size}
+     \	Close All Connections
+ 
+     
+Validate Server Number Settings
+     [Arguments]       ${SSH_HOST}
+     @{host_names}=						String.Split String 					${SSH_HOST}				;
+     
+     :FOR	${name}		IN		@{host_names}
+     \	SSH Login As Valid User    ${name}
+     \	${output}=    Execute Command     printenv
+     \	Log   ENV: ${output}
+     \	${server_number}=    Execute Command     echo $serverNumber | awk '{print $1}'
+     \	Log    Server Number: ${server_number}
+     \	Set Suite Variable       ${server_number}          ${server_number} 
+     
+Login To Smart Bidder QA System
+     [Arguments]       ${USERNAME}     ${KEY_FILE}
+     Open Connection    host=qa-dev     timeout=60
+     ${output}=        Login With Public Key 	${USERNAME}    ${KEY_FILE}
+     
+Get The Tools Keys Path and Try to Login
+     Retrieve Tools Keys File			id_rsa	
+     Log     Path:${keys_file}
+     ${file_output}= 	Run   cat ${keys_file} 
+     Log    OUTPUT:${file_output}
+     Login To Smart Bidder QA System     ganil     ${keys_file}
+     ${output}=    Execute Command     source /home/ganil/Virts/qa/bin/activate; cd ~/Code/research/code/algorithm/bidder; python bidder.py bidder_confs/bidder.conf -s 
+     Log    OUTPUT: ${output}
+     
+Submit a Request to Jenkins to Run Smart Bidder for QA
+     ${output}=    Run     curl -u jenkins_qa:qa_jenkins -s -X POST http://jenkins-ds:8080/job/QA_SmartBidder/build?token=SMART_BIDDER_QA_TOKEN
+
+
+
+
+     
+     

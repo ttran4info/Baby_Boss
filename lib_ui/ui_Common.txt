@@ -1,0 +1,107 @@
+Library    phoenix_ui.txt
+
+
+*** Keywords ***
+#----------------------------------------------------------------------------------
+Clear All Users Created For Common Scenarios UI Tests
+    Delete a user       username=${username}
+
+
+Create Pre-requisite users to test Common Scenarios
+    Log To Console    Creating a new user ${username}
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="${Pass}"
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=[{"permissions": [1, 2], "groupId": 1, "productId": 1}]
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Log To Console    ${username} User Created
+
+    Comment    Catalina Group
+    Log To Console    Adding Catalina Group Permissions
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=6
+    ...    permissionid=1
+    ...    productid=1
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=6
+    ...    permissionid=2
+    ...    productid=1
+
+    Comment    Catalina Self Service Group
+    Log To Console    Adding Catalina Self Service Group Permissions
+    Set Required Permissions To User    username=${username}
+    ...    groupid=15
+    ...    permissionid=1
+    ...    productid=1
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=15
+    ...    permissionid=2
+    ...    productid=1
+
+    Comment    Datamyx Group
+    Log To Console    Adding Datamyx Group Permissions
+    Set Required Permissions To User    username=${username}
+    ...    groupid=17
+    ...    permissionid=1
+    ...    productid=1
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=17
+    ...    permissionid=2
+    ...    productid=1
+
+    Comment    ATT Group
+    Log To Console    Adding ATT Group Permissions
+    Set Required Permissions To User    username=${username}
+    ...    groupid=12
+    ...    permissionid=1
+    ...    productid=1
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=12
+    ...    permissionid=2
+    ...    productid=1
+
+    Log To Console    ${username} User Created
+
+#----------------------------------------------------------------------------------
+Check options for Admin user present in Settings Menu
+    Wait Until Page Contains Element    ${Header_setting-select}
+    Execute javascript  document.body.style.zoom="50%"
+    Sleep    2s 
+    Mouse Over    ${Header_setting-select}
+    Sleep    2s
+    ${count}=    Get Matching Xpath Count    ${SelectMenuOptions}
+    Log    ${count}
+    :FOR    ${index}    IN RANGE   1    ${count} + 1
+    \    Log     Index: ${index}
+    \    ${Val}    Get Text    ${SelectMenuOptions}[${index}]
+    \    Run Keyword If  ${index} == 1    Should Be Equal As Strings   ${Val}    My Account
+    \    Run Keyword If  ${index} == 2    Should Be Equal As Strings   ${Val}    Manage Groups
+    \    Run Keyword If  ${index} == 3    Should Be Equal As Strings   ${Val}    Manage Users
+    \    Run Keyword If  ${index} == 4    Should Be Equal As Strings   ${Val}    Log Out
+
+
+Check options for non Admin user present in Settings Menu
+	Wait Until Page Contains Element    ${Header_setting-select}
+    Execute javascript  document.body.style.zoom="50%"
+    Sleep    2s 
+    Mouse Over    ${Header_setting-select}
+    Sleep    2s
+    ${count}=    Get Matching Xpath Count    ${SelectMenuOptions}
+    Log    ${count}
+    :FOR    ${index}    IN RANGE   1    ${count} + 1
+    \    Log     Index: ${index}
+    \    ${Val}    Get Text    ${SelectMenuOptions}[${index}]
+    \    Run Keyword If  ${index} == 1    Should Be Equal As Strings   ${Val}    My Account
+    \    Run Keyword If  ${index} == 2    Should Be Equal As Strings   ${Val}    Log Out
+#----------------------------------------------------------------------------------

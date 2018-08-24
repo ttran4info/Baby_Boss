@@ -1,0 +1,127 @@
+
+
+*** Keywords ***
+
+Read Request Logs For END
+     ${output}=    Read Until    END
+     Set Test Variable       ${output}     ${output} 
+     Log      Server Request Log: ${output}
+     
+Start Tailing Logs For WURFL Mediation
+	 [Arguments]      ${host}=qa-engine1         ${timeout}=5          ${placement_id}=			${keyword}=
+     SSH Login As Valid User    SSH_HOST=${host}     TIMEOUT=${timeout}    
+     Set Test Variable            ${output}           ${EMPTY}
+	 Should Be Empty   		  ${output}  
+     Write    tail -F -n0 ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS = "|" }; { plid=$2; keyword=$30; if (plid == "${placement_id}" && keyword == "${keyword}") print; if (plid == "${placement_id}" && keyword == "${keyword}") print "User Agent="$22; if (plid == "${placement_id}" && keyword == "${keyword}") print "zMobile Device Brand="$33"z"; if (plid == "${placement_id}" && keyword == "${keyword}") print "zDevice Brand From Request="$58"z"; if (plid == "${placement_id}" && keyword == "${keyword}") print "zDevice Model From Request="$59"z"; if (plid == "${placement_id}" && keyword == "${keyword}") print "END"; }'
+
+#Latest change 7.2 move the user agent to requests.metadata.log in the same directory	 
+Start Tailing Logs For WURFL RTB
+	 [Arguments]      ${host}=${SSH_RTB_HOST}         ${timeout}=5          ${user_agent}=			${bid_id}=
+	 Set Test Variable            ${output}           ${EMPTY}
+	 Should Be Empty   		  ${output}  
+     SSH Login As Valid User    SSH_HOST=${host}     TIMEOUT=${timeout}    
+#    Write    tail -F -n0 ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS = "|" }; { bid=$52; ua=$22; if (ua == "${user_agent}" && bid == "${bid_id}") print; print "User Agent="$22; print "zMobile Device Brand="$33"z"; print "zDevice Brand From Request="$58"z"; print "zDevice Model From Request="$59"z"; print "END"; }'
+#	 Write    tail -F -n0 ~/server/4info/log/requests/requests.v11.log | awk 'BEGIN {FS = "|" }; { bid=$52; if ( bid == "${bid_id}" ) print; if ( bid == "${bid_id}" ) print "User Agent="$22; if ( bid == "${bid_id}" ) print "zMobile Device Brand="$33"z"; if ( bid == "${bid_id}" ) print "zDevice Brand From Request="$58"z"; if ( bid == "${bid_id}" ) print "zDevice Model From Request="$59"z"; if ( bid == "${bid_id}" ) print "END"; }'
+#	Write    tail -F -n0 ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS = "|" }; { bid=$52; if ( bid == "${bid_id}" ) print; if ( bid == "${bid_id}" ) print "User Agent="$22; if ( bid == "${bid_id}" ) print "zMobile Device Brand="$33"z"; if ( bid == "${bid_id}" ) print "zDevice Brand From Request="$58"z"; if ( bid == "${bid_id}" ) print "zDevice Model From Request="$59"z"; if ( bid == "${bid_id}" ) print "END"; }'
+	Write    tail -F -n0 ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS = "|" }; { bid=$4; if ( bid == "${bid_id}" ) print; if ( bid == "${bid_id}" ) print "User Agent="$3; if ( bid == "${bid_id}" ) print "zMobile Device Brand="$33"z"; if ( bid == "${bid_id}" ) print "zDevice Brand From Request="$58"z"; if ( bid == "${bid_id}" ) print "zDevice Model From Request="$59"z"; if ( bid == "${bid_id}" ) print "END"; }'
+		
+# WURFL in 7.2 will change a bit. We must get a valid ad, extract the reqid, use the reqid to look into the log.
+
+# This method require reqid, which should be extracted from the ad response (valid ad required)
+Start Reading Logs For WURFL RTB
+	 [Arguments]      ${host}=${SSH_RTB_HOST}         ${timeout}=5          ${user_agent}=			${reqid}=
+#	 Set Test Variable            ${output}           ${EMPTY}
+#	 Should Be Empty   		  ${output}  
+#     SSH Login As Valid User    SSH_HOST=${host}     TIMEOUT=${timeout}    
+##	 Write    	cat ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS="|"}; { req=$40; if (req == "${reqid}" ) {print "Device OS=" $23;print "Device Model=" $24;print "Device OS version=" $25; print "Device Pointing Method=" $26;print "Device Brand=" $33;print "Device Type=" $48; print "Marketing Name=" $57;print "END";} }'
+#	 Write    	grep "${reqid}" ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS="|"}; { req=$40; if (req == "${reqid}" ) {print "Device OS=" $23;print "Device Model=" $24;print "Device OS version=" $25; print "Device Pointing Method=" $26;print "Device Brand=" $33;print "Device Type=" $48; print "Marketing Name=" $57;print "END";} }'
+#	 Read Request Logs For END
+#	 Close Connection
+	 @{host_names}=						String.Split String 					${host}				;	
+	 ${yyyy}	${mm}	${dd}=		Get Time	year,month,day
+	 Set Test Variable 		${output_main}				${EMPTY}
+	:FOR	${name}		IN		@{host_names}
+	\	Log		${name}
+	\	SSH Login As Valid User    SSH_HOST=${name}    TIMEOUT=5
+	\	Write		grep "${reqid}" ${LOG_PATH}/requests/requests.v11.log | awk 'BEGIN {FS="|"}; { req=$40; if (req == "${reqid}" ) {print "Device OS=" $23;print "Device Model=" $24;print "Device OS version=" $25; print "Device Pointing Method=" $26;print "Device Brand=" $33;print "Device Type=" $48; print "Marketing Name=" $57;print "END";} }'
+	\	Terminate Read Logs For Prompt	 
+	\   Set Test Variable		${output_main}		${output_main}${output} 
+	 Log		Event Logs:${output_main}
+	Set Test Variable	${output}		${output_main}
+Validate WURFL Detection And Logging
+	 [Arguments]			${placement_id}=6				${keyword}=WURFL_TEST       ${user_agent}=iPhone
+	 Set Test Variable        ${user_agent}				${user_agent}
+	 Start Tailing Logs For WURFL Mediation      placement_id=${placement_id}	  		keyword=${keyword}
+	 Create Session    wurfl_test     http://${DEFAULT_AUDIENCE_ENGINE}:8080
+	 ${resp}    RequestsLibrary.Get Request    wurfl_test    ad-engine/ad-groups/getAd?&api_key=96a3be339dc3269b&placement_id=${placement_id}&header_user-agent=${user_agent}&response_type=markup&keyword=${keyword}
+	 Should Be Equal As Strings       ${resp.status_code}      200
+	 Run Keyword If               '${resp.status_code}'=='200'           Read Request Logs For END
+	 Log    Response: '${resp.content}'
+	 Log    Server Log Output: ${output}
+	 Close Connection
+
+#Some changes to wurfl testing.
+#1. The request must response with an ad. We will use the response along with bid_id to extract req_id
+#2. We will use the req_id to cat the request log (since bid_id is not logged in 7.2)	 
+Validate RTB WURFL Detection	 
+	 [Arguments]			${api_key}=					${bid_request}=				${user_agent}=					${bid_id}=
+#	 Start Tailing Logs For WURFL RTB				user_agent=${user_agent}				bid_id=${bid_id}
+#	 RTB Request             ${api_key}        ${bid_request}
+	 RTB Setup
+    Log    POST BODY: ${data}
+    ${resp}    RequestsLibrary.Post Request     rtb     /bid-engine/bidder/${api_key}/getBidOffer     data=${bid_request}    headers=${headers}
+  	Log    Response: '${resp.content}'
+  	Set Test Variable 	${response_content}		${resp.content}
+  	Should Not Match Regexp		${response_content}		"no_bid":true
+	Run Keyword Unless 	'${api_key}'=='cc2f0bbaf30cdb0f'		Extract REQID From Response
+    Run Keyword if		'${api_key}'=='cc2f0bbaf30cdb0f'		Extract REQID From Appnexus Response
+#    ${reqid}=    	extract_matching_regex			${resp.content}           reqid=(.+?)&
+	Start Reading Logs for WURFL RTB	reqid=${reqid}
+    #Read Request Logs For END
+	#Log    Server Log Output: ${output} 
+	#Close Connection
+	 
+Retrieve AppNexus Token	 
+	 Create Session   appnexus    http://api.adnxs.com
+	 ${resp}    RequestsLibrary.Post Request    appnexus     /auth     data={"auth": { "username" : "4info_bidder_user", "password" : "JhbVDCJk" }}   
+	 Log     Response: ${resp}
+	 ${token}=      Get Json Value      ${resp.content}    /response/token
+	 Log     Reponse Token: ${token}
+	 ${length}=       Get Length        ${token}
+	 ${end}=      Evaluate     ${length}-1
+	 ${token_substring}=          Get Substring            ${token}        1       ${end}
+	 Set Suite Variable         ${appnexus_token}         ${token_substring}
+
+Retrieve AppNexus Make 
+	 [Arguments]            ${make_id}=
+	 Log    Make ID: ${make_id}	 
+	 ${headers}    Create Dictionary      Authorization			${appnexus_token}
+     Set Test Variable    ${headers}    ${headers}
+	 Create Session   appnexus    http://api.adnxs.com
+	 ${resp}    RequestsLibrary.Get Request    appnexus     /device-make/${make_id}         headers=${headers}
+	 Log     Response: ${resp}
+	 ${device_make_name}=      Get Json Value      ${resp.content}    /response/device-make/name          
+	 Log     Device Make Name: ${device_make_name}
+	 ${length}=       Get Length        ${device_make_name}
+	 ${end}=      Evaluate     ${length}-1
+	 ${device_make_substring}=          Get Substring            ${device_make_name}       1       ${end}
+	 Set Suite Variable      ${retrieved_appnexus_make}           ${device_make_substring}
+	 
+Retrieve AppNexus Model
+	 [Arguments]            ${model_id}=
+	 Log    Model ID: ${model_id}	 
+	 ${headers}    Create Dictionary      Authorization			${appnexus_token}
+     Set Test Variable    ${headers}    ${headers}
+	 Create Session   appnexus    http://api.adnxs.com
+	 ${resp}    RequestsLibrary.Get Request    appnexus     /device-model/${model_id}         headers=${headers}
+	 Log     Response: ${resp}
+	 ${device_model_name}=      Get Json Value      ${resp.content}    /response/device-model/name          
+	 Log     Device Model Name: ${device_model_name}
+	 ${length}=       Get Length        ${device_model_name}
+	 ${end}=      Evaluate     ${length}-1
+	 ${device_model_substring}=          Get Substring            ${device_model_name}       1       ${end}
+	 Set Suite Variable      ${retrieved_appnexus_model}           ${device_model_substring}
+	 
+	 
+	 
+	 

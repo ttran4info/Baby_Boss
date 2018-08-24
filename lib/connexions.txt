@@ -1,0 +1,13 @@
+
+
+*** Settings ***
+Resource            ui_object_library.txt
+Resource            common_config.txt
+
+*** Keywords ****
+
+Connexions Ad Serving Test  
+       [Arguments]    ${lat}   ${lon}    ${expect_error}=0
+       Construct REST API Ad Request     ad_engine=${engine}    api_key=${api_key}    placement_id=${placement_id}    header_user-agent=iPhone   lat_lon=${lat},${lon}    response_type=markup
+       Log   Expected Error: ${expect_error}
+       Validate Ad Serving    ad_url=${ad_request_url}    image_name=${image_name}    location=${location}    page_title=${page_title}    expect_error=${expect_error}

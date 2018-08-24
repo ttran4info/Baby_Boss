@@ -1,0 +1,1670 @@
+*** Settings ***
+Resource    ui_object_library.txt
+Resource    ui_advertiser.txt
+Resource    adhaven_general.txt  
+Resource    adgroup.txt
+Resource    partners.txt 
+Resource    database.txt 
+Library		String
+
+*** Keywords ****
+Go To Advertisers Tab
+      Click Link         ${TAB_ADVERTISERS}
+      Page Should Contain                  Advertisers
+      Wait Until Page Contains Element     ${CREATE_NEW_ADVERTISER_LINK}
+
+Validate Advertisers Table Headers
+      Page Should Contain Element        ${ADVERTISER_TABLE}
+      Get Table Data       TABLE_LOCATOR=${ADVERTISER_TABLE}    ROW=1    COLUMN=1    
+      Log   RETURNED_CELL_VALUE: ${RETURNED_CELL_VALUE}
+      Table Header Should Contain        ${ADVERTISER_TABLE}    ADVERTISER NAME
+      Table Header Should Contain        ${ADVERTISER_TABLE}    AGENCY
+      Table Header Should Contain        ${ADVERTISER_TABLE}    STATUS
+      Table Header Should Contain        ${ADVERTISER_TABLE}    LIVE CAMPAIGNS
+      Table Header Should Contain        ${ADVERTISER_TABLE}    PENDING CAMPAIGNS
+      Table Header Should Contain        ${ADVERTISER_TABLE}    ENDED CAMPAIGNS
+  
+      
+Retrieve Advertisers Available
+      [Arguments]         ${total_advertisers}=ALL
+      ${orig_speed}=     Get Selenium Speed
+      Log   Original Selenium Speed:${orig_speed}
+      Set Selenium Speed   0 seconds
+      Run Keyword If        '${total_advertisers}'=='ALL'       Get All Advertisers
+      @{all_advertisers_list}=    Create List 
+      @{advertiser_active}=       Create List 
+      @{advertiser_inactive}=     Create List 
+      :FOR    ${index}    IN RANGE   2    ${total_advertisers}+2
+      \       Get Table Data       TABLE_LOCATOR=${ADVERTISER_TABLE}    ROW=${index}    COLUMN=1    
+      \       Set Test Variable   	${Current_Advertiser}    ${RETURNED_CELL_VALUE}
+      \       Append To List    	${all_advertisers_list}    ${Current_Advertiser}
+      \       Get Table Data       TABLE_LOCATOR=${ADVERTISER_TABLE}    ROW=${index}    COLUMN=3
+      \       Run Keyword If    '${RETURNED_CELL_VALUE}' == 'Active'        Append To List    ${advertiser_active}           ${Current_Advertiser}
+      \       Run Keyword If    '${RETURNED_CELL_VALUE}' == 'InActive'      Append To List    ${advertiser_inactive}         ${Current_Advertiser}
+      Set Suite Variable     	${ALL_ADVERTISERS}                  		${all_advertisers_list}
+      Set Suite Variable     	${ALL_ACTIVE_ADVERTISERS}           	${advertiser_active} 
+      Set Suite Variable     	${ALL_INACTIVE_ADVERTISERS}         ${advertiser_inactive} 
+      Log     						${ALL_ADVERTISERS}
+      Log     						${ALL_ACTIVE_ADVERTISERS}
+      Log     						${ALL_INACTIVE_ADVERTISERS}
+      ${count}=          Get Length         ${ALL_ADVERTISERS} 
+      Should Be True     0 < ${count} 
+      Set Selenium Speed    ${orig_speed}
+
+Get All Advertisers
+     Get Total Rows Available In Table ${ADVERTISER_TABLE_ROW_XPATH}
+     Set Suite Variable          ${total_advertisers}               ${Results_Returned}      
+      
+Create New Advertiser
+      [Arguments]      			 ${advertiser_name}=01_TEST_ADVERTISER
+      ...                        ${guid}=QA
+      ...                        ${address1}=123 ABC DR.
+      ...                        ${address2}=
+      ...                        ${city}=SAN MATEO
+      ...                        ${state}=CA
+      ...                        ${zip}=94402
+      ...                        ${contact}=ME
+      ...                        ${phone}=123-456-7890
+      ...                        ${email}=me@4info.com
+      ...                        ${is_agency_flag}=0
+      ...                        ${belongs_to_agency_flag}=0
+      ...                        ${agency_selection}=Select
+      ...                        ${timestamp_flag}=0
+      ${timestamp}=      get_timestamp
+      Run Keyword If                '${timestamp_flag}' == '1'     Set Suite Variable    ${advertiser_name}    ${advertiser_name}_${timestamp}
+      Run Keyword Unless                '${timestamp_flag}' == '1'     Set Suite Variable    ${advertiser_name}    ${advertiser_name}
+      Go To Advertisers Tab
+      Click Link      ${CREATE_NEW_ADVERTISER_LINK}
+      Sleep    5s
+      Input Text     ${NAME_TEXTBOX}                  ${advertiser_name}
+      Input Text     ${GUID_TEXTBOX}                   ${guid}
+      Input Text     ${ADDRESS1_TEXTBOX}           ${address1}
+      Input Text     ${ADDRESS2_TEXTBOX}           ${address2}
+      Input Text     ${CITY_TEXTBOX}                    ${city}
+      Input Text     ${STATE_TEXTBOX}                    ${state}
+      Input Text     ${ZIP_TEXTBOX}                      ${zip}
+      Input Text     ${CONTACT_TEXTBOX}           ${contact}
+      Input Text     ${PHONE_TEXTBOX}                ${phone}
+      Input Text     ${EMAIL_TEXTBOX}                 ${email}
+      Run Keyword If                '${is_agency_flag}' == '1'               Select Checkbox    ${IS_AGENCY_CHECKBOX}
+      Run Keyword Unless        '${is_agency_flag}' == '1'               Unselect Checkbox          ${IS_AGENCY_CHECKBOX}
+      Run Keyword If                '${belongs_to_agency_flag}' == '1'               Select Checkbox    ${BELONGS_TO_AGENCY_CHECKBOX}
+      Run Keyword Unless        '${belongs_to_agency_flag}' == '1'               Unselect Checkbox       ${BELONGS_TO_AGENCY_CHECKBOX}
+      Select From List     ${BELONGS_TO_AGENCY_SELECT}    ${agency_selection}
+      Capture Page Screenshot With Timestamp
+      Click Element                  ${ADVERTISER_SAVE_BUTTON}
+      Sleep   10s
+      Page Should Contain Link       ${CREATE_NEW_ADVERTISER_LINK}
+      Log     Advertiser Name: ${advertiser_name}
+      Validate Advertiser   advertiser_name=${advertiser_name}     guid=${guid}    address1=${address1}     address2=${address2}    city=${city}    zip=${zip}    contact=${contact}     phone=${phone}    email=${email}     is_agency_flag=${is_agency_flag}    belongs_to_agency_flag=${belongs_to_agency_flag}      agency_selection=${agency_selection}
+      
+Validate Advertiser   
+      [Arguments]      			 ${advertiser_name}=01_TEST_ADVERTISER
+      ...                        ${guid}=QA
+      ...                        ${address1}=123 ABC DR.
+      ...                        ${address2}=
+      ...                        ${city}=SAN MATEO
+      ...                        ${state}=CA
+      ...                        ${zip}=94402
+      ...                        ${contact}=ME
+      ...                        ${phone}=123-456-7890
+      ...                        ${email}=me@4info.com
+      ...                        ${is_agency_flag}=0
+      ...                        ${belongs_to_agency_flag}=0
+      ...                        ${agency_selection}=Select
+      Click Link         ${TAB_ADVERTISERS}
+      Page Should Contain                  Advertisers
+      Wait Until Page Contains Element     ${CREATE_NEW_ADVERTISER_LINK}
+      Click Link       ${advertiser_name}
+      Page Should Contain Link         ${ADVERTISER_EDIT_LINK}
+      Click Link      ${ADVERTISER_EDIT_LINK}
+      Capture Page Screenshot With Timestamp
+      Textfield Should Contain     ${NAME_TEXTBOX}                  ${advertiser_name}
+      Textfield Should Contain     ${GUID_TEXTBOX}                   ${guid}
+      Textfield Should Contain     ${ADDRESS1_TEXTBOX}           ${address1}
+      Textfield Should Contain     ${ADDRESS2_TEXTBOX}           ${address2}
+      Textfield Should Contain     ${CITY_TEXTBOX}                    ${city}
+      Textfield Should Contain     ${STATE_TEXTBOX}                 ${state}
+      Textfield Should Contain     ${ZIP_TEXTBOX}                      ${zip}
+      Textfield Should Contain     ${CONTACT_TEXTBOX}           ${contact}
+      Textfield Should Contain     ${PHONE_TEXTBOX}                ${phone}
+      Run Keyword If                '${is_agency_flag}' == '1'               Validate Checkbox Enabled ${IS_AGENCY_CHECKBOX}
+      Run Keyword Unless        '${is_agency_flag}' == '1'               Validate Checkbox Disabled ${IS_AGENCY_CHECKBOX}
+      Run Keyword If                '${belongs_to_agency_flag}' == '1'               Validate Checkbox Enabled ${BELONGS_TO_AGENCY_CHECKBOX}
+      Run Keyword Unless        '${belongs_to_agency_flag}' == '1'               Validate Checkbox Disabled ${BELONGS_TO_AGENCY_CHECKBOX}
+      List Selection Should Be        ${BELONGS_TO_AGENCY_SELECT}    ${agency_selection}
+      Click Element                  ${ADVERTISER_CANCEL_BUTTON}
+
+Validate SMB Advertiser TAB   
+      [Arguments]      			 ${advertiser_name}=
+      ...                        ${guid}=
+      ...                        ${address1}=
+      ...                        ${address2}=
+      ...                        ${city}=
+      ...                        ${state}=
+      ...                        ${zip}=
+      ...                        ${contact}=
+      ...                        ${phone}=
+      ...                        ${email}=
+      Click Link         ${TAB_ADVERTISERS_SMB}
+      Page Should Contain                  Advertisers
+      Click Link       ${advertiser_name}
+      Click Link      ${ADVERTISER_EDIT_LINK}
+      Capture Page Screenshot With Timestamp
+      Textfield Should Contain     ${NAME_TEXTBOX}               ${advertiser_name}
+#      Textfield Should Contain     ${GUID_TEXTBOX}               ${guid}
+      Textfield Should Contain     ${ADDRESS1_TEXTBOX}           ${address1}
+      Textfield Should Contain     ${ADDRESS2_TEXTBOX}           ${address2}
+      Textfield Should Contain     ${CITY_TEXTBOX}               ${city}
+      Textfield Should Contain     ${STATE_TEXTBOX}              ${state}
+      Textfield Should Contain     ${ZIP_TEXTBOX}                ${zip}
+      Textfield Should Contain     ${CONTACT_TEXTBOX}            ${contact}
+      Textfield Should Contain     ${PHONE_TEXTBOX}              ${phone}
+      Click Element                  ${ADVERTISER_CANCEL_BUTTON}      
+
+Add Campaign To Advertiser 6.0      
+      [Arguments]      			 ${advertiser_name}=
+      ...                        ${campaign_name}=01_TEST_CAMPAIGN
+      ...                        ${campaign_io}=io
+      ...						 ${campaign_time_zone}=GMT
+      ...                        ${campaign_start_date}=
+      ...                        ${campaign_end_date}=
+      ...                        ${campaign_total_budget}=100000
+      ...                        ${campaign_vertical}=(IAB2) Automotive 
+      ...                        ${campaign_segment}=(IAB2-1) Auto Parts
+      ...                        ${campaign_category}=
+      ...                        ${campaign_objective}=
+      ...                        ${campaign_branding_keyword}=TestCampaign
+      ...                        ${campaign_paused_flag}=0
+      ...                        ${timestamp_flag}=0
+      ...						 ${campaign_data_source}=Acxiom
+      ${implicit_wait_orig}=             Get Selenium Implicit Wait
+      Set Selenium Implicit Wait       10 seconds
+      ${timestamp}=      get_timestamp
+      Go To      ${URL} 
+      Run Keyword If                    '${timestamp_flag}' == '1'     Set Suite Variable    ${campaign_name}    ${campaign_name}_${timestamp}
+      Run Keyword Unless                '${timestamp_flag}' == '1'     Set Suite Variable    ${campaign_name}    ${campaign_name}
+      Log    Campaign Name: ${campaign_name}
+      Click Link         ${TAB_ADVERTISERS} 
+      Location Should Be            ${QA_URL}advertisersList.html
+      Page Should Contain                  Advertisers
+      Wait Until Page Contains Element     ${CREATE_NEW_ADVERTISER_LINK}
+      Click Link       ${advertiser_name}
+      Page Should Contain Link         ${ADVERTISER_EDIT_LINK}
+      Page Should Contain Link         ${CREATE_NEW_CAMPAIGN_LINK}
+      Click Link       ${CREATE_NEW_CAMPAIGN_LINK}
+      Sleep       2s 
+      Input Text      ${CAMPAIGN_NAME_TEXTBOX}                  ${campaign_name}
+      Input Text      ${CAMPAIGN_IO_TEXTBOX}                        ${campaign_io}
+      Log Many	TimeZone locator:${CAMPAIGN_TIME_ZONE_SELECT}		TimeZone:${campaign_time_zone} 
+
+      Select From List By Label		${CAMPAIGN_TIME_ZONE_SELECT}				${campaign_time_zone}
+      Input Text      ${CAMPAIGN_START_TEXTBOX}                 ${campaign_start_date}
+      Input Text      ${CAMPAIGN_END_TEXTBOX}                     ${campaign_end_date}
+      Input Text      ${CAMPAIGN_TOTAL_BUDGET_TEXTBOX}     ${campaign_total_budget}
+      Select From List By Label           ${CAMPAIGN_VERTICAL_SELECT}     ${campaign_vertical}
+      Select From List By Label           ${CAMPAIGN_SEGMENT_SELECT}     ${campaign_segment}
+      Select From List By Label			 ${CAMPAIGN_DATA_SOURCE_SELECT}		${campaign_data_source}
+      Run Keyword If                '${campaign_paused_flag}' == '1'               Select Checkbox    ${CAMPAIGN_PAUSED_CHECKBOX}
+      Run Keyword Unless        '${campaign_paused_flag}' == '1'               Unselect Checkbox       ${CAMPAIGN_PAUSED_CHECKBOX}
+      Capture Page Screenshot With Timestamp
+      Click Element                  ${CAMPAIGN_SAVE_BUTTON}
+Temporary remove check due to issue
+#      Page Should Contain Link         ${campaign_name}
+      Set Selenium Implicit Wait         ${implicit_wait_orig}
+
+Go To Existing Campaign 6.0
+      [Arguments]         ${advertiser_name}=     ${campaign_name}=      
+      Click Link         ${TAB_ADVERTISERS} 
+      Sleep     4s
+      Location Should Be            ${QA_URL}advertisersList.html
+      Page Should Contain                  Advertisers
+      Log    Advertiser: ${advertiser_name}
+      Click Link         ${advertiser_name}
+      Sleep     4s
+      Click Link         ${campaign_name}
+      Sleep     4s
+      Page Should Contain Link         ${CREATE_ADGROUP_LINK_TOP_6_0}     
+      #Page Should Contain Link         ${CREATE_ADGROUP_ONLINE_LINK_TOP_6_0}
+      Page Should Contain      Create parent ad group
+      #Page Should Contain      Create mobile parent ad group
+      #Page Should Contain      Create online parent ad group
+      Sleep     4s
+      Capture Page Screenshot With Timestamp
+
+Go To Existing Parent Adgroup 6.0
+      [Arguments]         ${advertiser_name}=     ${campaign_name}=     ${parent_adgroup_name}=
+      Click Link         ${TAB_ADVERTISERS} 
+      Sleep     2s
+      Location Should Be            ${QA_URL}advertisersList.html
+      Page Should Contain                  Advertisers
+      Wait Until Page Contains Element     ${CREATE_NEW_ADVERTISER_LINK}
+      Log    Advertiser: ${advertiser_name}
+      Click Link         ${advertiser_name}
+      Sleep     2s
+      Click Link         ${campaign_name}
+      Sleep     2s
+      Click Link        ${parent_adgroup_name}
+      Sleep     2s
+      Location Should Contain     agLevel=parent
+      Location Should Contain     pageMode=edit
+      Textfield Should Contain        ${AG_NAME_TEXTBOX}                  ${parent_adgroup_name}
+      Capture Page Screenshot With Timestamp
+      ${source}=   Get Source  
+      
+Add Parent Adgroup To Campaign Without Targeting 6.0
+      [Arguments]      			 ${advertiser_name}=
+      ...                        ${campaign_name}=
+      ...                        ${ag_adgroup_name}=
+      ...                        ${ag_start_date}=
+      ...                        ${ag_end_date}=
+      ...                        ${ag_impression_goal_io}=10000      
+      ...                        ${ag_frequency_cap_daily_flag}=0
+      ...                        ${ag_frequency_cap_daily_no_times}=0
+      ...                        ${ag_frequency_cap_no_days}=1
+      ...                        ${ag_frequency_cap_overall_flag}=0
+      ...                        ${ag_frequency_cap_overall_no_times}=0
+      ...                        ${ag_device_frequency_cap_daily_flag}=0
+      ...                        ${ag_device_frequency_cap_daily_no_times}=0
+      ...                        ${ag_device_frequency_cap_no_days}=1
+      ...                        ${ag_device_frequency_cap_overall_flag}=0     
+      ...                        ${ag_device_frequency_cap_overall_no_times}=0    
+      ...                        ${ag_ip_frequency_cap_daily_flag}=0
+      ...                        ${ag_ip_frequency_cap_daily_no_times}=0
+      ...                        ${ag_ip_frequency_cap_daily_no_days}=1
+      ...                        ${ag_ip_frequency_cap_overall_flag}=0
+      ...                        ${ag_ip_frequency_cap_overall_no_times}=0      
+      ...                        ${ag_measurement}=None
+      ...                        ${ag_data_partner}=None
+      ...                        ${ag_household_segment}=0
+      ...						 ${ag_household_datasource_name}=
+      ...						 ${ag_household_segment_name}=
+      ...						 ${ag_household_datasource_boost_flag}=0
+      ...                        ${ag_device_id_segment}=0
+      ...						 ${ag_device_id_datasource_name}=
+      ...						 ${ag_device_id_segment_name}=
+      ...                        ${ag_geofence}=0
+      ...						 ${ag_parent_ag_type}=MOBILE
+      ...						 ${ag_geofence_name}=REGRESSION GEOFENCE MACY
+      ...						 ${ag_negative_geofence}=0
+      ...						 ${ag_3rd_party_segment}=0
+      ...						 ${ag_3rd_party_segment_name}=
+      ...						 ${ag_enable_conversion_tracking}=0
+      ...                        ${timestamp_flag}=0
+      ${timestamp}=      get_timestamp
+      ${implicit_wait_orig}=             Get Selenium Implicit Wait
+      Set Selenium Implicit Wait       	5 seconds
+      Run Keyword If                    '${timestamp_flag}' == '1'     Set Suite Variable    ${ag_adgroup_name}    ${ag_adgroup_name}_${timestamp}
+      Run Keyword Unless                '${timestamp_flag}' == '1'     Set Suite Variable    ${ag_adgroup_name}    ${ag_adgroup_name}   
+      Go To Existing Campaign 6.0       advertiser_name=${advertiser_name}           campaign_name=${campaign_name}
+      ${location}=			Get Location
+      Log       Page URL:${location} 	
+      Click Link           ${CREATE_ADGROUP_LINK_TOP_6_0}
+      Sleep     1s
+      Capture Page Screenshot With Timestamp
+      Wait Until Page Contains       	Create New Parent Ad Group
+      ${location}=			Get Location
+      Log       Page URL:${location} 	
+      Run Keyword And Continue On Failure			Location Should Contain     pageMode=add
+      Run Keyword And Continue On Failure			Location Should Contain     agLevel=parent
+      #Run Keyword And Continue On Failure			Location Should Contain     campaignId=${campaign_id}
+            
+      #Log		Start Date Locator:${AG_START_TEXTBOX} Start date:${ag_start_date}
+      Input Text      ${AG_START_TEXTBOX}           ${ag_start_date}
+      Input Text      ${AG_END_TEXTBOX}             ${ag_end_date}
+      Run Keyword If			  '${ag_3rd_party_segment}' == '1'								Add 3rd Party Segment		ag_3rd_party_segment_name=${ag_3rd_party_segment_name}
+      
+	  Run Keyword If			'${ag_enable_conversion_tracking}' == '1'						Select Checkbox					${AG_ENABLE_CONVERSION_TRACKING_CHECKBOX}
+	  Run Keyword If			'${ag_household_segment}' == '1'								Add House Hold Data Source		ag_household_datasource_name=${ag_household_datasource_name}		ag_household_segment_name=${ag_household_segment_name}
+	  Run Keyword If 			'${ag_household_datasource_boost_flag}'=='1'					Select Checkbox					${AG_HH_DATASOURCE_BOOST_CHECKBOX}
+	
+      Run Keyword If              '${ag_frequency_cap_daily_flag}' == '1'              			Enable AG Frequency Cap Daily        		${ag_frequency_cap_daily_no_times} 		${ag_frequency_cap_no_days}        
+      #Run Keyword Unless      	  '${ag_frequency_cap_daily_flag}' == '1'              			Disable AG Frequency Cap Daily
+      Run Keyword If              '${ag_frequency_cap_overall_flag}' == '1'           			Enable AG Frequency Cap Overall     		${ag_frequency_cap_overall_no_times} 	       
+      #Run Keyword Unless          '${ag_frequency_cap_overall_flag}' == '1'           			Disable AG Frequency Cap Overall
+
+      Run Keyword If              '${ag_device_frequency_cap_daily_flag}' == '1'              	Enable AG Device Frequency Cap Daily        ${ag_device_frequency_cap_daily_no_times}   	${ag_device_frequency_cap_no_days}      
+      #Run Keyword Unless      	  '${ag_device_frequency_cap_daily_flag}' == '1'              	Disable AG Device Frequency Cap Daily
+      Run Keyword If              '${ag_device_frequency_cap_overall_flag}' == '1'           	Enable AG Device Frequency Cap Overall     	${ag_device_frequency_cap_overall_no_times}    
+      #Run Keyword Unless          '${ag_device_frequency_cap_overall_flag}' == '1'           	Disable AG Device Frequency Cap Overall
+
+      Run Keyword If              '${ag_ip_frequency_cap_daily_flag}' == '1'              	Enable AG Ip Frequency Cap Daily        ${ag_ip_frequency_cap_daily_no_times}     	 ${ag_ip_frequency_cap_daily_no_days}    
+      #Run Keyword Unless      	  '${ag_ip_frequency_cap_daily_flag}' == '1'              	Disable AG Ip Frequency Cap Daily
+      Run Keyword If              '${ag_ip_frequency_cap_overall_flag}' == '1'           	Enable AG Ip Frequency Cap Overall     	${ag_ip_frequency_cap_overall_no_times}        
+      #Run Keyword Unless          '${ag_ip_frequency_cap_overall_flag}' == '1'           	Disable AG Ip Frequency Cap Overall
+
+	  Select From List By Label             ${AG_MEASUREMENT_SELECT}          ${ag_measurement}    
+	  Select From List By Label             ${AG_DATA_PARTNER_SELECT}          ${ag_data_partner}  	  
+	  Run Keyword If			'${ag_device_id_segment}' == 'temp disable'								Add Device Id Data Source		ag_device_id_datasource_name=${ag_device_id_datasource_name}		ag_device_id_segment_name=${ag_device_id_segment_name}
+      Set Suite Variable 		   ${geofence_selection}		${ag_geofence_name}	
+      Run Keyword If              '${ag_geofence}' == '1'										Add Targeting Geofence ${geofence_selection}									
+ 	  Run Keyword If              '${ag_negative_geofence}' == '1' 					          	Add Targeting Negative Geofence ${geofence_selection}     
+	  Input Text         ${AG_IMPRESSION_GOAL_IO_TEXTBOX}              ${ag_impression_goal_io}       
+      Input Text      ${AG_NAME_TEXTBOX}                  ${ag_adgroup_name}	  
+      Capture Page Screenshot With Timestamp
+      Click Element                           ${AG_SAVE_BUTTON}	
+	  #Check Parent Adgroup Alert
+	  Run Keyword If		'${ag_household_segment}'=='0' and '${ag_device_id_segment}'=='0'       Check Parent Adgroup Alert
+#Validation
+      Sleep   2s
+      Page Should Contain Link         ${ag_adgroup_name}
+      Retrieve Adgroup_ID By Adgroup Name      ${ag_adgroup_name}
+      Set Suite Variable 	${parent_adgroup_id}		${ag_adgroup_id}
+      Set Suite Variable 	${parent_adgroup_name}		${ag_adgroup_name}
+      Set Selenium Implicit Wait         ${implicit_wait_orig}
+      Capture Page Screenshot With Timestamp
+      
+
+Validate Parent Adgroup Added To Campaign Without Targeting 6.0
+      [Arguments]      			 ${advertiser_name}=
+      ...                        ${campaign_name}=
+      ...                        ${ag_adgroup_name}=
+      ...                        ${ag_start_date}=01/01/2014
+      ...                        ${ag_end_date}=12/21/2014
+      ...                        ${ag_impression_goal_io}=10,000
+      ...                        ${ag_frequency_cap_daily_flag}=0
+      ...                        ${ag_frequency_cap_daily_no_times}=0
+      ...                        ${ag_frequency_cap_no_days}=1
+      ...                        ${ag_frequency_cap_overall_flag}=1
+      ...                        ${ag_frequency_cap_overall_no_times}=50
+      ...                        ${ag_device_frequency_cap_daily_flag}=0
+      ...                        ${ag_device_frequency_cap_daily_no_times}=0
+      ...                        ${ag_device_frequency_cap_no_days}=1
+      ...                        ${ag_device_frequency_cap_overall_flag}=0
+      ...                        ${ag_device_frequency_cap_overall_no_times}=0
+      ...                        ${ag_pause_flag}=0
+      ...						 ${ag_parent_ag_type}=MOBILE
+      ...						 ${ag_geofence}=0
+      ...						 ${ag_geofence_name}=NA
+      ...						 ${ag_negative_geofence}=0
+      ${implicit_wait_orig}=             Get Selenium Implicit Wait
+      Retrieve Formatted UI Date        ${ag_start_date} 			/
+      Set Test Variable  				${formatted_start_date} 		${formatted_date}	
+      Retrieve Formatted UI Date        ${ag_end_date}				/
+      Set Test Variable  				${formatted_end_date} 		${formatted_date}	
+      Set Selenium Implicit Wait       5 seconds
+      Go To Existing Parent Adgroup 6.0              advertiser_name=${advertiser_name}     campaign_name=${campaign_name}     parent_adgroup_name=${ag_adgroup_name} 
+      Sleep     2s
+      Textfield Should Contain      ${AG_NAME_TEXTBOX}             		${ag_adgroup_name}
+      Textfield Should Contain     	${AG_START_TEXTBOX}             	${formatted_start_date}
+      Textfield Should Contain     	${AG_END_TEXTBOX}               	${formatted_end_date}
+      Textfield Should Contain      ${AG_IMPRESSION_GOAL_IO_TEXTBOX}   	${ag_impression_goal_io}
+      Run Keyword If              	'${ag_frequency_cap_daily_flag}' == '1'           	Validate Checkbox Enabled ${AG_FREQUENCY_CAP_DAILY_CHECKBOX}
+      Run Keyword Unless      		'${ag_frequency_cap_daily_flag}' == '1'           	Validate Checkbox Disabled ${AG_FREQUENCY_CAP_DAILY_CHECKBOX}
+      Run Keyword If              	'${ag_frequency_cap_daily_flag}' == '1'           	Textfield Should Contain      		${AG_FREQUENCY_CAP_DAILY_UNITS_TEXTBOX}           				${ag_frequency_cap_daily_no_times}
+      Run Keyword If              	'${ag_frequency_cap_daily_flag}' == '1'           	Textfield Should Contain      		${AG_FREQUENCY_CAP_DAILY_NO_DAYS}                     				${ag_frequency_cap_no_days}
+	Log		device frequency overall is:${ag_frequency_cap_overall_flag} 
+      Run Keyword If              	'${ag_frequency_cap_overall_flag}' == '1'           Validate Checkbox Enabled ${AG_FREQUENCY_CAP_OVERALL_CHECKBOX} 
+      Run Keyword Unless      		'${ag_frequency_cap_overall_flag}' == '1'           Validate Checkbox Disabled ${AG_FREQUENCY_CAP_OVERALL_CHECKBOX} 
+      Run Keyword If              	'${ag_frequency_cap_overall_flag}' == '1'           Textfield Should Contain      		${AG_FREQUENCY_CAP_OVERALL_UNITS_TEXTBOX}                    ${ag_frequency_cap_overall_no_times}
+	  	
+	  Run Keyword If				'${ag_geofence}'=='1'								Validate Checkbox Enabled ${AG_TARGETING_GEOFENCE_CHECKBOX}
+	  Run Keyword If				'${ag_negative_geofence}'=='1'						Validate Checkbox Enabled ${AG_TARGETING_NEGATIVE_GEOFENCE_CHECKBOX}	
+	Log		Geofence Name: ${ag_geofence_name}
+	  Run Keyword Unless			'${ag_geofence_name}'=='NA'							List Selection Should Be		${AG_TARGETING_GEOFENCE_SELECT}		${ag_geofence_name}							
+
+#      Run Keyword If              	'${ag_parent_ag_type}' == 'MOBILE'          		Element Should Be Visible           id=chkAudience
+#      Run Keyword Unless      		'${ag_parent_ag_type}' == 'MOBILE'         			Element Should Not Be Visible       id=chkAudience
+      Capture Page Screenshot With Timestamp
+      Click Element                 ${AG_CANCEL_BUTTON}
+      Set Selenium Implicit Wait    ${implicit_wait_orig}
+
+  		
+Add Child Adgroup To Campaign Without Targeting 6.0
+      [Arguments]      			 ${advertiser_name}=
+      ...                        ${campaign_name}=
+      ...                        ${parent_adgroup_name}=
+      ...						 ${ag_adgroup_name}=
+      ...                        ${ag_start_date}=${REGRESSION_START_DATE}
+      ...                        ${ag_end_date}=${REGRESSION_END_DATE}
+      ...                        ${ag_cpm_cpc_value}=10.00
+      ...                        ${ag_impression_goal_io}=10,000      
+      ...                        ${ag_impression_goal}=100000
+      ...						 ${ag_4info_margin}=NA
+      ...                        ${ag_pause_flag}=0
+      ...                        ${ag_enable_behavior_targeting_flag}=0
+      ...                        ${ag_domain}=4info.com
+      ...						 ${ag_target_placement_boolean}=0
+      ...						 ${ag_target_placement_name}=NA
+      ...						 ${ag_target_country}=NA
+      ...						 ${ag_target_device_type}=NA
+      ...						 ${ag_target_device_os_name}=NA
+      ...						 ${ag_target_device_os_version}=NA
+      ...						 ${ag_target_carrier_name}=NA
+      ...						 ${ag_target_private_marketplaces_flag}=0
+      ...						 ${ag_target_private_marketplaces_deal_id}=NA
+      ...						 ${ag_target_video_streaming_position}=NA
+      ...                        ${timestamp_flag}=0
+      ...                        ${app_flag}=1
+      ${timestamp}=      get_timestamp
+      ${implicit_wait_orig}=             Get Selenium Implicit Wait
+      Go To Existing Parent Adgroup 6.0             advertiser_name=${advertiser_name}     campaign_name=${campaign_name}     parent_adgroup_name=${parent_adgroup_name} 
+      Sleep      	2s
+      Capture Page Screenshot With Timestamp
+#      Go To 		${QA_URL}adGroupsAddEditNew.html?partnerId=183&campaignId=${campaign_id}&adGroupBundleId=${ag_adgroup_id}&pageMode=add&agLevel=child
+	  Click Link						${CREATE_CHILD_ADGROUP_LINK}
+	  Wait Until Page Contains			Create New Child Ad Group		 
+      Location Should Contain     		adGroupsAddEditNew.html
+      Location Should Contain          	pageMode=add
+      Location Should Contain          	agLevel=child
+      Capture Page Screenshot With Timestamp
+#      Page Should Contain      Create New Child Ad Group       
+#      Reload Page       
+#     Sleep      	5s 
+#	  Enter CPM Impression Goals   ag_cpm_cpc_value=${ag_cpm_cpc_value}		ag_impression_goal=${ag_impression_goal}		ag_impression_goal_io=${ag_impression_goal_io}
+	  Wait Until Page Contains			CPM
+      Input Text         ${AG_IMPRESSION_GOAL_TEXTBOX}                     ${ag_impression_goal}
+      Input Text         ${AG_CPM_CPC_VALUE_TEXTBOX}   	                   ${ag_cpm_cpc_value}
+	  ${ag_impression_goal_int}=	String To Int 	input=${ag_impression_goal}	
+      ${calculated_budget}=       Evaluate      (${ag_cpm_cpc_value} * ${ag_impression_goal_int})/1000
+      Log     Calculated Budget: ${calculated_budget}
+      ${budget_value}=              Get Value       ${AG_BUDGET_TEXTBOX} 
+      ${cpm_value}=                 Get Value      ${AG_CPM_CPC_VALUE_TEXTBOX} 
+    
+      #Start and End date
+      Run Keyword Unless		'${ag_start_date}'=='NA'		Retrieve Formatted UI Date        ${ag_start_date} 			/
+      Run Keyword Unless		'${ag_start_date}'=='NA'		Set Test Variable  				${formatted_start_date} 		${formatted_date}	
+      Run Keyword Unless		'${ag_end_date}'=='NA'			Retrieve Formatted UI Date        ${ag_end_date}				/
+      Run Keyword Unless		'${ag_end_date}'=='NA'			Set Test Variable  				${formatted_end_date} 		${formatted_date}	
+      Run Keyword Unless		'${ag_start_date}'=='NA'		Input Text      ${AG_START_TEXTBOX}              	${formatted_start_date}
+      Run Keyword Unless		'${ag_start_date}'=='NA'		Input Text      ${AG_END_TEXTBOX}               	${formatted_end_date}
+      Set Selenium Implicit Wait       5 seconds
+      Run Keyword If                    '${timestamp_flag}' == '1'     Set Suite Variable    ${child_adgroup_name}    ${ag_adgroup_name}_${timestamp}
+      Run Keyword Unless                '${timestamp_flag}' == '1'     Set Suite Variable    ${child_adgroup_name}    ${ag_adgroup_name}   
+#Margin
+	Capture Page Screenshot With Timestamp
+      Run Keyword Unless		'${ag_4info_margin}'=='NA'		Input Text      ${AG_4INFO_MARGIN_TEXTBOX}      	${ag_4info_margin}
+      Sleep    1s
+#Pause      
+      Run Keyword If            '${ag_pause_flag}' == '1'                      Select Checkbox    		${AG_PAUSED_CHECKBOX}
+      Run Keyword Unless      	'${ag_pause_flag}' == '1'                      Unselect Checkbox       	${AG_PAUSED_CHECKBOX}
+#Truste      
+      Run Keyword If            '${ag_enable_behavior_targeting_flag}' == '1'                      Select Checkbox    		${AG_ENABLE_BEHAVIOR_TARGETING_CHECKBOX}
+      Run Keyword Unless      	'${ag_enable_behavior_targeting_flag}' == '1'                      Unselect Checkbox       	${AG_ENABLE_BEHAVIOR_TARGETING_CHECKBOX}
+#Default Advertiser Domain
+      Input Text                ${AG_DOMAIN_TEXTBOX}  	${ag_domain}
+      Sleep    2s
+#Mobile=1 or Online=0      
+	  Run Keyword If       	'${app_flag}' == '1'         Click Element 				${AG_ONLINE_MOBILE_RADIO_MOBILE}
+	  Run Keyword Unless    '${app_flag}' == '1'         Click Element 				${AG_ONLINE_MOBILE_RADIO_ONLINE}  
+#Placement Targeting
+      Run Keyword If		'${ag_target_placement_boolean}'=='1'		advertisers.Add Targeting Placement By Name		ag_placement_name=${ag_target_placement_name}
+	  #Run Keyword If       	'${app_flag}' == '1'         advertisers.Add Targeting Placement For Mopub App 				${ag_target_rtb_placement}
+	  #Run Keyword Unless    '${app_flag}' == '1'         advertisers.Add Targeting Placement For Mopub Online 			${ag_target_rtb_placement}
+      Sleep   2s
+#Country Targeting, Only 1 country can be targeted at a time. Country USA is selected by default already
+	  #Run Keyword Unless	'${ag_target_country}'=='NA'				Select Checkbox			id=chkCountry
+	  Run Keyword Unless 	'${ag_target_country}'=='NA'			    Unselect Checkbox		id=chkCountry-2
+	  Run Keyword Unless	'${ag_target_country}'=='NA'				Adgroup Targeting Country By Name ${ag_target_country}
+#Device Type Targeting
+	  Run Keyword Unless	'${ag_target_device_type}'=='NA'				Select Checkbox			id=chkDeviceType
+	  Run Keyword Unless	'${ag_target_device_type}'=='NA'				Adgroup Targeting Device Type By Name ${ag_target_device_type}	  
+#Device OS Targeting
+	  Log	Device OS: ${ag_target_device_os_name}
+	  Log 	Device Version:${ag_target_device_os_version} 
+	  Run Keyword Unless	'${ag_target_device_os_name}'=='NA'				Select Checkbox			id=chkDeviceOS
+	  Run Keyword Unless	'${ag_target_device_os_name}'=='NA'				Adgroup Targeting Device Os By Name ${ag_target_device_os_name} with ${ag_target_device_os_version}	  
+#Carrier Targeting
+	  Run Keyword Unless	'${ag_target_carrier_name}'=='NA'				Select Checkbox			id=chkCarrier
+	  Run Keyword Unless	'${ag_target_carrier_name}'=='NA'				Adgroup Targeting Carrier By Name ${ag_target_carrier_name}	  
+#Private Marketplaces
+	  Run Keyword If		'${ag_target_private_marketplaces_flag}'=='1'		Select Checkbox			id=chkDeal
+	  Run Keyword Unless	'${ag_target_private_marketplaces_deal_id}'=='NA'	Input Text				id=targetDeal.dealIds		${ag_target_private_marketplaces_deal_id}				
+#Video Streaming Position
+	  Log		Video Position:${ag_target_video_streaming_position}
+	  Run Keyword Unless	'${ag_target_video_streaming_position}'=='NA'		Enable Video Streaming Position		ag_target_video_streaming_position=${ag_target_video_streaming_position}
+#Name      
+      Input Text      ${AG_NAME_TEXTBOX}                  ${child_adgroup_name}
+      Capture Page Screenshot With Timestamp
+      Click Element                           ${AG_SAVE_BUTTON}    
+
+#Validation 
+      Wait Until Page Contains		${child_adgroup_name}	
+      Capture Page Screenshot With Timestamp     
+#      Page Should Contain Link         ${ag_adgroup_name}
+      Retrieve Adgroup_ID By Adgroup Name      ${child_adgroup_name}
+      #child_adgroup_name is already declared above with timestamp
+      #Set Test Variable         ${child_adgroup_name}				${ag_adgroup_name}
+      Set Suite Variable         ${child_adgroup_id}						${ag_adgroup_id}
+      Set Selenium Implicit Wait         ${implicit_wait_orig}
+
+###################################
+# Parent Adgroup
+###################################
+Modify Margin 
+	  [Arguments]      ${advertiser_name}=		${campaign_name}=		${ag_adgroup_name}=		${ag_4info_margin}=		
+      Sleep    1s
+      Go To Existing Adgroup              advertiser_name=${advertiser_name}     campaign_name=${campaign_name}     ag_adgroup_name=${ag_adgroup_name}
+      Sleep      	2s
+      Capture Page Screenshot With Timestamp
+      Log		Margin : ${ag_4info_margin}
+	  Input Text      ${AG_4INFO_MARGIN_TEXTBOX}      	${ag_4info_margin}
+      Sleep    1s
+      Click Element                           ${AG_SAVE_BUTTON}
+      Sleep   2s         
+Enter CPM Impression Goals 
+	  [Arguments]      ${ag_cpm_cpc_value}=		${ag_impression_goal}=		${ag_impression_goal_io}=
+      Sleep    1s
+      Log		Impression Goal: ${ag_impression_goal}
+      Input Text         ${AG_CPM_CPC_VALUE_TEXTBOX}                     ${ag_cpm_cpc_value}
+      Input Text         ${AG_IMPRESSION_GOAL_TEXTBOX}                     ${ag_impression_goal}
+      #Textfield Should Contain         ${AG_IMPRESSION_GOAL_IO_TEXTBOX}              ${ag_impression_goal_io}
+      Sleep    1s
+      Get Value          ${AG_BUDGET_TEXTBOX}     
+      Sleep    1s
+      Capture Page Screenshot With Timestamp
+      
+Clear CPM Impression Goals
+      Sleep    1s
+      Input Text         ${AG_CPM_CPC_VALUE_TEXTBOX}                      ${EMPTY}
+      Sleep    1s
+      Input Text         ${AG_IMPRESSION_GOAL_TEXTBOX}                    ${EMPTY}
+      Sleep    1s
+      Get Value          ${AG_BUDGET_TEXTBOX}     
+      Sleep    1s
+      Capture Page Screenshot With Timestamp
+      
+Enable AG Frequency Cap Daily
+      [Arguments]            ${ag_frequency_cap_daily_no_times}
+      ...					 ${ag_frequency_cap_no_days}         
+      Select Checkbox    	${AG_FREQUENCY_CAP_DAILY_CHECKBOX}
+      Input Text             ${AG_FREQUENCY_CAP_DAILY_UNITS_TEXTBOX}       		${ag_frequency_cap_daily_no_times}
+      Input Text              ${AG_FREQUENCY_CAP_DAILY_NO_DAYS_TEXTBOX}                 ${ag_frequency_cap_no_days}
+      
+Disable AG Frequency Cap Daily       
+      Unselect Checkbox       ${AG_FREQUENCY_CAP_DAILY_CHECKBOX}
+      
+Enable AG Frequency Cap Overall
+      [Arguments]            ${ag_frequency_cap_overall_no_times}
+      Select Checkbox    	${AG_FREQUENCY_CAP_OVERALL_CHECKBOX} 
+      Input Text             ${AG_FREQUENCY_CAP_OVERALL_UNITS_TEXTBOX}        	${ag_frequency_cap_overall_no_times}
+      
+Disable AG Frequency Cap Overall     
+      Unselect Checkbox       ${AG_FREQUENCY_CAP_OVERALL_CHECKBOX} 
+      
+Enable AG Device Frequency Cap Daily
+      [Arguments]            ${ag_device_frequency_cap_daily_no_times} 
+      ...					 ${ag_device_frequency_cap_no_days}        
+      Select Checkbox    	${AG_DEVICE_FREQUENCY_CAP_DAILY_CHECKBOX}
+      Input Text            ${AG_DEVICE_FREQUENCY_CAP_DAILY_UNITS_TEXTBOX}       		${ag_device_frequency_cap_daily_no_times}
+      Input Text            ${AG_DEVICE_FREQUENCY_CAP_DAILY_NO_DAYS_TEXTBOX}                 	${ag_device_frequency_cap_no_days}
+      
+Disable AG Device Frequency Cap Daily       
+      Unselect Checkbox       ${AG_DEVICE_FREQUENCY_CAP_DAILY_CHECKBOX}
+      
+Enable AG Device Frequency Cap Overall
+      [Arguments]            ${ag_frequency_cap_overall_no_times}
+      Select Checkbox    ${AG_DEVICE_FREQUENCY_CAP_OVERALL_CHECKBOX} 
+      Input Text             ${AG_DEVICE_FREQUENCY_CAP_OVERALL_UNITS_TEXTBOX}        	${ag_device_frequency_cap_overall_no_times}
+      
+Disable AG Device Frequency Cap Overall     
+      Unselect Checkbox       ${AG_DEVICE_FREQUENCY_CAP_OVERALL_CHECKBOX}  
+
+
+
+Enable AG Ip Frequency Cap Daily
+      [Arguments]            ${ag_ip_frequency_cap_daily_no_times} 
+      ...					 ${ag_ip_frequency_cap_daily_no_days}        
+      Select Checkbox    		${AG_IP_FREQUENCY_CAP_DAILY_CHECKBOX}
+      Input Text            ${AG_IP_FREQUENCY_CAP_DAILY_UNITS_TEXTBOX}       		${ag_ip_frequency_cap_daily_no_times}
+      Input Text            ${AG_IP_FREQUENCY_CAP_DAILY_NO_DAYS_TEXTBOX}                 	${ag_ip_frequency_cap_daily_no_days}
+      
+Disable AG Ip Frequency Cap Daily       
+      Unselect Checkbox       ${AG_IP_FREQUENCY_CAP_DAILY_CHECKBOX}
+      
+Enable AG Ip Frequency Cap Overall
+      [Arguments]            ${ag_ip_frequency_cap_overall_no_times}=
+      Select Checkbox    ${AG_IP_FREQUENCY_CAP_OVERALL_CHECKBOX} 
+      Input Text             ${AG_IP_FREQUENCY_CAP_OVERALL_UNITS_TEXTBOX}        	${ag_ip_frequency_cap_overall_no_times}
+      
+Disable AG Ip Frequency Cap Overall     
+      Unselect Checkbox       ${AG_IP_FREQUENCY_CAP_OVERALL_CHECKBOX}
+      
+      
+#House Hold Data Source can be multiple at the same time separate by comma (no space in between ie (one,two,three)
+Add House Hold Data Source
+	[Arguments]			${ag_household_datasource_name}=		${ag_household_segment_name}=
+	Log			Segment:${ag_household_datasource_name} -- Name:${ag_household_segment_name}
+	Select Checkbox    				${AG_HH_DATASOURCE_CHECKBOX}
+	Click Button					css=input[type="button"]	
+	Select From List By Label       ${AG_HH_DATASOURCE_SELECT}              		${ag_household_datasource_name}
+	@{names}=						String.Split String 					${ag_household_segment_name}				;
+	:FOR	${name}		IN		@{names}
+	\	Log		${name}
+	\	Run Keyword Unless	'${ag_household_datasource_name}'=='NCS Score'		Add House Hold Segment By Name		ag_household_segment_name=${name}
+	\	Run Keyword If		'${ag_household_datasource_name}'=='NCS Score'		Add NCS Score To Segment By Name	ag_household_segment_name=${name}	
+
+#database does not like single quote, we have to escape it		
+Add House Hold Segment By Name	
+	[Arguments]					${ag_household_segment_name}=	
+	Input Text						${AG_HH_SEGMENT_SEARCH_TEXTBOX}					${ag_household_segment_name}
+	${name}=          		Replace String Using Regexp             ${ag_household_segment_name}      	'    	\\'	
+	Retrieve Data Source Segment ID From Segment Name		segment_name=${name}
+	Log								${segment_id}	
+	Click Element					xpath=//*[@id="dataSource${segment_id}"]
+#	Select Checkbox					${segment_id}_0
+
+#NCS score use 2 parameter spearate by separate semi-column such as name:score ie (idaloan_likely_buyer:950)
+Add NCS Score To Segment By Name	
+	[Arguments]					${ag_household_segment_name}=
+	@{name_score}=			String.Split String 					${ag_household_segment_name}				:	
+	Set Test Variable 		${ag_household_segment_name}		@{name_score}[0]
+	Set Test Variable		${ncs_score}						@{name_score}[1]
+	Input Text						${AG_HH_SEGMENT_SEARCH_TEXTBOX}					${ag_household_segment_name}
+	${name}=          		Replace String Using Regexp             ${ag_household_segment_name}      	'    	\\'	
+	Retrieve Data Source Segment ID From Segment Name		segment_name=${name}
+	Log								${segment_id}	
+	Select Checkbox					${segment_id}_0
+	Input Text						id=Score_${segment_id}_0			${ncs_score}
+#same as house hold data source
+Add Device Id Data Source
+	[Arguments]			${ag_device_id_datasource_name}=		${ag_device_id_segment_name}=
+	Select Checkbox    				${AG_DEVICE_ID_DATASOURCE_CHECKBOX}
+	Select From List By Label       ${AG_DEVICE_ID_DATASOURCE_SELECT}              		${ag_device_id_datasource_name}
+	@{names}=						String.Split String 					${ag_device_id_segment_name}				;
+	:FOR	${name}		IN		@{names}
+	\	Log		${name}
+	\	Add Device Id Segment By Name	ag_device_id_segment_name=${name}	
+Add Device Id Segment By Name
+	[Arguments]					${ag_device_id_segment_name}=		
+	Input Text						${AG_DEVICE_ID_SEGMENT_SEARCH_TEXTBOX}				${ag_device_id_segment_name}
+	${name}=          		Replace String Using Regexp             ${ag_device_id_segment_name}      	'    	\\'	
+	Retrieve Device Segment ID From Segment Name		segment_name=${name}	
+	Log								${segment_id}
+	Click							${segment_id}_0	
+
+Check Parent Adgroup Alert
+	${alert_message}=	Get Alert Message
+	Log   Alert:${alert_message}
+	Set Test Variable	${expected_alert}		Are you sure you want to save this adgroup without any household or device targeting?
+	Should Match	${alert_message}	${expected_alert}
+
+############################
+# Child Ad group
+##############################		
+    
+Add Adgroup Targetting 
+      [Documentation]          Default traffic type 3 = mobile web
+      ...                      Default category 2 = Automotive table rhino.target_category
+      ...                      Default day of week 3 = Monday
+      ...                      Default state id 2 = AL table rhino.target_geo_state
+      ...                      Default country id 2 = US  table rhino.target_geo_country
+      ...                      Default dma id 1 = all
+      ...                      Default connection id 2 = Wifi
+      ...                      Default carrier 1 = all
+      ...                      Default gender id 2 = male
+      ...                      Default age_range id 2 = 0-11
+      ...                      Default income id 12 = 0k-15k
+      ...                      Default device os id 2 = iPhone OS
+      ...                      Default device type id 2 = phone
+      ...                      Default device id 2 = UDID
+      ...                      Default device mfg id 2 = HTC
+      ...                      Default audience =AA_PRIZM_02_06
+      [Arguments]         	 		${advertiser_name}=
+      ...                           ${campaign_name}=
+      ...                           ${ag_adgroup_name}=
+      ...                           ${traffic_type_flag}=0       
+      ...                           ${traffic_type_id_from_db_selection}=3
+      ...                           ${category_flag}=0
+      ...                           ${category_id_from_db}=2  
+      ...                           ${placement_flag}=0
+      ...                           ${placement_id}=${DEFAULT_PLACEMENT}
+      ...                           ${day_of_week_flag}=0
+      ...                           ${day_of_week_id_from_db_selection}=3
+      ...                           ${time_of_day_flag}=0
+      ...                           ${time_of_day_selection_from}=1am
+      ...                           ${time_of_day_selection_to}=8am
+      ...                           ${time_of_day_selection_timezone}=GMT
+      ...                           ${state_flag}=0
+      ...                           ${state_id_from_db}=2
+      ...                           ${country_flag}=0
+      ...                           ${country_id_from_db}=2
+      ...                           ${dma_flag}=0
+      ...                           ${dma_id_from_db}=1
+      ...                           ${zip_flag}=0
+      ...                           ${zip_list}=94402
+      ...                           ${connection_type_flag}=0
+      ...                           ${connection_type_id_from_db_selection}=
+      ...                           ${carrier_flag}=0
+      ...                           ${carrier_id_from_db_selection}=1
+      ...                           ${gender_flag}=0
+      ...                           ${gender_id_from_db_selection}=2
+      ...                           ${age_range_flag}=0
+      ...                           ${age_range_id_from_db_selection}=2
+      ...                           ${income_flag}=0
+      ...                           ${income_id_from_db_selection}=12
+      ...                           ${device_os_flag}=0
+      ...                           ${device_os_id_from_db_selection}=2
+      ...                           ${device_type_flag}=0
+      ...                           ${device_type_id_from_db_selection}=2
+      ...                           ${device_id_flag}=0
+      ...                           ${device_id_from_db_selection}=2
+      ...                           ${device_mfg_flag}=0
+      ...                           ${device_mfg_id_from_db_selection}=2
+      ...                           ${audience_flag}=0
+      ...                           ${audience_selection}=AA_PRIZM_02_06
+      ${implicit_wait_orig}=             Get Selenium Implicit Wait
+      Set Selenium Implicit Wait       10 seconds
+      Go To Existing Adgroup              advertiser_name=${advertiser_name}     campaign_name=${campaign_name}     ag_adgroup_name=${ag_adgroup_name}
+      Run Keyword If          ${traffic_type_flag} == '1'           	Add Targeting Traffic Type ${traffic_type_id_from_db_selection}
+      Run Keyword Unless      ${traffic_type_flag} == '1'           	Remove Targeting Traffic Type 
+      Run Keyword If          ${category_flag} == '1'               	Add Targeting Category ${category_id_from_db}
+      Run Keyword Unless      ${category_flag} == '1'               	Remove Targeting Category
+      Run Keyword If          ${placement_flag} == '1'            		Add Targeting Placement ${placement_id}
+      Run Keyword Unless      ${placement_flag} == '1'            		Remove Placement Targeting
+      Run Keyword If          ${day_of_week_flag} == '1'         		Add Targeting Day Of Week ${day_of_week_id_from_db_selection}
+      Run Keyword Unless      ${day_of_week_flag} == '1'         		Remove Targeting Day Of Week
+      Run Keyword If          ${time_of_day_flag} == '1'          		Add Targeting Time Of Day      time_of_day_selection_from=${time_of_day_selection_from}       time_of_day_selection_to=${time_of_day_selection_to}      time_of_day_selection_timezone=${time_of_day_selection_timezone}
+      Run Keyword Unless      ${time_of_day_flag} == '1'          		Remove Targeting Time Of Day
+      Run Keyword If          ${state_flag} == '1'                    	Add Targeting State ${state_id_from_db}  
+      Run Keyword Unless      ${state_flag} == '1'                    	Remove Targeting State
+      Run Keyword If          ${country_flag} == '1'                	Add Targeting Country ${country_id_from_db}
+      Run Keyword Unless      ${country_flag} == '1'                	Remove Targeting Country
+      Run Keyword If          ${dma_flag} == '1'                     	Add Targeting DMA ${dma_id_from_db}
+      Run Keyword Unless      ${dma_flag} == '1'                     	Remove Targeting DMA
+      Run Keyword If          ${zip_flag} == '1'                       	Add Targeting Zip ${zip_list}
+      Run Keyword Unless      ${zip_flag} == '1'                       	Remove Targeting Zip
+      Run Keyword If          ${connection_type_flag} == '1'       		Add Targeting Connection Type ${connection_type_id_from_db_selection}
+      Run Keyword Unless      ${connection_type_flag} == '1'        	Remove Targeting Connection Type
+      Run Keyword If          ${carrier_flag} == '1'                  	Add Targeting Carrier ${carrier_id_from_db_selection}
+      Run Keyword Unless      ${carrier_flag} == '1'                  	Remove Targeting Carrier
+      Run Keyword If          ${gender_flag} == '1'                 	Add Targeting Gender ${gender_id_from_db_selection}
+      Run Keyword Unless      ${gender_flag} == '1'                 	Remove Targeting Gender
+      Run Keyword If          ${age_range_flag} == '1'            		Add Targeting Age Range ${age_range_id_from_db_selection}
+      Run Keyword Unless      ${age_range_flag} == '1'            		Remove Targeting Age Range
+      Run Keyword If          ${income_flag} == '1'                		Add Targeting Income ${income_id_from_db_selection}
+      Run Keyword Unless      ${income_flag} == '1'                		Remove Targeting Income
+      Run Keyword If          ${device_os_flag} == '1'            		Add Targeting Device OS ${device_os_id_from_db_selection}
+      Run Keyword Unless      ${device_os_flag} == '1'            		Remove Targeting Device OS
+      Run Keyword If          ${device_type_flag} == '1'         		Add Targeting Device Type ${device_type_id_from_db_selection}
+      Run Keyword Unless      ${device_type_flag} == '1'         		Remove Targeting Device Type
+      Run Keyword If          ${device_type_flag} == '1'         		Add Targeting Device Type ${device_type_id_from_db_selection}
+      Run Keyword Unless      ${device_type_flag} == '1'         		Remove Targeting Device Type
+      Run Keyword If          ${device_id_flag} == '1'            		Add Targeting Device ID ${device_id_from_db_selection}
+      Run Keyword Unless      ${device_id_flag} == '1'            		Remove Targeting Device ID
+      Run Keyword If          ${device_mfg_flag} == '1'         		Add Targeting Device Manufacturer ${device_mfg_id_from_db_selection}
+      Run Keyword Unless      ${device_mfg_flag} == '1'         		Remove Targeting Device Manufacturer
+      Run Keyword If          ${audience_flag} == '1'            		Add Targeting Audience ${audience_selection}
+      Run Keyword Unless      ${audience_flag} == '1'            		Remove Targeting Audience
+      Capture Page Screenshot With Timestamp
+      Click Element           ${AG_SAVE_BUTTON}
+      Sleep   5s
+      Page Should Contain Link         ${ag_adgroup_name}   
+      Set Selenium Implicit Wait       ${implicit_wait_orig}
+
+
+
+##############################
+# Child Ad group
+##############################      
+# TARGETING
+
+
+# TRAFFIC TYPE
+Add Targeting Traffic Type ${traffic_type_id_from_db_selection}
+      Select Checkbox    ${AG_TRAFFIC_TYPE_CHECKBOX}
+      Select Checkbox    ${AG_TRAFFIC_TYPE_CHECKBOX_ID}${traffic_type_id_from_db_selection}
+Remove Targeting Traffic Type 
+      Unselect Checkbox       ${AG_TRAFFIC_TYPE_CHECKBOX}
+
+Select Targeting Traffic Type
+
+# CATEGORY
+Add Targeting Category ${category_id_from_db}
+      Select Checkbox    		${AG_TARGETING_CATEGORY_CHECKBOX}
+      Select Checkbox    		${AG_TARGETING_CATGEORY_SELECT_CHECKBOX_ID}${category_id_from_db}
+Remove Targeting Category
+      Unselect Checkbox       	${AG_TARGETING_CATEGORY_CHECKBOX}  
+
+#Can use multiple name separate by ; (Placement1;Placement2;Placement3)
+Add Targeting Placement By Name
+	[Arguments]		${ag_placement_name}=NA
+      Select Checkbox    	 ${AG_TARGETING_PLACEMENT_CHECKBOX}
+	  Input Text         ${AG_TARGETING_PLACEMENT_SEARCH_TEXTBOX}           ${ag_placement_name}
+	  Sleep   5s
+	  Click Element		 ${AG_TARGETING_PLACEMENT_SELECTOR_ALL}	
+
+#This function need to be fine tune, it does not work when there are multiple results per input string
+#      @{names}=						String.Split String 					${ag_placement_name}				;
+#	:FOR	${name}		IN		@{names}
+#	\	Log		${name}
+#	\	Input Text         ${AG_TARGETING_PLACEMENT_SEARCH_TEXTBOX}           ${name}
+#	\   Click Element    	${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_EXCHANGE}  
+#	\   Click Element    	${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_4INFO} 
+#	\   Click Element    	${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_NETWORK} 
+            
+Add Targeting Placement ${placement_id}
+      Select Checkbox    		${AG_TARGETING_PLACEMENT_CHECKBOX}
+      Input Text          ${AG_TARGETING_PLACEMENT_SEARCH_TEXTBOX}           ${placement_id}
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_NETWORK} 
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_4INFO} 
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_4INFO_TEST_PAGES}
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECT_CHECKBOX_ID}${placement_id}     
+
+Add Targeting Placement For Mopub App 
+	  [Arguments]	${placement_id}
+      Select Checkbox    	${AG_TARGETING_PLACEMENT_CHECKBOX}
+      Input Text        ${AG_TARGETING_PLACEMENT_SEARCH_TEXTBOX}           ${placement_id}
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_EXCHANGE}
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_MOPUB} 
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_MOPUB_APP_IOS}
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECT_CHECKBOX_ID}${placement_id}    
+      Capture Page Screenshot With Timestamp
+      
+Add Targeting Placement For Mopub Online
+	  [Arguments]	${placement_id}
+      Select Checkbox    	${AG_TARGETING_PLACEMENT_CHECKBOX}
+      Input Text        ${AG_TARGETING_PLACEMENT_SEARCH_TEXTBOX}           ${placement_id}
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_EXCHANGE}
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_MOPUB} 
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECTOR_EXPAND_MOPUB_Site}
+      Click Element     ${AG_TARGETING_PLACEMENT_SELECT_CHECKBOX_ID}${placement_id}           
+      Capture Page Screenshot With Timestamp
+            
+Remove Placement Targeting      
+      Unselect Checkbox       	${AG_TARGETING_PLACEMENT_CHECKBOX}
+      
+# DAY OF WEEK      
+Add Targeting Day Of Week ${day_of_week_id_from_db_selection}
+      Select Checkbox    	${AG_TARGETING_DAYOFWEEK_CHECKBOX}
+      Select Checkbox    	${AG_TARGETING_DAYOFWEEK_CHECKBOX_ID}${day_of_week_id_from_db_selection}
+Remove Targeting Day Of Week
+      Unselect Checkbox       ${AG_TARGETING_DAYOFWEEK_CHECKBOX}
+      
+# TIME OF DAY      
+Add Targeting Time Of Day 
+      [Arguments]       ${time_of_day_selection_from}=
+      ...               ${time_of_day_selection_to}=
+      ...               ${time_of_day_selection_timezone}=
+      Select Checkbox    	${AG_TARGETING_TIMEOFDAY_CHECKBOX}
+      Select From List           ${AG_TARGETING_TIMEOFDAY_FROM_SELECT}             ${time_of_day_selection_from}
+      Select From List           ${AG_TARGETING_TIMEOFDAY_TO_SELECT}                 ${time_of_day_selection_to}
+      Select From List           ${AG_TARGETING_TIMEOFDAY_TIMEZONE_SELECT}      ${time_of_day_selection_timezone}
+
+Remove Targeting Time Of Day
+      Unselect Checkbox       	${AG_TARGETING_TIMEOFDAY_CHECKBOX}
+
+Validate Targeting Time Of Day 
+      [Arguments]       ${time_of_day_selection_from}=
+      ...               ${time_of_day_selection_to}=
+      ...               ${time_of_day_selection_timezone}=
+      Capture Page Screenshot
+      Validate Checkbox Enabled ${AG_TARGETING_TIMEOFDAY_CHECKBOX}
+      List Selection Should Be          ${AG_TARGETING_TIMEOFDAY_FROM_SELECT}             ${time_of_day_selection_from}
+      List Selection Should Be          ${AG_TARGETING_TIMEOFDAY_TO_SELECT}                 ${time_of_day_selection_to}
+      List Selection Should Be          ${AG_TARGETING_TIMEOFDAY_TIMEZONE_SELECT}      ${time_of_day_selection_timezone}
+
+# STATE      
+Add Targeting State ${state_id_from_db}
+      Select Checkbox    	${AG_TARGETING_STATE_CHECKBOX}
+      Select Checkbox    	${AG_TARGETING_STATE_CHECKBOX_ID}${state_id_from_db}
+Remove Targeting State
+      Unselect Checkbox       	${AG_TARGETING_STATE_CHECKBOX}
+Add Targeting State Household ${state_id_from_db}
+      Select Checkbox    	${AG_TARGETING_HH_STATE_CHECKBOX}
+      Select Checkbox    	${AG_TARGETING_HH_STATE_CHECKBOX_ID}${state_id_from_db}
+Remove Targeting State Household
+      Unselect Checkbox          ${AG_TARGETING_HH_STATE_CHECKBOX}      
+Add Targeting State Request ${state_id_from_db}
+      Select Checkbox    ${AG_TARGETING_REQUEST_STATE_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_REQUEST_STATE_CHECKBOX_ID}${state_id_from_db}
+Remove Targeting State Request
+      Unselect Checkbox       ${AG_TARGETING_REQUEST_STATE_CHECKBOX}            
+      
+# COUNTRY 
+Adgroup Targeting Country By Name ${ag_target_country}	
+	Run Keyword If   '${ag_target_country}'=='United States'		Select Checkbox     	id=chkCountry-2 
+	Run Keyword If   '${ag_target_country}'=='Canada'				Select Checkbox     	id=chkCountry-3
+	Run Keyword If   '${ag_target_country}'=='Puerto Rico'			Select Checkbox     	id=chkCountry-4
+	Run Keyword If   '${ag_target_country}'=='Guam'					Select Checkbox     	id=chkCountry-5
+Add Targeting Country ${country_id_from_db}
+      Select Checkbox    ${AG_TARGETING_COUNTRY_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_COUNTRY_CHECKBOX_ID}${country_id_from_db}
+Remove Targeting Country
+      Unselect Checkbox       ${AG_TARGETING_COUNTRY_CHECKBOX}
+      
+# DMA
+Add Targeting DMA ${dma_id_from_db}
+      Select Checkbox    ${AG_TARGETING_DMA_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_DMA_CHECKBOX_ID}${dma_id_from_db}
+Remove Targeting DMA
+      Unselect Checkbox       ${AG_TARGETING_DMA_CHECKBOX}
+Add Targeting DMA Household ${dma_id_from_db}
+      Select Checkbox    ${AG_TARGETING_HH_DMA_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_HH_DMA_CHECKBOX_ID}${dma_id_from_db}
+Remove Targeting DMA Household
+      Unselect Checkbox       ${AG_TARGETING_HH_DMA_CHECKBOX}
+Add Targeting DMA Request ${dma_id_from_db}
+      Select Checkbox    ${AG_TARGETING_REQUEST_DMA_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_REQUEST_DMA_CHECKBOX_ID}${dma_id_from_db}
+Remove Targeting DMA Request
+      Unselect Checkbox       ${AG_TARGETING_REQUEST_DMA_CHECKBOX}      
+       
+# ZIP
+Add Targeting Zip ${zip_list}
+      Select Checkbox    ${AG_TARGETING_ZIP_CHECKBOX}
+      Input Text                                  ${AG_TARGETING_ZIP_TEXTBOX}           ${zip_list}
+Validate Targeting Zip ${zip_list}
+      Validate Checkbox Enabled ${AG_TARGETING_ZIP_CHECKBOX}
+      Textarea Should Contain            ${AG_TARGETING_ZIP_TEXTBOX}           ${zip_list}
+Remove Targeting Zip
+      Unselect Checkbox       ${AG_TARGETING_ZIP_CHECKBOX}
+       
+# CONNECTION TYPE
+Add Targeting Connection Type ${connection_type_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_CONNECTION_TYPE_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_CONNECTION_TYPE_CHECKBOX_ID}${connection_type_id_from_db_selection}
+Remove Targeting Connection Type 
+      Unselect Checkbox       ${AG_TARGETING_CONNECTION_TYPE_CHECKBOX}
+      
+# CARRIER
+Adgroup Targeting Carrier By Name ${ag_target_carrier_name}
+	Run Keyword If   '${ag_target_carrier_name}'=='AT&T'					Select Checkbox     	id=chkCarrier-2 
+	Run Keyword If   '${ag_target_carrier_name}'=='Verizon'					Select Checkbox     	id=chkCarrier-3
+	Run Keyword If   '${ag_target_carrier_name}'=='T-Mobile'				Select Checkbox     	id=chkCarrier-4
+	Run Keyword If   '${ag_target_carrier_name}'=='Sprint'					Select Checkbox     	id=chkCarrier-5	
+	Run Keyword If   '${ag_target_carrier_name}'=='Others'					Select Checkbox     	id=chkCarrier-6	
+	Run Keyword If   '${ag_target_carrier_name}'=='MetroPCS'				Select Checkbox     	id=chkCarrier-7			  
+Add Targeting Carrier ${carrier_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_CARRIER_CHECKBOX} 
+      Select Checkbox    ${AG_TARGETING_CARRIER_CHECKBOX_ID}${carrier_id_from_db_selection}
+Remove Targeting Carrier
+      Unselect Checkbox       ${AG_TARGETING_CARRIER_CHECKBOX} 
+      
+# GENDER
+Add Targeting Gender ${gender_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_GENDER_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_GENDER_CHECKBOX_ID}${gender_id_from_db_selection}
+Remove Targeting Gender
+      Unselect Checkbox       ${AG_TARGETING_GENDER_CHECKBOX}
+      
+# AGE RANGE
+Add Targeting Age Range ${age_range_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_AGE_RANGE_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_AGE_RANGE_CHECKBOX_ID}${age_range_id_from_db_selection}
+Remove Targeting Age Range
+      Unselect Checkbox       ${AG_TARGETING_AGE_RANGE_CHECKBOX}
+      
+# INCOME      
+Add Targeting Income ${income_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_INCOME_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_INCOME_CHECKBOX_ID}${income_id_from_db_selection}
+Remove Targeting Income
+      Unselect Checkbox       ${AG_TARGETING_INCOME_CHECKBOX}
+
+# DEVICE OS
+Adgroup Targeting Device OS By Name ${ag_target_device_os_name} with ${ag_target_device_os_version}
+	Log		Device OS:${ag_target_device_os_name}
+	Log		Device Version:${ag_target_device_os_version}
+	Run Keyword If   '${ag_target_device_os_name}'=='iPhone OS'				Select Checkbox     	id=chkDeviceOS-2
+	Run Keyword If   '${ag_target_device_os_name}'=='iPhone OS'				Select From List By Label	id=deviceOsVersionId	${ag_target_device_os_version}
+	Run Keyword If   '${ag_target_device_os_name}'=='Android'				Select Checkbox     	id=chkDeviceOS-3
+	Run Keyword If   '${ag_target_device_os_name}'=='Android'				Select From List By Label	xpath=(//select[@id='deviceOsVersionId'])[2]	${ag_target_device_os_version}
+	Run Keyword If   '${ag_target_device_os_name}'=='Windows Phone OS'		Select Checkbox     	id=chkDeviceOS-4 
+	Run Keyword If   '${ag_target_device_os_name}'=='Windows Phone OS'		Select From List By Label	xpath=(//select[@id='deviceOsVersionId'])[3]	${ag_target_device_os_version}
+	Run Keyword If   '${ag_target_device_os_name}'=='RIM OS'				Select Checkbox     	id=chkDeviceOS-5 
+	Run Keyword If   '${ag_target_device_os_name}'=='RIM OS'				Select From List By Label	xpath=(//select[@id='deviceOsVersionId'])[4]	${ag_target_device_os_version}
+	Run Keyword If   '${ag_target_device_os_name}'=='Other'					Select Checkbox     	id=chkDeviceOS-6 
+	Run Keyword If   '${ag_target_device_os_name}'=='BREW'					Select Checkbox     	id=chkDeviceOS-7
+Add Targeting Device OS ${device_os_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_DEVICEOS_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_DEVICEOS_CHECKBOX_ID}${device_os_id_from_db_selection}
+Validate Targeting Device OS ${device_os_id_from_db_selection}
+      Validate Checkbox Enabled ${AG_TARGETING_DEVICEOS_CHECKBOX}
+      Validate Checkbox Enabled ${AG_TARGETING_DEVICEOS_CHECKBOX_ID}${device_os_id_from_db_selection}      
+Remove Targeting Device OS
+      Unselect Checkbox       ${AG_TARGETING_DEVICEOS_CHECKBOX}
+
+# DEVICE TYPE
+Adgroup Targeting Device Type By Name ${ag_target_device_type}
+	Run Keyword If   '${ag_target_device_type}'=='phone'				Select Checkbox     	id=chkDeviceType-2
+	Run Keyword If   '${ag_target_device_type}'=='tablet'				Select Checkbox     	id=chkDeviceType-3
+	Run Keyword If   '${ag_target_device_type}'=='others'				Select Checkbox     	id=chkDeviceType-4 
+Add Targeting Device Type ${device_type_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_DEVICETYPE_CHECKBOX} 
+      Select Checkbox    ${AG_TARGETING_DEVICETYPE_CHECKBOX_ID}${device_type_id_from_db_selection}
+Remove Targeting Device Type
+      Unselect Checkbox       ${AG_TARGETING_DEVICETYPE_CHECKBOX} 
+
+# DEVICE ID
+Add Targeting Device ID ${device_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_DEVICEID_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_DEVICEID_CHECKBOX_ID}${device_id_from_db_selection}
+Remove Targeting Device ID
+      Unselect Checkbox       ${AG_TARGETING_DEVICEID_CHECKBOX}
+
+# DEVICE MANUFACTURER
+Add Targeting Device Manufacturer ${device_mfg_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_DEVICEMFG_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_DEVICEMFG_CHECKBOX_ID}${device_mfg_id_from_db_selection}
+Remove Targeting Device Manufacturer
+      Unselect Checkbox       ${AG_TARGETING_DEVICEMFG_CHECKBOX}
+
+# APP NEXUS OS
+Add Targeting AppNexus OS $(appnexus_os_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_APPNEXUS_OS_CHECKBOX} 
+      Select Checkbox    ${AG_TARGETING_APPNEXUS_OS_CHECKBOX_ID}$(appnexus_os_id_from_db_selection}
+Remove Targeting AppNexus OS
+      Unselect Checkbox       ${AG_TARGETING_APPNEXUS_OS_CHECKBOX} 
+      
+# APP NEXUS BROWSER
+Add Targeting AppNexus Browser $(appnexus_browser_id_from_db_selection}
+      Select Checkbox    ${AG_TARGETING_APPNEXUS_BROWSER_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_APPNEXUS_BROWSER_CHECKBOX_ID}$(appnexus_browser_id_from_db_selection}
+Remove Targeting AppNexus Browser
+      Unselect Checkbox       ${AG_TARGETING_APPNEXUS_BROWSER_CHECKBOX}
+# Video Streaming Position. video position can take multiple items separate by ;
+Enable Video Streaming Position
+	[Arguments]       ${ag_target_video_streaming_position}=NA
+	Log		Video Position:${ag_target_video_streaming_position}
+	Select Checkbox						id=chkVideoStreamingPosition				
+	@{positions}=						String.Split String 					${ag_target_video_streaming_position}				;
+	:FOR	${video_position}	IN		@{positions}
+	\	Log		video_position:${video_position}
+	\	Run Keyword If	'${video_position}'=='Interstitial'			Select Checkbox		id=chkVideoStreamingPosition-5
+	\	Run Keyword If	'${video_position}'=='Mid-roll'				Select Checkbox		id=chkVideoStreamingPosition-3
+	\	Run Keyword If	'${video_position}'=='Post-roll'			Select Checkbox		id=chkVideoStreamingPosition-4
+	\	Run Keyword If	'${video_position}'=='Pre-roll'				Select Checkbox		id=chkVideoStreamingPosition-2
+	
+# AUDIENCE
+Add Targeting Audience ${audience_selection}
+      Select Checkbox    ${AG_TARGETING_AUDIENCE_CHECKBOX}
+      Select From List           ${AG_TARGETING_AUDIENCE_SELECT}             ${audience_selection}
+Remove Targeting Audience
+      Unselect Checkbox       ${AG_TARGETING_AUDIENCE_CHECKBOX}
+      
+# GEOFENCE
+Add Targeting Geofence ${geofence_selection}
+      Select Checkbox    ${AG_TARGETING_GEOFENCE_CHECKBOX}
+      Select From List By Label          ${AG_TARGETING_GEOFENCE_SELECT}              ${geofence_selection}
+Remove Targeting Geofence
+      Unselect Checkbox       ${AG_TARGETING_GEOFENCE_CHECKBOX}   
+Add Targeting Negative Geofence ${geofence_selection}
+	  Select Checkbox    ${AG_TARGETING_GEOFENCE_CHECKBOX}
+      Select Checkbox    ${AG_TARGETING_NEGATIVE_GEOFENCE_CHECKBOX}
+      Select From List By Label           ${AG_TARGETING_GEOFENCE_SELECT}              ${geofence_selection}
+Remove Targeting Negative Geofence
+      Unselect Checkbox       ${AG_TARGETING_NEAGATIVE_GEOFENCE_CHECKBOX} 
+        
+# COOKIE
+# We will use ; to separate each entry
+# We will use : to separate exchange from segment
+# ie: Appnexus:19,20,21;Mopub:30,31;Appnexus:10
+Add 3rd Party Segment
+      [Arguments]       ${ag_3rd_party_segment_name}=AppNexus:NA
+	  Select Checkbox    ${AG_TARGETING_COOKIE_CHECKBOX}
+	  Log				Online Segment-> ${ag_3rd_party_segment_name}
+	@{names}=						String.Split String 					${ag_3rd_party_segment_name}				;
+	Set Test Variable 	${index}		2
+	:FOR	${name}		IN		@{names}
+	\	Log		${name}
+	\	Click Button		 Add New
+	\	@{online_segment}=					String.Split String 					${name}							:
+	\	Select From List By Label			xpath=(//select[@id='targetCookieSegmentId'])[${index}]				@{online_segment}[0]
+	\	Input Text							xpath=(//input[@id='cookieSegmentsIds'])[${index}]					@{online_segment}[1]
+	\ 	${index}= 		 Evaluate	   ${index} + 1
+	\	Set Test Variable 	${index}		${index} 
+		  
+Add Targeting Cookie ${cookie_selection}
+      Select Checkbox    ${AG_TARGETING_COOKIE_CHECKBOX}
+      Select From List By Label           ${AG_TARGETING_COOKIE_SELECT}             ${cookie_selection}
+Remove Targeting Cookie
+      Unselect Checkbox       ${AG_TARGETING_COOKIE_CHECKBOX}
+      
+Disable All Targetting But Placement For Mobile Adgroup
+       Run Keyword And Continue On Failure          	Remove Targeting Traffic Type 
+       Run Keyword And Continue On Failure          	Remove Targeting Category
+       Run Keyword And Continue On Failure				Remove Targeting Day Of Week
+       Run Keyword And Continue On Failure				Remove Targeting Time Of Day
+       Run Keyword And Continue On Failure				Remove Targeting State Household
+       Run Keyword And Continue On Failure				Remove Targeting State Request
+       Run Keyword And Continue On Failure				Remove Targeting Country
+       Run Keyword And Continue On Failure				Remove Targeting DMA Household
+       Run Keyword And Continue On Failure				Remove Targeting DMA Request
+       Run Keyword And Continue On Failure				Remove Targeting Zip
+       Run Keyword And Continue On Failure				Remove Targeting Carrier
+       Run Keyword And Continue On Failure				Remove Targeting Device OS
+       Run Keyword And Continue On Failure				Remove Targeting Device Type
+       Run Keyword And Continue On Failure				Remove Targeting Device Manufacturer
+
+Disable All Targetting But Placement For Online Adgroup
+       Run Keyword And Continue On Failure          		Remove Targeting Category
+       Run Keyword And Continue On Failure				Remove Targeting Day Of Week
+       Run Keyword And Continue On Failure				Remove Targeting Time Of Day
+	   Run Keyword And Continue On Failure				Remove Targeting State Household
+	   Run Keyword And Continue On Failure				Remove Targeting State Request
+       Run Keyword And Continue On Failure				Remove Targeting Country
+       Run Keyword And Continue On Failure				Remove Targeting DMA Household
+       Run Keyword And Continue On Failure				Remove Targeting DMA Request
+       Run Keyword And Continue On Failure				Remove Targeting Zip
+       Run Keyword And Continue On Failure				Remove Targeting AppNexus OS
+       Run Keyword And Continue On Failure				Remove Targeting AppNexus Browser
+
+###############################
+# Creative
+################################       
+Add A Banner Ad Under Adgroup With Banner Type Static Image 6.0
+      [Arguments]      			 ${advertiser_name}=
+      ...                        ${campaign_name}=
+      ...						 ${parent_adgroup_name}=
+      ...                        ${child_adgroup_id}=
+      ...                        ${ag_ad_type}=${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}
+      ...                        ${ag_ad_name}=      
+      ...                        ${ag_ad_text}=
+      ...                        ${ag_ad_banner_type}=${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}
+      ...                        ${ag_ad_default_destination_type}=Click to Web
+      ...                        ${ag_ad_url}=
+      ...                        ${ag_ad_3rd_party_url}=
+      ...                        ${ag_ad_3rd_party_click}=
+      ...                        ${ag_ad_weight}=1
+      ...                        ${ag_ad_allocation_gain}=Normal
+      ...                        ${ag_ad_allocation_overwrite_flag}=0
+      ...                        ${ag_ad_banner_size}=${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      ...                        ${ag_ad_banner_file_path}=
+      ...                        ${ag_ad_specific_url}=${DEFAULT_BROWSER_HOME}
+      ...                        ${ag_ad_specific_3rd_party_url}=
+      ...                        ${ag_ad_specific_3rd_party_click}=
+      ...                        ${ag_ad_truste_icon_location}=Bottom Right
+      ...                        ${ag_ad_paused_flag}=0
+      ...                        ${timestamp_flag}=1
+      ${timestamp}=      get_timestamp
+      Run Keyword If                ${timestamp_flag} == '1'     Set Suite Variable    ${ag_ad_name}    ${ag_ad_name}_${timestamp}
+      Run Keyword Unless            ${timestamp_flag} == '1'     Set Suite Variable    ${ag_ad_name}    ${ag_ad_name}
+	  Go To 	 			${QA_URL}adNew.html?partnerId=183&campaignId=${campaign_id}&adGroupBundleId=${parent_adgroup_id}&adGroupId=${child_adgroup_id}&id=-1&pageMode=edit&agLevel=child     
+      Sleep   5s
+      Select Radio Button           ${AG_AD_TYPE_RADIO_GROUP_NAME}              							${ag_ad_type}
+      Select Radio Button           ${AG_AD_BANNERTYPE_RADIO_GROUP_NAME}             						${ag_ad_banner_type}
+      Select From List           	${AG_AD_DEFAULT_DESTINATION_TYPE_SELECT}         						${ag_ad_default_destination_type}
+      Input Text       				${AG_AD_DEFAULT_DESTINATION_URL_TEXTBOX}                                ${ag_ad_url}
+      Input Text       				${AG_AD_DEFAULT_3RD_PARTY_IMPRESSION_TRACKING_URL_TEXTBOX}        	    ${ag_ad_3rd_party_url}
+      #Select From List           	${AG_AD_ALLOCATION_GAIN_SELECT}         														${ag_ad_allocation_gain}
+      #Run Keyword If             	${ag_ad_allocation_overwrite_flag} == '1'          	Select Checkbox    ${AG_AD_ALLOCATION_OVERWRITE_CHECKBOX}
+      #Run Keyword Unless      		${ag_ad_allocation_overwrite_flag} == '1'         	Unselect Checkbox       ${AG_AD_ALLOCATION_OVERWRITE_CHECKBOX}
+      Select Checkbox    ${ag_ad_banner_size}
+      Log         File Path: ${ag_ad_banner_file_path}
+      Sleep    2s
+      Input Text       				${AG_AD_CREATIVE_NAME}	               								${ag_ad_name}
+      Choose File      				${AG_AD_FILE_PATH_TEXTBOX}        ${ag_ad_banner_file_path}
+      Input Text        			${AG_AD_SPECIFIC_DESTINATION_URL_TEXTBOX}                           ${ag_ad_specific_url}
+      Input Text        			${AG_AD_SPECIFIC_3RD_PARTY_IMPRESSION_TRACKING_URL_TEXTBOX}        	${ag_ad_specific_3rd_party_url}
+      Select From List             	${AG_AD_TRUSTE_ICON_LOCATION_SELECT}           						${ag_ad_truste_icon_location}
+      Run Keyword If              	${ag_ad_paused_flag} == '1'                      			Select Checkbox    	${AG_AD_PAUSED_CHECKBOX}
+      Run Keyword Unless     	 	${ag_ad_paused_flag} == '1'                      			Unselect Checkbox       	${AG_AD_PAUSED_CHECKBOX}
+      Sleep      2s
+      Capture Page Screenshot With Timestamp
+      Click Element                          ${AG_AD_SAVE_BUTTON} 
+      Sleep   	5s
+      Capture Page Screenshot With Timestamp
+      Page Should Contain Link         ${parent_adgroup_name}
+      Page Should Contain Link         ${child_adgroup_name}
+      ${local_child_xpath}=          Set Variable      xpath=//tr[@id='${parent_adgroup_id}-${child_adgroup_id}']
+      Page Should Contain Element        ${local_child_xpath}
+
+#Creating new creative by navigating through advertiser, campaign, parent adgroup, child adgroup, edit creative
+# ag_ad_type = Banner, Interstitial Video, or Native
+# ag_ad_type_2 = Sub category such as Static Image, Rich Media or 3rd-Party Tag. However if it's video then it could be VAST Wrapper URL, VAST Tag, Upload Video
+#
+Add Creative 6.0
+      [Arguments]      			 ${advertiser_name}=
+      ...                        ${campaign_name}=
+      ...						 ${parent_adgroup_name}=
+      ...                        ${child_adgroup_name}=
+      ...                        ${ag_creative_type}=Banner
+      ...						 ${ag_creative_type_2}=Static Image
+      ...                        ${ag_creative_default_destination_type}=Click to Web 
+      ...  						 ${ag_creative_default_destination_url}= 
+      ...  						 ${ag_creative_3rd_party_tracking_url}=   
+      ...                        ${ag_creative_banner_size}=320x50               
+      ...                        ${ag_creative_name}=      
+      ...                        ${ag_creative_external_id}=
+      ...                        ${ag_creative_weight}=1      
+      ...                        ${ag_creative_banner_type}=GENERIC    
+      ...                        ${ag_creative_banner_name}=320x50_Group01.jpg 
+      ...                        ${ag_creative_specific_3rd_party_tracking_url}=NA
+      ...                        ${ag_creative_specific_destination_url}=https://www.google.com/
+      ...                        ${ag_creative_truste_icon_location}=Top Right
+      ...                        ${ag_creative_paused}=0
+      ...                        ${ag_creative_is_secure}=0
+      ...                        ${timestamp_flag}=0
+      ...						 ${ag_creative_video_type}=MIGRATION   
+      ...                        ${ag_creative_video_name}=
+      ...						 ${ag_creative_video_duration}=30
+      ...                        ${ag_creative_video_redirection}=0	
+	...  						 ${ag_creative_native_title}=NA
+	...  						 ${ag_creative_native_content_text}=NA
+	...  						 ${ag_creative_native_cta_text}=NA
+    ...                          ${ag_creative_native_banner_icon_name}=Native_Icon.jpg          
+
+      ${timestamp}=      get_timestamp
+      Run Keyword If                ${timestamp_flag} == '1'     Set Suite Variable    ${ag_creative_name}    ${ag_creative_name}_${timestamp}
+      Run Keyword Unless            ${timestamp_flag} == '1'     Set Suite Variable    ${ag_creative_name}    ${ag_creative_name}
+
+      Go To Existing Parent Adgroup 6.0             advertiser_name=${advertiser_name}     campaign_name=${campaign_name}     parent_adgroup_name=${parent_adgroup_name}
+      Click Link		${child_adgroup_name}	 
+      Sleep      	2s
+      #Capture Page Screenshot With Timestamp
+	  Click Link	Add/Edit Creative
+	  Sleep      	3s
+	  Run Keyword If 	'${ag_creative_type}'=='Banner'					Adding Creative Banner		
+											...	  						ag_creative_type_2=${ag_creative_type_2}
+											...							ag_creative_default_destination_type=${ag_creative_default_destination_type}
+											...  						ag_creative_default_destination_url=${ag_creative_default_destination_url} 
+											...  						ag_creative_3rd_party_tracking_url=${ag_creative_3rd_party_tracking_url}
+											...                         ag_creative_banner_size=${ag_creative_banner_size}
+											...                         ag_creative_name=${ag_creative_name}    
+										    ...                        ag_creative_external_id=${ag_creative_external_id}
+										    ...                        ag_creative_weight=${ag_creative_weight}     
+										    ...                        ag_creative_banner_type=${ag_creative_banner_type}  
+										    ...                        ag_creative_banner_name=${ag_creative_banner_name} 
+										    ...                        ag_creative_specific_3rd_party_tracking_url=${ag_creative_specific_3rd_party_tracking_url}
+										    ...                        ag_creative_specific_destination_url=${ag_creative_specific_destination_url}
+										    ...                        ag_creative_truste_icon_location=${ag_creative_truste_icon_location}
+										    ...                        ag_creative_paused=${ag_creative_paused}
+										    ...                        ag_creative_is_secure=${ag_creative_is_secure}
+	  Run Keyword If 	'${ag_creative_type}'=='Interstitial Video'		Adding Creative Inerstitial Video
+	  ...	  															ag_creative_type_2=${ag_creative_type_2}
+	  ...																ag_creative_name=${ag_creative_name}	  					
+	  ...                        										ag_creative_external_id=${ag_creative_external_id}
+   	  ...                        										ag_creative_weight=${ag_creative_weight}      
+      ...                        										ag_creative_video_type=${ag_creative_video_type}   
+      ...                       					 					ag_creative_video_name=${ag_creative_video_name}
+      ...						   										ag_creative_video_duration=${ag_creative_video_duration}
+      ...                       										ag_creative_video_redirection=${ag_creative_video_redirection}
+      ...                        										ag_creative_specific_destination_url=${ag_creative_specific_destination_url}
+      ...                        										ag_creative_paused=${ag_creative_paused}
+      ...                        										ag_creative_is_secure=${ag_creative_is_secure}
+	  Run Keyword If 	'${ag_creative_type}'=='Native'					Adding Creative Native
+		...                         									ag_creative_name=${ag_creative_name}
+    	...                         									ag_creative_external_id=${ag_creative_external_id}
+    	...                         									ag_creative_weight=${ag_creative_weight}
+    	...                        										ag_creative_banner_type=${ag_creative_banner_type}	
+    	...                        										ag_creative_banner_name=${ag_creative_banner_name} 
+    	...                       										ag_creative_specific_destination_url=${ag_creative_specific_destination_url}
+    	...                        										ag_creative_paused=${ag_creative_paused}
+    	...                        										ag_creative_is_secure=${ag_creative_is_secure}
+		...  															ag_creative_native_title=${ag_creative_native_title}
+		...  															ag_creative_native_content_text=${ag_creative_native_content_text}
+		...  															ag_creative_native_cta_text=${ag_creative_native_cta_text}
+    	...                        										ag_creative_native_banner_icon_name=${ag_creative_native_banner_icon_name}       
+      Sleep   	5s
+      Capture Page Screenshot With Timestamp
+      Page Should Contain Link         ${parent_adgroup_name}
+      Page Should Contain Link         ${child_adgroup_name}
+      #${local_child_xpath}=          Set Variable      xpath=//tr[@id='${parent_adgroup_id}-${child_adgroup_id}']
+      #Page Should Contain Element        ${local_child_xpath}
+
+#Banner has 3 type: Static Image, Rich Media, 3rd-Party Tag
+Adding Creative Banner
+	[Arguments]					
+	...	  						${ag_creative_type_2}=Static Image
+	...							${ag_creative_default_destination_type}=Click to Web
+	...  						${ag_creative_default_destination_url}=NA 
+	...  						${ag_creative_3rd_party_tracking_url}=NA
+	...                         ${ag_creative_banner_size}=320x50
+	...                         ${ag_creative_name}=REGRESSION BANNER      
+    ...                        ${ag_creative_external_id}=
+    ...                        ${ag_creative_weight}=1      
+    ...                        ${ag_creative_banner_type}=GENERIC    
+    ...                        ${ag_creative_banner_name}=320x50_Group01.jpg 
+    ...                        ${ag_creative_specific_3rd_party_tracking_url}=NA
+    ...                        ${ag_creative_specific_destination_url}=https://www.google.com/
+    ...                        ${ag_creative_truste_icon_location}=NA
+    ...                        ${ag_creative_paused}=0
+    ...                        ${ag_creative_is_secure}=0
+      Select Radio Button           ${AG_AD_TYPE_RADIO_GROUP_NAME}		${AG_AD_TYPE_BANNER_RADIO_BUTTON_VALUE}     
+      Run Keyword If	'${ag_creative_type_2}'=='Static Image'			Adding Creative Banner Static Image
+						...							ag_creative_default_destination_type=${ag_creative_default_destination_type}
+						...  						ag_creative_default_destination_url=${ag_creative_default_destination_url}
+						...  						ag_creative_3rd_party_tracking_url=${ag_creative_3rd_party_tracking_url}
+						...                         ag_creative_banner_size=${ag_creative_banner_size}
+						...                         ag_creative_name=${ag_creative_name}     
+   	 					...                        ag_creative_external_id=${ag_creative_external_id}
+    					...                        ag_creative_weight=${ag_creative_weight}      
+    					...                        ag_creative_banner_type=${ag_creative_banner_type}   
+    					...                        ag_creative_banner_name=${ag_creative_banner_name}
+    					...                        ag_creative_specific_3rd_party_tracking_url=${ag_creative_specific_3rd_party_tracking_url}
+    					...                        ag_creative_specific_destination_url=${ag_creative_specific_destination_url}     
+      Run Keyword If	'${ag_creative_type_2}'=='Rich Media'				Adding Creative Banner Rich Media
+						...                         ag_creative_banner_size=${ag_creative_banner_size}      	 
+						...                         ag_creative_name=${ag_creative_name}
+						...                        ag_creative_external_id=${ag_creative_external_id}
+						...                        ag_creative_weight=${ag_creative_weight}
+    					...                        ag_creative_banner_type=${ag_creative_banner_type}   
+    					...                        ag_creative_banner_name=${ag_creative_banner_name}
+    					...                        ag_creative_specific_destination_url=${ag_creative_specific_destination_url}       
+      Run Keyword If	'${ag_creative_type_2}'=='3rd Party Tag'			Adding Creative Banner 3rd Party Tag
+						...                         ag_creative_banner_size=${ag_creative_banner_size}      	 
+						...                         ag_creative_name=${ag_creative_name}
+						...                        ag_creative_external_id=${ag_creative_external_id}
+						...                        ag_creative_weight=${ag_creative_weight}
+    					...                        ag_creative_banner_type=${ag_creative_banner_type}   
+    					...                        ag_creative_banner_name=${ag_creative_banner_name}
+    					...                        ag_creative_specific_destination_url=${ag_creative_specific_destination_url}    					
+
+      Run Keyword Unless			'${ag_creative_truste_icon_location}'=='NA'					Select From List    ${AG_AD_TRUSTE_ICON_LOCATION_SELECT}           	${ag_creative_truste_icon_location}
+ 	  Run Keyword If              	'${ag_creative_paused}'=='1'                      			Select Checkbox    	${AG_AD_PAUSED_CHECKBOX}
+      Run Keyword If              	'${ag_creative_is_secure}'=='1'                      		Select Checkbox    	${AG_AD_SECURE_CHECKBOX}
+      Capture Page Screenshot With Timestamp
+      Click Element                          ${AG_AD_SAVE_BUTTON} 
+Adding Creative Banner Static Image
+	[Arguments]					
+	...							${ag_creative_default_destination_type}=Click to Web
+	...  						${ag_creative_default_destination_url}=NA 
+	...  						${ag_creative_3rd_party_tracking_url}=NA
+	...                         ${ag_creative_banner_size}=320x50
+	...                         ${ag_creative_name}=REGRESSION BANNER      
+    ...                        ${ag_creative_external_id}=
+    ...                        ${ag_creative_weight}=1      
+    ...                        ${ag_creative_banner_type}=GENERIC    
+    ...                        ${ag_creative_banner_name}=320x50_Group01.jpg 
+    ...                        ${ag_creative_specific_3rd_party_tracking_url}=NA
+    ...                        ${ag_creative_specific_destination_url}=https://www.google.com/
+    ...                        ${ag_creative_truste_icon_location}=NA
+    ...                        ${ag_creative_paused}=0
+    ...                        ${ag_creative_is_secure}=0
+      Select Radio Button           ${AG_AD_BANNERTYPE_RADIO_GROUP_NAME}		${AG_AD_BANNERTYPE_STATICIMAGE_RADIO_BUTTON_VALUE}
+	  Select From List By Label    	${AG_AD_DEFAULT_DESTINATION_TYPE_SELECT}         						${ag_creative_default_destination_type}
+      Run Keyword Unless		'${ag_creative_default_destination_url}'=='NA'			Input Text     		${AG_AD_DEFAULT_DESTINATION_URL_TEXTBOX}                  				${ag_creative_default_destination_url}
+      Run Keyword Unless		'${ag_creative_3rd_party_tracking_url}'=='NA'			Input Text       	${AG_AD_DEFAULT_3RD_PARTY_IMPRESSION_TRACKING_URL_TEXTBOX}        	    ${ag_creative_3rd_party_tracking_url}
+      Run Keyword If			'${ag_creative_banner_size}'=='120x20'					Select Checkbox		${AG_AD_BANNER_SIZE_120X20_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='168x28'					Select Checkbox		${AG_AD_BANNER_SIZE_168X28_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='216x36'					Select Checkbox		${AG_AD_BANNER_SIZE_216X36_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='300x50'					Select Checkbox		${AG_AD_BANNER_SIZE_300X50_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='320x50'					Select Checkbox		${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='300x250'					Select Checkbox		${AG_AD_BANNER_SIZE_300X250_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='728x90'					Select Checkbox		${AG_AD_BANNER_SIZE_728X90_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='160x600'					Select Checkbox		${AG_AD_BANNER_SIZE_160X600_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='468x60'					Select Checkbox		${AG_AD_BANNER_SIZE_468X60_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='120x600'					Select Checkbox		${AG_AD_BANNER_SIZE_120X600_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='1024x90'					Select Checkbox		${AG_AD_BANNER_SIZE_1024X90_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='320x480'					Select Checkbox		${AG_AD_BANNER_SIZE_320X480_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='968x1024'				Select Checkbox		${AG_AD_BANNER_SIZE_968X1024_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='768x1024'				Select Checkbox		${AG_AD_BANNER_SIZE_768X1024_CHECKBOX}
+	  Log 	Bannyer type: ${ag_creative_banner_type}
+	  Log	File Name: ${ag_creative_banner_name}
+	  Retrieve Direct Path For Banner 	banner_type=${ag_creative_banner_type} 		file_name=${ag_creative_banner_name} 
+      Log         File Path: ${banner_file}
+      Wait Until Page Contains 		Ad Name
+      Input Text       				${AG_AD_CREATIVE_NAME}	               				${ag_creative_name}
+      Choose File      				${AG_AD_FILE_PATH_TEXTBOX}        ${banner_file}
+      Run Keyword Unless			'${ag_creative_specific_3rd_party_tracking_url}'=='NA'		Input Text       ${AG_AD_SPECIFIC_3RD_PARTY_IMPRESSION_TRACKING_URL_TEXTBOX}        	${ag_creative_specific_3rd_party_tracking_url}
+      Run Keyword Unless			'${ag_creative_specific_destination_url}'=='NA'				Input Text       ${AG_AD_SPECIFIC_DESTINATION_URL_TEXTBOX}            ${ag_creative_specific_destination_url}
+
+#Making Rich Media banner
+Adding Creative Banner Rich Media
+				[Arguments]                         ${ag_creative_banner_size}=320x50      	 
+						...                         ${ag_creative_name}=Bad Creative Name
+						...                        ${ag_creative_external_id}=Bad Creative External ID
+						...                        ${ag_creative_weight}=1
+    					...                        ${ag_creative_banner_type}=MIGRATION   
+    					...                        ${ag_creative_banner_name}=macro1.txt
+    					...                        ${ag_creative_specific_destination_url}=https://google.com       
+ 	  Select Radio Button           ${AG_AD_BANNERTYPE_RADIO_GROUP_NAME}		${AG_AD_BANNERTYPE_RICHMEDIA_RADIO_BUTTON_VALUE}
+	  Run Keyword If			'${ag_creative_banner_size}'=='120x20'					Select Checkbox		${AG_AD_BANNER_SIZE_120X20_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='168x28'					Select Checkbox		${AG_AD_BANNER_SIZE_168X28_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='216x36'					Select Checkbox		${AG_AD_BANNER_SIZE_216X36_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='300x50'					Select Checkbox		${AG_AD_BANNER_SIZE_300X50_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='320x50'					Select Checkbox		${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='300x250'					Select Checkbox		${AG_AD_BANNER_SIZE_300X250_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='728x90'					Select Checkbox		${AG_AD_BANNER_SIZE_728X90_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='160x600'					Select Checkbox		${AG_AD_BANNER_SIZE_160X600_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='468x60'					Select Checkbox		${AG_AD_BANNER_SIZE_468X60_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='120x600'					Select Checkbox		${AG_AD_BANNER_SIZE_120X600_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='1024x90'					Select Checkbox		${AG_AD_BANNER_SIZE_1024X90_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='320x480'					Select Checkbox		${AG_AD_BANNER_SIZE_320X480_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='968x1024'				Select Checkbox		${AG_AD_BANNER_SIZE_968X1024_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='768x1024'				Select Checkbox		${AG_AD_BANNER_SIZE_768X1024_CHECKBOX}
+	  Log 	Bannyer type: ${ag_creative_banner_type}
+	  Log	File Name: ${ag_creative_banner_name}
+	  Retrieve Direct Path For Banner 	banner_type=${ag_creative_banner_type} 		file_name=${ag_creative_banner_name} 
+      Log         File Path: ${banner_file}
+      Wait Until Page Contains 		Ad Name
+      Input Text       				${AG_AD_CREATIVE_NAME}	               				${ag_creative_name}
+      ${file_content}=		OperatingSystem.Get File     				       ${banner_file}
+      Input Text	${AG_AD_SPECIFIC_RICH_MEDIA_TEXTBOX}		${file_content} 
+      Run Keyword Unless			'${ag_creative_specific_destination_url}'=='NA'				Input Text       ${AG_AD_SPECIFIC_DESTINATION_URL_TEXTBOX}            ${ag_creative_specific_destination_url}
+
+#Making 3rd party tag banner
+Adding Creative Banner 3rd Party Tag
+				[Arguments]                         ${ag_creative_banner_size}=320x50      	 
+						...                         ${ag_creative_name}=Bad Creative Name
+						...                        ${ag_creative_external_id}=Bad Creative External ID
+						...                        ${ag_creative_weight}=1
+    					...                        ${ag_creative_banner_type}=MIGRATION   
+    					...                        ${ag_creative_banner_name}=macro1.txt
+    					...                        ${ag_creative_specific_destination_url}=https://google.com 
+	  Select Radio Button           ${AG_AD_BANNERTYPE_RADIO_GROUP_NAME}   	${AG_AD_BANNERTYPE_THIRDPARTYTAG_RADIO_BUTTON_VALUE}
+	  Run Keyword If			'${ag_creative_banner_size}'=='120x20'					Select Checkbox		${AG_AD_BANNER_SIZE_120X20_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='168x28'					Select Checkbox		${AG_AD_BANNER_SIZE_168X28_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='216x36'					Select Checkbox		${AG_AD_BANNER_SIZE_216X36_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='300x50'					Select Checkbox		${AG_AD_BANNER_SIZE_300X50_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='320x50'					Select Checkbox		${AG_AD_BANNER_SIZE_320X50_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='300x250'					Select Checkbox		${AG_AD_BANNER_SIZE_300X250_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='728x90'					Select Checkbox		${AG_AD_BANNER_SIZE_728X90_CHECKBOX}
+      Run Keyword If			'${ag_creative_banner_size}'=='160x600'					Select Checkbox		${AG_AD_BANNER_SIZE_160X600_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='468x60'					Select Checkbox		${AG_AD_BANNER_SIZE_468X60_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='120x600'					Select Checkbox		${AG_AD_BANNER_SIZE_120X600_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='1024x90'					Select Checkbox		${AG_AD_BANNER_SIZE_1024X90_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='320x480'					Select Checkbox		${AG_AD_BANNER_SIZE_320X480_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='968x1024'				Select Checkbox		${AG_AD_BANNER_SIZE_968X1024_CHECKBOX}			
+      Run Keyword If			'${ag_creative_banner_size}'=='768x1024'				Select Checkbox		${AG_AD_BANNER_SIZE_768X1024_CHECKBOX}
+	  Log 	Bannyer type: ${ag_creative_banner_type}
+	  Log	File Name: ${ag_creative_banner_name}
+	  Retrieve Direct Path For Banner 	banner_type=${ag_creative_banner_type} 		file_name=${ag_creative_banner_name} 
+      Log         File Path: ${banner_file}
+      Wait Until Page Contains 		Ad Name
+      Input Text       				${AG_AD_CREATIVE_NAME}	               				${ag_creative_name}
+      ${file_content}=	OperatingSystem.Get File      				       ${banner_file}
+      Input Text	${AG_AD_SPECIFIC_3RD_PARTY_TAG_TEXTBOX}		${file_content} 
+      Run Keyword Unless			'${ag_creative_specific_destination_url}'=='NA'				Input Text       ${AG_AD_SPECIFIC_3RD_PARTY_TAG_DESTINATION_URL_TEXTBOX}            ${ag_creative_specific_destination_url}
+	 
+Adding Creative Inerstitial Video
+	[Arguments]					
+	...	  						${ag_creative_type_2}=Upload Video
+	...                         ${ag_creative_name}=REGRESSION BANNER      
+    ...                        ${ag_creative_external_id}=NA
+    ...                        ${ag_creative_weight}=1      
+    ...                        ${ag_creative_video_type}=MIGRATION    
+    ...                        ${ag_creative_video_name}=Hot_Pockets_30s_video.mp4
+    ...						   ${ag_creative_video_duration}=30
+    ...                        ${ag_creative_video_redirection}=0
+    ...                        ${ag_creative_specific_destination_url}=https://www.google.com/
+    ...                        ${ag_creative_paused}=0
+    ...                        ${ag_creative_is_secure}=0
+	Select Radio Button           ${AG_AD_TYPE_RADIO_GROUP_NAME}		${AG_AD_TYPE_VIDEO_RADIO_BUTTON_VALUE}
+    Run Keyword If	'${ag_creative_type_2}'=='VAST Wrapper URL'		Select Radio Button           ${AG_AD_VIDEOTYPE_RADIO_GROUP_NAME}		${AG_AD_VIDEOTYPE_VAST_WRAPPER_URL_RADIO_BUTTON_VALUE}
+    Run Keyword If	'${ag_creative_type_2}'=='VAST Tag'				Select Radio Button           ${AG_AD_VIDEOTYPE_RADIO_GROUP_NAME}		${AG_AD_VIDEOTYPE_VAST_TAG_RADIO_BUTTON_VALUE}
+    Run Keyword If	'${ag_creative_type_2}'=='Upload Video'			Select Radio Button           ${AG_AD_VIDEOTYPE_RADIO_GROUP_NAME}   	${AG_AD_VIDEOTYPE_UPLOAD_VIDEO_RADIO_BUTTON_VALUE}  
+	Run Keyword If	'${ag_creative_type_2}'=='Upload Video'			Retrieve Direct Path For Banner 	banner_type=${ag_creative_video_type} 		file_name=${ag_creative_video_name} 
+	Run Keyword If	'${ag_creative_type_2}'=='Upload Video'			Choose File           		  ${AG_AD_VIDEO_FILE_PATH_TEXTBOX}   		${banner_file}
+	
+	Input Text		${AG_AD_VIDEO_NAME_TEXTBOX}						${ag_creative_name}
+	Run Keyword Unless	'${ag_creative_external_id}'=='NA'		Input Text		${AG_AD_VIDEO_EXTERNAL_ID_TEXTBOX}		${ag_creative_external_id}
+	Input Text		${AG_AD_VIDEO_DURATION_TEXTBOX}						${ag_creative_video_duration}
+	Run Keyword Unless			'${ag_creative_specific_destination_url}'=='NA'					Input Text       ${AG_AD_VIDEO_DESTINATION_URL_TEXTBOX}            ${ag_creative_specific_destination_url}
+	Run Keyword Unless			'${ag_creative_video_redirection}'=='NA'      					Select From List By Label	${AG_AD_VIDEO_REDIRECTION_SELECT}			${ag_creative_video_redirection}
+      Run Keyword If              	'${ag_creative_paused}'=='1'                      			Select Checkbox    	${AG_AD_PAUSED_CHECKBOX}
+      Run Keyword If              	'${ag_creative_is_secure}'=='1'                      		Select Checkbox    	${AG_AD_SECURE_CHECKBOX}
+      Capture Page Screenshot With Timestamp
+      Click Element                          ${AG_AD_SAVE_BUTTON} 
+	
+Adding Creative Native
+	[Arguments]					
+	...                         ${ag_creative_name}=REGRESSION BANNER
+    ...                         ${ag_creative_external_id}=NA
+    ...                         ${ag_creative_weight}=1	 
+	...  						${ag_creative_native_title}=NA
+	...  						${ag_creative_native_content_text}=NA
+	...  						${ag_creative_native_cta_text}=NA
+    ...                        ${ag_creative_banner_type}=MIGRATION
+    ...                        ${ag_creative_native_banner_icon_name}=Native_Icon.jpg          
+    ...                        ${ag_creative_banner_name}=Native_Banner.jpg   
+    ...                        ${ag_creative_specific_destination_url}=https://www.google.com/
+    ...                        ${ag_creative_paused}=0
+    ...                        ${ag_creative_is_secure}=0
+	  Select Radio Button           ${AG_AD_TYPE_RADIO_GROUP_NAME}		${AG_AD_TYPE_NATIVE_RADIO_BUTTON_VALUE}     
+	  Log 	Bannyer type: ${ag_creative_banner_type}
+	  Log	File Name icon and banner: ${ag_creative_native_banner_icon_name} and ${ag_creative_banner_name}
+	  #icon location
+	  Retrieve Direct Path For Banner 	banner_type=${ag_creative_banner_type} 		file_name=${ag_creative_native_banner_icon_name}
+	  Log         File Path: ${banner_file}
+	  Choose File      				${AG_AD_NATIVE_ICON_FILE_PATH_TEXTBOX}        ${banner_file}
+	  #banner location
+	  Retrieve Direct Path For Banner 	banner_type=${ag_creative_banner_type} 		file_name=${ag_creative_banner_name} 
+      Log         File Path: ${banner_file}
+      Choose File      				${AG_AD_NATIVE_BANNER_FILE_PATH_TEXTBOX}        ${banner_file}
+      Input Text       				${AG_AD_NATIVE_NAME}	               				${ag_creative_name}
+      Run Keyword Unless			'${ag_creative_external_id}'=='NA'		Input Text       	${AG_AD_NATIVE_EXTERNAL_ID}	        ${ag_creative_external_id}
+      Run Keyword Unless			'${ag_creative_weight}'=='NA'			Input Text       	${AG_AD_NATIVE_WEIGHT}	            ${ag_creative_weight}
+      Input Text       				${AG_AD_NATIVE_TITLE}	               				${ag_creative_native_title}
+      Input Text       				${AG_AD_NATIVE_CONTENT_TEXT}	               		${ag_creative_native_content_text}
+      Input Text       				${AG_AD_NATIVE_CTA_TEXT}	               			${ag_creative_native_cta_text}
+      Run Keyword Unless			'${ag_creative_specific_destination_url}'=='NA'					Input Text       ${AG_AD_NATIVE_SPECIFIC_DESTINATION_URL_TEXTBOX}            ${ag_creative_specific_destination_url}
+      Run Keyword If              	${ag_creative_paused} == '1'                      			Select Checkbox    	${AG_AD_PAUSED_CHECKBOX}
+      Run Keyword If              	${ag_creative_is_secure} == '1'                      			Select Checkbox    	${AG_AD_SECURE_CHECKBOX}
+      Capture Page Screenshot With Timestamp
+      Click Element                          ${AG_AD_SAVE_BUTTON}
+Validate UI Impression Count For Child Adgroup
+	 [Arguments]	${advertiser_name}= 		${campaign_name}=		${parent_adgroup_id}=	${child_adgroup_id}=	${impression_count_expected}=
+	  Start the Browser And Login To The Adhaven UI		
+      Go To         ${URL}
+      Sleep       65s
+      Go To Existing Campaign 6.0              advertiser_name=${advertiser_name}    campaign_name=${campaign_name} 
+	  ${ui_impression_count}=          Get Text     xpath=//tr[@id='${parent_adgroup_id}-${child_adgroup_id}']/td[9]
+	  Capture Page Screenshot With Timestamp
+	  Should Be Equal As Integers		${impression_count_expected}					${ui_impression_count}
+      
+Cleanup Campaigns For Frequency Cap Tests
+      [Documentation]       Runs the cleanup SQL scripts for all Frequency Cap tests     
+      ...                              Unique Campaign IDS:
+      ...                              04_FREQCAP_CAMPAIGN
+      ...                              05_FREQCAP_CAMPAIGN
+      Cleanup Campaign Data By Campaign Name        campaign_name=04_FREQCAP_CAMPAIGN
+      Cleanup Campaign Data By Campaign Name        campaign_name=05_FREQCAP_CAMPAIGN
+#For use to convert the string of 10,000 to simply 10000
+String To Int
+      [Arguments]         ${input}=
+	   ${output}=	Remove String	${input}		,
+	   ${output}=	Convert To Integer	${output}
+	   [Return]		${output}	
+Go To Existing Adgroup              
+	  [Arguments]		${advertiser_name}=     ${campaign_name}=     ${ag_adgroup_name}=
+      Click Link         ${TAB_ADVERTISERS} 
+      Sleep     2s
+      Location Should Be            ${QA_URL}advertisersList.html
+      Page Should Contain                  Advertisers
+      Wait Until Page Contains Element     ${CREATE_NEW_ADVERTISER_LINK}
+      Log    Advertiser: ${advertiser_name}
+      Log	Campaign:${campaign_name}
+      Log	Adgroup:${ag_adgroup_name}
+      Click Link         ${advertiser_name}
+      Sleep     2s
+      Click Link         ${campaign_name}
+      Sleep     2s
+      Click Link        ${ag_adgroup_name}
+      Sleep     2s
+      Capture Page Screenshot With Timestamp
+      
+Clone Parent Adgroup
+	[Arguments]		${advertiser_name}=     ${campaign_name}=     ${ag_adgroup_name}=
+	Go To Existing Adgroup	  	advertiser_name=${advertiser_name}     campaign_name=${campaign_name}     ag_adgroup_name=${ag_adgroup_name}
+	${clone_element}=	${AG_CLONE_ELEMENT_PRE}${adgroup_id}${AG_CLONE_ELEMENT_POST} 
+	Click Element		${clone_element}  
+	
+#################### PARTNER TAB  ####################
+Create New Partner
+      [Arguments]      			 ${p_name}=12_REGRESSION_PARTNER
+      ...                        ${p_guid}=12_REGRESSION_PARTNER
+      ...                        ${p_address1}=155 BOVET DR
+      ...                        ${p_address2}=SUITE 200
+      ...                        ${p_city}=SAN MATEO
+      ...                        ${p_state}=CA
+      ...                        ${p_zip}=94402
+      ...                        ${p_contact}=QA REGRESSION
+      ...                        ${p_email}=ttran@4info.com            
+      ...                        ${p_phone}=(650) 350-4800 
+      ...                        ${p_spec}=OpenRTBv2x
+      ...                        ${p_protocol}=JSON
+      ...                        ${p_response}=MARKUP HTML
+    Log 	New Partner Name---->${p_name}
+	Click Link         ${TAB_PARTNERS}
+	Wait Until Page Contains	 Create
+	Click Element	   ${CREATE_NEW_PARTNERS}
+	Wait Until Page Contains	 Create Partner
+	Input Text         ${PARTNER_NAME}              ${p_name}
+	Run Keyword If			'${p_guid}'=='12_REGRESSION_PARTNER'		Input Text         ${PARTNER_GUID}              ${p_name}
+	Run Keyword Unless		'${p_guid}'=='12_REGRESSION_PARTNER'		Input Text         ${PARTNER_GUID}              ${p_guid}
+	Input Text         ${PARTNER_ADDRESS1}          ${p_address1}
+	Input Text         ${PARTNER_ADDRESS2}          ${p_address2}
+	Input Text         ${PARTNER_CITY}          	${p_city}
+	Input Text         ${PARTNER_STATE}             ${p_state}
+	Input Text         ${PARTNER_ZIP}               ${p_zip}
+	Input Text         ${PARTNER_CONTACT}           ${p_contact}
+	Input Text         ${PARTNER_EMAIL}             ${p_email}
+	Input Text         ${PARTNER_PHONE}             ${p_phone}
+	Select Checkbox	   ${PARTNER_RTB}
+	Select From List By Label         ${PARTNER_SPEC}              ${p_spec}
+	Select From List By Label         ${PARTNER_PROTOCOL}          ${p_protocol}
+	Select From List By Label         ${PARTNER_RESPONSE}          ${p_response}
+	Capture Page Screenshot With Timestamp
+	Click Element                     ${AG_SAVE_BUTTON}
+	Sleep 	10s
+	Check Database For Partner Name		partner_name=${p_name}
+	
+#pl_type should be APP,SITE,ONLINE	
+Create New Placement Type
+      [Arguments]      			 ${p_name}=12_REGRESSION_PARTNER
+      ...                        ${pl_type}=APP
+      ...                        ${pl_type_name}=12_REGRESSION_PARTNER_APP
+      ...                        ${pl_platform}=IOS
+      ...                        ${pl_url}=http://4info.com  
+    Log 	New Placement Name---->${p_name}> ${pl_name}
+	Click Link         ${TAB_PARTNERS}
+	Wait Until Page Contains	 Create
+	Click Link         Partners
+	Wait Until Page Contains	 Create
+	Click Link	  	 	${p_name}
+	Wait Until Page Contains	 PID
+	Click Element		${PLACEMENT_TYPE_CREATE}
+	Wait Until Page Contains	Create New Site or App     	
+	Run Keyword If		'${pl_type}'=='APP'											Click Element		${PLACEMENT_TYPE_APP}
+	Run Keyword If		'${pl_type}'=='APP' and '${pl_platform}'=='IOS'				Click Element		${PLACEMENT_TYPE_APP_PLATFORM_IOS}
+	Run Keyword If		'${pl_type}'=='SITE'				Click Element		${PLACEMENT_TYPE_SITE}
+	Run Keyword If		'${pl_type}'=='ONLINE'				Click Element		${PLACEMENT_TYPE_ONLINE}
+	Run Keyword If		'${pl_type}'=='SITE' or '${pl_type}'=='ONLINE'			Input Text           ${PLACEMENT_TYPE_SITE_URL}             ${pl_url}
+	Input Text           ${PLACEMENT_TYPE_NAME}             ${pl_type_name}
+	Capture Page Screenshot With Timestamp
+	Click Element                           ${AG_SAVE_BUTTON}
+	Sleep 	10s
+	
+Create New Placement
+      [Arguments]      			 ${p_name}=12_REGRESSION_PARTNER
+      ...                        ${pl_type_name}=12_REGRESSION_PARTNER_APP
+      ...                        ${pl_name}=12_REGRESSION_PLACEMENT
+      ...                        ${pl_status}=LIVE
+      ...                        ${pl_traffic_type}=APP
+      ...                        ${pl_bid_attribute}=APP ID
+      ...                        ${pl_bid_attribute_Value}=QA TEST    
+    Log 	New Placement Name---->${p_name}> ${pl_type_name}> ${pl_name}
+	Click Link         ${TAB_PARTNERS}
+	Wait Until Page Contains	 Create
+	Click Link			Partners
+	Sleep 				2s
+	Click Link	  	 	${p_name}
+	Wait Until Page Contains	 PID
+	Click Link	  	 	${pl_type_name}
+	#Wait Until Page Contains	 ${pl_type_name}	timeout=80
+	Wait Until Page Contains	 Create placement	timeout=80
+	Click Link			Create placement
+	Wait Until Page Contains	 Placement Status
+	Click Element		${PLACEMENT_STATUS_LIVE_SITE}
+	Run Keyword If		'${pl_traffic_type}'=='APP'			Click Element		${PLACEMENT_TRAFFIC_TYPE_APP}
+	Run Keyword If		'${pl_traffic_type}'=='SITE'		Click Element		${PLACEMENT_TRAFFIC_TYPE_MOBILE_WEB}
+	Run Keyword If		'${pl_traffic_type}'=='ONLINE'		Click Element		${PLACEMENT_TRAFFIC_TYPE_ONLINE}
+	Input Text			${PLACEMENT_NAME}		${pl_name}
+	Select From List By Label		${PLACEMENT_RTB_BID_ATTRIBUTE}			${pl_bid_attribute}
+	Input Text			${PLACEMENT_RTB_BID_ATTRIBUTE_VALUE}		${pl_bid_attribute_Value}
+	Capture Page Screenshot With Timestamp
+	Click Element                           ${AG_SAVE_BUTTON}
+	Sleep 	10s
+	Check Database For Placement Name		placement_name=${pl_name}			  

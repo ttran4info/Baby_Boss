@@ -1,0 +1,508 @@
+*** Variables ****
+#	 DASHBOARD
+#    LOGIN GUI COMPONENTS
+ ${PEGASUS_DASHBOARD_URL}		http://172.16.5.45:8080/pegasus/static/index.html#/login
+ 								#http://qa-engine-05:8080/pegasus/static/index.html#/login
+ 								#https://pegasus.adhaven.com/pegasus/static/index.html
+ ${USER_UI}						jdoe@4info.com
+ ${USER_2}						jdoe16@4info.com
+ ${WRONG_USER_UI}				jdoeXX@4info.com
+ ${MISSINGG_USERNAME}				
+ ${PASSWORD_UI}					welcome123
+ ${PASSWORD_2}					hello123
+ ${BROWSER}						ff
+ ${USERNAME_XPATH}				id=userName
+ 								#//div[@class="input-group"][1]
+ 								# - bad path //input[@id='userName']
+ 								
+ ${PASSWORD_XPATH}				//*[@id='userPassword']
+ ${LOGIN_BTN}					css=.btn.btn-primary.btn-lg
+ 								#xpath=//button[text()[contains(.,'Login')]]
+ ${LOGIN_IMAGE}					//img[@class='logo']
+ ${PEGAGUS_ADVERTISER_TABLE_ROW_XPATH}			//table[@class='card-table']/tbody/tr
+ ${PEGAGUS_ADVERTISER_TABLE}	css=.card-table
+ 								#xpath=//table[@class='card-table']		
+ ${L}	[ ('87d656833fbb22dd040484d703b465c8',) |('a4417a2d8b532c397ee2564729b0e4ec',) ]
+ ${USER_1}						jdoe_db@4info.com
+${USERNAME_ICON}				xpath=(//div[@class="login-input-icon"]) [1]
+${PASSWORD_ICON}				xpath=(//div[@class="login-input-icon"]) [2]
+${query_1}		select count("token_id") from oauth_access_token where client_id like ('jdoe@%');
+#javascript
+${SCROLL_DOWN_1}		window.scroll(0,400);
+
+###################		COMMON ALL PAGES: HEADER ELEMENTS		###################
+
+${4INFO_LOGO}				css=.navbar-brand>img
+${DROP_DOWN_USERNAME}		//a[@id="header-dropdown" and text()[contains(.,"Jane")]]
+							#xpath=//a[@class="dropdown-toggle ng-binding" and text()[contains(.,'Jane Doe')]]
+							#//a[text()[contains(.,'Jane Doe')]]
+							#id=header-dropdown
+							#//*[@id='header-dropdown']
+							#//*[contains(text(),'Jane Doe')]
+#${DROP_DOWN_ADMIN}			//a[@class="ng-binding"]
+${LOGOUT}					//li[.//text()[contains(.,'Logout')]]
+							#//a[@ng-click="logOut()"]
+
+###################		COMMON ALL PAGES: FOOTER ELEMENTS		###################
+
+${LINKEDIN}							//img[@src="assets//img/icons/linkedin.svg"]
+${TWITTER}							//img[@src="assets//img/icons/twitter.svg"]
+${FACEBOOK}							//img[@src="assets//img/icons/facebook.svg"]
+${GOOGLE}							//img[@src="assets//img/icons/google.svg"]
+${YOUTUBE}							//img[@src="assets//img/icons/youtube.svg"]
+${PRIVACY}							//footer[@class="footer"]//ul[@class="nav navbar-nav navbar-right"]/li[1]
+${TERMS}							//footer[@class="footer"]//ul[@class="nav navbar-nav navbar-right"]/li[2]
+${COPYRIGHT}						//footer[@class="footer"]//ul[@class="nav navbar-nav navbar-right"]/li[3]
+				
+###################		PROFILE PAGE: FIELDS		###################
+
+${PROFILE_USER_PHOTO}				//div[@style[contains(.,"background-image")]]
+									#//div[@class="user-photo"]
+${PROFILE_FIRST_NAME}				//label[@class="control-label bold" and text()="First Name"]
+${PROFILE_LAST_NAME}				//label[@class="control-label bold" and text()="Last Name"]
+${PROFILE_EMAIL}					//label[@class="control-label bold" and text()="Email"]
+${PROFILE_TIMEZONE}					//label[@class="control-label bold" and text()="Timezone"]
+${PROFILE_PASSWORD}					//label[@class="control-label bold" and text()="Existing Password"]
+${PROFILE_NEW_PASSWORD}				//label[@class="control-label bold" and text()="New Password"]
+${PROFILE_RE_ENTER_PASSWORD}		//label[@class="control-label bold" and text()[contains(.,"Re-enter")]]
+${PROFILE_EMAIL_GREYED_OUT}			readonly="true"
+###################		EDIT PROFILE PAGE: ELEMENTS		#################
+
+${EDIT_YOUR_PROFILE}				//h3[contains(.,"Edit")]
+${PROFILE_USERNAME_FIRST}			xpath=(//div[@class="form-group"]//input)[1]
+${PROFILE_USERNAME_LAST}			xpath=(//div[@class="form-group"]//input)[2]
+${LEFT_FIELD}						//div[@class="col-lg-5 col-md-5 col-sm-5 no-left-padding"]							        
+${RIGHT_FIELD}						//div[@class="col-lg-5 col-md-5 col-sm-5 no-padding"]
+${NEW_PASSWORD}						xpath=(//div[@ class="form-group"])[5]//input
+${RE_PASSWORD}						xpath=(//div[@ class="form-group"])[6]//input
+${SAVE_CHANGES_BTN}					//div[@class="form-group"]//button[contains(., "SAVE CHANGES ")]
+${empty}
+${BACK}								    //a[@class="small-link"]
+${EDIT_PROFILE_ALERT}					//span[.//text()[contains(.,'First Name should not be blank')]]
+${EDIT_PROFILE_TIMEZONES}				//ul[@class="custom-select-data-list"]/li
+${EDIT_PROFILE_TIMEZONES_DROPDOWN}		//div[@class="custom-select-heading"]/span					
+${EDIT_PROFILE_TIMEZONES_DROPDOWN_2}	//ul[@class="custom-select-data-list"]/li[2]
+${EDIT_PROFILE_UPDATED_SUCCESSFULLY}	//span[.//text()[contains(.,'Profile updated successfuly')]]
+
+###################    HOME PAGE COMPONENTS		###################
+
+#${SCROLL_DOWN_COUNT}	 	10
+${ADVERTISERS_LIST}  		//*[text()[contains(.,'Advertiser List')]]
+${ADVERTISERS_TABLE}		css=.card-table
+${DROPDOWN_PROFILE}			//a[text()[contains(.,'Profile')]]
+#${DROPDOWN_ADMIN}			#//a[text()[contains(.,'Admin')]]
+${DROPDOWN_LOGOUT}			//a[text()[contains(.,'Logout')]]
+${ADVERTISER_4INFO_ONB}		//span[.//text()='4INFO Onboarding']
+							#//span[contains(.,'Onboarding')]
+							#//span[text()[contains(.,"Onboarding")]]
+							#(//td[@class="action height-fix-2"])[1]
+
+
+${COMPANY_END_DATE}			07/09/11
+							#10/25/11
+${Z_TEST_CAMPAIGN_LIFETIME}	//div[@id="CampaignGrid1"]//div[@class="panel-body"]//span[3]
+							#xpath=(//div[@id="CampaignGrid1"]//span[@class="value ng-binding"])[1]						
+${VIEW_ALL_CAMPAIGNS_1}		//a[@href="#/campaign/view/195/grid"]
+${04_TEST_ADVERTISER}		xpath=(//span[text()="04_TEST_ADVERTISER"])[1]
+							#${ADVERTISER_4INFO}			
+							#id=advertiserList3
+							#//span[.//text()='4INFO'] 
+							#//*[@id='advertiserList3']/td[2]
+${MOUSEOVER_04_TEST_ADVERTISER}	xpath=//tr[@id="advertiserList2"]
+							#id=advertiserList1
+${ADVERTISER_6.18}			(//span[text()="Advertiser 6.18"])[1]
+${VIEW_ALL_CAMPAIGS_2}		//a[@id="viewAllCampaignsAdvertiser1"]
+							#/campaign/view/18148/grid"
+
+${VIEW_ALL_CAMPAIGNS}		css=#viewAllCampaignsAdvertiser2
+							#//a[@class="btn btn-primary btn-lg"]
+							#//a[@href[contains(.,"#/campaign/view/")]]
+							#//a[@href="#/campaign/view/183/grid"]
+							#id=viewAllCampaignsAdvertiser1
+							#id=viewAllCampaignsAdvertiser3
+							#//*[@id="viewAllCampaignsAdvertiser3"]
+							#//a[@href="#/campaign/view/226/grid"]
+${SCROLL_DOWN}				window.scrollTo(0,document.body.scrollHeight/2);
+${SCROLL_DOWN_1FOURTH}		window.scrollTo(0,document.body.scrollHeight/4);
+${SCROLL_TO_BOTTOM}			window.scrollTo(0,document.body.scrollHeight);
+${SCROLL_UP}				window.scrollTo(100,document.body.scrollHeight);
+${SCROLL_TOP}				document.body.scrollTop = document.documentElement.scrollTop = 0;
+${FILTER_RECENT_P}			xpath=//div[@ class="radio"][1]
+${FILTER_ALPHANUM}			xpath=//div[@ class="radio"][2]
+${FILTER_CAMPAIGNS}			xpath=//div[@ class="radio"][3]
+
+###################	 CAMPAIGNS' PAGE COMPONENTS		###################
+
+${BACK_TO_ADVERTISERS}		//a[@href='#/partner/view']
+${CAMPAIGNS_ALL}			//a[@class="ng-binding" and text()[contains(.,"All")]]
+							#//li[@id="allTab"]
+							#//a[.//text()[contains(.,'ALL')]]
+							#//a[.//text()='ALL (4)']
+							#//*[@id='default']/a[.//text()='ALL (4)']
+${CAMPAIGNS_LIVE}			//a[.//text()[contains(.,'Live')]]
+							#//a[.//text()='Live (0)']
+${N_CAMPAIGNS_ZERO}			0
+${RECORDS_FOUND}			//div[@class="ng-scope row"]
+							#css=.col-md-12.no-record.ng-scope
+${CAMPAIGNS_PAUSED}			//a[.//text()[contains(.,'Paused')]]
+							#//a[.//text()='Paused (0)']
+${CAMPAIGNS_PENDING}		xpath=(//span[@class="ng-binding"])[5]
+							#xpath=//a[contains(.,'Pending')]
+							#//a[.//text()='Pending (0)']
+${CAMPAIGNS_DOTS}					//a[.//text()='• • •']
+${CAMPAIGNS_EXPIRED}				xpath=(//a[@class="ng-binding"])[2]
+									#//a[contains(@href,'Expired')]
+									#xpath=//a[contains(.,'Expired')]
+									#//*[text()[contains(.,'Expired(3)')]]
+${CAMPAIGNS_COMPLETED}		xpath=(//a[@class="ng-binding"])[3]
+${CAMPAIGNS_COMPLETED_3}	//span[@class="value ng-binding" and text()[contains(.,'Completed')]]
+							#//span[.//text()[contains(.,'Completed')]]
+							#//a[.//text()[contains(.,'Completed')]]
+							#//a [@class="ng-binding" and text()[contains(.,'Completed')]]
+							#xpath=//ul[@class="dropdown-menu"]/li[2]/a								
+${CAMPAIGNS_COMPLETED_COUNT}		//div[@class="col-md-4 col-sm-6 ng-scope"]
+${CAMPAIGNS_COMPLETED_TEXT}		    //span[1][contains(.,"Completed")]
+									#//div[@class="col-md-9 col-sm-8"]//span[contains(.,"Completed")]
+									#xpath=(//div[@class="col-md-9 col-sm-8"]//span)[4]
+
+${CAMPAIGNS_PAUSED}			//*[text()[contains(.,'Pending (0)')]]
+${CAMPAIGN_OVERLAY}			//div[@id="CampaignGrid3"]
+							#//div[@class="ng-binding" and text()[contains(.,'Test Campaign')]]
+							#//div[@class="ng-binding" and text()[contains(.,'Theresa Test')]]
+${VIEW_CAMPAIGN}			//*[@id='CampaignGrid3']
+							#id=viewCampaignsGrid3
+							#css=a[href*='405/226']
+							#//a[.//text()='View Campaign']
+							#//a[@href="#/campaign/detail/405/226/all/insights/default/list"]
+${VIEW_CAMPAIGN_BTN}		xpath=//a[.//text()[contains(.,'View Campaign')]]
+${VIEW_ALL_CAMPAIGNS_BTN}	xpath=//a[.//text()[contains(.,'View All Campaigns')]]
+${VIEW_CAMPAIGN_4INFO_PIXEL_TESTING}			css=a[href*="#/campaign/detail/347/226"]
+
+${GRID1}					//div[@id="CampaignGrid1"]
+${VIEW_CAMPAIGN_100_CP}		//div[@class="summary-card panel"]/div[4]/a
+							#//a[@href="#/campaign/detail/26041/183/all/insights/default/list"]
+							#//a[@id="viewCampaignsGrid1"]
+#${VIEW_CAMPAIGN_86}		css=.btn.btn-primary.btn-lg:nth-of-type(1)
+							#css=.btn.btn-primary.btn-lg:nth-of-type(1)
+							#//*[@id='CampaignGrid1']/div/div[4]/a
+							#id=viewCampaignsGrid1
+							#(//*[@class="btn btn-primary btn-lg"])[1]
+${100_CP_CAMPAIGN}			//div[@id="CampaignGrid1"]
+							#id=CampaignGrid1
+#${VIEW_CAMPAIGN_4INFO}		#xpath=(//div[@class="ng-binding" and text()[contains(.,'4info pixel testing')]])[1]
+							#xpath=(//div[@class="card-overlay ng-scope"])[1]
+							#//*[ text()[contains(.,'Ad Groups (86)')]]	
+${AD_GROUP_2}				//div[@id="CampaignGrid1"]//strong[@class="glyph-stat ng-binding" and text()[contains(.,"2")]]
+#${AD_GROUP_86}				//strong[@class="glyph-stat ng-binding" and text()[contains(.,"86")]]
+${AD_GROUP_2_1}				//span[@id="viewCampaignsGridAdGroup1"]/strong
+#${AD_GROUP_86_1}			//span[@id="viewCampaignsGridAdGroup1"]/strong
+${ADGROUP_100_CP_MOUSEOVER}					//div[@ id="CampaignGrid1"]
+#${ADGROUP_86_MOUSEOVER}					//div[@ id="CampaignGrid1"]
+											#xpath=(//div[@class="card-overlay ng-scope"])[1]
+${Z_TEST_CAMPAIGN_GRID_MOUSEOVER}			//div[@id="CampaignGrid1"]
+${Z_TEST_CAMPAIGN_GRID_VIEW_CAMAPIGN}		//a[@id="viewCampaignsGrid1"]
+${Z_TEST_HARPREET_MOUSEOVER}				xpath=(//span[text()="z TEST Harpreet"])[1]						
+
+${GRIDS}							//div[@class="col-md-4 col-sm-6 ng-scope"]
+${GRID_X}							id=CampaignGrid
+${VIEW_CAMPAIGN_4INFO_X}			xpath=(//div[@class="ng-binding" and text()[contains(.,'4info pixel testing')]])
+${PARAMETER_LIFETIME}				xpath=(//span[@ class="term" and text()="Lifetime"])
+${PARAMETER_IMPRESSIONS}			xpath=(//span[@ class="term" and text()="Impressions served"])
+${PARAMETER_BUDGET}					xpath=(//span[@ class="term" and text()="Budget used"])
+#${PARAMETER_LIFETIME_DATA}			#//div[@id='CampaignGrid1']//span[contains(.,'1491 days expired')]
+${PARAMETER_IMPRESSIONS_DATA}		xpath=(//*[@id='CampaignGrid1']//span[contains(.,'0%')])[1]
+${PARAMETER_BUDGET_DATA}			xpath=(//*[@id='CampaignGrid1']//span[contains(.,'0%')])[2]
+${AD_GROUPS_86_DATA}				(//*[@id='CampaignGrid1']//strong[contains(.,'Ad Groups (86)')])[1]
+${VIEW_CAMPAIGN_4INFO_INSIGHTS}		//div[@ class="txt-align-left ng-binding"]
+${PARAMETER_DAYS_INSIGHTS}			xpath=(//span[@class="value ng-binding"])[1]
+
+${PARAMETER_LIFETIME_INSIGHTS}		//span[@ class="value ng-binding" and text()[contains(., 'days')]]
+									#(//span[@ class="value ng-binding"])[1]
+${PARAMETER_IMPRESSIONS_INSIGHTS}	//span[@ class="value ng-binding" and text()[contains(., 'served')]]
+									#(//span[@ class="value ng-binding"])[2]
+${PARAMETER_BUDGET_INSIGHTS}		//span[@ class="value ng-binding" and text()[contains(., 'used')]]
+									#(//span[@ class="value ng-binding"])[3]
+
+${AD_GROUPS_86_X}			xpath=(//strong[@class="glyph-stat ng-binding"])							
+${AD_GROUPS_86}				xpath=(//strong[@class="glyph-stat ng-binding"])							
+
+${CAMPAIGN_TITLE_X}			//*[@class[contains(.,"bump")]]
+							#//div[@class="card-title bump"]
+							#//div[@class="ng-binding"]
+${CAMPAIGN_TITLE_SEARCH_X}	(//div[@class="campaign-list short category-list-data-container"])[2]//span[@class="card-title ng-binding ng-scope"]
+							#ok- //div[@class="dropdown open"]//span[@class[contains(.,"card-title")]]
+							#//div[@class="campaign-list short category-list-data-container"]/span
+							#(//span[@class="card-title ng-binding ng-scope"])
+							#(//div[@class="campaign-list short category-list-data-container"])[2]/span
+							#for paths below(ok) test fails
+${DROP_DOWN_SEARCH}			//div[@class="dropdown-body wider"]
+
+${CAMPAIGN_OVERLAY_1}		(//*[@class='glyph-stat ng-binding' and text()[contains(.,'Ad Groups (86)')]])[1]
+							#//div[@class="col-sm-6"]/*[@class='glyph-stat ng-binding' and text()[contains(.,'Ad Groups (86)')]]
+${TEST_CAMAPAIGN}			//span[@class="ng-binding" and text()="Test Campaign"]
+							#//div[@class="ng-binding" and text()=' Test Campaign']
+${VIEW_CAMPAIGN_TEST_CAMAPAIGN}		//a[@id='viewCampaignsGrid3']
+#${VIEW_CAMPAIGN_THERESA}			#//a[@id='viewCampaignsGrid3']
+							#id=viewCampaignsGrid3
+							#//div[@class="ng-binding" and text()[contains(.,'Theresa Test')]]
+							#//*[@id='viewCampaignsGrid3']
+							#//div[2]//div[4]//div[4]/a
+							#xpath=(//div[@class="panel-heading"])[3]
+							#div class="ng-binding"> Theresa Test
+							#css=[href*="347/226"]		
+${VIEW_CAMPAIGN_TERESA_1}	//a[.// text()[contains(.,'View Campaign')]]
+							#//a[@class='btn btn-primary btn-lg' and text()[contains(.,'View Campaign')]]
+							#//a[@class='btn btn-primary btn-lg' and text()='View Campaign']
+							#css=.btn.btn-primary.btn-lg				
+							#//a[contains(.,'View Campaign')]
+${VIEW_CAMPAIGN_4INFO_PIXEL_2}					//a[@href="#/campaign/detail/360/226/all/insights/default/list"]
+
+
+###################		SORT CAMPAIGNS		###################
+
+${SEARCH}						css=.glyphicon.glyphicon-search
+								#//span[@class="glyphicon glyphicon-search"]
+								#(//div[@class="filter-tab"])[1]
+								#//span[@class="glyphicon glyphicon-filter"]
+								#//a[@id='campaign-filter']/span
+${SEARCH_FIELD}					id="focusMe"
+${SEARCH_04_TEST_ADVERTISER}	//span[@class="card-title ng-binding ng-scope"]
+${SERCH_CAMPAIGNS}				//div/span[@class="glyphicon glyphicon-search"]
+${SEARCH_DROP_DOWN_CAMPAIGNS}	//div[@class="dropdown open"]//span[@class[contains(.,"card-title ng-binding ng-scope")]]
+${SEARCH_DROP_DOWN_ELEMENTS}	//div[@class="campaign-list short category-list-data-container"]/span
+${FILTER}						//a[@id="filter-dropdown"]//span[@class="glyphicon glyphicon-sort"]
+								#//*[@id='filter-dropdown']/span
+${FILTER_BUTTON}				(//*[@class='radio'] /label)
+${FILTER_DEFAULT}				//div[@class="radio"]/label[contains(.,'Default')]		
+${FILTER_RECENT}				//div[@class="radio"]/label[contains(.,'Recent')]
+${FILTER_ALPHANUMERIC}			//label[contains(.,'Alphanumeric')]
+								#//div[@class="radio"]/label[contains(.,'Alphanumeric')]
+${FILTER_IMPRESSION}			//div[@class="radio"]/label[contains(.,'Impression Served')]
+${FILTER_BUDGET}				//div[@class="radio"]/label[contains(.,'Budget Used')]
+
+${TABLE_VIEW}					//span[@class="glyphicon glyphicon-th-large"]
+${ROW_VIEW}						xpath=//*[@class='glyphicon glyphicon-list']
+								#css=.glyphicon.glyphicon-list
+								#//a/span[@ class="glyphicon glyphicon-list"]
+								#xpath=(//span)[29]
+								#for insights page > //*[@class="glyphicon glyphicon glyphicon-align-left"]
+${ROW_VIEW_INSIGHTS}			//span[@class="glyphicon glyphicon glyphicon-align-left"]
+${ADVERTISER_FILTER}			//*[@id='advertiser-filter']	
+${UNDER_ADVERTISER_FILTER}		//div[@class="campaign-list short category-list-data-container"]/span[1]
+								#xpath=(//span[@ class="ng-scope expired-status"])[1]
+
+#${SEARCH_4INFO_}			#//div[@class="campaign-list short category-list-data-container"]/span[1]
+					  	  	#//span[@style='']
+${ADV_SEARCH}				(//span[@data-ng-click="changeList(item)"])
+							#//div[@class="campaign-adv-heading-container"]//span[@class="card-title ng-binding ng-scope" and text()[contains(.,*)]]					  	  
+${SEARCH_DROPDOWN_1}		//span[text()[contains(.,'4INFO Hiring RON Test')]]
+${SEARCH_DROPDOWN_2}		(//span[text()[contains(.,'4info pixel testing')]])[1]	
+${SEARCH_DROPDOWN_3}		//span[text()[contains(.,'4info pixel testing 2')]]
+${SEARCH_DROPDOWN_4}        //span[text()[contains(.,'Theresa Test')]]
+							#//span[text()[contains(.,'4info')]][1]
+
+${CAMPAIGN_OVERVIEW}			 //a[@ng-click="setDefaultAdGrp()"]
+#${CAMPAIGN_OVERVIEW_VIEW_2}	  #//div[text()[contains(.,'4info pixel testing 2')]]
+${NUMBER_OF_CAMPAIGNS}		    xpath=(//td[3]/span)[2]
+#//span[.//text()[contains(.,"30")]]
+#//tr[@id="advertiserList2"]//td[3]//span[@class="ng-binding"] 
+								 #xpath=(//tr[@ id="advertiserList1"]//span)[3]
+								 #//tr[@ id="advertiserList1"]/td[3][@class="info"]/span
+								  #xpath=(//td[3]/span)[1]
+								  #//*[@id="advertiserList3"]/td[3]/span
+								  #xpath=(//span[@class="big-number ng-binding" and text()="1"])[2]
+								  #xpath=(//span[@class="big-number ng-binding"])[3]
+								  #(//span[@class='big-number ng-binding' and text()='1'])[2]
+								  #//span[@class='big-number ng-binding' and text()='4']
+${SEARCH_DROPDOWN_OPEN}		   		//div[@class="container ng-scope"]//span[@class="card-title ng-binding ng-scope"]
+						  		 	 #//div[@class="ng-binding" and text()[contains(.,'4info pixel testing 2')]]
+${NUMBER_OF_ADVERTISERS}	   		//tr[@class="ng-scope"]
+${NUMBER_OF_CAMPAIGNS_MATCHING}	   //span[@class="card-title campaign-name"]//span[@class="ng-binding"]
+#//tr[@class[contains(.,"ng-scope")]]
+									#//tr[@id[contains(.,"CampaignList")]]
+									#count(//div[@class="container ng-scope"]//span[@class="card-title ng-binding ng-scope"])
+${NUMBER_OF_MATCHES}				3
+${ADV_TABLE_XPATH}					//span[@class="card-title bump ng-binding" and text()[contains(.,*)]]
+									#//span[@class="card-title bump ng-binding" and text()[contains(.,*)]]
+						  			#//tr[@class="ng-scope"]
+						  	 	 	#//table[@class="card-table"]
+${CMPGN_TABLE_XPATH}				//div[@class="campaign-list short category-list-data-container"]/span[@class="card-title ng-binding ng-scope"]
+									#//div[@class="campaign-list short category-list-data-container"]/span[@class="card-title ng-binding ng-scope"]
+${ADVERTISER_LIST_NAME}				//tr[@class="ng-scope"]/td/span[@class="card-title bump ng-binding"]
+									#//table[@class="card-table"]/tbody/tr[${1}]//span[@class="card-title bump ng-binding"]
+${ADVERTISER_LIST_NAME_COUNT}				count(//table[@class="card-table"]//tr[@class="ng-scope"])
+											#//span[@class="card-title bump ng-binding" and text()[contains(.,*)]]
+${All_CAMAPIGNS_SEARCH}						//div[@class="campaign-adv-heading-container"]//span[@class="card-title ng-binding ng-scope" and text()[contains(.,*)]] 	
+${All_CAMAPIGNS_SEARCH_COUNT}				count(//div[@class="campaign-adv-heading-container"]//span[@class="card-title ng-binding ng-scope" and text()[contains(.,*)]]) 	
+${PEGAGUS_CMPGN_SEARCH_TABLE_ROW_XPATH}		//div[@class="campaign-adv-heading-container"]//span[@class="card-title ng-binding ng-scope" and text()[contains(.,*)]][1]
+
+${CAMPAGN_OVERVIEW}				//div[@class="row"]//*[@ng-click="setDefaultAdGrp()"]
+${APPLY_INSIGHTS}				//*[@id='insights-dropdown-button']
+								#css=#insights-dropdown-button
+								
+${INSIGHTS_ADVERTISERS_FILTER}	id=advertiser-filter
+${INSIGHTS_DEMOGRAPHICS}		//a[.//text()='Demographics ']
+${INSIGHTS_AGE}					//div[@id="insights-dropdown-button"]//span[@class="ng-binding"]
+								#//span[.//text()='AGE']
+${INSIGHTS_OTHER_DIMENSIONS}	//a[@href="" and text()='Other Dimensions']
+${INSIGHTS_MARITAL}				//span[@class="ng-binding" and text()="Marital Status"]
+								#//span[.//text()='MARITAL STATUS']
+${INSIGHTS_MEDIA_USAGE}			//div[@id="insights-dropdown-button"]//span[@class="ng-binding" and text()="Social Media Influence"]
+								#//*[@id='insights-dropdown-button']/span[2]
+								#//span[.//text()='SOCIAL MEDIA USAGE']
+${INSIGHTS_CREDIT_CARD} 		//span[.//text()='CREDIT CARD IN HOUSEHOLD']
+${DEMOGRAPHICS_AGE}				//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Age"]
+								#//span[@class="ng-binding" and text()[contains(.,"Age")]]
+								#//span[@class="insight-text" and text()[contains(.,"Age")]]
+								#//span[@class="insight-text" and text()="Age"]
+${DEMOGRAPHICS_GENDER}			//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Gender"]
+								#//span[@class="insight-text" and text()="Gender"]
+${DEMOGRAPHICS_ETHNICITY}		//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Ethnicity"]
+								#//span[@class="insight-text" and text()="Ethnicity"]
+${DEMOGRAPHICS_EDUCATIONAL}		//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Education Level"]
+								#//span[@class="insight-text" and text()="Education Level"]
+${DEMOGRAPHICS_MARITAL}			//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Marital Status"]
+								#//span[@class="insight-text" and text()="Marital Status"]
+${DEMOGRAPHICS_HOME_OWENRSHIP}	//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Home Ownership"]
+								#//span[@class="insight-text" and text()="Home Ownership"]
+${DEMOGRAPHICS_CHILDREN}		//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Children in Household"]
+								#//span[@class="insight-text" and text()="Children in Household"]
+${DEMOGRAPHICS_CREDIT_CARD}				//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Credit Card in Household"]
+								#//span[@class="insight-text" and text()="Credit Card in Household"]
+${DEMOGRAPHICS_HOUSEHOLD_INCOME}		//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Household Income"]	
+								#//span[@class="insight-text" and text()="Household Income"]
+${DEMOGRAPHICS_DISPOSABLE_INCOME}		//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Disbosable Income"]
+								#//span[@class="insight-text" and text()="Disbosable Income"]
+${DEMOGRAPHICS_DISCRET_SPENDING}		//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Discretionary Spending"]
+								#//span[@class="insight-text" and text()="Discretionary Spending"]
+${DEMOGRAPHICS_NET_WORTH}				//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Net Worth"]
+								#//span[@class="insight-text" and text()="Net Worth"]
+${DEMOGRAPHICS_MEDIA_USAGE}				//div[@class="ng-scope justify-item"]//span[@class="ng-binding" and text()="Social Media Influence"]
+								#//span[@class="insight-text" and text()="Social Media Influence"]
+								#depr//span[@class="insight-text" and text()="Social Media Usage"]
+
+${INSIGHTS_CLEAR}				//a[.//text()[contains(.,"Clear Insights")]]
+									#//*[@class="btn btn-default" and text()="Clear Insights"]
+${INSIGHTS_TIME_OF_DAY}			//div[@id="insights-dropdown-button"]//span[@class="ng-binding" and text()="Time of Day"]
+									#//span[.//text()='TIME OF DAY']
+${INSIGHTS_DEVICE_TYPE}			//div[@id="insights-dropdown-button"]//span[@class="ng-binding" and text()="Device Type"]			
+									#//span[.//text()='DEVICE TYPE']
+${INSIGHTS_DAYS_OF_WEEK}		//div[@id="insights-dropdown-button"]//span[@class="ng-binding" and text()="Day of Week"]		
+									#//span[.//text()='DAYS OF WEEK']
+${INSIGHTS_DEVICE_OEM}			//div[@id="insights-dropdown-button"]//span[@class="ng-binding" and text()="Device OEM"]			
+									#//span[.//text()='DEVICE OEM']
+
+${INSIGHTS_SELECT_CATEGORY}		xpath=//span[.//text()="Select a Category"]
+									 #//span[@class="pill-list-title bold" and text()="Select a Category"]
+${INSIGHTS_MONDAY}				css=.pill.blue-1-bg
+									#xpath=//a[@class="pill blue-1-bg" and text()[contains(.,"Monday")]]
+${INSIGHTS_WEDNESDAY}			css=.pill.blue-2-bg
+									#xpath=//a[@class="pill blue-2-bg" and text()[contains(.,"Wednesday")]]
+${INSIGHTS_FRIDAY}				css=.pill.blue-3-bg
+									#xpath=//a[@class="pill blue-3-bg" and text()[contains(.,"Friday")]]
+${INSIGHTS_OTHER}				id=otherMenu
+								#css=.round-toggle.checked
+								#//span[@class="round-toggle" and text()[contains(.,"Other")]]
+								#//*[text()[contains(.,"Other")]][1]
+								#xpath=//span[@class="caret"]
+								#css=#otherMenu
+								#//a[@class="dropdown-toggle pill blue-4-bg"]
+								
+${INSIGHTS_TUESDAY}				//a[@class="ng-binding" and text()[contains(.,"Tuesday")]]
+								#//ul[@class="dropdown-menu"]/li[2]
+${INSIGHTS_THURSDAY}			//a[@class="ng-binding" and text()[contains(.,"Thursday")]]
+								#//ul[@class="dropdown-menu"]/li[3]
+${INSIGHTS_SATURDAY}			//a[@class="ng-binding" and text()[contains(.,"Saturday")]]
+								#//ul[@class="dropdown-menu"]/li[4]
+#while getting to insights page thorugh Theresa - /405/226/ 
+${INSIGHTS_DETAIL}				//dd//a[2]
+								#css=a[href*="#/campaign/detail/405/226/"]
+								#//a[@href="#/campaign/detail/405/226/all/breakdown/default/grid"]
+#while getting to insights page through 4pixel /347/226/
+								#css=a[href="#/campaign/detail/347/226/all/breakdown/default/grid"]
+${BREAKDOWN_IMPRESSION}			//div[@class="impression-dd-container"]//div[@class="custom-select ng-isolate-scope"]
+								#css=.col-lg-6.col-md-7.col-sm-7
+
+${OTHER_DIMESIONS}				//a[.//text()='Other Dimensions']
+${OTHER_TIME_OF_DAY}			//div[@id="tab2"]//span[@class="ng-binding" and text()="Time of Day"]
+								#//span[@class="insight-text" and text()="Time of Day"]
+${OTHER_DEVICE_TYPE}			//div[@id="tab2"]//span[@class="ng-binding" and text()="Device Type"]
+								#//span[@class="insight-text" and text()="Device Type"]
+${OTHER_DAY_OF_WEEK}			//div[@id="tab2"]//span[@class="ng-binding" and text()="Day of Week"]
+								#//span[@class="insight-text" and text()="Day of Week"]
+${OTHER_DEVICE_OEM}				//div[@id="tab2"]//span[@class="ng-binding" and text()="Device OEM"]
+								#//span[@class="insight-text" and text()="Device OEM"]
+
+${SELECT_ADGROUP}				//span[@class="ng-binding" and text()="SELECT ADGROUP"]
+								#id=adgroup-filter
+${SELECT_GROUP_DRPDOWN}			//li[@class="ng-binding ng-scope"]
+${FIRST_ELEMENT_ADGROUP}		//ul[@class="dropdown-menu adgroup-item-dropdown"]/li[1]
+								#//li[@class="ng-binding ng-scope" and text()[contains(.,'FMyLife-Android 707')]]
+${SECOND_ELEMENT_ADGROUP}		//ul[@class="dropdown-menu adgroup-item-dropdown"]//li[2]
+								#//li[@class="ng-binding ng-scope" and text()[contains(.,'Pinger - iPhone-Conversation 717')]]
+								
+${BACK_TO_CMPGN_SUMMARIES}		//a[@class="small-link mobile-vertical-fix"]
+								#css=.small-link.mobile-vertical-fix
+${BACK_TO_ADVERTISER_LIST}		css=.small-link.ng-scope
+${ELEMENT_ADGROUP_UNDER}		//span[@class="adgroup-selected-dd-val"]/span
+								#//span[@class="ng-binding"  and text()="FMyLife-Android 707"]
+${ELEMENT_100_TEST_ADGROUP}		//a[@title="100_TEST_ADGROUP"]
+								#//a[@id="adgroup-filter" and text()[contains(.,'100_TEST_ADGROUP ')]]							
+#${ELEMENT_707_SELECTED_ADGROUP}	//a[@id="adgroup-filter" and text()[contains(.,'FMyLife-Android 707')]]							
+${ADGROUP_100_TEST_ADGROUP}		//a[@class="dropdown-toggle ng-binding ng-scope" and text()[contains(.,"100_TEST_ADGROUP")]]
+${ELEMENT_2_ADGROUP_UNDER}		//div[@class="campaign-adv-heading-container"]//span[@class="ng-binding"]
+								#//span[@class="ng-binding"  and text()="Pinger - iPhone-Conversation 717"]
+${ELEMENT_TEST_ADGROUP}			//a[@id="adgroup-filter" and text()[contains(.,"Test Adgroup")]]
+#${ELEMENT_717_SELECTED_ADGROUP}	#//a[@id="adgroup-filter" and text()[contains(.,"Pinger - iPhone-Conversation 717")]]
+
+###################		Forgot Password Page		###################
+
+${FORGOT_PASSWORD_LINK}			//a[@href="#/forgotPassword"]
+${FORGOT_PASSWORD_TEXT}			//div[@class="welcome-txt text-center" and text()='Forgot your password?']
+								#//div[@class="forgot-password-panel text-center"]/h3
+${RESET_PASSWORD_SUCCESS}		//*[@id='ForgotPasswordForm']/div[4]/span[2]
+${REQUEST_RESET_LINK_BUTTON}	//button[contains(.,"REQUEST RESET LINK ")]
+								#css=.btn.btn-primary.btn-lg
+#${SEND_BUTTON}					#css=.btn.btn-default		.btn.btn-primary.btn-lg
+${ERROR_MESSAGE}				//span[@class="ng-binding"  and  text()='We have sent you an email with a link to reset you password']
+${MISSING_USERNAME_MESSAGE}		//span[@class="ng-binding"  and  text()='Please enter user name']
+								#//*[@class="glyphicon glyphicon-list"]
+#${ROW_VIEW_INSIGHTS}			//span[@class="glyphicon glyphicon glyphicon-align-left"]	
+${PANEL_VIEW_INSIGHTS}			//span[@class="glyphicon glyphicon-th-large"]								
+								#css=.glyphicon.glyphicon.glyphicon-align-left
+
+${ROW_VIEW_TARGET}				//div[@class="panel-left" and text()[contains(.,"TARGET")]]
+${ROW_VIEW_DELIVERY}			//div[@class="panel-left" and text()[contains(.,"DELIVERY")]]
+${ROW_VIEW_ENGAGEMENT}			//div[@class="panel-left" and text()[contains(.,"ENGAGEMENT")]]
+${ROW_VIEW_STORE_VISITS}		//div[@class="panel-left list-store-data-container" and text()[contains(.,"STORE VISITS")]]
+${ROW_VIEW_INFLIGHT_DATA}		//div[@class="panel-left" and text()[contains(.,"INFLIGHT DATA")]]
+${ROW_VIEW_SALES_EFFECT}		//div[@class="panel-left" and text()[contains(.,"SALES EFFECT")]]
+${PANEL_VIEW}					css=.glyphicon.glyphicon-th-large
+${PANEL_VIEW_TARGET}			//div[@class="panel-left" and text()[contains(.,"TARGET")]]
+${PANEL_VIEW_DELIVERY}			//div[@class="stat-title" and text()[contains(.,"DELIVERY")]]
+${PANEL_VIEW_ENGAGEMENT}		//div[@class="stat-title" and text()[contains(.,"ENGAGEMENT")]]
+${PANEL_VIEW_STORE_VISITS}		//div[@class="stat-title" and text()[contains(.,"STORE VISITS")]]
+${PANEL_VIEW_INFLIGHT_DATA}		//div[@class="panel-left" and text()[contains(.,"INFLIGHT DATA")]]
+${PANEL_VIEW_SALES_EFFECT}		//div[@class="panel-left" and text()[contains(.,"SALES EFFECT")]]
+
+${CAMAPAIGN_RAWS}				//table[@class="card-table"]/tbody/tr
+${ADGROP_ROWS}					//li[@class="ng-binding ng-scope" ]
+								#//tr[@class="ng-scope"]
+${ADGROUP_707_ORANGE}			xpath=(//div[@class="align-campaigns-icon expired-status"])[1]
+${ADGROUP_CHILD_1_IMPRESSION}	//span[@class="ng-binding" and text()="5.9K / 50K"]
+${ADGROUPS_2_LINK_GRID1}		//span[@id="viewCampaignsGridAdGroup1"]//strong
+								#//span[@id="viewCampaignsGridAdGroup1"]//strong[@class="glyph-stat ng-binding"]
+#${ADGROUPS_86_LINK}			//strong[@class="glyph-stat ng-binding" and text()[contains(.,'Ad Groups (86)')]]
+
+${ADGROUP_834_GREEN}			xpath=(//div[@class="align-campaigns-icon completed-status"])[5]
+${ADGROUP_CHILD_5_IMPRESSION}	//span[@class="ng-binding" and text()="12.1K / 12K"]
+
+${ADGROUP_VIEW_ADGROUP_BTN}		//a[@class="btn btn-primary btn-lg ng-scope"]
+								#xpath=(//a[@class="btn btn-primary btn-lg"])[1]
+${CARET}						xpath=(//span[@class="caret"])[2]
+${ADGROUP_100_TEST_MOUSEOVER}	//table[@class="card-table"]
+								#//span[@class="card-title campaign-name ng-binding"]
+#${ADGROUP_707_MOUSEOVER}       //span[@class="card-title adgroup-name bump ng-binding" and text()[contains(.,"FMyLife-Android 707")]]
+								#xpath=(//td[@class="action height-fix-2"])[1]
+
+

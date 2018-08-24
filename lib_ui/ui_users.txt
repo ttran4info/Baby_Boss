@@ -1,0 +1,301 @@
+Library    phoenix_ui.txt
+
+
+*** Keywords ***
+#----------------------------------------------------------------------------------
+# Create User
+
+Clear Regression UI users
+    Delete a user       username=regression@temp.com
+    Delete a user       username=regression@temp1.com
+    Delete a user       username=regression@temp3.com
+    Delete a user       username=regression@temp31.com
+
+
+Create a new user from UI
+    [Arguments]     ${uname}
+    ...             ${pwd}
+    ...             ${firstname}
+    ...             ${lastname}
+    ...             ${LoginUserName}=${QA_DEFAULT_USER}
+    ...             ${LoggedinUserPW}=${QA_DEFAULT_PASSWORD}
+    # Login To Adhaven UI    username=${LoginUserName}    password=${LoggedinUserPW}
+    Login To Dashboard UI    username=${LoginUserName}    password=${LoggedinUserPW}
+    Execute javascript     document.body.style.zoom="50%"
+    sleep    7s
+    Mouse Over          ${Header_setting-select}
+    sleep    7s
+    Click Element       xpath=//a[contains(text(),"Manage Users")]
+    Sleep    7s
+    Click Element       ${button_CreateUser}
+    Sleep    7s
+    Input Text    ${input_username}    ${uname}
+    Input Text    ${input_password}     ${pwd}
+    Input Text    ${input_confirmPassword}     ${pwd}
+    Input Text    ${input_firstName}    ${firstname}
+    Input Text    ${input_lastName}    ${lastname}
+
+
+Assign Groups to User
+    [Arguments]    ${groupName}
+    Log    ${groupName}
+    # Set Test Variable    ${group_xpath}    xpath=//p[text()='${groupName}']//parent::span//preceding-sibling::div//input[@type='checkbox']
+    Set Test Variable    ${group_xpath}    xpath=//md-checkbox[@ng-reflect-name='${groupName}']//label//div[@class='mat-checkbox-inner-container']
+    Focus    ${group_xpath}
+    Click Element    ${group_xpath}
+    Sleep    5s
+    Capture Page Screenshot With Timestamp
+
+
+Save User Changes in UI
+    Click Element    ${button_SaveUser}
+    Sleep    7s
+    # Element Should Be Visible    ${MANAGE_USERS_Label}
+    Capture Page Screenshot With Timestamp
+
+
+Search newly created user in UI
+    [Arguments]    ${username}=
+    Set Test Variable     ${username_xpath}    xpath=.//a[text()='${username}']
+    Set Test Variable     ${searchUserName_xpath}    xpath=.//input[@id='inpSearchInput']
+    Click Element    ${searchUserName_xpath}
+    Input Text    ${searchUserName_xpath}    ${username}
+    Sleep    3s
+    Page Should Contain Element     ${username_xpath}
+    Click Element    ${username_xpath}
+    Sleep    7s
+    Capture Page Screenshot With Timestamp
+
+
+Assign Permissons to User
+    [Arguments]     ${Group}=NA
+    ...             ${UI_Type}=NA    # This value is either one "Campaign Manager", "Per4mance Trax" or "Audience-Solutions"
+    ...             ${Permission}=NA
+    Log    ${Group}
+    Log    ${UI_Type}
+    Log    ${Permission}
+
+    Run Keyword If    '${UI_Type}'=='Campaign Manager'      Set Test Variable    ${columnID}    1
+    Run Keyword If    '${UI_Type}'=='Per4mance Trax'        Set Test Variable    ${columnID}    2
+    Run Keyword If    '${UI_Type}'=='Audience-Solutions'    Set Test Variable    ${columnID}    3
+
+    Set Test Variable    ${Checkbox_xpath}    xpath=.//*[@id="campaignAddEdit"]//form//div//following-sibling::div[@class='datasource-name']//div[text()='${Group}']//following-sibling::div//table//tbody//tr//td[contains(.,'${Permission}')]//following-sibling::td//md-checkbox[@ng-reflect-id='1-${columnID}${Permission}']
+    Set Test Variable    ${Checkbox_xpath}    xpath=.//div[@class='datasource-name']//div[text()='4INFO']//following-sibling::div//table[@id='permissionTable']//tbody//tr[contains(., '${Permission}' )]//td//following-sibling::td//md-checkbox//label//div//input[@name='1-${columnID}${Permission}']
+    Set Test Variable    ${Checkbox_xpath}    //*[@id="input-1-${columnID}${Permission}"]//parent::div
+    Log    ${Checkbox_xpath}
+    Click Element    ${Checkbox_xpath}
+
+    # Focus    xpath=.//button[@type='button'][contains(.,'Cancel')]
+    Focus    ${ModifyUser_ManageUserLabel}
+    Sleep    3s
+    Capture Page Screenshot With Timestamp
+
+
+
+Validate User Permissons Checked
+    [Arguments]     ${Group}=NA
+    ...             ${UI_Type}=NA    # This value is either one "Campaign Manager", "Per4mance Trax" or "Audience-Solutions"
+    ...             ${Permission}=NA
+    ...             ${checkedStatus}=NA
+
+    Log    ${Group}
+    Log    ${UI_Type}
+    Log    ${Permission}
+    Log    ${checkedStatus}
+
+    Run Keyword If    '${UI_Type}'=='Campaign Manager'      Set Test Variable    ${columnID}    1
+    Run Keyword If    '${UI_Type}'=='Per4mance Trax'        Set Test Variable    ${columnID}    2
+    Run Keyword If    '${UI_Type}'=='Audience-Solutions'               Set Test Variable    ${columnID}    3
+
+    # Focus    xpath=.//button[@type='button'][contains(.,'Cancel')]
+    # Sleep    3s
+
+    # Set Test Variable    ${Checkbox_xpath}    xpath=.//*[@id="campaignAddEdit"]//form//div//following-sibling::div[@class='datasource-name']//div[text()='${Group}']//following-sibling::div//table//tbody//tr//td[contains(.,'${Permission}')]//following-sibling::td//input[@ng-reflect-id='input-1-${columnID}${Permission}']
+    # Log    ${Checkbox_xpath}
+    # Run Keyword If    '${checkedStatus}'=='true'    checkbox should be selected    ${Checkbox_xpath}
+    # Run Keyword If    '${checkedStatus}'=='false'    checkbox should not be selected    ${Checkbox_xpath}
+    Capture Page Screenshot With Timestamp
+
+
+#----------------------------------------------------------------------------------
+# Manage User
+
+
+Validate Manage Users Summary Page Elements are Present
+    Wait Until Page Contains Element    ${MANAGE_USERS_Label}    timeout=1000s
+    Element Should Be Visible    ${MANAGE_USERS_Label}
+    Element Should Contain       ${MANAGE_USERS_Label}    MANAGE USERS
+    Element Should Be Visible    ${button_CreateUser}
+    Element Should Be Visible    ${Label_SearchInput}
+    Element Should Contain       ${Label_SearchInput}    Search users
+    Element Should Be Visible    ${SortByuserName}
+    Element Should Be Visible    ${SortByFirstName}
+    Element Should Be Visible    ${SortByLastName}
+    Element Should Be Visible    ${Status}
+    Element Should Be Visible    ${SortByModifiedBy}
+    Element Should Be Visible    ${SortByModifiedDate}
+
+
+Get All Users from UI from Manage Users Summary Page
+    [Arguments]     ${username}=
+    ...             ${groupId}=
+    ...             ${MaxPageNumber}=29
+    Log    ${username}
+    Log    ${groupId}
+    ${AllUsersInUI} =  Create List
+    # Click Element    //a[text()='»']
+    # Sleep    5s
+    Set Test Variable    ${lastpage_Cursor}    //a[@class='page-link']//parent::li[@class='page-item disabled']
+
+    # Set Test Variable    ${MaxPageNumber}    29
+    :For   ${Pagesindex}    IN RANGE    1    ${MaxPageNumber} + 1   #Need to add here max page number parameterised
+    \    Set Test Variable    ${CurrentPage}    //a[text()='${Pagesindex}']
+    \    Click Element    ${CurrentPage}
+    \    ${var} =  Get Element Attribute    ${CurrentPage}@text
+    \    Run Keyword If  "${var}"<>"${Pagesindex}"    Exit For Loop
+    \    ${RowCountForUsers}    Get Matching Xpath Count    //*[@id="tblUsers"]/tbody//tr
+    \    Log    ${RowCountForUsers}
+    \    Run Keyword If  "${var}"=="${Pagesindex}"    Get Users List from each page in UI    count=${RowCountForUsers}    AllUsersInUI=${AllUsersInUI}
+    Log List    ${AllUsersInUI}
+    Set Suite Variable    ${UI_AllUsers}    ${AllUsersInUI}
+    Log Many    ${AllUsersInUI}
+
+
+
+Get Users List from each page in UI
+    [Arguments]     ${count}=
+    ...             ${AllUsersInUI}=
+    :For   ${Usersindex}    IN RANGE    1    ${count} + 1
+    \    Set Test Variable    ${UserNamePath}    //*[@id="tblUsers"]/tbody//tr[${Usersindex}]//td[@class='first-col']//a
+    \    ${usernameUI}    Get Text    ${UserNamePath}
+    \    Log    ${usernameUI}
+    # \    Set Test Variable    ${str1}    ('${usernameUI}',)
+    # \    Log    ${str1}
+    \    Append To List    ${AllUsersInUI}    ${usernameUI}
+
+
+
+
+Get All Users From DB for Manage Users
+    [Arguments]     ${username}=
+    ...             ${groupId}=
+    Log    ${username}
+    Log    ${groupId}
+
+    Comment    Check whether logged in user has Admin permission
+    Get Records for Admin Permission user with Group Id 1 For UI Tests    username=${username}
+    Log    ${QueryResult_AdminUser}
+
+    Comment    Case 1 : When user has Admin Permission and group id as 1 then all users displayed to the current user.
+    Run Keyword If    ${QueryResult_AdminUser} == 1 and ${groupId} == 1    Get All Users for Manage Users from DB and compare with UI body
+
+    Comment    Case 2 : When user has Admin Permission and group id is 1 then Get all groupids, for which currentUsername has admin permissions (except groupid=1).
+    Run Keyword If    ${QueryResult_AdminUser} <> 1 and ${groupId} <> 1    Get Records for a non 4Info user with Admin Permission user with Group Id 1    username=${username}
+
+    Comment    Case 3 : When user has Admin Permission and that user do not have 4Info group acccess, then that user's own record id is visible in response
+    Run Keyword If    ${QueryResult_AdminUser} == 1 and ${groupId} <> 1    Get Records for a non 4Info user with Admin Permission user with Group Id 1    username=${username}
+
+Get Records for Admin Permission user with Group Id 1 For UI Tests
+    [Arguments]    ${username}=
+    Log    ${username}
+    Set Test Variable    ${QueryToCheckUserIsAdmin}    select count(distinct permissions_id) as cnt from user_permissions where username='${username}' and group_id = 1 and permissions_id = 3;
+    Comment    Case 1 : When user has Admin Permission and group id as 1 then all users displayed to the current user.
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    @{queryResults}=     Query    ${QueryToCheckUserIsAdmin}
+    Log Many    @{queryResults}
+    ${output} =    Convert To Integer   ${queryResults[0][0]}
+    # ${output}=     Remove String Using Regexp    ${output}    \\(|L,\\)
+    Log    ${output}
+    Set Suite Variable    ${QueryResult_AdminUser}    ${output}
+    Disconnect From Database
+
+
+
+Get All Users for Manage Users from DB and compare with UI body
+    Comment    Case 1 : When user has Admin Permission and group id as 1 then all users displayed to the current user.
+    Set Test Variable    ${QueryToGetAllUsers}    SELECT distinct username FROM rhino.users;
+    Log    ${QueryToGetAllUsers}
+    Get DB User List for comparison users with UI    QueryToRun=${QueryToGetAllUsers}
+
+
+
+Get Records for a non 4Info user with Admin Permission user with Group Id 1
+    [Arguments]     ${username}=
+    Comment    Case 2 : When user has Admin Permission and group id is not 1 then Get all groupids, for which currentUsername has admin permissions (except groupid=1).
+    Set Test Variable    ${SelectQuery}    select distinct a.username from users a where a.username in (select distinct username from user_permissions where group_id in (select distinct group_id from user_permissions where permissions_id = 3 and username = '${username}' and group_id <> 1) and username not in (select distinct username from user_permissions where group_id=1)) order by 1;
+    Log    ${SelectQuery}
+    Get DB User List for comparison users with UI    QueryToRun=${SelectQuery}
+
+
+Get Records for a non 4Info user with Admin Permission user without Group Id 1
+    [Arguments]     ${username}=
+    Comment    Case 3 : When user has Admin Permission and that user do not have 4Info group acccess, then that user's own record id is visible in response
+    Log    ${username}
+
+
+
+Get DB User List for comparison users with UI
+    [Arguments]    ${QueryToRun}=
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    ${RowCount_db}    Row Count    ${QueryToRun}
+    Log    ${RowCount_db}
+    Set Test Variable    ${userscountDB}    ${RowCount_db}
+    @{queryResults}=     Query    ${QueryToRun}
+    Log Many    @{queryResults}
+    ${count}=    Get Length  ${queryResults}
+    ${Available_DBUsers} =    Create List
+    :FOR   ${i}  IN RANGE    0     ${count}
+    \    ${output} =    Convert To String   ${queryResults[${i}]}
+    \    ${output}=     Remove String Using Regexp    ${output}    \\('|',\\)
+    \    Log     ${output}
+    \    Append To List    ${Available_DBUsers}    ${output}
+    Disconnect From Database
+    Sort List   ${Available_DBUsers}
+    Log Many    ${Available_DBUsers}
+    Set Suite Variable    ${DB_AllUsers}    ${Available_DBUsers}
+    Log List    ${DB_AllUsers}
+    Log List    ${UI_AllUsers}
+    Compare DB users with UI users    DB_Users=${DB_AllUsers}    UI_Users=${UI_AllUsers}
+
+
+Compare DB users with UI users
+    [Arguments]     ${DB_Users}=
+    ...             ${UI_Users}=
+    Comment    Compare DB users with UI users
+    Sort List    ${UI_Users}
+    @{MyList}=    Convert To List    ${DB_Users}
+    Sort List    ${DB_Users}
+    Lists Should Be Equal    ${UI_Users}    ${MyList}
+
+
+Validate Own Record
+    [Arguments]     ${recordShouldPresent}=
+    ...             ${UserName}=
+    Log    ${recordShouldPresent}
+    Run Keyword If    'recordShouldPresent'=='Yes'    List Should Contain    ${UI_AllUsers}    ${UserName}
+    Run Keyword If    'recordShouldPresent'=='No'     List Should Not Contain    ${UI_AllUsers}    ${UserName}
+
+
+#----------------------------------------------------------------------------------
+# Manage User's Own Profile
+
+Go To My Account Page
+    Mouse Over    ${Header_setting-select}
+    Sleep    5s
+    Click Element    ${MyAccountLink}
+    Wait Until Page Contains Element    ${MyAccountBreadcrumb}      timeout=500s
+    Wait Until Page Contains Element    ${input_username}           timeout=500s
+    Wait Until Page Contains Element    ${input_firstName}          timeout=500s
+    Wait Until Page Contains Element    ${input_lastName}           timeout=500s
+    Wait Until Page Contains Element    ${input_currentPassword}    timeout=500s
+    Wait Until Page Contains Element    ${input_newPassword}        timeout=500s
+    Capture Page Screenshot With Timestamp
+
+
+#----------------------------------------------------------------------------------

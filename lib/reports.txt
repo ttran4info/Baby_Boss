@@ -1,0 +1,165 @@
+*** Settings ***
+Resource            ui_object_library.txt
+Resource            common_config.txt
+
+*** Keywords ****
+
+Go To Reports Tab
+      Click Link         ${TAB_REPORTING}
+      Page Should Contain                  Campaign Performance Report: Overall
+      Page Should Contain                  Advertiser
+      Page Should Contain                  Publisher
+      
+Go To Advertiser Reports
+      Go To Reports Tab
+      Click Link           ${ADVERTISER_TYPE_LINK} 
+      Page Should Contain                  Campaign Performance Report: Overall
+      Sleep      5s
+      Capture Page Screenshot With Timestamp
+
+Go To Publisher Reports 
+      Go To Reports Tab
+      Click Link          ${PUBLISHER_TYPE_LINK}
+      Page Should Contain                  Publisher Report      
+      Sleep      5s
+      Capture Page Screenshot With Timestamp
+      
+Validate Advertiser Reports UI
+      Go To Advertiser Reports
+      Capture Page Screenshot With Timestamp
+      Page Should Contain                  Report Type
+      Page Should Contain                  Advertiser
+      Page Should Contain                  Campaign
+      Page Should Contain                  Time Zone
+      Page Should Contain                  Summarize Creatives
+      Page Should Contain                  Start Date
+      Page Should Contain                  End Date
+      Page Should Contain                  Export as
+      Validate Advertiser Report Types
+      Validate Advertisers Dropdown
+      List Selection Should Be             ${AD_TIMEZONE_DROPDOWN}        Greenwich Mean Time - GMT
+      Capture Page Screenshot With Timestamp
+      
+      
+      
+     
+Validate Advertiser Report Types
+      List Selection Should Be             ${AD_REPORT_TYPE_DROPDOWN}         Overall
+      ${report_types}=      Get List Items                            ${AD_REPORT_TYPE_DROPDOWN} 
+      Length Should Be                        ${report_types}         6
+      List Should Contain Value           ${report_types}         Overall
+      List Should Contain Value           ${report_types}         By Banner Size
+      List Should Contain Value           ${report_types}         By Geography
+      List Should Contain Value           ${report_types}         Last 24 hours
+      List Should Contain Value           ${report_types}         Campaign Placements
+      List Should Contain Value           ${report_types}         Geofencing POI
+      Capture Page Screenshot With Timestamp
+      
+Validate Advertisers Dropdown
+      Click Element                             css=b
+      Page Should Contain                 ALL ADVERTISERS
+      Element Text Should Be            id=advertiser_chzn_o_1            ALL ADVERTISERS
+      Click Element                            css=b 
+      Input Text                                 ${AD_ADVERTISER_DROPDOWN_INPUT}          QA_REGRESSION
+      Click Element                             css=a.chzn-single.chzn-single-with-drop > span       
+      Mouse Down On Link                 xpath=//div[@id='advertiser_chzn']/a[@class='chzn-single']
+      Sleep    1s 
+      Page Should Contain                 QA_REGRESSION_TESTS
+#      Click Link                                  QA_REGRESSION_TESTS
+      Capture Page Screenshot With Timestamp   
+      
+
+      
+      
+View Advertiser Overall Reports
+     [Arguments]        ${advertiser_name}=QA_REGRESSION_TESTS
+     ...                        ${campaign_name}=679 - 01_PRIZM_2013_03_05_20:07:58
+     ...                        ${timezone}=Greenwich Mean Time - GMT(0)
+     ...                        ${summarize_creatives}=By Day
+     ...                        ${start_date}=1/15/2014
+     ...                        ${end_date}=1/31/2014
+     ...                        ${export_as}=XLS
+     Go To Reports Tab 
+     Click Link     ${ADVERTISER_TYPE_LINK}
+     Select From List     ${AD_REPORT_TYPE_DROPDOWN}        Overall
+     Sleep   5s
+     ${source}=     Get Source 
+     Log     ${source}
+     Select From List      ${AD_ADVERTISER_DROPDOWN}          ${advertiser_name}
+     Execute JavaScript      window.loadCampaigns(357)
+     Sleep    5s
+     ${source}=     Get Source 
+     Log     ${source}
+     Capture Page Screenshot With Timestamp
+     Select From List     ${AD_CAMPAIGN_DROPDOWN}            ${campaign_name}
+     Select From List     ${AD_TIMEZONE_DROPDOWN}             ${timezone}
+     Click Link     ${AD_SUMMARIZE_CREATIVES_BYDAY_LINK}
+     Click Link     ${AD_EXPORT_AS_XLS_LINK}
+     Capture Page Screenshot With Timestamp
+     Sleep   10s
+#     Click Element       ${AD_SUBMIT_BUTTON}
+
+Construct Advertiser Report API
+      [Documentation]          http://qa-engine1:8080/AdHavenRest/v2/reporting/advertiser?
+      ...                                 advertiserId=357&reportId=CampaignPerformanceOverall&campaignId=679
+      ...                                 &startDate=20130301&endDate=20130311&groupTimeFrame=DAY
+      ...                                 &outputFormat=xls&timeZone=GMT[+00:00] 
+      [Arguments]        ${advertiser_id}=
+      ...                        ${report_id}=
+      ...                        ${campaign_id}=
+      ...                        ${start_date}=
+      ...                        ${end_date}=
+      ...                        ${groupTimeFrame}=DAY      
+      ...                        ${export_as}=xls
+      ...                        ${timezone}=GMT[+00:00] 
+     ${url}=    Set Variable   ${REPORTING_API_PREFIX}advertiser?
+     ${url}     Set Variable If     '${advertiser_id}' <> ''                           ${url}advertiserId=${advertiser_id}                                  ${url}      
+     ${url}     Set Variable If     '${report_id}' <> ''                                 ${url}&reportId=${report_id}                                             ${url}      
+     ${url}     Set Variable If     '${campaign_id}' <> ''                           ${url}&campaignId=${campaign_id}                                   ${url}      
+     ${url}     Set Variable If     '${start_date}' <> ''                               ${url}&startDate=${start_date}                                           ${url}      
+     ${url}     Set Variable If     '${end_date}' <> ''                                ${url}&endDate=${end_date}                                              ${url}      
+     ${url}     Set Variable If     '${groupTimeFrame}' <> ''                    ${url}&groupTimeFrame=${groupTimeFrame}                    ${url}      
+     ${url}     Set Variable If     '${timezone}' <> ''                                ${url}&timeZone=${timezone}                                            ${url}      
+     ${url}     Set Variable If     '${export_as}' <> ''                               ${url}&outputFormat=${export_as}                                     ${url}      
+     Log     URL: ${url}
+     Set Suite Variable     ${advertiser_api_call}       ${url}    
+
+Advertiser Report API Append GEO
+      [Arguments]        ${reportSections}=geoCountry,geoState,geoDMA
+      ${advertiser_api_call}     Set Variable If     '${reportSections}' <> ''                           ${advertiser_api_call}&reportSections=${reportSections}                               ${advertiser_api_call}  
+      Log        GEO url: ${advertiser_api_call}
+      Set Suite Variable     ${advertiser_api_call}       ${advertiser_api_call}
+     
+Construct Publisher Report API
+      [Documentation]       http://qa-engine1:8080/AdHavenRest/v2/reporting/publisherReportUI?apiKey=96a3be339dc3269b
+             ...                             &reportId=PublisherReport&startDate=20130301&endDate=20130315
+             ...                             &placementId=11,2148&timeZone=GMT[+00:00]
+      [Arguments]        ${publisher_api_key}=96a3be339dc3269b
+      ...                        ${report_id}=PublisherReport
+      ...                        ${start_date}=20140115
+      ...                        ${end_date}=20140131
+      ...                        ${timezone}=GMT[+00:00] 
+      ...                         @{placement_id_list}
+      ${placement_string}=    Set Variable    placementId=
+      :FOR     ${index}    IN      @{placement_id_list} 
+       \      Log     Placement Id LOG: ${index[0]}
+       \      ${placement_string} =    Set Variable  ${placement_string}${index[0]},      
+       \      Log     Placement: ${placement_string} 
+       Log     Placement String: ${placement_string} 
+       ${placement_string} =       Get Substring     ${placement_string}       0     -1
+       Log    New Placement String: ${placement_string}
+     ${url}=    Set Variable   ${REPORTING_API_PREFIX}publisherReportUI?
+     ${url}     Set Variable If     '${publisher_api_key}' <> ''                   ${url}apiKey=${publisher_api_key}                                  ${url}      
+     ${url}     Set Variable If     '${report_id}' <> ''                                ${url}&reportId=${report_id}                                            ${url}      
+     ${url}     Set Variable If     '${start_date}' <> ''                               ${url}&startDate=${start_date}                                         ${url}      
+     ${url}     Set Variable If     '${end_date}' <> ''                                ${url}&endDate=${end_date}                                            ${url}      
+     ${url}     Set Variable If     '${timezone}' <> ''                                ${url}&timeZone=${timezone}                                          ${url}      
+     ${url}     Set Variable If     '${placement_id_list}' <> ''                    ${url}&${placement_string}                                                ${url}      
+     Log     URL: ${url}
+     Set Suite Variable     ${publisher_api_call}       ${url}    
+     
+     
+     
+     
+     
+     

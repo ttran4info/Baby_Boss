@@ -1,0 +1,1664 @@
+
+
+*** Keywords ***
+API CALL
+	[Arguments]    ${connection_type}=http		#http or https
+    ...            ${server}=					#qa-api.4info.com
+    ...            ${port}=						#443 for https or 8080 for http
+    ...			   ${auth}=None					#Authentication
+    ...            ${uri}=						#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   ${request_type}=GET			#GET, POST, PUT
+    ...			   ${request_content}=NA		#Normally blank for GET, else some form of JSON
+    ...            ${expected_status_code}=200	#normally 200 for working condition, 400 for failure
+    ...            ${success}=NA				#true if response is 200, false if response is 400
+    Run Keyword If	'${request_type}'=='GET'	API GET		connection_type=${connection_type}		server=${server}	port=${port}	uri=${uri}													expected_status_code=${expected_status_code}	success=${success}
+    Run Keyword If	'${request_type}'=='POST'	API POST	connection_type=${connection_type}		server=${server}	port=${port}	uri=${uri}	data=${data}	request_type=${request_type}	expected_status_code=${expected_status_code}	success=${success}
+    Run Keyword If	'${request_type}'=='PUT'	API PUT		connection_type=${connection_type}		server=${server}	port=${port}	uri=${uri}	data=${data}	request_type=${request_type}	expected_status_code=${expected_status_code}	success=${success}
+
+API GET
+	[Arguments]    ${connection_type}=http		#http or https
+    ...            ${server}=					#qa-api.4info.com
+    ...            ${port}=						#443 for https or 8080 for http
+    ...			   ${auth}=None					#Authentication
+    ...            ${uri}=						#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   ${request_type}=GET			#GET, POST, PUT
+    ...            ${expected_status_code}=200	#normally 200 for working condition, 400 for failure
+    ...            ${success}=NA				#true if response is 200, false if response is 400
+	Create Session   api_get_session    ${connection_type}://${server}:${port}		disable_warnings=1
+	${headers}    Create Dictionary     Accept=application/json		Content-Type=application/json		Authorization=${auth}
+	${resp}=    Get Request    api_get_session    ${uri}    headers=${headers}
+    Set Test Variable    ${resp}    ${resp}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Run Keyword Unless 	'${expected_status_code}'=='NA'		Should Be Equal As Strings    	${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless 	'${success}'=='NA'    				Should Match Regexp    			${body}    				"success":${success}
+
+
+API POST
+	[Arguments]    ${connection_type}=http		#http or https
+    ...            ${server}=					#qa-api.4info.com
+    ...            ${port}=						#443 for https or 8080 for http
+    ...			   ${auth}=None					#Authentication
+    ...            ${uri}=						#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   ${request_type}=POST			#GET, POST, PUT
+    ...			   ${data}=None						#body data if any
+    ...            ${expected_status_code}=200	#normally 200 for working condition, 400 for failure
+    ...            ${success}=NA				#true if response is 200, false if response is 400
+    Create Session   api_post_session    ${connection_type}://${server}:${port}	disable_warnings=1
+    ${headers}    Create Dictionary     Accept=application/json		Content-Type=application/json		Authorization=${auth}
+    ${resp}=    Post Request    api_post_session    ${uri}    headers=${headers}		data=${data}
+    Set Test Variable    ${resp}    ${resp}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Run Keyword Unless 	'${expected_status_code}'=='NA'		Should Be Equal As Strings    	${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless 	'${success}'=='NA'    				Should Match Regexp    			${body}    				"success":${success}
+
+
+API PUT
+	[Arguments]    ${connection_type}=http		#http or https
+    ...            ${server}=					#qa-api.4info.com
+    ...            ${port}=						#443 for https or 8080 for http
+    ...			   ${auth}=None					#Authentication
+    ...            ${uri}=						#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   ${request_type}=PUT			#GET, POST, PUT
+    ...			   ${data}=None						#body data if any
+    ...            ${expected_status_code}=200	#normally 200 for working condition, 400 for failure
+    ...            ${success}=NA				#true if response is 200, false if response is 400
+	Create Session   api_put_session    ${connection_type}://${server}:${port}		disable_warnings=1
+	${headers}    Create Dictionary     Accept=application/json		Content-Type=application/json		Authorization=${auth}
+	Log		${data}
+	${resp}=    Put Request    api_put_session    ${uri}    headers=${headers}		data=${data}
+    Set Test Variable    ${resp}    ${resp}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Run Keyword Unless 	'${expected_status_code}'=='NA'		Should Be Equal As Strings    	${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless 	'${success}'=='NA'    				Should Match Regexp    			${body}    				"success":${success}
+
+
+API DELETE
+	[Arguments]    ${connection_type}=http		#http or https
+    ...            ${server}=					#qa-api.4info.com
+    ...            ${port}=						#443 for https or 8080 for http
+    ...			   ${auth}=None					#Authentication
+    ...            ${uri}=						#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   ${request_type}=DELETE			#GET, POST, PUT
+    ...			   ${data}=None						#body data if any
+    ...            ${expected_status_code}=200	#normally 200 for working condition, 400 for failure
+    ...            ${success}=NA				#true if response is 200, false if response is 400
+    Create Session   api_delete_session    ${connection_type}://${server}:${port}	disable_warnings=1
+    ${headers}    Create Dictionary     Accept=application/json		Content-Type=application/json		Authorization=${auth}
+    ${resp}=    Delete Request    api_delete_session    ${uri}    headers=${headers}		data=${data}
+    Set Test Variable    ${resp}    ${resp}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Run Keyword Unless 	'${expected_status_code}'=='NA'		Should Be Equal As Strings    	${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless 	'${success}'=='NA'    				Should Match Regexp    			${body}    				"success":${success}
+
+
+API PATCH
+	[Arguments]    ${connection_type}=http		#http or https
+    ...            ${server}=					#qa-api.4info.com
+    ...            ${port}=						#443 for https or 8080 for http
+    ...			   ${auth}=None					#Authentication
+    ...            ${uri}=						#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   ${request_type}=PATCH			#GET, POST, PUT
+    ...			   ${data}=None						#body data if any
+    ...            ${expected_status_code}=200	#normally 200 for working condition, 400 for failure
+    ...            ${success}=NA				#true if response is 200, false if response is 400
+	Create Session   api_patch_session    ${connection_type}://${server}:${port}	disable_warnings=1
+	${headers}    Create Dictionary     Accept=application/json		Content-Type=application/json		Authorization=${auth}
+	${resp}=    Patch Request    api_patch_session    ${uri}    headers=${headers}		data=${data}
+    Set Test Variable    ${resp}    ${resp}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Run Keyword Unless 	'${expected_status_code}'=='NA'		Should Be Equal As Strings    	${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless 	'${success}'=='NA'    				Should Match Regexp    			${body}    				"success":${success}
+
+
+USER MANAGEMENT API
+    [Arguments]    ${connection_type}=https							#http or https
+    ...            ${server}=${QA_USER_MANAGEMENT}					#qa-api.4info.com
+    ...            ${port}=${QA_USER_MANAGEMENT_PORT}				#443 for https or 8080 for http
+    ...            ${uri}=											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   ${request_type}=GET								#GET, POST, PUT
+    ...			   ${data}=None										#POST or PUT normally goes with data
+    ...            ${expected_status_code}=200						#normally 200 for working condition, 400 for failure
+    ...            ${success}=NA									#true if response is 200, false if response is 400
+	Run Keyword If	'${request_type}'=='GET'	API GET			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='POST'	API POST			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+	Run Keyword If	'${request_type}'=='PUT'	API PUT			connection_type=${connection_type}
+	...				server=${server}
+	...				port=${port}
+	...				uri=${uri}
+	...				data=${data}
+	...				request_type=${request_type}
+	...				expected_status_code=${expected_status_code}
+	...				success=${success}
+####UM1.10
+#Get Measurement Datasource From Group ID
+#	[Arguments]		${group_id}=1
+#	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+#    @{query_results}     Query    	select count(distinct measurement_datasource_id) from rhino.groups_measurement_datasource where group_id='${group_id}';
+#    Set Test Variable    ${measurement_datasource_db_count}      ${queryResults[0][0]}
+#    Disconnect From Database
+
+#####UM1.11
+Count Result Target Datasource
+	${target_datasource_api}=					Get Json Value						${body}										/target_datasources
+	@{target_datasource_list}=					String.Split String 				${target_datasource_api}			,
+	${target_datasource_api_count}=			Get Length 							${target_datasource_list}
+	Set Test Variable 				${target_datasource_api_count}				${target_datasource_api_count}
+	Run Keyword If				'${target_datasource_api_count}'=='1'			One or Zero
+	Log		${target_datasource_api_count}
+One or Zero
+	${target_datasource_api}=					Get Json Value						${body}										/target_datasources
+	Run Keyword If				'${target_datasource_api}'=='[]'			Set Test Variable		${target_datasource_api_count}		0
+	Run Keyword Unless			'${target_datasource_api}'=='[]'			Set Test Variable		${target_datasource_api_count}		1
+
+
+Get target Datasource
+	[Arguments]		${group_id}=6
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    	select count(distinct `target_datasource_id`) from rhino.groups_target_datasource join target_datasource on target_datasource.id = groups_target_datasource.target_datasource_id where groups_target_datasource.group_id='${group_id}' and target_datasource.is_geofence_datasource = true;
+    Set Test Variable    ${target_datasource_db_count}      ${queryResults[0][0]}
+    Disconnect From Database
+
+####UM1.12
+Get tag From Group ID
+	[Arguments]		${group_id}=1
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    	select count(distinct tag_id) from rhino.groups_tag where group_id='${group_id}';
+    Set Test Variable    ${tag_db_count}      ${queryResults[0][0]}
+    Disconnect From Database
+
+####UM1.13
+
+Get geofence Segments From Group ID
+	[Arguments]		${group_id}=1
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    	select count(distinct t.id) from groups_target_geofence_segments g join target_geofence_segments t on g.`target_geofence_segments_id`= t.`id` where group_id = ${group_id} and enabled=1;
+    Set Test Variable    ${geofence_segments_db_count}      ${queryResults[0][0]}
+    Disconnect From Database
+
+#UM1.14
+#9=Geofence
+#10=Geofence: custom dataset
+#33=Trade area
+#34=Retargeting
+#35=Custom Trade Area
+#36=Location Append
+#Archive data are displayed as well
+Get Ace Segments From Group ID
+	[Arguments]		${group_id}=1
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    #@{query_results}     Query    	select count(distinct un.id) from (select ar.`id` from `ace_report` ar join `groups_target_datasource` gtd on gtd.`target_datasource_id` = ar.`datasource_id` join `target_datasource` td on td.`id` = ar.`datasource_id` where td.`datasource_name` not like 'Geo Fence%' and td.`is_geofence_datasource` = 1 and gtd.`group_id` = ${group_id} union select ar.`id` from `ace_report` ar join `groups_target_geofence_segments` gtds on gtds.`ace_report_id` = ar.`id` join `target_datasource` td on td.`id` = ar.`datasource_id` where td.`datasource_name` like 'Geo Fence%' and gtds.`group_id` = ${group_id}) un;
+    #@{query_results1}      Query   	select count(distinct id) from ace_report where datasource_id in (9,10,33,34,35,36);
+    #@{query_results2}     Query    	select count(distinct id) from ace_report where datasource_id in (9,10,33,34,35,36) and group_id='${group_id}';
+    #Run Keyword If			'${group_id}'=='1'		Set Test Variable 	${ace_report_db_count}		${query_results1[0][0]}
+    #Run Keyword Unless		'${group_id}'=='1'		Set Test Variable 	${ace_report_db_count}		${query_results2[0][0]}
+    @{query_results1}      Query   	select count(distinct temp.ace_report_id) from (select distinct ace_report_id from groups_target_datasource_segments where ace_report_id in (select id from ace_report where datasource_id in (9,10,33,34,35,36)) and group_id=${group_id} union all select distinct ace_report_id from groups_target_geofence_segments where ace_report_id in (select id from ace_report where datasource_id in (9,10,33,34,35,36)) and group_id=${group_id}) as temp;
+    Set Test Variable 	${ace_report_db_count}		${query_results1[0][0]}
+    Disconnect From Database
+
+#UM1.15
+Get validation regex From Group ID
+	[Arguments]		${group_id}=1
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    	select count(distinct t.id) from groups_target_geofence_segments g join target_geofence_segments t on g.`target_geofence_segments_id`= t.`id` where group_id = ${group_id} ;
+    Set Test Variable    ${groups_validation_regex_db_count}      ${queryResults[0][0]}
+    Disconnect From Database
+
+#UM1.16
+Get User Group From User Name
+	[Arguments]		${username}=
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    # @{query_results}     Query    	select count(*) from user_role_bundle_permissions where user_name='${username}';
+    @{query_results}     Query    SELECT count(*) from (select distinct gp.group_id, g.group_name, g.metamarkets_securitypolicy_id from groups g join (SELECT up.group_id, p.permission_name FROM user_permissions up JOIN permissions p ON p.id = up.permissions_id WHERE username = '${username}') gp on gp.group_id = g.id) a;
+    Set Test Variable    ${user_group_db_count}      ${queryResults[0][0]}
+    Disconnect From Database
+
+#UM1.17
+Get Measurement Datasource From Group ID
+	[Arguments]		${group_id}=1
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    	select count(distinct measurement_datasource_id) from rhino.groups_measurement_datasource where group_id='${group_id}';
+    Set Test Variable    ${measurement_datasource_db_count}      ${queryResults[0][0]}
+    Disconnect From Database
+
+#UM1.18
+#Get Measurement Datasource From Group ID
+#	[Arguments]		${group_id}=1
+#	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+#    @{query_results}     Query    	select count(distinct measurement_datasource_id) from rhino.groups_measurement_datasource where group_id='${group_id}';
+#    Set Test Variable    ${measurement_datasource_db_count}      ${queryResults[0][0]}
+#    Disconnect From Database
+
+#UM1.19
+#Get Measurement Datasource From Group ID
+#	[Arguments]		${group_id}=1
+#	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+#   @{query_results}     Query    	select count(distinct measurement_datasource_id) from rhino.groups_measurement_datasource where group_id='${group_id}';
+#    Set Test Variable    ${measurement_datasource_db_count}      ${queryResults[0][0]}
+#    Disconnect From Database
+
+#UM1.2
+Get Campaign Total From Username
+	[Arguments]		${username}=admin@4info.net
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select count(distinct campaign_id) from rhino.campaign_groups cg join rhino.campaign c on c.id = cg.campaign_id where group_id in (select distinct group_id from rhino.user_permissions where username='${username}') and c.status <> 3;
+    Set Test Variable    ${campaign_count_db}      ${queryResults[0][0]}
+    Disconnect From Database
+
+#UM1.4
+
+#UM1.5
+Get Groups access from campaign
+	[Arguments]		${campaign_id}=	 	${expected_group_id}=[]
+	USER MANAGEMENT API		uri=user-management-api/permissions-internal/groups?campaignId=${campaign_id}
+	Log		expected group id: ${expected_group_id}
+	Should Be Equal As Strings		${body}		[${expected_group_id}]
+
+#UM1.8
+Get Target Datasource Provider From Group ID
+	[Arguments]		${group_id}=1
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select count(distinct target_datasource_provider_id) from rhino.groups_target_datasource_provider where group_id='${group_id}';
+    Set Test Variable    ${target_datasource_providers_db_count}      ${queryResults[0][0]}
+    Disconnect From Database
+
+#UM1.9
+Get Segment Datasource From Group ID
+	[Arguments]		${group_id}=1
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    	select count(distinct segment_datasource_id) from rhino.groups_segment_datasource where group_id='${group_id}';
+    Set Test Variable    ${segment_datasource_db_count}      ${queryResults[0][0]}
+    Disconnect From Database
+
+#CM2.1
+Get User List Total From DB
+	[Arguments]		${username}=admin@4info.net
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select count(distinct username) from rhino.users;
+    Set Test Variable    ${user_count_db}      ${queryResults[0][0]}
+    Disconnect From Database
+
+#CM2.2
+Validate duplicate records are not present in table user_permissions
+    Connect To Database     ${DB_API_MODULE_NAME}    
+    ...                     ${DB_NAME_RHINO}     
+    ...                     ${DB_USER}     
+    ...                     ${DB_PASSWORD}     
+    ...                     ${DB_HOST}    
+    ...                     ${DB_PORT}
+    Set Test Variable    ${Query}    select username, permissions_id, group_id, product_id, count(1) from user_permissions group by username, permissions_id, group_id, product_id having count(1) > 1;
+    Row Count Is 0    ${Query}
+    Disconnect From Database
+
+#CM2.3
+Post UI element accesses from page URL
+	[Arguments]		${uri}=	 	${data}=	${expected_status_code}=200		${success}=NA
+	USER MANAGEMENT API		uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}									#POST or PUT normally goes with data
+    ...            expected_status_code=${expected_status_code}					#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+
+Delete New User via DB
+	[Arguments]		${username}=regression@temp.com
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    # execute_sql_string     delete from rhino.`user_role_bundle_permissions` where user_name like '%${username}%';
+    execute_sql_string     delete from rhino.`user_permissions` where username like '%${username}%';
+    execute_sql_string    delete from rhino.`user_product_permissions` where username like '%${username}%';
+    execute_sql_string   delete from rhino.`users` where username like '%${username}%';
+    Sleep 	10s
+    @{query_results}     Query    select * from rhino.`users` where username like '%${username}%';
+    Log Many 			@{query_results}
+    Disconnect From Database
+
+Construct Json Data
+	[Arguments]			${campaigngrouplist_groupid}=				${campaigngrouplist_permission}=
+	@{group_list}=						String.Split String 					${campaigngrouplist_groupid}				,
+	@{permission_list}=					String.Split String 					${campaigngrouplist_permission}				;
+	${group_list_count}=				Get Length 								${group_list}
+	Set Test Variable	${json_string}		"campaignGroupList": [
+	:FOR    ${index}    IN RANGE   0    ${group_list_count}
+    \		Log     Index: ${index}
+    \		${group_id_temp}=			Get From List		${group_list}			${index}
+    \		${permission_list_temp}=	Get From List		${permission_list}		${index}
+    \		Set Test Variable		${json_string}		${json_string}{"groupId": ${group_id_temp},"permissions":[${permission_list_temp}]},
+   	\		Log 	Product_list: ${json_string}
+   	${json_string}=		Replace String Using Regexp		${json_string}			,$			${EMPTY}
+   	Set Test Variable		${json_string}		${json_string}]
+   	Log 	Product_list: ${json_string}
+   	Set Test Variable 		${campaignGroupList}		${json_string}
+
+Create New User via API
+    [Arguments]    ${user_name}=regression@temp.com
+    ...            ${status}=inactive
+    ...            ${password}=${QA_DEFAULT_PASSWORD}
+    ...            ${first_name}=regression
+    ...            ${last_name}=temp
+    ...            ${authority}=user
+    ...            ${product_permission_list}=[]
+    ...            ${last_modify_by}=${QA_DEFAULT_USER}
+    ...            ${uri}=user-management-api/admin/users
+    ...            ${response_code}=200
+    Set Test Variable    ${data}    {"userName":"${user_name}","status":${status},"password":"${password}","firstName":"${first_name}","lastName":"${last_name}","authority":"${authority}","permissionsList":${product_permission_list},"lastModifiedBy":"${last_modify_by}"}
+    ${missing_count}=     Get Count    ${data}    MISSING
+    Run Keyword If    '${missing_count}'>='1'
+    ...     Remove Json Key Contain MISSING for Create a user
+    Log    ${data}
+    Run Keyword If  '${response_code}'=='200' 	Set Test Variable 	${success}    	true
+    Run Keyword If  '${response_code}'=='400' 	Set Test Variable 	${success}    	false
+    USER MANAGEMENT API		uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}									#POST or PUT normally goes with data
+    ...            expected_status_code=${response_code}					#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+
+#converting to lower case before comparing since that's how we store it
+	${user_name}=		Convert To Lowercase 	${user_name}
+	${authority}=		Convert To Uppercase	${authority}
+    Run Keyword If		'${response_code}'=='200'	Validate response data for Create a user
+    ...             userName="${user_name}"
+    ...             status=${status}
+    ...             password=${password}
+    ...             firstName="${first_name}"
+    ...             lastName="${last_name}"
+    ...             authority="${authority}"
+    ...             permissionsList=${product_permission_list}
+    ...             lastModifiedBy="${last_modify_by}"
+
+# there's a chance of multiple groups and permission
+	# :FOR    ${index}    IN RANGE   0    ${group_list_count}
+	# \	${reverse_index}=	Evaluate	${group_list_count}-${index}-1
+	# \	${group_id_temp}=	Get From List		${group_list}			${reverse_index}
+	# \	${permission_temp}=	Get From List		${permission_list}		${reverse_index}
+	# \	Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/campaignGroupList/${index}/groupId			${group_id_temp}
+	# \	Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/campaignGroupList/${index}/permissions		[${permission_temp}]
+    # Should Not Match Regexp		${response_content}		password
+
+Validate New User via DB
+	[Arguments]		${user_name}=regression@temp.com
+	...				${status}=inactive
+	...				${password}=${QA_DEFAULT_PASSWORD}
+	...				${first_name}=regression
+	...				${last_name}=temp
+	...				${authority}=user
+	...				${product_permission_list}=1
+	...				${campaigngrouplist_groupid}=15
+	...				${campaigngrouplist_permission}=read
+	...				${last_modify_by}=${QA_DEFAULT_USER}
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{queryResults}=     Query    select users.username,users.password,enabled,authority,first_name,last_name,last_modified_by from rhino.users where username='${username}';
+    @{queryResults2}=    Query    select product_id from rhino.user_product_permissions where username='${username}';
+    @{queryResults3}=    Query    select group_id from rhino.user_permissions where username='${username}';
+    Disconnect From Database
+
+    ${user_information}=		Create Dictionary        	rhino_username_username=${queryResults[0][0]}
+    ...														rhino_username_password=${queryResults[0][1]}
+    ...														rhino_username_enabled=${queryResults[0][2]}
+    ...														rhino_username_authority=${queryResults[0][3]}
+    ...														rhino_username_first_name=${queryResults[0][4]}
+    ...														rhino_username_last_name=${queryResults[0][5]}
+    ...														rhino_username_modified_by=${queryResults[0][6]}
+    ...														rhino_product_id=${queryResults2[0][0]}
+    ...														rhino_group_id=${queryResults3[0][0]}
+
+	${product_returned}=					Get Length	${queryResults2}
+	:FOR    ${index}    IN RANGE   0    ${product_returned}
+    \		Log     Index: ${index}
+    \		${product_permission_list_db}=		${queryResults2[${index}][0]},
+   	Log 	Product_list: ${product_permission_list_db}
+   	Should Be Equal As String			${product_permission_list}		${product_permission_list_db}
+   	#need to remove the last comma
+
+   	${group_id_returned}=					Get Length	${queryResults3}
+	:FOR    ${index}    IN RANGE   0    ${group_id_returned}
+    \		Log     Index: ${index}
+    \		${group_id_db}=		${queryResults2[${index}][0]},
+   	Log 	group_list: ${group_id_db}
+   	Should Be Equal As String			${campaigngrouplist_groupid}		${group_id_db}
+  	#need to remove the last comma
+
+  	#need to validate all parameter from DB
+
+
+Validate DB Records for user for read permission is not saved twice
+    [Arguments]     ${username}=
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    @{queryResults}=     Query
+    ...    select username, group_id, product_id, permissions_id, count(permissions_id) as cnt from rhino.user_permissions where username = '${username}' group by username, group_id, product_id, permissions_id having count(permissions_id) >= 2;
+    Log Many    ${queryResults}
+    Set Test Variable    ${Result}    ${queryResults}
+    Disconnect From Database
+    ${record_count}=    Get Length    ${Result}
+    Log    ${record_count}
+    Should Be Equal As Integers    ${record_count}    0
+
+
+
+Set Required Permissions To User
+    [Arguments]    ${username}=
+    ...    ${groupid}=
+    ...    ${permissionid}=
+    ...    ${productid}=
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    execute_sql_string    insert into user_permissions values (null, '${username}', ${permissionid}, ${groupid}, ${productid}, now(), now());
+    execute_sql_string    commit;
+    Disconnect From Database
+
+
+Remove Required Permissions To User
+    [Arguments]    ${username}=NA
+    ...    ${groupid}=NA
+    ...    ${permissionid}=NA
+    ...    ${productid}=NA
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    execute_sql_string    Delete from user_permissions where username='${username}' and group_id=${groupid} and product_id=${productid} and permissions_id=${permissionid};
+    execute_sql_string    commit;
+    Disconnect From Database
+
+
+
+Get User Permissions from DB
+    [Arguments]    ${username}=
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    @{query_results}     Query    select username, permissions_id, group_id, product_id from user_permissions where username='${username}';
+    Log Many    ${query_results}
+    Disconnect From Database
+
+
+Create Required Users with Required Groups, Products and Permissions
+
+    # Create group1 user : user123-regression@temp.com
+    # group_id, product_id, permission_id
+    # 1         1           3
+    # 1         2           2
+    # 2         1           3
+
+    Set Test Variable    ${username}    user-123-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [3], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    ${QA_DEFAULT_USER}
+
+    Get User Permissions from DB    username=${lastModifiedBy}
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=1
+    ...    permissionid=2
+    ...    productid=2
+
+    Set Required Permissions To User    username=${username}
+    ...    groupid=2
+    ...    permissionid=3
+    ...    productid=1
+
+    Get User Permissions from DB    username=${username}
+
+
+    # Create non group1 user : user1234-regression@temp.com
+    # group_id, product_id, permission_id
+    # 2         1           3
+
+    Set Test Variable    ${username}    user-1234-regression@yahoo.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [3], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    abc@4info.com    #  ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Get User Permissions from DB    username=${username}
+
+
+
+#CM2.4
+Create Required Users with Required Groups, Products and Permissions for Update a user
+    Create Required Users with Required Groups, Products and Permissions
+
+    Set Test Variable    ${username}    user-a-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${username}    user-b-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}     ${QA_DEFAULT_USER}   # user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${username}    user-c-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${username}    user-d-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 2, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    user-123-regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${username}    user-e-regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [2], "groupId": 3, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}     abc@4info.com    #user-123-regression@temp.com
+    Get User Permissions from DB    username=${lastModifiedBy}
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="abcABC123!"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+
+
+
+Get User Password via DB
+	[Arguments]		${username}=regression@temp.com
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query    select users.`password` from rhino.`users` where username='${username}';
+    Set Test Variable    ${password_db}      ${queryResults[0][0]}
+    Disconnect From Database
+
+
+Create Update User via API
+	[Arguments]		${user_name}=regression@temp.com
+	...				${status}=inactive
+	...				${password}=${QA_DEFAULT_PASSWORD}
+	...				${first_name}=regression
+	...				${last_name}=temp
+	...				${authority}=user
+	...				${product_permission_list}=1
+	# ...				${campaigngrouplist_groupid}=15					#group is separate by ,
+	# ...				${campaigngrouplist_permission}="READ"			#permission is separate by ;
+	...				${last_modify_by}=${QA_DEFAULT_USER}
+	...				${uri}=/user-management-api/admin/users			#This is for creating user. update user api is : /user-management-api/admin/users?username=${user_name}
+	...				${response_code}=200
+	# @{group_list}=						String.Split String 					${campaigngrouplist_groupid}				,
+	# @{permission_list}=					String.Split String 					${campaigngrouplist_permission}				;
+	# ${group_list_count}=				Get Length 								${group_list}
+	#Run Keyword If 		${group_list_count}>1	Construct Json Data			campaigngrouplist_groupid=${campaigngrouplist_groupid}			campaigngrouplist_permission=${campaigngrouplist_permission}
+	Set Test Variable		${data}		{"userName":"${user_name}","status":"${status}","password":"${password}","firstName":"${first_name}","lastName":"${last_name}","authority":"${authority}","permissionsList":[${product_permission_list}],"lastModifiedBy":"${last_modify_by}"}
+    Log    ${data}
+	Run Keyword If 			'${uri}'=='/user-management-api/admin/users'	Create Campaign Request
+    Run Keyword Unless 		'${uri}'=='/user-management-api/admin/users'	Update Campaign Request
+    Run Keyword If  '${response_code}'=='200' 	Set Test Variable 	${success}    true
+    Run Keyword If  '${response_code}'=='400' 	Set Test Variable 	${success}    false
+    USER MANAGEMENT API		uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}									#POST or PUT normally goes with data
+    ...            expected_status_code=${response_code}					#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+    ${user_name}=		Convert To Lowercase 	${user_name}
+    ${authority}=		Convert To Uppercase	${authority}
+    Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/userName						"${username}"
+    Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/status						${status}
+    Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/authority						"${authority}"
+    Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/firstName						"${firstName}"
+    Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/lastName						"${lastName}"
+    Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/productPermissionList			[${productpermissionlist}]
+    Run Keyword If		'${response_code}'=='200'	Validate group_and_permission						campaigngrouplist_groupid=${campaigngrouplist_groupid}				campaigngrouplist_permission=${campaigngrouplist_permission}
+    Should Not Match Regexp		${response_content}		password
+
+Validate group_and_permission
+	[Arguments]			${campaigngrouplist_groupid}=NA		${campaigngrouplist_permission}=NA
+	@{group_list}=						String.Split String 					${campaigngrouplist_groupid}				,
+	@{permission_list}=					String.Split String 					${campaigngrouplist_permission}				;
+	${group_list_count}=				Get Length 								${group_list}
+	${group_and_permission_dict}=	Create Dictionary	key=value
+	:FOR    ${index}    IN RANGE   0    ${group_list_count}
+	\	${group_id_temp}=	Get From List		${group_list}			${index}
+	\	${permission_temp}=	Get From List		${permission_list}		${index}
+	\	Set To Dictionary		${group_and_permission_dict}		${group_id_temp}		${permission_temp}
+	:FOR    ${index}    IN RANGE   0    ${group_list_count}
+	\	${group_id_temp}=		Get Json Value		${response_content}		/user/campaignGroupList/${index}/groupId
+	\	${permission_temp}=		Get Json Value		${response_content}		/user/campaignGroupList/${index}/permissions
+	\	${permission_from_dict}=	Get From Dictionary		${group_and_permission_dict}	${group_id_temp}
+	\	Should Be Equal As Strings		${permission_temp}		[${permission_from_dict}]
+
+Create Campaign Request
+	${resp}=	RequestsLibrary.Post Request     docker     ${uri}     data=${data}     headers=${headers}
+	Set Test Variable 	${resp}		${resp}
+Update Campaign Request
+	${resp}=	RequestsLibrary.Put Request     docker     ${uri}     data=${data}     headers=${headers}
+	Set Test Variable 	${resp}		${resp}
+
+Update User via API
+	[Arguments]		${user_name}=regression@temp.com
+	...				${status}=inactive
+	...				${password}=${QA_DEFAULT_PASSWORD}
+	...				${first_name}=regression
+	...				${last_name}=temp
+	...				${authority}=user
+	...				${product_permission_list}=1
+	...				${campaigngrouplist_groupid}=15
+	...				${campaigngrouplist_permission}="READ"
+	...				${last_modify_by}=${QA_DEFAULT_USER}
+	...				${uri}=user-management-api/admin/users?username=${user_name}
+	...				${response_code}=200
+	Set Test Variable		${data}		{"userName":"${user_name}","status":"${status}","password":"${password}","firstName":"${first_name}","lastName":"${last_name}","authority":"${authority}","productPermissionList":[${product_permission_list}],"campaignGroupList":[{"groupId":${campaigngrouplist_groupid},"permissions":[${campaigngrouplist_permission}]}],"lastModifiedBy":"${last_modify_by}"}
+    Run Keyword If  '${response_code}'=='200' 	Set Test Variable 	${success}    true
+    Run Keyword If  '${response_code}'=='400' 	Set Test Variable 	${success}    false
+    USER MANAGEMENT API		uri=${uri}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}									#POST or PUT normally goes with data
+    ...            expected_status_code=${response_code}					#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+    Log	Response Content :${response_content}
+    Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/userName						"${username}"
+	Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/status						${status}
+	Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/authority						"${authority}"
+	Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/firstName						"${firstName}"
+	Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/lastName						"${lastName}"
+	Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/productPermissionList			[${productpermissionlist}]
+	:FOR    ${index}    IN RANGE   0    ${group_list_count}
+	\	${reverse_index}=	Evaluate	${group_list_count}-${index}-1
+	\	${group_id_temp}=	Get From List		${group_list}			${reverse_index}
+	\	${permission_temp}=	Get From List		${permission_list}		${reverse_index}
+	\	Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/campaignGroupList/${index}/groupId			${group_id_temp}
+	\	Run Keyword If		'${response_code}'=='200'	Json Value Should Equal		${response_content}		/user/campaignGroupList/${index}/permissions		[${permission_temp}]
+    Should Not Match Regexp		${response_content}		password
+
+
+#---------------------------------------------------------------------------------
+# 2.1. Get all users list
+# QA Task Jira ID : https://jira.adhaven.com/browse/CM-1860
+
+Get all users list
+    [Arguments]     ${currentUsername}=
+    ...             ${groupId}=
+    ...             ${productId}=
+    ...             ${response_code}=200
+    Set Test Variable    ${url}    user-management-api/admin/users?currentUsername=${currentUsername}&groupId=${groupId}&productId=${productId}
+    Log    ${url}
+    Log    ${response_code}
+    USER MANAGEMENT API   uri=${url}    expected_status_code=${response_code}
+    Log     ${body}
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+
+#---------------------------------------------------------------------------------
+# 2.3 Create a user
+# QA Task Jira ID : https://jira.adhaven.com/browse/CM-1862
+
+Create a user
+    [Arguments]     ${userName}=
+    ...             ${status}=1
+    ...             ${password}=
+    ...             ${firstName}=
+    ...             ${lastName}=
+    ...             ${authority}=
+    ...             ${permissionsList}=[]
+    ...             ${lastModifiedBy}=
+    ...             ${response_code}=200
+    ...             ${success}=true
+    Set Test Variable    ${url}    /user-management-api/admin/users
+    Set Test Variable    ${data}    {"userName":${userName},"status":${status},"password":${password},"firstName":${firstName},"lastName":${lastName},"authority":${authority},"permissionsList":${permissionsList},"lastModifiedBy":${lastModifiedBy}}
+    ${missing_count}=     Get Count    ${data}    MISSING
+    Run Keyword If    '${missing_count}'>='1'
+    ...     Remove Json Key Contain MISSING for Create a user
+    Log    ${data}
+    USER MANAGEMENT API			   uri=${url}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=POST								#GET, POST, PUT
+    ...			   data=${data}									#POST or PUT normally goes with data
+    ...            expected_status_code=${response_code}					#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+
+Remove Json Key Contain MISSING for Create a user
+    ${data}=    Remove String    ${data}    "userName":"MISSING",
+    ${data}=    Remove String    ${data}    "status":MISSING,
+    ${data}=    Remove String    ${data}    "password":"MISSING",
+    ${data}=    Remove String    ${data}    "firstName":"MISSING",
+    ${data}=    Remove String    ${data}    "lastName":"MISSING",
+    ${data}=    Remove String    ${data}    "authority":"MISSING",
+    ${data}=    Remove String    ${data}    "permissionsList":"MISSING",
+    ${data}=    Remove String    ${data}    "lastModifiedBy":"MISSING"
+    ${data}=        Evaluate    '${data}'.replace(", }",'}').replace(",}",'}')
+    Set Test Variable    ${data}    ${data}
+
+
+Validate response data for Create a user
+    [Arguments]     ${userName}
+    ...             ${status}
+    ...             ${password}
+    ...             ${firstName}
+    ...             ${lastName}
+    ...             ${authority}
+    ...             ${permissionsList}
+    ...             ${lastModifiedBy}
+    ${resp_userName}    Get JSON Value    ${body}    /user/userName
+    ${userName}     Convert To Lowercase        ${userName}
+    Should Be Equal As Strings    ${userName}    ${resp_userName}
+    ${resp_status}    Get JSON Value    ${body}    /user/status
+    Should Be Equal As Strings    ${status}    ${resp_status}
+    ${resp_authority}    Get JSON Value    ${body}    /user/authority
+    Should Be Equal As Strings    ${authority}    ${resp_authority}
+    ${resp_firstName}    Get JSON Value    ${body}    /user/firstName
+    Should Be Equal As Strings    ${firstName}    ${resp_firstName}
+    ${resp_lastName}    Get JSON Value    ${body}    /user/lastName
+    ${lastName}=    Evaluate    '${lastName}'.replace("MISSING",'null')
+    Log    ${lastName}
+    Run Keyword If    ${lastName}!="null"    Should Be Equal As Strings    ${lastName}    ${resp_lastName}
+    ${resp_productPermissionList}    Get JSON Value    ${body}    /user/permissionsList
+    Should Be Equal As Strings    ${permissionsList}    ${resp_productPermissionList}
+    ${resp_lastModifiedBy}    Get JSON Value    ${body}    /user/lastModifiedBy
+    Should Be Equal As Strings    ${lastModifiedBy}    ${resp_lastModifiedBy}
+
+
+Delete a user
+    [Arguments]     ${username}=regression%@temp.com
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    execute_sql_string      delete from rhino.`user_permissions` where username like '%${username}%';
+    execute_sql_string      delete from rhino.`user_product_permissions` where username like '%${username}%';
+    execute_sql_string      delete from rhino.`users` where username like '%${username}%';
+    execute_sql_string      commit;
+    Disconnect From Database
+#---------------------------------------------------------------------------------
+
+# 2.4. Update a user
+
+Update a user
+    [Arguments]     ${userName}=
+    ...             ${usernameUpdated}=
+    ...             ${status}=1
+    ...             ${password}=
+    ...             ${firstName}=
+    ...             ${lastName}=
+    ...             ${authority}=
+    ...             ${permissionsList}=[]
+    # ...             ${campaignGroupList}=
+    ...             ${lastModifiedBy}=
+    ...             ${response_code}=200
+    ...             ${success}=true
+    Set Test Variable    ${url}    user-management-api/admin/users?username=${userName}
+    Set Test Variable    ${data}    {"userName":${usernameUpdated},"status":${status},"password":${password},"firstName":${firstName},"lastName":${lastName},"authority":${authority},"permissionsList":${permissionsList},"lastModifiedBy":${lastModifiedBy}}
+    ${missing_count}=     Get Count    ${data}    MISSING
+    Run Keyword If    '${missing_count}'>='1'
+    ...     Remove Json Key Contain MISSING for Create a user
+    Log    ${data}
+    USER MANAGEMENT API		uri=${url}											#api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...			   request_type=PUT								#GET, POST, PUT
+    ...			   data=${data}									#POST or PUT normally goes with data
+    ...            expected_status_code=${response_code}					#normally 200 for working condition, 400 for failure
+    ...            success=${success}
+    Set Suite Variable    ${updated_body}    ${resp.content}
+    Log    ${updated_body}
+Validate response data for Update a user
+    [Arguments]     ${userName}
+    ...             ${status}
+    ...             ${password}
+    ...             ${firstName}
+    ...             ${lastName}
+    ...             ${authority}
+    ...             ${permissionsList}
+    # ...             ${campaignGroupList}
+    ${resp_userName}    Get JSON Value    ${updated_body}    /user/userName
+    ${userName}     Convert To Lowercase        ${userName}
+    Should Be Equal As Strings    ${userName}    ${resp_userName}
+    ${resp_status}    Get JSON Value    ${updated_body}    /user/status
+    Should Be Equal As Strings    ${status}    ${resp_status}
+    ${resp_authority}    Get JSON Value    ${updated_body}    /user/authority
+    Should Be Equal As Strings    ${authority}    ${resp_authority}
+    ${resp_firstName}    Get JSON Value    ${updated_body}    /user/firstName
+    Should Be Equal As Strings    ${firstName}    ${resp_firstName}
+    ${resp_lastName}    Get JSON Value    ${updated_body}    /user/lastName
+    Should Be Equal As Strings    ${lastName}    ${resp_lastName}
+    ${resp_productPermissionList}    Get JSON Value    ${updated_body}    /user/permissionsList
+    Should Be Equal As Strings    ${permissionsList}    ${resp_productPermissionList}
+    # ${resp_campaignGroupList}    Get JSON Value    ${updated_body}    /user/campaignGroupList
+    # Should Be Equal As Strings    ${campaignGroupList}    ${resp_campaignGroupList}
+
+
+
+
+#---------------------------------------------------------------------------------
+# 2.5. Forgot Password
+# QA Task Jira ID : https://jira.adhaven.com/browse/CM-1823
+
+Process Forgot Password
+    [Arguments]     ${uri}=user-management-api/forgotpassword/forgot
+    ...             ${userName}=
+    ...             ${response_code}=400
+    ...             ${success}=false
+    Log    ${uri}
+    Set Test Variable    ${data}    {"userName":${userName}}
+    ${missing_count}=     Get Count    ${data}    MISSING
+    Run Keyword If    '${missing_count}'>='1'
+    ...     Remove Json Key Contain MISSING for Process Forgot Password
+    Log    ${data}
+    USER MANAGEMENT API     uri=${uri}                                          #api URL  user-management-api/permissions-internal/groups-and-default?userId=1
+    ...            request_type=POST                                #GET, POST, PUT
+    ...            data=${data}                                 #POST or PUT normally goes with data
+    ...            expected_status_code=${response_code}                    #normally 200 for working condition, 400 for failure
+    ...            success=${success}
+    Run Keyword If    '${resp.status_code}'=='200'
+    ...    Validate DB after successfull request process for UM2.5 Forgot Password
+    ...    userName=${userName}
+
+
+Remove Json Key Contain MISSING for Process Forgot Password
+    ${data}=    Remove String    ${data}    "userName":"MISSING"
+    Set Test Variable    ${data}    ${data}
+
+
+Validate DB after successfull request process for UM2.5 Forgot Password
+    [Arguments]    ${userName}
+    ${userName}=    Remove String       ${userName}     "
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{queryResults}=     Query
+    ...   select reset_done, reset_request_date from rhino.users where username='${userName}';
+    ${QueryResult}=   Create Dictionary    reset_done=${queryResults[0][0]}
+    ...                                    reset_request_date=${queryResults[0][1]}
+    Set Suite Variable    ${QueryResult_db}    ${QueryResult}
+    Disconnect From Database
+    ${reset_done_db}    Get From Dictionary     ${QueryResult_db}    reset_done
+    Should Be Equal as Strings      ${reset_done_db}      0
+
+
+
+
+
+#---------------------------------------------------------------------------------
+# 2.7. Get all users list across products
+
+Compare Response 200 body with DB for UM2.7
+    [Arguments]     ${currentUsername}=
+    ...             ${groupId}=
+    Log    ${currentUsername}
+    Log    ${groupId}
+    Comment    Case 1 : When user has Admin Permission and group id as 1 then all users displayed to the current user.
+    Run Keyword If    ${groupId}==1    Get Records for Admin Permission user with Group Id 1    username=${currentUsername}
+    Comment    Case 2 : When user has Admin Permission and group id is not 1 then Get all groupids, for which currentUsername has admin permissions (except groupid=1).
+    Run Keyword If    ${groupId}<>1    Get Records for Admin Permission user without Group Id 1    username=${currentUsername}    groupId=${groupId}
+
+
+Get Records for Admin Permission user with Group Id 1
+    [Arguments]    ${username}
+    Comment    Case 1 : When user has Admin Permission and group id as 1 then all users displayed to the current user.
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    Set Test Variable    ${Query}    select count(distinct permissions_id) as cnt from user_permissions where username='${username}' and group_id = 1 and permissions_id = 3;
+    @{queryResults}=     Query    ${Query}
+    ${QueryResult}=   Create Dictionary    reset_done=${queryResults[0][0]}
+    Set Suite Variable    ${QueryResult_AdminUser}    ${QueryResult}
+    Disconnect From Database
+    Run Keyword If    ${QueryResult_AdminUser}>=1    Get All Users for UM2.7 from DB and compare with JSON body
+
+
+Get All Users for UM2.7 from DB and compare with JSON body
+    ${users_array}=    Get Json Value     ${body}    /users
+    Log     ${users_array}
+    ${users_count}=    Get Count     ${users_array}    "userName"
+    Set Test Variable           ${userscountAPI}         ${users_count}
+
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Set Test Variable    ${SelectQuery}    SELECT username, CASE enabled when CONVERT(enabled USING utf8)=0 then 'Inactive' when CONVERT(enabled USING utf8) = 1 then 'Active' END as status, first_name, last_name, last_modified_by, last_modified_date FROM rhino.users;
+    ${RowCount_db}    Row Count    ${SelectQuery}
+    Log    ${RowCount_db}
+    Set Test Variable    ${userscountDB}    ${RowCount_db}
+    @{queryResults}=     Query    ${SelectQuery}
+    Log Many    @{queryResults}
+    Disconnect From Database
+
+    Should Be Equal As Strings    ${userscountAPI}    ${userscountDB}
+
+
+
+Get Records for Admin Permission user without Group Id 1
+    [Arguments]    ${username}=
+    ...             ${groupId}=
+    Comment    Case 2 : When user has Admin Permission and group id is not 1 then Get all groupids, for which currentUsername has admin permissions (except groupid=1).
+    ${users_array}=    Get Json Value     ${body}    /users
+    Log     ${users_array}
+    ${users_count}=    Get Count     ${users_array}    "userName"
+    Set Test Variable           ${userscountAPI}         ${users_count}
+
+
+    Comment    2i:Get all group ids except 1 for current user from db
+
+    Log    ${groupId}
+    ${users_array}=    Get Json Value     ${body}    /users
+    Log     ${users_array}
+    ${users_count}=    Get Count     ${users_array}    "userName"
+    ${userscountAPI}=    Convert To Integer    ${users_count}
+
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    Set Test Variable    ${SelectQuery}    select distinct a.username, CASE when CONVERT(a.enabled USING utf8)=0 then 'Inactive' when CONVERT(a.enabled USING utf8) = 1 then 'Active' END as status, a.first_name, a.last_name, a.last_modified_by , a.last_modified_date, a.group_id from users a where a.username in (select distinct username from user_permissions where group_id in (select distinct group_id from user_permissions where permissions_id = 3 and username = '${username}' and group_id <> 1) and username not in (select distinct username from user_permissions where group_id=1)) order by 1;
+    @{queryResults}=     Query    ${SelectQuery}
+    Log Many    @{queryResults}
+    ${RowCount_db}=    Row Count    ${SelectQuery}
+    Set Suite Variable    @{db_records}    @{queryResults}
+    Disconnect From Database
+    :FOR    ${j}    IN RANGE    1    ${RowCount_db}
+    \    Set Test Variable    ${userName_db}        ${queryResults[${j}][0]}
+    \    Set Test Variable    ${status_db}          ${queryResults[${j}][1]}
+    \    Set Test Variable    ${firstName_db}       ${queryResults[${j}][2]}
+    \    Set Test Variable    ${lastName_db}        ${queryResults[${j}][3]}
+    \    Set Test Variable    ${lastModifiedBy_db}      ${queryResults[${j}][4]}
+    \    ${userName_API}=   Get JSON Value    ${users_array}    /${j}/userName
+    \    Should Be Equal As Strings    ${userName_API}          "${userName_db}"
+    \    ${status_API}=     Get JSON Value    ${users_array}    /${j}/status
+    \    Should Be Equal As Strings    ${status_API}            "${status_db}"
+    \    ${firstName_API}=     Get JSON Value    ${users_array}    /${j}/firstName
+    \    Should Be Equal As Strings    ${firstName_API}         "${firstName_db}"
+    \    ${lastName_API}=     Get JSON Value    ${users_array}    /${j}/lastName
+    \    Should Be Equal As Strings    ${lastName_API}          "${lastName_db}"
+    \    ${lastModifiedBy_API}=     Get JSON Value    ${users_array}    /${j}/lastModifiedBy
+    \    Should Be Equal As Strings    ${lastModifiedBy_API}    "${lastModifiedBy_db}"
+
+
+#---------------------------------------------------------------------------------
+# 2.8. Update a user account
+
+Modify User's Own Account
+    [Arguments]     ${userName}=
+    ...             ${newUserName}=${userName}
+    ...             ${firstName}=
+    ...             ${lastName}=
+    ...             ${currentPassword}=
+    ...             ${newPassword}=
+    ...             ${lastModifiedBy}=
+    ...             ${permissionsList}=
+    ...             ${status}=
+    ...             ${authority}=
+    ...             ${response_code}=NA
+    ...             ${success}=NA
+
+    Run Keyword If    '${userName}' == 'MISSING'    Set Test Variable    ${uri}    user-management-api/admin/user-account?username=${Empty}
+
+    Run Keyword If    '${userName}' != 'MISSING'    Set Test Variable    ${uri}    user-management-api/admin/user-account?username=${userName}
+
+    Log    ${uri}
+
+    Run Keyword If    '${userName}' != 'MISSING'    Set Test Variable    ${userName}    "${userName}"
+
+    Set Test Variable    ${data}    {"userName": ${newUserName}, "firstName": ${firstName}, "lastName": ${lastName}, "currentPassword": ${currentPassword}, "newPassword": ${newPassword}, "lastModifiedBy": ${lastModifiedBy}}
+
+    Log    ${data}
+
+    ${missing_count}=     Get Count    ${data}    MISSING
+
+    Run Keyword If    '${missing_count}' >= '1'
+    ...     Remove Json Key Contain MISSING for Modify User's Own Account
+
+    Log    ${data}
+
+    USER MANAGEMENT API     uri=${uri}      #api URL  user-management-api/admin/user-account?username=regression@catalina.com
+    ...            request_type=PUT        #GET, POST, PUT
+    ...            data=${data}             #POST or PUT normally goes with data
+    ...            expected_status_code=${response_code}     #normally 200 for working condition, 400 for failure
+    ...            success=${success}
+
+    Should Be Equal As Strings    ${resp.status_code}    ${response_code}
+
+    Run Keyword If    '${resp.status_code}'=='200'
+    ...    Validate Modified User's Own Account for response 200
+    ...    userName=${newUserName}
+    ...    firstName=${firstName}
+    ...    lastName=${lastName}
+    ...    permissionsList=${permissionsList}
+    ...    status=${status}
+    ...    authority=${authority}
+
+
+Remove Json Key Contain MISSING for Modify User's Own Account
+    ${data}=    Remove String    ${data}    "userName": "MISSING",
+    ${data}=    Remove String    ${data}    "firstName": "MISSING",
+    ${data}=    Remove String    ${data}    "lastName": "MISSING",
+    ${data}=    Remove String    ${data}    "currentPassword": "MISSING",
+    ${data}=    Remove String    ${data}    "newPassword": "MISSING",
+    ${data}=    Remove String    ${data}    "lastModifiedBy": "MISSING"
+    ${data}=        Evaluate    '${data}'.replace(", }",'}').replace(",}",'}')
+    Set Test Variable       ${data}     ${data}
+
+
+
+Validate Modified User's Own Account for response 200
+    [Arguments]    ${userName}=
+    ...    ${firstName}=
+    ...    ${lastName}=
+    ...    ${permissionsList}=
+    ...    ${status}=
+    ...    ${lastModifiedBy}=
+    ...    ${authority}=
+
+    Log    ${userName}
+    Log    ${firstName}
+    Log    ${lastName}
+    Log    ${permissionsList}
+    Log    ${status}
+    Log    ${lastModifiedBy}
+    Log    ${authority}
+
+    Log     ${body}
+
+    Json Value Should Equal    ${body}    /user/userName            ${userName}
+    Json Value Should Equal    ${body}    /user/status              ${status}
+    Json Value Should Equal    ${body}    /user/authority           ${authority}
+    Json Value Should Equal    ${body}    /user/firstName           ${firstName}
+    Json Value Should Equal    ${body}    /user/lastName            ${lastName}
+    Json Value Should Equal    ${body}    /user/permissionsList     ${permissionsList}
+
+#---------------------------------------------------------------------------------
+# 2.9. Get Groups List
+
+Get Groups List for particular user
+    [Arguments]     ${username}=
+    ...             ${response_code}=200
+
+    Run Keyword If    '${userName}' == 'MISSING'    Set Test Variable    ${url}    user-management-api/admin/groups?username=${Empty}
+
+    Run Keyword If    '${userName}' != 'MISSING'    Set Test Variable    ${url}    user-management-api/admin/groups?username=${userName}
+
+    Log    ${url}
+
+    USER MANAGEMENT API   uri=${url}    expected_status_code=${response_code}
+    Log     ${body}
+
+    Should Be Equal As Strings   ${resp.status_code}   ${response_code}
+
+
+Compare DB Records with API Response for Get Groups List
+    [Arguments]    ${username}
+    Set Test Variable    ${QueryGetUserAccess}   select count(distinct permissions_id) from rhino.user_permissions b where username ='${username}' group by group_id, permissions_id having group_id = 1 and permissions_id = 3;
+
+    Log    ${QueryGetUserAccess}
+
+    Connect To Database
+    ...    ${DB_API_MODULE_NAME}
+    ...    ${DB_NAME_RHINO}
+    ...    ${DB_USER}
+    ...    ${DB_PASSWORD}
+    ...    ${DB_HOST}
+    ...    ${DB_PORT}
+
+    Comment    Check whether user has admin permission
+    @{query_results_userPermission}     Query    ${QueryGetUserAccess}
+
+    Set Test Variable    ${DB_Access}    ${query_results_userPermission[0][0]}
+    Disconnect From Database
+
+    Log    ${DB_Access}
+    Run Keyword If    '${DB_Access}' == '1'   Get DB Records for Get Groups List
+
+
+
+Get DB Records for Get Groups List
+    Set Test Variable    ${QueryGetGroups}    SELECT count(distinct a.group_name) as groupsCount FROM rhino.groups a;
+
+    Log    ${QueryGetGroups}
+
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+
+    @{query_results}     Query    ${QueryGetGroups}
+
+    Set Suite Variable    ${groupscountDB}      ${query_results[0][0]}
+
+    Disconnect From Database
+
+    Log    ${groupscountDB}
+
+    ${groups_array}=    Get Json Value     ${body}    /groups
+    Log     ${groups_array}
+
+    Set suite variable    ${groups_array_API}    ${groups_array}
+
+    ${groups_count}=    Get Count     ${groups_array}    "groupName"
+    Set Suite Variable           ${groupscountAPI}         ${groups_count}
+    Log    ${groupscountAPI}
+
+    Should Be Equal As Strings    ${groupscountAPI}    ${groupscountDB}
+
+
+Compare Values for Get Groups List DB with API
+    # Set Test Variable    ${QueryGetGroups}    SELECT distinct a.id, a.group_name as groupName, CASE when CONVERT(a.enabled USING utf8)=0 then 'Inactive' when CONVERT(a.enabled USING utf8) = 1 then 'Active' END as status, a.last_modified_by, convert(a.modified_dt, CHAR(50)) as modified_dt, metamarkets_securitypolicy_id as metamarketsId, goal_type as goalType  FROM rhino.groups a order by 1;
+
+    # Log    ${QueryGetGroups}
+
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+
+    # @{query_results}     Query    ${QueryGetGroups}
+
+    @{query_results}    Query    SELECT distinct a.id, a.display_name as groupName, CASE when CONVERT(a.enabled USING utf8)=0 then 'Inactive' when CONVERT(a.enabled USING utf8) = 1 then 'Active' END as status, a.last_modified_by, convert(a.modified_dt, CHAR(50)) as modified_dt, a.metamarkets_securitypolicy_id as metamarketsId, a.goal_type as goalType FROM rhino.groups a order by 1;
+
+    Disconnect From Database
+
+    Comment     Get API record count
+    ${groups_array_API}=    Get Json Value     ${body}    /groups
+    Log     ${groups_array_API}
+    ${APIcount}=           Get Length  ${groups_array_API}
+    Log    ${APIcount}
+
+    Comment     Get DB records
+    ${DBcount}=           Get Length  ${query_results}
+    Log    ${DBcount}
+    :FOR    ${index}    IN RANGE   0    ${DBcount}
+    \       Log     Index: ${index}
+    \       ${db_id}=                       Set Variable  ${query_results[${index}][0]}
+    \       ${db_groupName}=                Set Variable  ${query_results[${index}][1]}
+    \       ${db_status}=                   Set Variable  ${query_results[${index}][2]}
+    \       ${db_lastModifiedBy}=           Set Variable  ${query_results[${index}][3]}
+    \       ${db_lastModifiedDate}=         Set Variable  ${query_results[${index}][4]}
+    \       ${db_metamarketsId}=            Set Variable  ${query_results[${index}][5]}
+    \       Log    ${db_metamarketsId}
+    \       ${db_metamarketsId}=       Evaluate    '${db_metamarketsId}'.replace("None",'null')
+    \       Log    ${db_metamarketsId}
+    \       ${db_goalType}=                 Set Variable  ${query_results[${index}][6]}
+    \       Get API Records for Get Group List and compare    db_id=${db_id}    db_groupName=${db_groupName}   db_status=${db_status}      db_lastModifiedBy=${db_lastModifiedBy}   db_lastModifiedDate=${db_lastModifiedDate}    db_metamarketsId=${db_metamarketsId}    db_goalType=${db_goalType}    APIcount=${DBcount}
+
+
+Get API Records for Get Group List and compare
+    [Arguments]     ${db_id}=
+    ...             ${db_groupName}=
+    ...             ${db_status}=
+    ...             ${db_lastModifiedBy}=
+    ...             ${db_lastModifiedDate}=
+    ...             ${db_metamarketsId}=
+    ...             ${db_goalType}=
+    ...             ${APIcount}=
+
+    :FOR    ${index}    IN RANGE   0    ${APIcount} - 1
+    \       Log     Index: ${index}
+    \       ${API_id}=    Get Json Value     ${groups_array_API}    /${index}/id
+    \       Log    ${db_id} : ${API_id}
+    \       ${API_groupName}=    Get Json Value     ${groups_array_API}    /${index}/groupName
+    # \       Run Keyword If    ${API_id} == ${db_id}    Should be equal as strings    "${db_groupName}"    ${API_groupName}
+    \       ${API_status}=    Get Json Value     ${groups_array_API}    /${index}/status
+    \       Run Keyword If    ${API_id} == ${db_id}    Should be equal as strings    "${db_status}"    ${API_status}
+    \       ${API_lastModifiedBy}=    Get Json Value     ${groups_array_API}    /${index}/lastModifiedBy
+    \       Run Keyword If    ${API_id} == ${db_id}    Should be equal as strings    "${db_lastModifiedBy}"    ${API_lastModifiedBy}
+    \       ${API_lastModifiedDate}=    Get Json Value     ${groups_array_API}    /${index}/lastModifiedDate
+    \       Run Keyword If    ${API_id} == ${db_id}    Should be equal as strings    "${db_lastModifiedDate}.0"    ${API_lastModifiedDate}
+    \       ${API_metamarketsId}=    Get Json Value     ${groups_array_API}    /${index}/metamarketsId
+    \       Run Keyword If    ${API_id} == ${db_id}    Should be equal as strings    ${db_metamarketsId}    ${API_metamarketsId}
+    \       ${API_goalType}=    Get Json Value     ${groups_array_API}    /${index}/goalType
+    \       Run Keyword If    ${API_id} == ${db_id}    Should be equal as strings    ${db_goalType}    ${API_goalType}
+
+#---------------------------------------------------------------------------------
+
+Create Required Users To Test Phoenix Campaign Script
+    Delete New User via DB    username=regressionqa2@4info.com
+    Delete New User via DB    username=regressionqa3@4info.com
+    Delete New User via DB    username=regressionqa4@4info.com
+    Delete New User via DB    username=regressionqa8@acxiom.com
+    Delete New User via DB    username=regressionqa12@att.com
+    Delete New User via DB    username=regressionqa11@4info.com
+    Delete New User via DB    username=regressionqa13@belltoweradvertising.com
+    Delete New User via DB    username=regressionqa17@datamyx.com
+    Delete New User via DB    username=regressionqa19@4info.com
+    Delete New User via DB    username=regressionqa9@exp.com
+    Delete New User via DB    username=regressionqa5@4info.com
+    Delete New User via DB    username=regressionqa10@4info.com
+    Delete New User via DB    username=regressionqa7@4info.com
+    Delete New User via DB    username=regressionqa20@tegna.com
+    Create Required Users with Required Groups, Products and Permissions for Phoenix Campaign UI
+
+
+Create Required Users with Required Groups, Products and Permissions for Phoenix Campaign UI
+    # 4INFO_ADMIN    2    regressionqa2@4info.com
+    # Set Test Variable    ${username}    regressionqa2@4info.com
+    # Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    # Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    # # Get User Permissions from DB    username=${lastModifiedBy}
+
+    # Create a user       userName="${username}"
+    # ...                 status=1
+    # ...                 password="P@ssw0rd"
+    # ...                 firstName="regression"
+    # ...                 lastName="temp"
+    # ...                 authority="ADMIN"
+    # ...                 permissionsList=${permissionsList}
+    # ...                 lastModifiedBy="${lastModifiedBy}"
+    # ...                 response_code=200
+    # ...                 success=true
+
+
+    # Update Group_id for user      username=${username}      groupIdUpdate=2
+
+
+    # 4INFO_ADOPS    3    regressionqa3@4info.com
+    # Set Test Variable    ${username}    regressionqa3@4info.com
+    # Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    # Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    # Create a user       userName="${username}"
+    # ...                 status=1
+    # ...                 password="P@ssw0rd"
+    # ...                 firstName="regression"
+    # ...                 lastName="temp"
+    # ...                 authority="ADMIN"
+    # ...                 permissionsList=${permissionsList}
+    # ...                 lastModifiedBy="${lastModifiedBy}"
+    # ...                 response_code=200
+    # ...                 success=true
+
+
+    # Update Group_id for user      username=${username}      groupIdUpdate=3
+
+
+    # # 4INFO_REPORTING    4    regressionqa4@4info.com
+    # Set Test Variable    ${username}    regressionqa4@4info.com
+    # Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    # Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    # Create a user       userName="${username}"
+    # ...                 status=1
+    # ...                 password="P@ssw0rd"
+    # ...                 firstName="regression"
+    # ...                 lastName="temp"
+    # ...                 authority="ADMIN"
+    # ...                 permissionsList=${permissionsList}
+    # ...                 lastModifiedBy="${lastModifiedBy}"
+    # ...                 response_code=200
+    # ...                 success=true
+
+
+    # Update Group_id for user      username=${username}      groupIdUpdate=4
+
+    # ACXIOM    8    regressionqa8@acxiom.com
+    Set Test Variable    ${username}    regressionqa8@acxiom.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="P@ssw0rd"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+
+    Update Group_id for user      username=${username}      groupIdUpdate=8
+
+    # ATT    12    regressionqa12@att.com
+    Set Test Variable    ${username}    regressionqa12@att.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="P@ssw0rd"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+
+    Update Group_id for user      username=${username}      groupIdUpdate=12
+
+    # # AUDIENCE    11    regressionqa2@4info.com
+    # Set Test Variable    ${username}    regressionqa11@4info.com
+    # Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    # Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    # Create a user       userName="${username}"
+    # ...                 status=1
+    # ...                 password="P@ssw0rd"
+    # ...                 firstName="regression"
+    # ...                 lastName="temp"
+    # ...                 authority="ADMIN"
+    # ...                 permissionsList=${permissionsList}
+    # ...                 lastModifiedBy="${lastModifiedBy}"
+    # ...                 response_code=200
+    # ...                 success=true
+
+    # # Set Required Permissions To User    username=${username}
+    # # ...    groupid=11
+    # # ...    permissionid=2
+    # # ...    productid=1
+    # Update Group_id for user      username=${username}      groupIdUpdate=11
+
+    # # BellTower    13    regressionqa13@belltoweradvertising.com
+    Set Test Variable    ${username}    regressionqa13@belltoweradvertising.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="P@ssw0rd"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+
+    Update Group_id for user      username=${username}      groupIdUpdate=13
+
+    # # Datamyx    17    regressionqa17@datamyx.com
+    Set Test Variable    ${username}    regressionqa17@datamyx.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="P@ssw0rd"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+
+    Update Group_id for user      username=${username}      groupIdUpdate=17
+
+    # # Demo    19    regressionqa19@4info.com
+    # Set Test Variable    ${username}    regressionqa19@4info.com
+    # Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    # Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    # Create a user       userName="${username}"
+    # ...                 status=1
+    # ...                 password="P@ssw0rd"
+    # ...                 firstName="regression"
+    # ...                 lastName="temp"
+    # ...                 authority="ADMIN"
+    # ...                 permissionsList=${permissionsList}
+    # ...                 lastModifiedBy="${lastModifiedBy}"
+    # ...                 response_code=200
+    # ...                 success=true
+
+
+    # Update Group_id for user      username=${username}      groupIdUpdate=19
+
+    # # EXPERIAN    9    regressionqa9@exp.com
+    Set Test Variable    ${username}    regressionqa9@exp.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="P@ssw0rd"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Update Group_id for user      username=${username}      groupIdUpdate=9
+
+    # # NCS    5    regressionqa5@4info.com
+    # Set Test Variable    ${username}    regressionqa5@4info.com
+    # Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    # Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    # Create a user       userName="${username}"
+    # ...                 status=1
+    # ...                 password="P@ssw0rd"
+    # ...                 firstName="regression"
+    # ...                 lastName="temp"
+    # ...                 authority="ADMIN"
+    # ...                 permissionsList=${permissionsList}
+    # ...                 lastModifiedBy="${lastModifiedBy}"
+    # ...                 response_code=200
+    # ...                 success=true
+
+
+    # Update Group_id for user      username=${username}      groupIdUpdate=5
+
+    # # NESTLE    10    regressionqa10@4info.com
+    # Set Test Variable    ${username}    regressionqa10@4info.com
+    # Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    # Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    # Create a user       userName="${username}"
+    # ...                 status=1
+    # ...                 password="P@ssw0rd"
+    # ...                 firstName="regression"
+    # ...                 lastName="temp"
+    # ...                 authority="ADMIN"
+    # ...                 permissionsList=${permissionsList}
+    # ...                 lastModifiedBy="${lastModifiedBy}"
+    # ...                 response_code=200
+    # ...                 success=true
+
+
+    # Update Group_id for user      username=${username}      groupIdUpdate=10
+
+    # # USADATA    7    regressionqa7@4info.com
+    Set Test Variable    ${username}    regressionqa7@4info.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="P@ssw0rd"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+
+    Update Group_id for user      username=${username}      groupIdUpdate=7
+
+    # # Tegna    20    regressionqa20@tegna.com
+    Set Test Variable    ${username}    regressionqa20@tegna.com
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2, 3], "groupId": 1, "productId": 1}]
+    Set Test Variable    ${lastModifiedBy}    HParihar@4info.com
+
+    Create a user       userName="${username}"
+    ...                 status=1
+    ...                 password="P@ssw0rd"
+    ...                 firstName="regression"
+    ...                 lastName="temp"
+    ...                 authority="ADMIN"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+
+    Update Group_id for user      username=${username}      groupIdUpdate=20
+
+#---------------------------------------------------------------------------------
+
+Update Measurement Datasource Group Permission
+    [Arguments]         ${groupID}=${GroupID}
+    ...                 ${measurmentDatasourceIds}=[2, 14, 18]
+    ...                 ${Expected_resp_code}=200
+    Set Test Variable       ${Data}         {"measurmentDatasourceIds" :${measurmentDatasourceIds}}
+    USER MANAGEMENT API         request_type=PUT
+    ...                         data=${Data}
+    ...                         uri=/user-management-api/ui-acc-datasource/measurement-datasource?groupId=${groupID}
+    ...                         expected_status_code=${Expected_resp_code}
+
+Update Segment Datasource Group Permission
+    [Arguments]         ${groupID}=${GroupID}
+    ...                 ${SegmentDatasourceIds}=[1, 2, 3]
+    ...                 ${Expected_resp_code}=200
+    Set Test Variable       ${Data}         {"segmentDatasourceIds" : ${SegmentDatasourceIds}}
+    USER MANAGEMENT API         request_type=PUT
+    ...                         data=${Data}
+    ...                         uri=/user-management-api/ui-acc-datasource/segment-datasource?groupId=${groupID}
+    ...                         expected_status_code=${Expected_resp_code}
+
+
+Update Group Access UI Elements
+    [Arguments]         ${groupID}=${GroupID}
+    ...                 ${mandatoryElements}=[75,74]
+    ...                 ${ExcludedElements}=[68]
+    ...                 ${Expected_resp_code}=200
+    Set Test Variable       ${Data}         {"mandatoryElementsIds":${mandatoryElements},"excludedElementsIds":${ExcludedElements}}
+    USER MANAGEMENT API         request_type=PUT
+    ...                         data=${Data}
+    ...                         uri=/user-management-api/ui-acc-element/update-access?groupId=${groupID}
+    ...                         expected_status_code=${Expected_resp_code}
+
+Get Request For Group Access UI Elements
+    [Arguments]                     ${groupId}=${GroupId}
+    USER MANAGEMENT API             uri=/user-management-api/ui-acc-element/group-elements?groupId=${groupId}
+    ${excludedElementsIds}          Get Json Value    ${body}    /groupAccessElements/excludedElementsIds
+    Set Test Variable               ${excludedElementsIds}                  ${excludedElementsIds}
+    ${mandatoryElementsIds}         Get Json Value    ${body}    /groupAccessElements/mandatoryElementsIds
+    Set Test Variable               ${mandatoryElementsIds}                 ${mandatoryElementsIds}
+
+
+Update Group_id for user
+    [Arguments]     ${username}=
+    ...             ${groupIdUpdate}=
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    execute_sql_string          update rhino.users set group_id=${groupIdUpdate} where username='${username}'
+    execute_sql_string          update rhino.user_permissions set group_id=${groupIdUpdate} where username='${username}'
+    execute_sql_string          commit;
+    Disconnect From Database
+
+Clean UP Created Groups By Name
+    [Arguments]     ${groupName}=00_QA_TEST_GROUP
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    execute_sql_string      DELETE FROM rhino.target_datasource where datasource_name='${groupName}';
+    execute_sql_string      DELETE FROM rhino.target_datasource_provider where provider_name='${groupName}';
+    execute_sql_string      DELETE from rhino.user_permissions where group_id in (Select id from rhino.groups where group_name='${groupName}');;
+    execute_sql_string      Delete from rhino.groups_target_datasource where group_id in (Select id from rhino.groups where group_name='${groupName}');
+    execute_sql_string      Delete from rhino.groups_segment_datasource where group_id in (Select id from rhino.groups where group_name='${groupName}');
+    execute_sql_string      Delete from rhino.groups_measurement_datasource where group_id in (Select id from rhino.groups where group_name='${groupName}');
+    # execute_sql_string      Delete FROM rhino.groups_measurement_datasource where group_id in (Select id from rhino.groups where group_name='${groupName}');
+    # execute_sql_string      Delete FROM rhino.groups_segment_datasource where group_id in (Select id from rhino.groups where group_name='${groupName}');
+    execute_sql_string      Delete FROM rhino.groups_ui_element where group_id in (Select id from rhino.groups where group_name='${groupName}');
+    execute_sql_string      Delete FROM rhino.target_datasource where primary_group in (Select id from rhino.groups where group_name='${groupName}');
+    execute_sql_string      Delete From rhino.groups where group_name='${groupName}';
+    execute_sql_string      commit;
+    Disconnect From Database
+
+
+Clean UP Created Groups By Id
+    [Arguments]         ${id}=
+    Connect To Database     ${DB_API_MODULE_NAME}
+    ...                     ${DB_NAME_RHINO}
+    ...                     ${DB_USER}
+    ...                     ${DB_PASSWORD}
+    ...                     ${DB_HOST}
+    ...                     ${DB_PORT}
+    execute_sql_string      delete from rhino.groups_ui_element where group_id=${id};
+    execute_sql_string      delete FROM rhino.groups_measurement_datasource where group_id=${id};
+    execute_sql_string      delete From rhino.groups where id=${id};
+    Disconnect From Database

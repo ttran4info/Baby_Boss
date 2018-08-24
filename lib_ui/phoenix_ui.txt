@@ -1,0 +1,887 @@
+*** Variables ***
+
+#UI Components for Dashboard Page
+${Dashboard_AudienceSolutions}      xpath=//div[text()='AUDIENCE SOLUTIONS']
+${Dashboard_CampaignManager}        xpath=//div[text()='CAMPAIGN MANAGER']
+${Dashboard_Insights&Analytics}      xpath=//div[text()='INSIGHTS & ANALYTICS']
+
+# UI COMPONENTS FOR login.html
+${LOGIN_URL}						https://${QA_PHOENIX}/phoenix/#/login    #http://qa-dswarm-01:28082/phoenix/#/login     #https://${QA_PHOENIX}:${QA_PHOENIX_PORT}/phoenix/#/login
+${LOGIN_NAME_TEXTBOX}     			id=username
+${LOGIN_PASSWORD_TEXTBOX}      		id=password
+${LOGIN_SHOW_PASSWORD_CHECKBOX}		id=showpassword
+${LOGIN_FORGOT_PASSWORD_LINK}		id=forget
+${LOGIN_BUTTON}						id=login
+${ErrorMessage_LoginPage}           xpath=./html/body/app-root/div/div/login/div/div/form/div[6]/errorcontainer/div/div/img
+${Password_Reset_Label}             xpath=./html/body/app-root/div/div/forgot-password/div/div[1]
+${GROUP_SELECT_DROPDOWN}            xpath=//select[@id='userGroup-select']    #id=userGroup-select
+
+${Header_setting-select}            id=settingsbutton
+${LogoutFromUI}                     xpath=//div[@id='settingsselect']//a[2][text()='Log Out']
+${DashboardLoginURL}                https://qa-customer.4info.com/dashboard/#/login
+${Phoenix_URL}                      https://${QA_PHOENIX}/phoenix/#
+${admin_PageURL}                    ${Phoenix_URL}/admin
+${advertisersList_PageURL}          ${Phoenix_URL}/advertisersList
+${clustersList_PageURL}             ${Phoenix_URL}/clustersList
+${audienceList_PageURL}             ${Phoenix_URL}/audienceList
+${error_PageURL}                    ${Phoenix_URL}/error
+${redirectTo_PageURL}               ${Phoenix_URL}/${Empty}
+#Advertiser page
+# ${ADV_TITLE}						Fourinfo
+${ADV_NAME_INPUT}                   id=name
+${ADV_CREATE_BUTTON}				id=btnCreateAdv
+${ADV_NAME_ID}						id=tdAdvName				#example: tdAdvName733 (where 733 is the partner id of the advertiser)
+${ADV_STATUS_SELECTION}				//select[@id='thDdAdvStatus']
+${ADV_SEARCH_TEXTBOX}               id=inpSearchInput
+${ADV_SEARCHED_RESULT}              id=expandAdv
+${ADV_STATUS_ID}					id=tdAdvStatus				#example: tdAdvStatus733 (where 733 is the partner id of the advertiser)
+${ADV_NAME_SORT}					id=thAdvName
+${ADV_STATUS_SORT}					id=thAdvStatus
+${ADV_LIVE_SORT}					//a[text()='Live']
+${ADV_LIVECOUNT_ID}					id=tdAdvLiveCount			#example: tdAdvLiveCount733 (where 733 is the partner id of the advertiser)
+${ADV_PENDING_SORT}					id=thAdvPendingCount
+${ADV_PENDINGCOUNT_ID}				id=tdAdvPendingCount		#example: tdAdvPendingCount733 (where 733 is the partner id of the advertiser)
+${ADV_TOTAL_SORT}					id=thAdvTotalCount
+${ADV_TOTALCOUNT_ID}				id=tdAdvTotalCount			#example: tdAdvTotalCount733 (where 733 is the partner id of the advertiser)
+${ADV_EDIT_TEXTBOX}					id=name
+${ADV_EDIT_OK_BUTTON}				id=btnAdvEditOk
+${ADV_EDIT_CLOSE_BUTTON}			id=btnClose
+${ADV_SEARCH_TEXTBOX}               id=search-ipt
+${ADV_CLOSE_BUTTON}                 xpath=.//button[@class='close']
+${ADV_NAME_INPUT}                   xpath=.//input[@name='name']
+${ADV_CREATE_OK_BUTTON}             id=btnAdvEditOk
+${ADV_SHOW_MORE_CAMPAIGNS}          xpath=.//a[contains(.,'Show More Campaigns')]
+${ADV_EXPAND_DROPDOWN_BUTTON}       xpath=.//span[@class='icon-col']
+${CAMPAIGN_SEARCH_NAME}             xpath=.//a[contains(.,'4_QA')]
+${CAMPAIGN_SEARCH_QA}               xpath=.//a[contains(.,'00_QATEST_campaign')]
+${CreateAdvertiserCloseButton}      id=btnClose
+${NewAdvertiserName}                xpath=.//input[@id='name']
+${Heading_Advertiser}               //h1[text()='ADVERTISERS']
+${Filter_Name}                      //a[text()='Name']
+${Filter_Status}                    //a[contains(.,'Status')]
+${Filter_Pacing_Below}               //a[text()='Pacing below']
+
+
+#Tabs
+${TAB_CAMPAIGNS_LINK}                   //a[@id='campaigns']
+${TAB_CLUSTERS_LINK}                    //a[@id='clusters']
+${TAB_AUDIENCES_LINK}                   //a[@id='audience creator']
+${TAB_SEARCH_SELECT}                    id=navCategory
+${TAB_SEARCH_TEXTBOX}                   id=search-ipt
+${TAB_SEARCH_RESULT}                    xpath=//li[@class='item'][1]
+
+
+#Cluster page
+${CLUSTER_CREATE_BUTTON}    id=btnClusterCreate
+${CLUSTER_SEARCH_INPUT}     //input[@id='inpSearchInput']
+${CLUSTER_TABLE_NAME}       id=tblCluster
+${SEARCH_CLUSTER}           xpath=.//*[@id="inpSearchInput"]
+${Button_RemoveSiteApps}    xpath=.//*[@id="btnClusterSave"]
+
+#tdClusterName758 > a
+
+#Cluster Create page
+${CLUSTER_NAME_INPUT}		id=txtClusterName
+${CLUSTER_DATA_TEXTAREA}	id=txtAreaCopyAndPaste
+${CLUSTER_CANCEL_BUTTON}	id=btnClusterCancel
+${CLUSTER_SAVE_BUTTON}		id=btnClusterSave
+${CLUSTER_OK_BUTTON}		id=btnClusterOk
+
+
+#Cluster Edit page
+${CLUSTER_SEARCH_INPUT}				id=inpSearchInput
+${CLUSTER_NAME_ID}					id=tdClusterName381
+${CLUSTER_NAME_EDIT_BUTTON}			xpath=//*[@id="clusterDetailInfo"]/div/div[1]/div[2]/a
+${CLUSTER_NAME_BUTTON}				id=txtClusterName
+${CLUSTER_EDIT_SAVE}				xpath=/html/body/ngb-modal-window/div/div/ng-component/form/div[3]/div/div/button
+${CLUSTER_ADD_SITES_N_APPS_BUTTON}	xpath=//*[@id="sites"]/div[2]/div[2]/a
+${CLUSTER_ADD_FILTERS}				xpath=//*[@id="txtAreaCopyAndPaste"]
+${CLUSTER_REMOVE_SITES_APPS}		xpath=.//*[@id="linkRemoveSitesApps"]/a
+${CLUSTER_ADD_SITES_APP}			id=btnClusterSave
+${CLUSTER_CANCEL_BUTTON}			id=btnClusterCancel
+${CLUSTER_REMOVE_CHECKBOX}			id=cnn.com
+${CLUSTER_ADD_SITES_APP_OK}			id=btnClusterOk
+
+#------------------------------------------------------------------------------------------
+# Cluster Details UI Automation
+# Wiki Document : https://wiki.4info.com/display/Software/Inventory+API+documentation#InventoryAPIdocumentation-1.2.ClusterDetailPage
+# QA Task ID :  https://jira.adhaven.com/browse/CM-405
+
+# Top ribbon User name objects
+${Header_username}          xpath=.//*[@id="username"]
+
+
+# Page Header objects
+${Header_4InfoLogo_Header}               xpath=.//*[@id="logo-top"]
+# ${Header_Link_Campaigns}                 xpath=.//*[@id="campaigns"]
+${Header_Link_Campaigns}                 id=campaigns
+${Header_Link_AudienceCreator}           xpath=.//*[@id="audience creator"]
+${Header_Link_Forecasting}               xpath=.//*[@id="forecasting"]
+${Header_Link_SearchIn}                  xpath=.//*[@id="navSearch"]/span
+${Header_List_navCategory}               xpath=.//*[@id="navCategory"]
+${Header_List_SearchIPT}                 xpath=.//*[@id="search-ipt"]
+
+# Page Footer Objects
+${Footer_4InfoLogo}               xpath=.//*[@id="logo-footer"]
+${Footer_Link_ContactInfo}        xpath=.//*[@id="contact"]/a
+
+# Page Objects after Clusters link click
+${ClusterDetail_Link_Clusters}                  xpath=.//a[@id='clusters']
+${ClusterDetail_Label_CLUSTER_DETAIL}           xpath=.//h1[text()='CLUSTER DETAIL']
+${ClusterDetail_Lable_ClusterName}              xpath=.//div[text()=' Cluster Name : ']
+${ClusterDetail_Label_ClusterName_Value}        xpath=.//div[text()=' Cluster Name : ']//following-sibling::div
+${ClusterDetail_Link_Edit}                      xpath=.//a[text()=' Edit']
+${ClusterDetail_Label_CreatedBy}                xpath=.//div[text()=' Created By : ']
+${ClusterDetail_Label_CreatedBy_Value}          xpath=.//div[text()=' Created By : ']//following-sibling::div
+${ClusterDetail_Label_CreatedOn}                xpath=.//div[text()=' Created On : ']
+${ClusterDetail_Label_CreatedOn_Value}          xpath=.//div[text()=' Created On : ']//following-sibling::div
+${ClusterDetail_Label_LastModifiedBy}           xpath=.//div[text()=' Last Modified By: ']
+${ClusterDetail_Label_LastModifiedBy_Value}     xpath=.//div[text()=' Last Modified By: ']//following-sibling::div
+${ClusterDetail_Label_LastModifiedOn}           xpath=.//div[text()=' Last Modified On : ']
+${ClusterDetail_Label_LastModifiedOn_Value}     xpath=.//div[text()=' Last Modified On : ']//following-sibling::div
+${ClusterDetail_Link_ClusterHistory}            xpath=.//a[text()=' Cluster History']
+${ClusterDetail_Label_SitesApps}                xpath=.//h2[text()='Sites/Apps']
+${ClusterDetail_Input_TypeToSearch}             xpath=.//*[@id="filter-ipt"]
+${ClusterDetail_Input_Sites}                    xpath=.//*[@id="sites"]/div[1]/table/tbody/tr/td
+${ClusterDetail_Link_RemoveSitesApps}           xpath=.//*[@id="linkRemoveSitesApps"]/a
+${ClusterDetail_Link_AddSitesApps}              xpath=.//*[@id="linkAddSitesApps"]/a
+${ClusterDetail_Link_Export}                    xpath=.//*[@id="linkExportDetail"]
+${ClusterDetail_Button_Cancel}                  xpath=.//*[@id="btnClusterCancel"]
+${Clusters_Sort_ModifiedDate}                   xpath=.//*[@id="thClusterModifiedDate"]/mfdefaultsorter/a
+
+
+
+# Cluster Name Edit
+${ClusterDetail_Label_ClusterEdit}                xpath=.//*[@id="titleClusterNameEdit"]/h1
+${ClusterDetail_ClusterEdit_Button_Close}         xpath=//span[text()='× Close']
+${ClusterDetail_ClusterEdit_Label_ClusterName}    xpath=//div[text()='CLUSTER NAME']
+${ClusterDetail_ClusterEdit_Input_ClusterName}    xpath=.//*[@id="txtClusterName"]
+# ${ClusterDetail_ClusterEdit_DividerLine}          xpath=./html/body/ngb-modal-window/div/div/ng-component/form/div[2]/div[2]/div/div[2]
+${ClusterDetail_ClusterEdit_Button_Save}          xpath=.//button[text()='Save']
+# ${Error_NameIsRequired}                           xpath=./html/body/ngb-modal-window/div/div/ng-component/form/div[2]/div[2]/div/div[2]/div
+# ${Error_NameIsRequired}                           xpath=.//th[@id='thClusterName']//a[@class='text-nowrap' and @style='cursor: pointer']
+
+
+# Cluster History Popup
+${ClusterDetail_Label_ClusterHistory}                       xpath=./html/body/ngb-modal-window/div/div/ng-component/div[1]/h4
+${ClusterDetail_ClusterHistory_Button_Close}                xpath=./html/body/ngb-modal-window/div/div/ng-component/div[1]/button/span
+${ClusterDetail_ClusterHistory_Label_ModifiedDate}          xpath=.//*[@id="thClusterModifiedDate"]/mfdefaultsorter/a
+${ClusterDetail_ClusterHistory_Label_ModifiedBy}            xpath=.//*[@id="thClusterModifiedBy"]/mfdefaultsorter/a
+${ClusterDetail_ClusterHistory_Label_Change}                xpath=.//*[@id="thClusterChange"]
+${ClusterDetail_ClusterHistory_Label_ModifiedDate_Value}    xpath=.//a[text()='Modified Date ']
+${ClusterDetail_ClusterHistory_Label_ModifiedBy_Value}      xpath=.//a[text()='Modified By']
+${Clusters_Sort_Name}    xpath=.//a[text()='Name']
+
+
+# Cluster History Page
+${ClusterDetail_HistoryPage_Label_ClusterHistory}     xpath=.//*[@id="titleClusterHistory"]/h1
+${ClusterDetail_HistoryPage_Label_ClusterName}        xpath=.//*[@id="lblClusterName"]
+${ClusterDetail_HistoryPage_Text_ClusterName}         xpath=.//*[@id="txtClusterName"]
+${ClusterDetail_HistoryPage_Label_ModifiedBy}         xpath=.//*[@id="lblModifiedBy"]
+${ClusterDetail_HistoryPage_Text_ModifiedBy}          xpath=.//*[@id="txtModifiedBy"]
+${ClusterDetail_HistoryPage_Label_ModifiedOn}         xpath=.//*[@id="lblModifiedOn"]
+${ClusterDetail_HistoryPage_Text_ModifiedDate}        xpath=.//*[@id="txtModifiedDate"]
+${ClusterDetail_HistoryPage_Label_Change}             xpath=.//*[@id="lblChange"]
+${ClusterDetail_HistoryPage_Text_Change}              xpath=.//*[@id="txtChange"]
+${ClusterDetail_HistoryPage_Label_SitesApps}          xpath=./html/body/app-root/div/div/ng-component/div/div[3]/div/h2
+${ClusterDetail_HistoryPage_Link_ExportHistory}       xpath=.//*[@id="linkExportHistory"]
+${ClusterDetail_HistoryPage_Button_OK}                xpath=.//*[@id="btnClusterCancel"]
+${ClusterDetail_HistoryPage_table_sites}              xpath=.//*[@id="sites"]/div[1]/table/tbody/tr/td
+
+
+# Type To Search pop up
+${ClusterDetail_TypeToSearch_popup}     xpath=.//*[@id="filter"]/div/div/ngui-auto-complete/div/ul/li
+
+
+# Remove Sites/Apps
+${ClusterDetail_RemoveSitesAppsPage_Label_RemoveSitesApps}    xpath=.//*[@id="titleFilterDetail"]/h1
+${ClusterDetail_RemoveSitesAppsPage_Label_ClusterName}        xpath=.//*[@id="filterInfo"]/div/div[1]/div
+${ClusterDetail_RemoveSitesAppsPage_Span_ClusterName}         xpath=.//*[@id="filterInfo"]/div/div[1]/div/span
+${ClusterDetail_RemoveSitesAppsPage_Label_SitesApps}          xpath=.//*[@id="filterInfo"]/div/div[2]/div/div
+${ClusterDetail_RemoveSitesAppsPage_Input_TypeToSearch}       xpath=.//*[@id="filter-ipt"]
+${ClusterDetail_RemoveSitesAppsPage_Check_SitesApps}          xpath=.//*[@id="sites"]/div/table/tbody/tr/td/div/label
+${ClusterDetail_RemoveSitesAppsPage_Listof_SitesApps}         xpath=.//*[@id="sites"]/div/table/tbody/tr/td/div/label/p
+${ClusterDetail_RemoveSitesAppsPage_Button_Cancel}            xpath=.//*[@id="btnClusterCancel"]
+${ClusterDetail_RemoveSitesAppsPage_Button_Save}              xpath=.//*[@id="btnClusterSave"]
+
+
+# Add Sites/Apps
+${ClusterDetail_AddSitesAppsPage_Label_AddSitesApps}    xpath=.//*[@id="titleClusterAddEdit"]/h1
+${ClusterDetail_AddSitesAppsPage_Label_ClusterName}     xpath=.//*[@id="filterInfo"]/div/div[1]/div
+${ClusterDetail_AddSitesAppsPage_Span_ClusterName}      xpath=.//*[@id="filterInfo"]/div/div[1]/div/span
+${ClusterDetail_AddSitesAppsPage_Label_Data}    xpath=.//*[@id="filterInfo"]/div/div[2]/div[1]/div
+${ClusterDetail_AddSitesAppsPage_Label_OneEntryPerRow}     xpath=.//*[@id="filterInfo"]/div/div[2]/div[2]/div/div[1]/div
+${ClusterDetail_AddSitesAppsPage_Label_MaxAllowedPerCluster}     xpath=.//*[@id="filterInfo"]/div/div[2]/div[2]/div/div[2]/div
+${ClusterDetail_AddSitesAppsPage_Label_AvailableEntries}     xpath=.//*[@id="filterInfo"]/div/div[2]/div[2]/div/div[3]/div
+${ClusterDetail_AddSitesAppsPage_TextArea_SitesApps}     xpath=.//*[@id="txtAreaCopyAndPaste"]
+${ClusterDetail_AddSitesAppsPage_Button_Cancel}     xpath=.//*[@id="btnClusterCancel"]
+${ClusterDetail_AddSitesAppsPage_Button_Save}     xpath=.//*[@id="btnClusterSave"]
+${ClusterDetail_ClusterDetail_SitesAppsTable}     xpath=.//*[@id="sites"]/div[1]/table
+
+
+# Page Objects for Add Sites/Apps existing record erro message
+${ClusterDetail_AddSitesApps_Error_Results}         xpath=.//*[@id="resultsSection"]/div/div[1]
+${ClusterDetail_AddSitesApps_Error_notes}           xpath=.//*[@id="resultsSection"]/div/div[2]
+${ClusterDetail_AddSitesApps_Error_errorMessage}    xpath=.//*[@id="resultsSection"]/div/div[2]/div/div
+${ClusterDetail_AddSitesApps_Error_ButtonOK}    xpath=.//*[@id="btnClusterOk"]
+
+
+#------------------------------------------------------------------------------------------
+# Forecasting
+
+${Header_Ribbon_Forecasting_Link}       xpath=.//a[@id="forecasting"]
+${Label_Forecasting}                    xpath=.//h1[text()='FORECASTING']
+${Button_RunForecast}                   xpath=.//button[@id="btnSavecag"]
+
+${NoDataAvailableErrorMessage}    //h2[text()='Forecasting Data Not Available ']
+
+# Items Visible after Run Forecast Button
+${Label_ForecastingSummary}     //h2[text()='Forecasting Summary ']
+${Table_Forecasting}            //table[@id='tblForecasting']
+${Label_Graph}                  //h2[text()='Graph']
+${Graph}                        //div[@id='chartdiv']
+
+#  For debug mode in forecasting2 page, below tables are displayed
+${table_tblBudgetDebugMode}    //table[@id='tblBudgetDebugMode']
+${tblBudgetDebugMode_Headers}    ${table_tblBudgetDebugMode}//thead//tr//th
+
+${table_tblBudget}    //table[@id='tblBudget']
+${tblBudget_Headers}    ${table_tblBudget}//thead//tr//th
+
+${table_tblClearingPrice}             //table[@id='tblClearingPrice']
+${tblClearingPrice_Headers}     ${table_tblClearingPrice}//thead//tr//th
+
+# ${DetailedTableForecasting_Debug}           ${table_tblClearingPrice}//following-sibling::table[@class='table table-striped']
+
+
+# ${Label_DisplayBudget}          ${table_tblClearingPrice}//thead//tr//th[text()='Display Budget ']
+
+${ErrorMessageImage}    //img[@src='./assets/alert-icon.png']
+
+# Line Item (Ad Group)
+${Label_CHANNELPARTNERS}                xpath=.//div[text()='CHANNEL PARTNERS:']
+${Select_CHANNELPARTNERS}               xpath=.//*[@id="channelpartner"]
+${Label_Budget}                         xpath=.//div[text()='BUDGET:']    # //parent::div
+${Input_Budget}                         xpath=.//*[@id="budget"]
+${Label_$>10000}                        xpath=.//div[text()='Dollars( >$10000)']
+
+${Label_LineItem_Adgroup}               xpath=.//h2[text()='Line Item (Ad Group)']
+${Label_LineItem_Duration}              xpath=.//div[text()=' DURATION :']
+${Text_LineItem_Duration}               xpath=.//input[@id="duartion"]
+${Label_LineItem_Days}                  xpath=.//div[text()=' Days']
+${Label_LineItem_GOAL}                  xpath=.//div[text()=' GOAL : ']
+${Text_LineItem_GOAL}                   xpath=.//input[@id="goal"]
+${Label_LineItem_Impressions}           xpath=//div[text()=' Impressions']
+${Label_LineItem_DailyGoal}             xpath=//div[text()=' DAILY GOAL:']
+${Label_LineItem_50000}                 xpath=//div[text()=' 50,000 ']
+${Label_LineItem_50000IMPRESSIONS}      xpath=//div[text()='IMPRESSIONS']
+
+
+# Household Segment
+${Label_HouseholdSegment}       xpath=.//h2[text()='Household Segment']
+${Label_DATAPROVIDERS}          xpath=.//div[text()='DATA PROVIDERS:']
+${Select_DATAPROVIDERS}         xpath=.//*[@id="dataprovider"]    # xpath=.//select[@id='provider']
+${Label_SEGMENTSIZE}            xpath=.//div[text()='SEGMENT SIZE :']
+${input_SEGMENTSIZE}            xpath=.//div[text()='SEGMENT SIZE :']//following-sibling::div//input
+${Label_HouseholdFCap}          xpath=//div[text()=' HOUSEHOLD F-CAP :']
+${Label_Households}             xpath=.//div[text()=' Households']
+${Text_householdCap}            xpath=//input[@id="householdCap"]
+${Label_ImpressionsPer}         xpath=//*[@id="forecasting"]/form/div[2]/div[1]/div/div[2]/app-householdsegment/div/div[6]/div[1]
+${Text_householdCapDays}        xpath=.//input[@id="householdCapDays"]
+${Label_Days}                   xpath=//div[text()="  Days"]
+
+
+# Creative
+${Label_Creative}               xpath=.//h2[text()="Creative"]
+${Label_CreativeType}           xpath=.//div[text()="CREATIVE TYPE :"]
+${Select_CreativeType}          xpath=.//div[text()="CREATIVE TYPE :"]//following-sibling::div//select
+${Checkbox_120x20}              xpath=.//input[@ng-reflect-name="120x20"]//parent::div
+${Label_120x20}                 xpath=.//input[@ng-reflect-name="120x20"]//following-sibling::label//p
+${Checkbox_168x28}              xpath=.//input[@ng-reflect-name="168x28"]//parent::div
+${Label_168x28}                 xpath=.//input[@ng-reflect-name="168x28"]//following-sibling::label//p
+${Checkbox_216x36}              xpath=.//input[@ng-reflect-name="216x36"]//parent::div
+${Label_216x36}                 xpath=.//input[@ng-reflect-name="216x36"]//following-sibling::label//p
+${Checkbox_300x50}              xpath=.//input[@ng-reflect-name="300x50"]//parent::div
+${Label_300x50}                 xpath=.//input[@ng-reflect-name="300x50"]//following-sibling::label//p
+${Checkbox_320x50}              xpath=.//input[@ng-reflect-name="320x50"]//parent::div
+${Label_320x50}                 xpath=.//input[@ng-reflect-name="320x50"]//following-sibling::label//p
+${Checkbox_300x250}             xpath=.//input[@ng-reflect-name="300x250"]//parent::div
+${Label_300x250}                xpath=.//input[@ng-reflect-name="300x250"]//following-sibling::label//p
+${Checkbox_728x90}              xpath=.//input[@ng-reflect-name="728x90"]//parent::div
+${Label_728x90}                 xpath=.//input[@ng-reflect-name="728x90"]//following-sibling::label//p
+${Checkbox_160x600}             xpath=.//input[@ng-reflect-name="160x600"]//parent::div
+${Label_160x600}                xpath=.//input[@ng-reflect-name="160x600"]//following-sibling::label//p
+${Checkbox_468x60}              xpath=.//input[@ng-reflect-name="468x60"]//parent::div
+${Label_468x60}                 xpath=.//input[@ng-reflect-name="468x60"]//following-sibling::label//p
+${Checkbox_120x600}             xpath=.//input[@ng-reflect-name="120x600"]//parent::div
+${Label_120x600}                xpath=.//input[@ng-reflect-name="120x600"]//following-sibling::label//p
+${Checkbox_1024x90}             xpath=.//input[@ng-reflect-name="1024x90"]//parent::div
+${Label_1024x90}                xpath=.//input[@ng-reflect-name="1024x90"]//following-sibling::label//p
+${Checkbox_320x480}             xpath=.//input[@ng-reflect-name="320x480"]//parent::div
+${Label_320x480}                xpath=.//input[@ng-reflect-name="320x480"]//following-sibling::label//p
+${Checkbox_300x600}             xpath=.//input[@ng-reflect-name="300x600"]//parent::div
+${Label_300x600}                xpath=.//input[@ng-reflect-name="300x600"]//following-sibling::label//p
+${Checkbox_180x150}             xpath=.//input[@ng-reflect-name="180x150"]//parent::div
+${Label_180x150}                xpath=.//input[@ng-reflect-name="180x150"]//following-sibling::label//p
+${Checkbox_968x1024}            xpath=.//input[@ng-reflect-name="968x1024"]//parent::div
+${Label_968x1024}               xpath=.//input[@ng-reflect-name="968x1024"]//following-sibling::label//p
+${Checkbox_768x1024}            xpath=.//input[@ng-reflect-name="768x1024"]//parent::div
+${Label_768x1024}               xpath=.//input[@ng-reflect-name="768x1024"]//following-sibling::label//p
+
+${Label_RichMediaType}          xpath=.//div[text()="RICH MEDIA TYPE:"]
+${Select_RichMediaType}         xpath=.//div[text()="RICH MEDIA TYPE:"]//following-sibling::div//select
+${Label_SecureLog}              xpath=.//div[text()="SECURE LOG:"]
+${Select_SecureLog}             xpath=.//div[text()='SECURE LOG:']//following-sibling::div//select
+
+
+# Technographic
+${Label_Technographic}          //h2[text()='Technographic']
+${Checkbox_DeviceOS_Label}      //p[text()='Device OS']
+${Checkbox_DeviceOS}            //p[text()='Device OS']//parent::label//preceding-sibling::input
+
+
+${Checkbox_DeviceType_Label}      //p[text()='Device type']
+${Checkbox_DeviceType}          //p[text()='Device type']//parent::label//preceding-sibling::input
+
+
+### Inventory
+${Label_Inventory}    xpath=.//h2[text()='Inventory']
+
+${Checkbox_isTrafficTypeChecked}    xpath=.//input[@id='isTrafficTypeChecked']//parent::div[@class='checkboxDiv']
+${Label_Traffic}                    xpath=.//p[text()='Traffic type']
+
+${Checkbox_MobileWeb}               xpath=.//input[@id="Mobile Web"]//parent::div[@class='checkboxDiv']
+${Label_MobileWeb}                  xpath=.//p[text()='Mobile Web']
+
+${Checkbox_App}                     xpath=.//input[@id="App"]//parent::div[@class='checkboxDiv']
+${Label_App}                        xpath=.//p[text()='App']
+
+${Checkbox_Desktop}                 xpath=.//input[@id="Desktop"]//parent::div[@class='checkboxDiv']
+${Label_Desktop}                    xpath=.//p[text()='Desktop']
+
+
+${Checkbox_Clusters}            xpath=.//input[@id="isPlacementChecked"]//parent::div[@class='checkboxDiv']
+${Label_Clusters}               xpath=.//input[@id='isPlacementChecked']//following-sibling::label//p[text()='Clusters']
+${Label_AvailableClusters}      xpath=.//div[contains(text(),'AVAILABLE CLUSTERS')]
+${Label_IncludedClusters}       xpath=.//div[contains(text(),'INCLUDED CLUSTERS')]
+${Label_ExcludedClusters}       xpath=.//div[contains(text(),'EXCLUDED CLUSTERS')]
+
+${Button_IncludeClusters}       xpath=.//div[contains(text(),'AVAILABLE CLUSTERS')]//following-sibling::div//button[text()='Include']
+${Button_ExcludeClusters}       xpath=.//div[contains(text(),'AVAILABLE CLUSTERS')]//following-sibling::div//following-sibling::div//button[text()='Exclude']
+
+${checkbox_Country}    xpath=.//input[@id='isCountryChecked']//parent::div
+
+${RadiusMI}    xpath=.//*[@id="radiusInMiles"]
+
+
+
+
+# Geography
+${GeofenceAroundPOIs}    //label[@for='isGeofenceChecked']//p
+
+
+
+${UI_AverageCPM}    //div[contains(text(), '** Average Cpm is = ')]
+${UI_hhids_in_response}    //div[contains(text(), 'hhids in response =')]
+${UI_fcRequests_in_response}    //div[contains(text(), 'fcRequests in response =')]
+
+${PartnerCPM_UI}            //*[@id="tblBudgetDebugMode"]/tbody/tr[1]/td[4]
+${ClearingPrice_UI}         //*[@id="tblBudgetDebugMode"]/tbody/tr[1]/td[1]
+${CalculatedBudget_UI}      //*[@id="tblBudgetDebugMode"]/tbody/tr[1]/td[5]
+${Budget_tblBudgetDebugMode_UI}     //*[@id="tblBudgetDebugMode"]/tbody/tr[1]/td[6]
+
+${Budget_tblBudget_UI}      //*[@id="tblBudget"]/tbody/tr[1]/td[1]
+
+${All_Rows_tblBudgetDebugMode}    //table[@id='tblBudgetDebugMode']//tbody//tr
+
+
+#------------------------------------------------------------------------------------------
+# Create User Page
+#//*[@id="setting-select"]
+${button_CreateUser}    //a[text()='Create user']    # xpath=.//*[@id="btnCreateUser"]
+${Label_User}    xpath=.//*[@id="campaignAddEdit"]/form/div[1]/div[1]/h1
+${input_username}    xpath=//input[@id='userName']
+${input_password}    xpath=//*[@id="password"]
+${input_confirmPassword}    //*[@id="confirmPassword"]
+${input_firstName}    xpath=//*[@id="firstName"]
+${input_lastName}    xpath=//*[@id="lastName"]
+${button_SaveUser}      //a[text()='Save User']     # xpath=//*[@id="btnCreateUserBottom"]
+
+#------------------------------------------------------------------------------------------
+# Manage Users Page :
+# UM2.7 Get all users list across products
+${MANAGE_USERS_Label}    xpath=//h1[text()='MANAGE USERS']
+${Manage_Users_Link}    //div[@id='settingsselect']//a[text()='Manage Users']    # //a[text()='Manage Users']
+
+${Label_SearchInput}    //label[text()='Search users']
+
+${SortByuserName}    //mfdefaultsorter[@ng-reflect-sort-by='userName']
+${SortByFirstName}    //mfdefaultsorter[@ng-reflect-sort-by='firstName']
+${SortByLastName}    //mfdefaultsorter[@ng-reflect-sort-by='lastName']
+${Status}    //th[text()='Status']
+${SortByModifiedBy}    //mfdefaultsorter[@ng-reflect-sort-by='lastModifiedBy']
+${SortByModifiedDate}    //mfdefaultsorter[@ng-reflect-sort-by='lastModifiedDate']
+
+${ModifyUser_ManageUserLabel}    //label[text()='MANAGE PERMISSIONS']
+
+${searchUser}    xpath=.//input[@id='inpSearchInput']
+${GroupsList}    //div[@class='groupsList']//md-checkbox
+#---------------------------------------------------------------------------
+${MyAccountLink}    			//div[@id="settingsselect"]//a[text()='My Account']
+${MyAccountBreadcrumb}  		//div[@id="breadcrumb"]//a[text()='My Account']
+${input_username}    			//input[@id="userName"]
+${input_firstName}    			//input[@id="firstName"]
+${input_lastName}    			//input[@id="lastName"]
+${input_currentPassword}    	//input[@id="currentPassword"]
+${input_newPassword}    		//input[@id="newPassword"]
+
+#------------------------------------------------------------------------------------------
+# Create Group :
+
+${Link_ManageGroups}        //*[@id="settingsselect"]//a[text()='Manage Groups']
+${button_CreateGroup}       //*[@id='btnCreatGroup']
+${input_groupName}          //input[@id='groupName']
+${select_Status}            //select[@id='enabled']
+${button_btnGroupEditOk}    //button[@id='btnGroupEditOk']
+${button_btnClose}          //button[@id='btnClose']
+
+${Image_Error}    //*[@id="groupListBody"]/div/errorcontainer/div/div/img
+
+
+#------------------------------------------------------------------------------------------
+# Common Scenarios :
+${SelectMenuOptions}    //*[@id="settingsbutton"]//following-sibling::div//a
+#------------------------------------------------------------------------------------------
+# Create Audience Page
+
+${button_CreateAudience}    xpath=.//button[@id='btnCreateAud']
+${label_CreateAudience}    xpath=.//h1[text()='CREATE AUDIENCE']
+
+#Data source -> AUDIENCE TYPE
+${radio_Retargeting}    xpath=.//label[text()='Retargeting']//preceding-sibling::input[@type='radio']
+${radio_TradeArea}      xpath=.//label[text()='Trade Area']//preceding-sibling::input[@type='radio']
+${radio_Geofence}       xpath=.//label[text()='Geofence']//preceding-sibling::input[@type='radio']
+
+
+#Data source -> INPUT
+${radio_SelectPointsOfInterest}     xpath=.//label[text()='Select points of interest']//preceding-sibling::input[@type='radio']
+${radio_Uploadlatlongfile}          xpath=.//label[text()='Upload lat/long file']//preceding-sibling::input[@type='radio']
+
+#General Required Fields
+${input_audienceName}       xpath=.//input[@id='audienceName']
+${input_emailId}            xpath=.//input[@id='emailId']
+
+${input_Radius}             xpath=.//input[@id='audPoiRadiusInp']
+${input_MinRadius}          xpath=.//input[@id='audPoiRadiusMinInp']
+
+${input_FilePath}           xpath=.//input[@name='latLonFile']
+${button_SaveAudience}      xpath=.//button[@id='btnCreateAudBottom']
+${button_CancelAudience}    xpath=.//button[contains(.,'Cancel')]
+
+${Search_Audience}    xpath=.//input[@id='inpSearchInput']
+
+
+#------------------------------------------------------------------------------------------
+# Audiences 1.3 Convert Address to Lat/Long
+
+
+${LOGIN_NAME_TEXTBOX}               xpath=.//*[@id='username']
+${LOGIN_PASSWORD_TEXTBOX}           xpath=.//*[@id='password']
+${LOGIN_BUTTON}                     xpath=.//*[@id='login']
+${LINK_CONVERT_TO_LATLONG}          xpath=.//*[@id='linkConvertLatLon']
+${Closebtn_PopUpWindow}             xpath=.//*[@id='btnClose']
+${Label_ConvertAddressToLatLong}    xpath=html/body/ngb-modal-window/div/div/ng-component/form/div[2]/h1
+${Label_PoiDataFile}                xpath=html/body/ngb-modal-window/div/div/ng-component/form/div[2]/div/div[1]
+${btn_Browse}                       xpath=.//*[@id='poiDataFile']/input
+${Label_EmailAddress}               xpath=html/body/ngb-modal-window/div/div/ng-component/form/div[2]/div/div[3]
+${Input_EmailAddress}               xpath=.//*[@id='email']
+${btn_Submit}                       xpath=.//*[@id='btnConvertSubmit']
+${file_Xlsx}                        ../test_datafiles/data_test_banners/ACE_Geofence
+
+
+#------------------------------------------------------------------------------------------
+
+#Create Campaign page
+${CAMPAIGN_SELECT_STATUS}           name=status
+${CAMPAIGN_NAME}                    id=name
+${CAPAINGN_EXTERNAL_ID}             id=externalId
+${CAMPAIGN_4INFO_IO}                id=insertionOrder
+${CAMPAIGN_TIME_ZONE}               id=timezone
+${CAMPAIGN_START_DATE_CAL}              xpath=//select[@name='startTime']
+${CAMPAIGN_END_DATE_CAL}                xpath=//select[@name='endTime']
+${CAMPAIGN_START_DATE}              id=startDate
+${CAMPAIGN_END_DATE}                id=endDate
+${CAMPAIGN_CONTROL_GROUP_SIZE}      id=controlGroupSize
+${CAMPAIGN_START_DATE_TIME}         id=startTime
+${CAMPAIGN_END_DATE_TIME}           id=endTime
+${CAMPAIGN_SALES_CHANNEL}           id=channelId
+${CAMPAIGN_ACCESS_CONTROL_ADD_BUTTON}       xpath=//button[@class='btn pull-right btn-md-secondary addAccess']
+${CAMPAIGN_ACCESS_CONTROL_DROPDOWN}         id=select
+${CAMPAIGN_TAXONOMY_VARTICAL}               xpath=.//*[@id="vertical"]
+${CAMPAIGN_TAXONOMY_SEGMENT}                id=segment
+${CAMPAIGN_DATA_SOURCE}                     //select[@name='demoDatasource']
+${CAMPAIGN_DATA_SOURCE_ALL_CHECKBOXES}      //div[@class='row demoDatasource']//following::div[@class="checkboxDiv col-4"]
+${CAMPAIGN_DATA_SOURCE_CHECKBOXES}          //div[@class='checkboxDiv col-4']
+${CAMPAIGN_DATA_SOURCE_CHECKBOX}            //label
+${CAMPAIGN_SAVE_BUTTON}                     id=save
+${CAMPAIGN_STORE_VISIT_CHECKBOX}            //md-checkbox//child::div[@class="mat-checkbox-inner-container"]//child::input
+${CAMPAIGN_STORE_VISIT_SELECT_BUTTON}       xpath=//button[@class='btn btn-md-secondary']
+${CAMPAIGN_STORE_VISIT_DOWN_BUTTON}         //*[@id="storesUl"]/li/md-checkbox
+${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}        id=manageCreativeTemp
+${CAMPAIGN_STORE_VISIT_FILTER}              id=filterKeyword
+${LEGACY_DATASET}                           id=legacy
+${LEGACY_DATASET}                           id=infogroup
+${ADDITION_REPORT_DROPDOWN}                 id=dDAdditionalReports1
+${CAMPAIGN_NAME_ERROR}                      xpath=(.//div[contains(normalize-space(.), 'CAMPAIGN NAME')])[last()]/following::img
+${CAMPAIGN_EXTERNAL_ID}    xpath=.//input[@id='externalId']
+${SALESCHANNEL_LIST}    xpath=.//select[@id='channelId']
+${CampaignSummary_Label}    xpath=//h1[text()=contains(.,'CAMPAIGN SUMMARY')]
+
+${ExportButton_CampaignSummary}    //button[text()=' Export']
+${Additional_Reports_Select}       //select[@id='dDAdditionalReports1']
+
+
+
+
+#CREATIVE
+#GENERAL
+${CREATIVE_CREATIVE_ADD_NEW_CREATIVE_BUTTON}         id=btnCreateTpl
+${CREATIVE_NAME_TEXTBOX}                             id=creativeIdBanner
+${CREATIVE_NAME_REQUIRED_VALIDATION_ERROR}           xpath=(.//div[contains(., 'NAME')])[last()]/following::img
+${CREATIVE_EXTERNAL_ID_TEXTBOX}                      id=cExternalIdBanner
+${CREATIVE_EXTERNALID_REQUIRED_VALIDATION_ERROR}     xpath=(.//div[contains(normalize-space(.), 'EXTERNAL CREATIVE ID')])[last()]/following::img
+${CREATIVE_CREATIVE_TYPE_SELECT}                     name=adType
+${CREATIVE_TOP_SAVE_BUTTON}                          id=btnSaveAd
+${CREATIVE_BOTTOM_SAVE_BUTTON}                       xpath=(.//button[contains(normalize-space(.), 'Save creative template')])[last()]
+${CREATIVE_SEARCH_INPUT}                             id=inpSearchInput
+#CREATIVE INFORMATION
+#NATIVE
+${CREATIVE_NATIVE_TITLE}                                      id=title
+${CREATIVE_TITLE_BLANK_REQUIRED_VALIDATION_ERROR}             xpath=.//i[contains(normalize-space(.), '(25 characters max)')]/following::img
+${CREATIVE_NATIVE_ICON_BROWSE_BUTTON}                         id=cNativeIconImage
+${CREATIVE_NATIVE_LARGE_BROWSE_BUTTON}                        id=cNativeLargeImage
+${CREATIVE_ICON_IMAGE_INVALID_FILE__VALIDATION_ERROR}         xpath=(.//div[contains(normalize-space(.), 'ICON IMAGE')])[last()]/following::img
+${CREATIVE_LARGE_IMAGE_INVALID_FILE__VALIDATION_ERROR}        xpath=(.//div[contains(normalize-space(.), 'LARGE IMAGE')])[last()]/following::img
+${CREATIVE_NATIVE_TEXT_CONTENT_TEXTBOX}                       id=txtContentArea
+${CREATIVE_TEXT_CONTENT_VALIDATION_ERROR}                     xpath=(.//div[contains(., '')])[97]/following::img
+${CREATIVE_NATIVE_DESTINATION_URL}                            id=cNativeClkDestinationUrl
+${CREATIVE_DESTINATION_BLANK_URL_VALIDATION_ERROR}            xpath=(.//div[contains(normalize-space(.), 'DESTINATION URL')])[last()]/following::img
+${CREATIVE_NATIVE_CTA_TEXT_TEXTBOX}                           id=cNativeCtaText
+${CREATIVE_NATIVE_SECURE_TAGS_SELECT}                         id=cNativeSecure
+${CREATIVE_LIST_ADS_DOWN_ARROW}                               xpath=//div[@class="status-arrow"]
+
+#VIDEO
+${CREATIVE_VIDEO_TYPE}                                                 id=cVideoType
+${CREATIVE_VIDEO_SREENSHOT_BROWSE_BUTTON}                              id=cVideoScreenshot
+${CREATIVE_VIDEO_DURATION}                                             id=cVideoDuration
+${CREATIVE_VIDEO_DURATION_ERROR}                                        xpath=((.//div[contains(., 'DURATION')])[last()]/following::img)[1]
+${CREATIVE_VIDEO_VAST_TAG_TEXTBOX}                                     id=cVideoVastTag
+${CREATIVE_VIDEO_VAST_TAG_TEXTBOX_ERROR}                               xpath=(.//div[contains(normalize-space(.), 'USE VAST TAG (WRAPPER/INLINE)')])[last()]/following::img
+${CREATIVE_VAST_TAG_SCREENSHOT_BROWSE_BUTTON}                          id=cVideoScreenshot
+${CREATIVE_VIDEO_UPLOAD_BROWSE_BUTTON}                                 id=cVideoFile
+${CREATIVE_VIDEO_CLICK_THR_URL_TEXTBOX}                                id=cVideoClickThroughUrl
+${CREATIVE_VIDEO_CLICK_THR_URL_ERROR}                                  xpath=(.//div[contains(normalize-space(.), 'CLICK THROUGH URL')])[last()]/following::img
+${CREATIVE_VIDEO_VAST_WRAPPER_URL}                                     id=cVideoVastWrapperUrl
+${CREATIVE_VIDEO_VAST_WRAPPER_URL_ERROR}                                xpath=(.//div[contains(normalize-space(.), 'USE VAST WRAPPER URL')])[last()]/following::img
+${CREATIVE_VIDEO_MIME_TYPES_VIDEO_MP4_CHECKBOX}                        xpath=.//p[contains(., 'video/mp4')]
+${CREATIVE_VIDEO_MIME_TYPES_APPL_JAVASCRIPT_CHECKBOX}                  xpath=.//p[contains(normalize-space(.), 'application/javascript (VPAID 2 only)')]
+${CREATIVE_VIDEO_MIME_TYPES_APPL_SHOCKWAVE_FLASH_CHECKBOX}             xpath=.//p[contains(normalize-space(.), 'application/shockwave-flash (VPAID 1 and VPAID 2)')]
+${CREATIVE_MIME_TYPE_REQUIRED_ERROR}                                         xpath=(.//div[contains(normalize-space(.), 'MIME TYPES')])[last()]/following::img
+
+${CREATIVE_VIDEO_SECURE_TAG_SELECT}                                    id=cVideoSecure
+${CREATIVE_VIDEO_WRAPPER_REDIRECTION_SELECT}                           id=cVideoWrapperRedirection
+${CREATIVE_VIDEO_CREATIVE_ATTRIBUTE_CHECKBOX}                          xpath=.//label[contains(normalize-space(.),                 #'Audio Ad (Auto Play)')]
+
+#BANNER
+${CREATIVE_BANNER_TYPE_STATIC_RADIO_INPUT}                           id=rdoStaticBanner
+${CREATIVE_BANNER_TYPE_3RD_PARTY_RADIO_INPUT}                        id=rdoThirdParty
+${CREATIVE_BANNER_3RD_PARTY_IN_APP_EXPANDABLE_CHECKBOX}              id=chkThirdMRAID
+${CREATIVE_BANNER_3RD_PARTY_TAG}                                     id=txtAreaBannerThirdPartyTag
+${CREATIVE_BANNER_3RD_PARTY_TAG_ERROR}                               xpath=(.//div[contains(normalize-space(.), '3RD PARTY TAG')])[last()]/following::img
+${CREATIVE_BANNER_ALTERNATE_LANDING_URL}                             id=cBannerDestUrl1
+${CREATIVE_BANNER_SIZE_CREATIVE_LIST}                                id=selectBannerFormatId
+${CREATIVE_BANNER_RICH_MEDIA_MARKUP}                                 id=txtAreaBannerRichMediaMarkup
+${CREATIVE_BANNER_UPLOAD_FILE_BROWSE_BUTTON}                         name=staticImageFile
+${CREATIVE_BANNER_DESTINATION_URL_TEXTBOX}                           id=cBannerDestUrl
+${CREATIVE_BANNER_SECURE_TAGS}                                       id=cBannerSecure
+${CREATIVE_BANNER_3RD_PARTY_DESTINATION}                            id=cBannerTpDest
+${CREATIVE_BANNER_3RD_PARTY_IMPRESSION_TRACKER}                      id=txtAreaBannerThirdPartyImpression
+${CREATIVE_BANNER_COMMON_MACROS_DROPDOWN_BUTTON}                     xpath=.//h3[contains(normalize-space(.), 'Common macros')]/span
+${CREATIVE_BANNER_COMMON_MACROS_4INFO_CLICK_COPY_LINK}               id=btn1
+${CREATIVE_BANNER_COMMON_MACROS_4INFO_TP_DESK_COPY_LINK}             id=btn2
+${CREATIVE_BANNER_COMMON_MACROS_4INFO_DESK_ENC_COPY_LINK}            id=btn3
+${CREATIVE_BANNER_COMMON_MACROS_4INFO_DESK_ENC2_COPY_LINK}           id=btn4
+${CREATIVE_BANNER_COMMON_MACROS_TIMESTAMP_COPY_LINK}                 id=btn5
+${CREATIVE_BANNER_POSITION_UNKNOWN}                                  xpath=.//label[contains(., 'unknown')]
+${CREATIVE_BANNER_POSITION_ABOVE}                                    xpath=.//label[contains(., 'above')]
+${CREATIVE_BANNER_POSITION_BELOW}                                    xpath=.//label[contains(., 'below')]
+${CREATIVE_BANNER_ADCHOICE_LOCATOR}                                  id=selectBannerAdChoice
+${CREATIVE_BANNER_RICH_MEDIA_MRAID1.0}                               xpath=.//label[contains(., 'MRAID-1.0')]
+${CREATIVE_BANNER_RICH_MEDIA_MRAID2.0}                               xpath=.//label[contains(., 'MRAID-2.0')]
+
+
+
+#Create Parent Adgroup
+
+${PARENT_ADD_BUTTON}                        //button[contains(.,'+ Parent')]
+${PARENT_NAME_TEXTBOX}						id=name
+${PARENT_NAME_ERROR_ICON}                        xpath=(.//div[contains(normalize-space(.), 'PARENT AD GROUP NAME')])[last()]/following::img
+${PARENT_EXTERNAL_ID_TEXTBOX}      			id=externalId
+${PARENT_EXTERNAL_ID_ERROR}                 xpath=((.//div[contains(normalize-space(.), 'EXTERNAL ID')])[last()]/following::img)[1]
+${PARENT_IO_TEXTBOX}						id=impressionGoal
+${PARENT_TIMEZONE_SELECT} 					id=timezone
+${PARENT_START_DATE_TEXTBOX} 						startDate
+${PARENT_START_TIME_SELECT}					id=startTime
+${PARENT_END_DATE_TEXTBOX} 							endDate
+${PARENT_END_TIME_SELECT}					id=endTime
+${PARENT_HH_FC_PER_DAY_CHECKBOX}			id=lblhhFcDailyChecked
+${PARENT_HH_FC_PER_DAY_TEXTBOX}				id=hhFcDaily
+${PARENT_HH_FC_PER_DAY2_TEXTBOX}			id=hhFcDays
+${PARENT_HH_FC_PER_DURATION_CHECKBOX}		id=lblhhFcOverallCheckedf
+${PARENT_HH_FC_PER_DURATION_TEXTBOX} 		id=hhFcOverall
+${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}		id=lbldeviceFcDailyChecked
+${PARENT_DEVICE_FC_PER_DAY_TEXTBOX}			id=deviceFcDaily
+${PARENT_DEVICE_FC_PER_DAY2_TEXTBOX}		id=deviceFcDays
+${PARENT_DEVICE_FC_PER_DURATION_CHECKBOX}	id=lbldeviceFcOverallChecked
+${PARENT_DEVICE_FC_PER_DURATION_TEXTBOX}  	id=deviceFcOverall
+${PARENT_IP_FC_PER_DAY_CHECKBOX}			id=lblipFcDailyChecked
+${PARENT_IP_FC_PER_DAY_TEXTBOX}				id=ipFcDaily
+${PARENT_IP_FC_PER_DAY2_TEXTBOX}			id=ipFcDays
+${PARENT_IP_FC_PER_DURATION_CHECKBOX} 		id=lblipFcOverallChecked
+${PARENT_IP_FC_PER_DURATION_TEXTBOX} 		id=ipFcOverall
+${PARENT_VIEWABILITY_CHECKBOX}				xpath=//*[@id="parentAdGroupAddEdit"]/form/div[4]/div/div[3]/div/label
+${PARENT_VIEWABILITY_CUSTOMER_SELECTION}	id=viewability
+${PARENT_VIEWABILITY_PERCENT_OF_IO_TEXTBOX}	xpath=//*[@id="parentAdGroupAddEdit"]/form/div[4]/div/div[4]/div/div[3]/div/input
+${PARENT_VIEWABILITY_EXTRAPOLATE_CHECKBOX}	     xpath=//*[@id="parentAdGroupAddEdit"]/form/div[4]/div/div[4]/div/div[4]/div/label
+${PARENT_VIEWABILITY_MEASURABLE_GOAL_TEXTBOX}       id=measurableGoal
+${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}         id=viewableGoal
+${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}       id=viPercentage
+
+# CTR VCR Optimization ---------------------------------------------------------
+${PARENT_CtrVcrOptimization_CHECKBOX}           xpath=//input[@id="ctrOpt"]/following-sibling::label   # //input[@id='ctrOpt']
+${PARENT_CtrVcrOptimization_SELECTION}	         xpath=//*[@id="ctrOptimization"]
+${PARENT_CtrVcrOptimization_Goal}               xpath=//input[@id="optGoal"]
+${Parent_Optimization_ErrorImage}               //div[@id="optimization"]//following-sibling::errorcontainer//div//div//img
+${PARENT_ELIGIBILITY_FILTER_CEHCKBOX}           xpath=//p[contains(.,"Eligibility Filtering")]/parent::label
+#------------------------------------------------------------------------------
+
+${PARENT_DIGITAL_COVERSION_CHECKBOX}		xpath=.//label[contains(normalize-space(.), 'Digital conversion')]     #id=digitalConversion
+${PARENT_SALES_LIFT1_SELECTION}				//*[@id="measurement"]    # id=measurement
+${PARENT_SALES_LIFT2_SELECTION}				//*[@id="measurement2"]   # id=measurement2
+${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}		xpath=.//label[contains(normalize-space(.), 'Household segment')]    #id=householdSegment
+${PARENT_TARGETING_HH_BOOST_CHECKBOX}				xpath=.//label[contains(., 'Boost')]      #id=boost
+# ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}	xpath=//*[@id="parentAdGroupAddEdit"]/form/div[5]/div/div[3]/householdsegments/div/div/div[1]/button
+${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}   xpath=//householdSegments//div//div//div//button[text()='+ Add union']
+${PARENT_TARGETING_DATA_PARTNER_SELECTION}			id=datapartner
+${PARENT_TARGETING_DEVICE_ID_SEGMENT_CHECKBOX}	    xpath=//div[@class="checkboxDiv"]/label[@for="deviceIDSegment"]     #id=deviceIDSegment
+${PARENT_TARGETING_DEVICE_ID_SEGMENT_ADD_BUTTON}    xpath=//button[contains(.,'+ Add union')]
+${PARENT_TARGETING_DEVICE_GEO_SEGMENT_CHECKBOX}		xpath=//div[@class="checkboxDiv"]/label[@for="deviceGeoSegment"]       #id=deviceGeoSegment
+${PARENT_TARGETING_DEVICE_GEO_SEGMENT_SELECTION}	id=geofenceSegment
+${PARENT_TARGETING_DEVICE_GEO_SEGMENT_EXLCUDE_CHECKBOX}		xpath=//div[@class="checkboxDiv geofenceSegmentExcluded"]/label
+${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}         xpath=.//button[contains(., 'OK')][@type='button']
+${PARENT_TOP_SAVE_BUTTON}						id=btnSavePag
+${PARENT_BOTTOM_SAVE_BUTTON}					xpath=//*[@id="parentAdGroupAddEdit"]/form/div[6]/div[3]/button
+${PARENT_CANCEL_BUTTON}							id=cancel
+${WITHOUT_HH_YES_BUTTON}                        id=btnDeleteOk
+${PARENT_HH_DOWN_ARROW}                         xpath=//span[@class="arrow collapse-true"]
+${PARENT_DEVICE_DOWN_ARROW}                     ${PARENT_HH_DOWN_ARROW}
+
+${HouseholdSegmentCheckbox}    xpath=.//input[@id='householdSegment']//parent::div[@class='checkboxDiv']
+${Available_HHSegments}         xpath=//ul[@id="available-segments-ul"]/li/div[@class="datasourceName"]
+
+${SUMMERY_EXPORT_BTN}               xpath=//button[contains(text()," Export")]
+${PARENT_NCS_SCORE_EDIT}            name=score
+${PARENT_INTESECTION_EDIT}          xpath=//a[@class="small-links" and contains(.,"Edit")]
+${PARENT_INTESECTION_DELETE}        xpath=//a[@class="small-links" and contains(.,"Delete")]
+${PARENT_INTESECTION_CLONE}         xpath=//a[@class="small-links" and contains(.,"Clone")]
+# Below datasource names should not be visible in parent adgroup.
+
+${datasource_PRIZM}             //div[text()='PRIZM']
+${datasource_ConneXions}        //div[text()='ConneXions']
+${datasource_P$YCLE}            //div[text()='P$YCLE']
+${datasource_DLXHouseHold}      //div[text()='DLX House Hold']
+${datasource_SpeedeonSpire}     //div[text()='Speedeon-Spire']
+${datasource_Speedeon}          //div[text()='Speedeon']
+${datasource_TruSignal}         //div[text()='TruSignal']
+
+
+
+
+#CAMPAIGN SUMMERY PAGE
+${ADD_CHILD_PLUS_BUTTON} 			xpath=//button[@ng-reflect-router-link='/childAdGroupAdd,      #Add <parent id>'] after xpath from defination
+
+
+
+#ADD CHILD PAGE
+${CHILD_NAME_TEXTBOX} 			 id=name
+${CHILD_NAME_ERROR_ICON}          xpath=(.//div[contains(normalize-space(.), 'CHILD AD GROUP NAME')])[last()]/following::img
+${CPM_TEXTBOX} 					 id=cpm
+${CPM_ERROR_ICON}                xpath=(.//div[contains(normalize-space(.), 'CPM ($)')])[last()]/following::img
+${IMPRESSION_CHILD_TEXTBOX} 	 id=impressionGoal
+${ADVERTISER_DOMAIN} 			 id=domain
+${DOMAIN_ERROR_ICON}             xpath=(.//div[contains(normalize-space(.), 'ADVERTISER DOMAIN')])[last()]/following::img
+${CHILD_TIME_ZONE}               ${CAMPAIGN_TIME_ZONE}
+${CHILD_START_DATE}              ${CAMPAIGN_START_DATE}
+${CHILD_END_DATE}                ${CAMPAIGN_END_DATE}
+${CHILD_START_DATE_TIME}         ${CAMPAIGN_START_DATE_TIME}
+${CHILD_END_DATE_TIME}           ${CAMPAIGN_END_DATE_TIME}
+${ADCHOICE_ICON_DROPDOWN} 		 name=isBehavioralTargeted
+${ADD_TARGETING_BUTTON} 		 id=add-targeting-btn
+${TARGETING_DROPDOWN} 			 xpath=//select[@class='ng-pristine ng-valid ng-touched']
+${CHILD_AD_GROUP_CANCEL}         id=${PARENT_CANCEL_BUTTON}
+${CHILD_POPUP_CLOSE_BUTTON}      xpath=//span[contains(text(),"X Close")]
+${CHILD_SAVE_BUTTON}             xpath=(.//button[contains(normalize-space(.), 'Save child')][@type='button'])[last()]
+
+#TARGETING Elements
+${TARGETING_IAB_CONTENT_CATEGORY} 		xpath=//label[@for="targetCategoryCheck"]
+${FILTER_TEXTBOX}  						id=filterKeyword
+${FILTER_TEXTBOX_RESULT_CHECKBOX} 		xpath=//div[@class="checkboxDiv"]//label/p[contains(text(),
+${TARGETING_TRAFFIC_TYPE} 				xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Traffic type")]
+${TRAFFIC_TYPE_MOBILE_WEB} 				xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Mobile Web")]
+${TRAFFIC_TYPE_APP} 				xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"App")]
+${TRAFFIC_TYPE_DESKTOP} 				xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Desktop")]
+
+${TARGETING_CLUSTER} 					xpath=(//*[contains(text(),"Clusters")])[2]         #id=targetClusterCheck
+${TARGETING_COUNTRY} 					id=targetGeoCountryCheck
+${COUNTRY_US} 			    			xpath=//label[@for="targetGeoCountry2"]
+${COUNTRY_CANADA}     					xpath=//label[@for="targetGeoCountry3"]
+${COUNTRY_GAUM}       					xpath=//label[@for="targetGeoCountry4"]
+${COUNTRY_PUERTO_RICO}   				xpath=//label[@for="targetGeoCountry5"]
+${COUNTRY_MEXICO}     					xpath=//label[@for="targetGeoCountry6"]
+${COUNTRY_BRAZIL}    					xpath=//label[@for="targetGeoCountry7"]
+
+${TARGETING_REQUEST_STATE} 				xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Request state")]     #id=targetGeoStateCheck
+${TARGETING_REQUEST_DMA} 				xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Request DMA")]     #id=targetGeoDMACheck
+${TARGETING_REQUEST_ZIP_CODE} 			xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Request zip code")]     #id=targetGeoZipStrCheck
+${REQUEST_ZIP_CODE_TEXTBOX} 			id=targetGeoZip
+
+${TARGETING_HOUSEHOLD_STATE} 			xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Household state")]     #id=targetHHStateCheck
+${TARGETING_HOUSEHOLD_DMA} 				xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Household DMA")]     #id=targetHHDMACheck
+${TARGETING_HOUSEHOLD_ZIP_CODE} 	 	xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Household zip code")]     #id=targetHHZipStrCheck
+${HOUSEHOLD_ZIP_CODE_TEXTBOX}  		 	id=targetHHZip
+
+${TARGETING_DEVICE_OS} 					xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Device OS")]
+${DEVICE_OS_IPHONE} 					xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"iPhone OS")]     #id=targetDeviceOS2
+${DEVICE_OS_IPHONE_VERSION_DROPDOWN} 	xpath=//select[@ng-reflect-model='2']
+${DEVICE_OS_ANDROID} 					xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Android")]     #id=targetDeviceOS3
+${DEVICE_OS_ANDROID_VERSION_DROPDOWN} 	xpath=//select[@ng-reflect-model='20']
+${DEVICE_OS_WINDOWS} 					xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Windows Phone OS")]     #id=targetDeviceOS4
+${DEVICE_OS_WINDOWS_VERSION_DROPDOWN} 	xpath=//select[@ng-reflect-model='35']
+${DEVICE_OS_RIM} 						xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"RIM OS")]     #id=targetDeviceOS5
+${DEVICE_OS_RIM_VERSION_DROPDOWN} 		xpath=//select[@ng-reflect-model='38']
+${DEVICE_OS_OTHER} 						xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Other")]     #id=targetDeviceOS6
+${DEVICE_OS_OTHER_VERSION_DROPDOWN} 	xpath=//select[@ng-reflect-model='49']
+${DEVICE_OS_BREW} 						xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"BREW")]     #id=targetDeviceOS7
+${DEVICE_OS_BREW_VERSION_DROPDOWN} 	 	xpath=//select[@ng-reflect-model='50']
+
+${TARGETING_DEVICE_TYPE}   			 	xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Device type")]     #id=targetDeviceTypeCheck
+${DEVICE_TYPE_PHONE}   			 		xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Phone")]     #id=targetDeviceType2
+${DEVICE_TYPE_TABLET}   			 	xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Tablet")]     #id=targetDeviceType3
+${DEVICE_TYPE_OTHER} 	   			 	xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Other")]     #id=targetDeviceType4
+
+${PARTIAL_UPDATE_CHILD_STARTDATE}       xpath=(//input[(@name="startDate")])[2]
+${PARTIAL_UPDATE_CHILD_ENDDATE}         xpath=(//input[(@name="endDate")])[2]
+${PARTIAL_UPDATE_CHILD_IMPS_GOAL}       xpath=//input[(@name="childImpressionGoal")]
+${PARTIAL_UPDATE_CHILD_CPM}             xpath=//input[(@name="cpm")]
+
+#########################################
+#additionalTargeting
+#########################################
+${ADDITIONAL_TARGETTING_DROPDOWN}       xpath=//select[@name='additionalTargeting']
+
+${ADDITIONAL_TARGETTING_BUTTON}         id=add-targeting-btn
+${ADD_TARGETING_REMOVE_BUTTON}          xpath=//span[@class='deleteIcon']
+
+${CARRIER_AT&T}                         xpath=//label[@for="targetCarrier2"]     #id=targetCarrier2
+${CARRIER_VARIZON}                      xpath=//label[@for="targetCarrier3"]     #id=targetCarrier3
+${CARRIER_T-MOBILE}                     xpath=//label[@for="targetCarrier4"]     #id=targetCarrier4
+${CARRIER_SPRINT}                       xpath=//label[@for="targetCarrier5"]     #id=targetCarrier5
+${CARRIER_OTHER}                        xpath=//label[@for="targetCarrier6"]     #id=targetCarrier6
+${CARRIER_METROPCS}                     xpath=//label[@for="targetCarrier7"]     #id=targetCarrier7
+
+
+${TARGET_DAY_OF_WEEK_SUN}               xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Sunday")]        #id=targetDayOfWeeksun
+${TARGET_DAY_OF_WEEK_MON}               xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Monday")]        #id=targetDayOfWeekmon
+${TARGET_DAY_OF_WEEK_TUE}               xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Tuesday")]        #id=targetDayOfWeektue
+${TARGET_DAY_OF_WEEK_WED}               xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Wednesday")]        #id=targetDayOfWeekwed
+${TARGET_DAY_OF_WEEK_THU}               xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Thursday")]        #id=targetDayOfWeekthu
+${TARGET_DAY_OF_WEEK_FRI}               xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Friday")]        #id=targetDayOfWeekfri
+${TARGET_DAY_OF_WEEK_SAT}               xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Saturday")]        #id=targetDayOfWeeksat
+${TARGET_DAY_OF_WEEK_TZ}                xpath=//select[@name='dOfwTimezones']
+
+${DEV_MFC_SELECT_BUTTON}                xpath=//button[contains(.,'Select')]
+
+${LANGUAGE_CHECK_ENG}                   xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"English")]        #id=targetLanguage38
+${LANGUAGE_CHECK_SPA}                   xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Spanish")]        #id=targetLanguage149
+
+
+${LOCATION_UNDETERMINED}                xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Undetermined")]        #id=targetLocation2
+${LOCATION_AWAY}                        xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Away")]        #id=targetLocation3
+${LOCATION_HOME}                        xpath=//div[@class="checkboxDiv"]/label/p[contains(text(),"Home")]        #id=targetLocation4
+
+${EXCHANGE_DROPDOWN}                    xpath=//select[@name='exchange']
+${EXCHANGE_DEALSID}                     id=dealIds
+
+${TOD_TIME_ZONE}                        xpath=//select[@name='tOfdTimezones']
+${TOD_TIME_FROM}                        xpath=//select[@name='tOfdStartTimes']
+${TOD_TIME_TO}                          xpath=//select[@name='tOfdEndTimes']
+
+
+${VIDEO_STR_PRE_ROLE}                   id=targetStreamingPosition2
+${VIDEO_STR_MID_ROLE}                   id=targetStreamingPosition3
+${VIDEO_STR_POST_ROLE}                  id=targetStreamingPosition4
+${VIDEO_STR_INTERSTITIAL}               id=targetStreamingPosition5
+
+${DEVICE_MFC_CHECKBOX}                  xpath=//md-checkbox[@ng-reflect-name=
+${TARGETING_INCLUDE_BUTTON}             Xpath=//button[contains(.,'Include')]
+${TARGETING_EXCLUDE_BUTTON}             Xpath=//button[contains(.,'Exclude')]
+
+
+#ADS #####################################
+${ADS_CHILD_AD_GROUP}                   xpath=((.//td[contains(normalize-space(.), '+ Ad')])[1]/child::button)[1]
+${ADS_ADD_CHILD_BUTTON}                 xpath=(.//button[contains(normalize-space(.), '+ Ad')])[last()]
+${ADS_CREATIVE_TYPE_SELECT}             adType
+${ADS_CREATIVE_SUB_TYPE_SELECT}         cSubType
+${ADS_CREATE_AD}                        id=btnCreateAd
+${ADS_CLOSE_CREATE_AD_BUTTON}           xpath=.//span[contains(normalize-space(.), 'X Close')]
+
+#Clone_Pop Up Elements
+
+${ADV_SELECT_INPUT}                     xpath=//select[@name="advertiser"]
+${CAMPAIGN_SELECT_INPUT}                xpath=//select[@name="campaign"]
+${PARENT_SELECT_INPUT}                  xpath=//select[@name="parent"]
+${START_DATE_INPUT}                     xpath=//div[@class="datepickerDiv input-group"]/input[@name="startDate"]
+${END_DATE_INPUT}                       xpath=//div[@class="datepickerDiv input-group"]/input[@name="endDate"]
+${START_TIME_INPUT}                     xpath=//select[@name="startTime"]
+${END_TIME_INPUT}                       xpath=//select[@name="endTime"]
+${CLONE_CHILD_BUTTON}                   xpath=//button[contains(text(),"Clone child ad group")]
+${CLONE_OK_BUTTON}                      xpath=//button[contains(text(),"Ok")]
+
+
+#---------------------------------------------------------------------------------------------
+# CAMPAIGN MANAGER SETUP 
+
+${Label_CampaignManagerSetup}    //*[@id="campaignManagerSetup"]//form//div[text()='CAMPAIGN MANAGER SETUP']
+
+${CAMPAIGN_MANAGER_SETUP_Cancel_TOP}    //*[@id="campaignManagerSetup"]//form//a[text()='Cancel']
+
+
+${CAMPAIGN_CHECKBOX}                             xpath=//p[contains(.,"Campaigns")]
+${AUDIANCE_CHECKBOX}                             xpath=//p[contains(.,"Audience")]
+${FORCASTING_CHECKBOX}                           xpath=//p[contains(.,"Forecasting")]
+
+${CAMPAIGN_MANAGER_SETUP_SAVE_TOP}               xpath=(//a[contains(.,"Save")])[1]
+${CAMPAIGN_MANAGER_SETUP_SAVE_BOTTOM}            xpath=(//a[contains(.,"Save")])[2]
+
+${CAMPAIGN_MANAGER_SETUP_METAMARKET_INPUT}       id=metaMarketsId
+${CAMPAIGN_MANAGER_SETUP_CHANNEL_CHECKBOX}       xpath=//label//parent::md-checkbox//parent::div//parent::label[contains(.,"CHANNEL")]
+
+${ui_elements_campaigns}    //div[text()='Campaigns']//parent::div//following-sibling::div//parent::table
+
+${ui_elements_Audience}    //div[text()='Audience']//parent::div//following-sibling::div//parent::table
+
+${ui_elements_Forecasting}    //div[text()='Forecasting']//parent::div//following-sibling::div//parent::table
+
+
+
+#---------------------------------------------------------------------------------------------

@@ -1,0 +1,50 @@
+*** Settings ***
+Library    HttpLibrary.HTTP
+
+
+*** Keywords ***
+
+Validate JSON Response
+    [Documentation]    Validate any JSON response by taking in a dictionary containing keys which map the the xpath and values as the expected values.
+    ...                Arguments:
+    ...                ${json_response} - the raw json response to validate against
+    ...                ${expected_values_dictionary} - the key (xpath) and value (expected results) to validate against.
+    ...                Example:   
+    ...                    expected_values_dictionary = {'id':'1234567890','another_id':'98765'}
+    ...                    When the above dictionary is passed in, the json validation will be as follows:  
+    ...                    The element with xpath (id) must match 1234567890
+    ...                    The element with xpath (another_id) must match 98765
+    [Arguments]     ${json_response}=   ${expected_values_dictionary}=
+    Log   ${expected_values_dictionary}   
+    @{keys}=    Get Dictionary Keys    ${expected_values_dictionary}
+    :FOR    ${item}   IN   @{keys}
+    \        ${value}=   Get From Dictionary   ${expected_values_dictionary}   ${item}
+    \        Run Keyword And Continue On Failure			 Retrieve Element And Validate Value Match JSON    json_response=${json_response}    element_xpath=${item}   expected_value=${value}   
+    
+    
+Retrieve Element And Validate Value Match JSON
+    [Documentation]   Validate the element from an xpath matches the expected output in the json_response that is passed in.
+    ...               Arguments:
+    ...               ${json_response} - the raw response to validate against
+    ...               ${element_xpath} - the xpath of the element to validate against
+    ...               ${expected_value} - the expected value to validate against
+    ...               Example:  
+    [Arguments]     ${json_response}=    ${element_xpath}=   ${expected_value}=     
+    Should Be Valid JSON    ${json_response}  
+    ${text_found}=      Get Json Value     ${json_response}      ${element_xpath} 
+    Log     Text Found:${text_found} Expected:${expected_value}    DEBUG
+    Should Be Equal     ${text_found}    ${expected_value} 
+    
+Replace JSON Value 
+	[Arguments]	   ${json_response}=      ${xpath}=			${replace_with}=		    
+    ${raw_json}=        Set Variable         ${json_response}
+    Log     Raw JSON: ${json_response}
+    Should Be Valid JSON    ${json_response}
+    ${text_found}=      Get Json Value     	${json_response}      		${xpath}
+    Log      Text Found: ${text_found}
+    ${result}=         	Set Json Value  			${json_response}        	${xpath}   				${replace_with}
+    Log      Replaced ID: ${result}
+    Set Test Variable       ${json_response}			${result}
+    
+    
+    

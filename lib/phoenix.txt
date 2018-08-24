@@ -1,0 +1,1437 @@
+*** Keywords ***
+
+### Phoenix 01_login.txt#################
+Login To Dashboard UI
+    [Arguments]    ${username}=${QA_DEFAULT_USER}
+    ...    ${password}=${QA_DEFAULT_PASSWORD}
+    ...    ${LOGIN_URL}=https://qa-customer.4info.com/dashboard/#/home
+    Open Browser       ${LOGIN_URL}    ${Browser}
+    Delete All Cookies
+    Maximize Browser Window
+    Sleep    10s
+    Wait Until Element Is Visible    ${LOGIN_NAME_TEXTBOX}    timeout=40s
+    Input Text         ${LOGIN_NAME_TEXTBOX}                ${username}
+    Input Text         ${LOGIN_PASSWORD_TEXTBOX}        ${password}
+    Click Button       ${LOGIN_BUTTON}
+    Sleep    5s
+    Run Keyword If      '${LOGIN_URL}' == 'https://qa-campaigns.4info.com/phoenix/#/advertisersList'    Validate Page Links are Present for Campaign Manager
+
+
+Validate Page Links are Present for Campaign Manager
+    Wait Until Page Contains Element    ${Dashboard_AudienceSolutions}    timeout=120s
+    Wait Until Page Contains Element    ${Dashboard_CampaignManager}      timeout=120s
+    Wait Until Page Contains Element    ${Dashboard_Insights&Analytics}   timeout=120s
+
+
+Login To Adhaven UI
+    [Arguments]     ${username}=${QA_DEFAULT_USER}
+    ...             ${password}=${QA_DEFAULT_PASSWORD}
+    ...             ${LOGIN_URL}=${LOGIN_URL}
+    Open Browser       ${LOGIN_URL}    ${Browser}
+    Delete All Cookies
+    Maximize Browser Window
+    Sleep    10s
+    Wait Until Element Is Visible    ${LOGIN_NAME_TEXTBOX}    timeout=20s
+    Input Text         ${LOGIN_NAME_TEXTBOX}                ${username}
+    Input Text         ${LOGIN_PASSWORD_TEXTBOX}        ${password}
+    Click Button       ${LOGIN_BUTTON}
+    Sleep    5s
+    Wait Until Page Contains Element    link=Campaigns              timeout=20s
+    Wait Until Page Contains Element    link=Clusters               timeout=20s
+    Wait Until Page Contains Element    link=Audience Creator       timeout=20s
+
+
+########################
+#02_Advertiser.txt
+########################
+Create Advertiser And Campaign
+    [Arguments]     ${campaign_access_control}=     ${campaign_status}=1        ${campaign_name}=QATEST_campaign        ${advertiser_name}=QATEST_advertiser
+    Set Test Variable   ${uri_link}     /pac-api/partner/advertiser
+    Create Advertiser   uri=${uri_link}     data={"name": "${advertiser_name}"}      expected_status_code=200    success=true
+    Get Start Date
+    Create New Campaign via API         campaign_name=${campaign_name}
+    ...                                 campaign_status=${campaign_status}
+    ...                                 campaign_advertiser_id=${advertiser_id}
+    ...                                 campaign_access_control=${campaign_access_control}
+    ...                                 campaign_start_date_time=${todaysDate}
+    ...                                 campaign_start_date_time=${todaysDate}
+
+Compare API data vs UI display for Advertiser
+    [Arguments]         ${group_id}=1   ${advertiser_name}=QA_REGRESSION    ${campaign_status}=1
+    pac_api.Get All Advertisers By Group Id     group_id=${group_id}
+    ${advertisers}=     Get Json Value          ${body}     /advertisers
+    @{advertisers_list}=                String.Split String                     ${advertisers}              }, {
+    ${advertisers_count_api}=           Get Length                              ${advertisers_list}
+    Set Test Variable   ${index_found}      NA
+    Log     Api List Lenght is -> ${advertisers_count_api}
+    :FOR    ${index}    IN RANGE   0    ${advertisers_count_api}
+    \       Log     Index: ${index}
+    \       Log     Expected advertiser: ${advertiser_name}
+    \       ${temp_advertiser_name}=    Get Json Value              ${body}         /advertisers/${index}/name
+    \       ${temp_advertiser_name}=    Remove String       ${temp_advertiser_name}     "
+    \       ${temp_advertiser_name}=    Remove String       ${temp_advertiser_name}     '
+    \       Run Keyword If      '${temp_advertiser_name}'=='${advertiser_name}'             Set Test Variable       ${index_found}          ${index}
+    \       Run Keyword If      '${temp_advertiser_name}'=='${advertiser_name}'             Exit For Loop
+    Run Keyword Unless      '${index_found}'=='NA'      Extract Campaign Info From PAC1.1 And Compare to UI
+
+
+Extract Campaign Info From PAC1.1 And Compare to UI
+    ${api_advertiser_id}=                   Get Json Value      ${body}     /advertisers/${index_found}/id
+    ${api_advertiser_name}=                 Get Json Value      ${body}     /advertisers/${index_found}/name
+    ${api_advertiser_name}=                 Remove String       ${api_advertiser_name}      "
+    ${api_advertiser_status}=               Get Json Value      ${body}     /advertisers/${index_found}/status
+    ${api_advertiser_status}=               Remove String       ${api_advertiser_status}    "
+    ${api_advertiser_liveCampaigns}=        Get Json Value      ${body}     /advertisers/${index_found}/liveCampaigns
+    ${api_advertiser_pendingCampaigns}=     Get Json Value      ${body}     /advertisers/${index_found}/pendingCampaigns
+    ${api_advertiser_totalCampaigns}=       Get Json Value      ${body}     /advertisers/${index_found}/totalCampaigns
+    Capture Page Screenshot With Timestamp
+    ${ui_advertiser_name}=                  Get Text            ${ADV_NAME_ID}${api_advertiser_id}
+    ${ui_advertiser_name}=                  Remove String Using Regexp      ${ui_advertiser_name}       ^${SPACE}*
+    ${ui_advertiser_name}=                  Remove String Using Regexp      ${ui_advertiser_name}       ${SPACE}*$
+    ${ui_advertiser_status}=                Get Text            ${ADV_STATUS_ID}${api_advertiser_id}
+    ${ui_advertiser_status}=                Remove String Using Regexp      ${ui_advertiser_status}     ^${SPACE}*
+    ${ui_advertiser_status}=                Remove String Using Regexp      ${ui_advertiser_status}     ${SPACE}*$
+    ${ui_advertiser_liveCampaigns}=         Get Text            ${ADV_LIVECOUNT_ID}${api_advertiser_id}
+    ${ui_advertiser_pendingCampaigns}=      Get Text            ${ADV_PENDINGCOUNT_ID}${api_advertiser_id}
+    ${ui_advertiser_totalCampaigns}=        Get Text            ${ADV_TOTALCOUNT_ID}${api_advertiser_id}
+    Should Be Equal As Strings              ${api_advertiser_name}                  ${ui_advertiser_name}
+    Should Be Equal As Strings              ${api_advertiser_status}                ${ui_advertiser_status}
+    Should Be Equal As Strings              ${api_advertiser_liveCampaigns}         ${ui_advertiser_liveCampaigns}
+    Should Be Equal As Strings              ${api_advertiser_pendingCampaigns}      ${ui_advertiser_pendingCampaigns}
+    Should Be Equal As Strings              ${api_advertiser_totalCampaigns}        ${ui_advertiser_totalCampaigns}
+
+
+xxxClean Up Campaign and Advertiser
+    #Delete New Campaign via DB      campaign_name=QATEST_campaign
+    #Delete New Advertiser via DB    name=0_QATEST_advertiser
+    Cleanup Advertiser From DB       advertiser_name=0_QATEST_advertiser
+
+Get Advertiser Page
+    Go To       https://${QA_PHOENIX}/phoenix/#/advertisersList
+#    Click Link    ${Header_Link_Campaigns}
+    Wait Until Page Contains Element    ${ADV_NAME_SORT}
+#    Click Element    ${ADV_NAME_SORT}
+#    Click Element    ${ADV_NAME_SORT}
+
+
+
+Generate Advertisers Data
+    [Arguments]     ${username}=${QA_DEFAULT_USER}
+    ...             ${password}=${QA_DEFAULT_PASSWORD}
+    #Login To Adhaven UI    username=${username}    password=${password}
+    Create Advertiser And Campaign      campaign_access_control=12
+    ...                                 campaign_name=QATEST_campaign_12
+    ...                                 advertiser_name=${att_advertiser}
+
+    Create Advertiser And Campaign      campaign_access_control=15
+    ...                                 campaign_name=QATEST_campaign_15
+    ...                                 advertiser_name=${catalina_advertiser_active}
+
+    Create Advertiser And Campaign      campaign_access_control=15
+    ...                                 campaign_name=QATEST_campaign_15_2
+    ...                                 advertiser_name=${catalina_advertiser_inactive}
+    ...                                 campaign_status=2
+
+    Set Campaign Name To Expired        campaign_name=QATEST_campaign_15_2
+
+    Create Advertiser And Campaign      campaign_access_control=16
+    ...                                 campaign_name=QATEST_campaign_16
+    ...                                 advertiser_name=${qa_advertiser}
+    #Reload Page
+    #Sleep    15s
+    #Element Should Be Visible    ${ADV_NAME_SORT}
+
+
+Check Header and Footer objects are present
+    Element Should Be Visible    ${Header_username}
+    Element Should Be Visible    ${Header_setting-select}
+    Element Should Be Visible    ${Header_4InfoLogo_Header}
+    Element Should Be Visible    ${Header_Link_Campaigns}
+    Element Should Be Visible    ${Header_Link_AudienceCreator}
+    Element Should Be Visible    ${Header_Link_Forecasting}
+    Element Should Be Visible    ${Header_Link_SearchIn}
+    Element Should Be Visible    ${Header_List_navCategory}
+    Element Should Be Visible    ${Header_List_SearchIPT}
+    Element Should Be Visible    ${Footer_4InfoLogo}
+    Element Should Be Visible    ${Footer_Link_ContactInfo}
+
+
+
+Check Page Objects for Advertiser are present
+    Element Should Be Visible    ${Heading_Advertiser}
+    Element Should Be Visible    ${ADV_CREATE_BUTTON}
+    Element Should Be Visible    ${Filter_Name}
+    Element Should Be Visible    ${Filter_Status}
+    Element Should Be Visible    ${ADV_STATUS_SELECTION}
+    Element Should Be Visible    ${ADV_SEARCH_TEXTBOX}
+    Element Should Be Visible    ${ADV_SEARCHED_RESULT}
+    Element Should Be Visible    ${ADV_STATUS_ID}226
+    Element Should Be Visible    ${ADV_NAME_SORT}
+    Element Should Be Visible    ${ADV_STATUS_SORT}
+    Element Should Be Visible    ${ADV_LIVE_SORT}
+    Element Should Be Visible    ${ADV_PENDING_SORT}
+    Element Should Be Visible    ${ADV_TOTAL_SORT}
+    Element Should Be Visible    ${ADV_SEARCH_TEXTBOX}
+    Element Should Be Visible    ${ADV_EXPAND_DROPDOWN_BUTTON}
+    Element Should Be Visible    ${Filter_Pacing_Below}
+    Element Should Contain       ${Filter_Pacing_Below}    Pacing below
+
+
+
+##################################
+#Campaign
+#####################################
+Create Campaign on UI
+    [Arguments]         ${ADVERTISER_NAME}=
+    ...                 ${CAMPAIGN_STATUS_UI}=
+    ...                 ${CAMPAIGN_NAME_UI}=QA_CAMPAIGN
+    ...                 ${EXTERNAL_ID}=BVIFourinfo1
+    ...                 ${INFO_IO}=1234
+    ...                 ${CAMPAIGN_TIME_ZONE_UI}=GMT
+    ...                 ${START_DATE}=
+    ...                 ${END_DATE}=
+    ...                 ${START_DATE_TIME}=
+    ...                 ${END_DATE_TIME}=
+    ...                 ${TAXONOMY_VERTICAL}=
+    ...                 ${TAXONOMY_SEGMENT}=
+    ...                 ${SALES_CHANNEL}=4INFO
+    ...                 ${SALES_CHANNEL_VisibleFlag}=1
+    Log                 ${ADVERTISER_NAME}
+    Wait For campaign element to load
+    Search Advertiser And Open                      ADVERTISER_NAME=${ADVERTISER_NAME}
+    Sleep   2s
+    Set Test Variable                               ${CAMPAIGN_PLUS_BUTTON}    xpath=(//button[contains(.,'+ Campaign')])
+    Click Button                                    ${CAMPAIGN_PLUS_BUTTON}
+    Sleep    2s
+    Select From List                                ${CAMPAIGN_SELECT_STATUS}       ${CAMPAIGN_STATUS_UI}
+    Sleep    2s
+    Input Text                                      ${CAMPAIGN_NAME}                ${CAMPAIGN_NAME_UI}
+    Sleep    2s
+    Select From List                                ${CAMPAIGN_TIME_ZONE}           ${CAMPAIGN_TIME_ZONE_UI}
+    Input Text                                      ${CAMPAIGN_EXTERNAL_ID}         ${EXTERNAL_ID}
+    Input Text                                      ${CAMPAIGN_4INFO_IO}            ${INFO_IO}
+    Sleep    4s
+    Run Keyword If    ${SALES_CHANNEL_VisibleFlag}==1    Select From List    ${CAMPAIGN_SALES_CHANNEL}    ${SALES_CHANNEL}
+    Sleep    3s
+    Select Date And Time                        START_DATE=${START_DATE}
+    ...                                         END_DATE=${END_DATE}
+    ...                                         START_DATE_TIME=${START_DATE_TIME}
+    ...                                         END_DATE_TIME=${END_DATE_TIME}
+    Select Taxonomy                             TAXONOMY_VERTICAL=${TAXONOMY_VERTICAL}
+    ...                                         TAXONOMY_SEGMENT=${TAXONOMY_SEGMENT}
+
+Select Date And Time
+    [Arguments]         ${START_DATE}=
+    ...                 ${END_DATE}=
+    ...                 ${START_DATE_TIME}=
+    ...                 ${END_DATE_TIME}=
+    Input Text          ${CAMPAIGN_START_DATE}      ${START_DATE}
+    Input Text          ${CAMPAIGN_END_DATE}        ${END_DATE}
+    Select From List    ${CAMPAIGN_START_DATE_TIME}     ${START_DATE_TIME}
+    Select From List    ${CAMPAIGN_END_DATE_TIME}       ${END_DATE_TIME}
+
+Save The Campaign
+    Click Button        ${CAMPAIGN_SAVE_BUTTON}
+    Capture Page Screenshot With Timestamp
+
+Wait For campaign element to load
+    Wait Until Page Contains    ADVERTISERS
+    Wait Until Page Contains    Create Advertiser
+    Wait Until Page Contains    Search advertisers
+    Wait Until Page Contains    Name
+    Wait Until Page Contains    Status
+    Wait Until Page Contains    All
+    Wait Until Page Contains    Active
+    Wait Until Page Contains    Inactive
+
+Add Store Visit Categories
+    [Arguments]     ${SELECT_DATASET}=          ${STORE_VISIT_CATEGORY}=
+    Click Element               id=${SELECT_DATASET}
+    Run Keyword If     '${SELECT_DATASET}'=='legacy'        Wait Until Element Is Visible           xpath=(.//div[contains(normalize-space(.), 'AUTO PARTS')])[last()]
+    Run Keyword If     '${SELECT_DATASET}'=='infogroup'     Wait Until Element Is Visible           xpath=(.//div[contains(normalize-space(.), 'Accessories Fashion')])[last()]
+    Sleep    2s
+    :For     ${Item}    IN      @{STORE_VISIT_CATEGORY}
+    \       Input Text     ${CAMPAIGN_STORE_VISIT_FILTER}     ${Item}
+    \       Sleep    2s
+    \       Click Element      //div[@class='mat-checkbox-inner-container']                           #//*[@ng-reflect-name="${Item}"]/ancestor::li    #${CAMPAIGN_STORE_VISIT_CHECKBOX}[contains(@name,'${Item}')]
+    \       Clear Element Text    ${CAMPAIGN_STORE_VISIT_FILTER}
+    \       Click Button     ${CAMPAIGN_STORE_VISIT_SELECT_BUTTON}
+    \    Sleep   2s
+    Click Element       ${CAMPAIGN_STORE_VISIT_SELECT_BUTTON}
+
+
+Unckeck All Data Sources
+    ${Count}=     Get Matching Xpath Count          ${CAMPAIGN_DATA_SOURCE_ALL_CHECKBOXES}
+    Log     ${Count}
+    ${Count}=       Evaluate    ${Count}+1
+    :For   ${index}   IN RANGE   1     ${Count}
+    \       Click Element       ${CAMPAIGN_DATA_SOURCE_CHECKBOXES}[${index}]/label
+
+
+
+
+Select Access Control
+    [Arguments]     ${SELECT_ACCESS_CONTROL}=      ${Count}=0
+    Log      ${SELECT_ACCESS_CONTROL}
+    :For    ${Item}    IN   @{SELECT_ACCESS_CONTROL}
+    \       Click Button        ${CAMPAIGN_ACCESS_CONTROL_ADD_BUTTON}
+    \       Select From List            ${CAMPAIGN_ACCESS_CONTROL_DROPDOWN}${Count}     ${Item}
+    \       ${Count}=  Evaluate   ${Count} + 1
+    \       Sleep   2s
+
+
+
+
+Select Taxonomy
+    [Arguments]    ${TAXONOMY_VERTICAL}=
+    ...            ${TAXONOMY_SEGMENT}=
+    Log    ${TAXONOMY_VERTICAL}
+    Log    ${TAXONOMY_SEGMENT}
+    Select From List        ${CAMPAIGN_TAXONOMY_VARTICAL}     ${TAXONOMY_VERTICAL}
+    Select From List        ${CAMPAIGN_TAXONOMY_SEGMENT}        ${TAXONOMY_SEGMENT}
+
+
+Check Data Source Categories
+    [Arguments]     ${DATA_SOURCE_CATEGORY}
+    ...             ${DATA_SOURCE}
+    Select From List    ${CAMPAIGN_DATA_SOURCE}     ${DATA_SOURCE}
+    Unckeck All Data Sources
+    :For    ${Item}    IN   @{DATA_SOURCE_CATEGORY}
+    \       Click Element       ${CAMPAIGN_DATA_SOURCE_CHECKBOX}[contains(.,'${Item}')]
+
+
+
+Click Create Advertisers Button
+    Click Button        ${ADV_CREATE_BUTTON}
+    Page Should Contain         NEW ADVERTISER
+    Page Should Contain         ADVERTISER NAME
+    Page Should Contain Button    ${ADV_CLOSE_BUTTON}
+
+Search Advertiser And Open
+    [Arguments]         ${ADVERTISER_NAME}=
+    Input Text    ${ADV_SEARCH_TEXTBOX}    ${ADVERTISER_NAME}
+    Sleep    7s
+    Click Element    ${ADV_SEARCHED_RESULT}
+    Click Button     ${ADV_EDIT_OK_BUTTON}
+    Sleep    3s
+
+
+
+Check Sales Channel is Visible
+    Element Should Be Visible    ${SALESCHANNEL_LIST}
+    Click Element    ${SALESCHANNEL_LIST}
+    Sleep    3s
+    Element Should Contain    ${SALESCHANNEL_LIST}    4INFO
+    Element Should Contain    ${SALESCHANNEL_LIST}    ATT
+    Element Should Contain    ${SALESCHANNEL_LIST}    NBCU
+
+
+Select Sales Channel
+    [Arguments]    ${saleschannel}=4INFO
+    Select From List    ${SALESCHANNEL_LIST}    ${saleschannel}
+    Sleep    2s
+
+
+
+
+Check Sales Channel is not Visible
+    Element Should Not Be Visible    ${SALESCHANNEL_LIST}
+    Sleep    2s
+
+
+
+
+##################################
+#Cluster - 10_cluster_creation.txt
+#####################################
+
+Run Suite Set up for cluster creation
+    Remove Exact Cluster via DB    cluster_name=APPBundleCluster
+    Remove Exact Cluster via DB    cluster_name=July4
+    Remove Exact Cluster via DB    cluster_name=OnlineCluster
+    Remove Exact Cluster via DB    cluster_name=July277
+    Remove Exact Cluster via DB    cluster_name=July27
+    Remove Exact Cluster via DB    cluster_name=HP_Test-works9
+    Remove Exact Cluster via DB    cluster_name=APPBundleCluster1
+    Remove Exact Cluster via DB    cluster_name=APPBundleCluster01
+    Remove Exact Cluster via DB    cluster_name=APPBundleCluster02
+    Remove Exact Cluster via DB    cluster_name=APPBundleCluster03
+    Remove Exact Cluster via DB    cluster_name=domain404
+    Remove Exact Cluster via DB    cluster_name=5164455
+    Remove Exact Cluster via DB    cluster_name=51644
+    Remove Exact Cluster via DB    cluster_name=APPBundleCluster1158
+
+
+
+Click Clusters Tab
+    Click Link    ${TAB_CLUSTERS_LINK}
+    Page Should Contain Button    ${CLUSTER_CREATE_BUTTON}
+    Page Should Contain Element    ${CLUSTER_SEARCH_INPUT}
+    Page Should Contain Element    ${CLUSTER_TABLE_NAME}
+    #Capture Page Screenshot With Timestamp
+
+
+Create Cluster On UI
+    [Documentation]    Create Cluster and make sure that it is sucessfully created
+    [Arguments]    ${clustername}    ${data}    ${count}
+    Click Clusters Tab
+    Click Button    ${CLUSTER_CREATE_BUTTON}
+    Page Should Contain Button    ${CLUSTER_SAVE_BUTTON}
+    Input Text    ${CLUSTER_NAME_INPUT}    ${clustername}
+    Sleep    10s
+    Input Text    ${CLUSTER_DATA_TEXTAREA}    ${data}
+    Sleep    10s
+    Click Button    ${CLUSTER_SAVE_BUTTON}
+    Sleep    12s
+    Page Should Contain    CLUSTER NAME :
+    Page Should Contain    ${clustername}
+    Page Should Contain    ${count} was added to the cluster
+    #Capture Page Screenshot With Timestamp
+    Click Button    ${CLUSTER_OK_BUTTON}
+    Sleep    5s
+
+
+Create Cluster On UI Negative
+    [Arguments]    ${clustername}    ${data}
+    Click Clusters Tab
+    Click Button    ${CLUSTER_CREATE_BUTTON}
+    Page Should Contain Button    ${CLUSTER_SAVE_BUTTON}
+    Input Text    ${CLUSTER_NAME_INPUT}    ${clustername}
+    Input Text    ${CLUSTER_DATA_TEXTAREA}    ${data}
+    Click Button    ${CLUSTER_SAVE_BUTTON}
+    Sleep    7s
+    #Capture Page Screenshot With Timestamp
+
+#---------------------------------------------------------------------------------------
+# 11 Cluster Edits
+
+Create pre-requisite data for cluster edits
+    Run Suite Set up for cluster creation
+    Click Clusters Tab
+    Sleep    5s
+    Create Cluster On UI    clustername=${clustername}    data=11158    count=1
+
+Edit Cluster Name
+    [Arguments]    ${clusterName}=
+    ...            ${NameToBeModified}=
+    Search Cluster    clusterName=${clusterName}
+    Set Test Variable    ${CLUSTERxPath}    xpath=.//a[contains(.,'${clusterName}')]
+    Click Element    ${CLUSTERxPath}
+    Sleep    9s
+    Click Element    ${CLUSTER_NAME_EDIT_BUTTON}
+    Sleep    9s
+    Input Text    ${CLUSTER_NAME_BUTTON}    ${NameToBeModified}
+    Capture Page Screenshot With Timestamp
+    Click Element    ${CLUSTER_EDIT_SAVE}
+    Sleep    9s
+
+
+Get cluster element xpath
+    [Arguments]    ${clusterName}=
+    Set Test Variable    ${CLUSTERxPath}    xpath=.//a[contains(.,'${clusterName}')]
+    Click Element    ${CLUSTERxPath}
+    Sleep    9s
+
+
+Search Cluster
+    [Arguments]    ${clusterName}=
+    Click Clusters Tab
+    Sleep    9s
+    Clear Element Text    ${SEARCH_CLUSTER}
+    Press Key    ${SEARCH_CLUSTER}    ${clusterName}
+    Sleep    9s
+    Page Should Contain    ${clusterName}
+    Capture Page Screenshot With Timestamp
+
+
+Edit Clusters on UI
+    Click Clusters Tab
+    Click Search    ${CLUSTER_SEARCH_INPUT}
+    Input Text    ${CLUSTER_NAME_INPUT}    ${clustername}
+    Input Text    ${CLUSTER_DATA_TEXTAREA}    ${data}
+    Capture Page Screenshot With Timestamp
+    Click Button    ${CLUSTER_SAVE_BUTTON}
+    Sleep    9s
+    Capture Page Screenshot With Timestamp
+
+
+Add Sites and Apps in Cluster
+    [Arguments]    ${filtername}=
+    Click Element    ${CLUSTER_ADD_SITES_N_APPS_BUTTON}
+    Sleep    9s
+    Input Text    ${CLUSTER_ADD_FILTERS}    ${filtername}
+    Sleep    9s
+    Capture Page Screenshot With Timestamp
+    Click Element    ${CLUSTER_ADD_SITES_APP}
+    Sleep    9s
+    Capture Page Screenshot With Timestamp
+
+#---------------------------------------------------------------------------------------
+#########################
+#Create Parent Ad group
+########################
+Create Parent Ad On UI
+    [Documentation]     Here User should be at the creation page, this just fill in the parameter
+    [Arguments]         ${parent_name}=
+    ...                 ${parent_external_id}=
+    ...                 ${parent_io}=
+    ...                 ${parent_timezone}=
+    ...                 ${parent_start_date}=${REGRESSION_START_DATE}
+    ...                 ${parent_start_time}=12:00 AM
+    ...                 ${parent_end_date}=${REGRESSION_END_DATE}
+    ...                 ${parent_end_time}=11:59 PM
+    ...                 ${parent_hhfc_daily_cap}=10
+    ...                 ${parent_hhfc_daily_days}=1
+    ...                 ${parent_hhfc_overall_cap}=50
+    ...                 ${parent_devicefc_daily_cap}=10
+    ...                 ${parent_devicefc_daily_days}=1
+    ...                 ${parent_devicefc_overall_cap}=50
+    ...                 ${parent_ipfc_daily_cap}=10
+    ...                 ${parent_ipfc_daily_days}=1
+    ...                 ${parent_ipfc_overall_cap}=50
+    ...                 ${parent_viewability_optimization}=false
+    ...                 ${parent_viewability_customer}=Viewable Impressions
+    ...                 ${parent_viewability_percent}=50
+    ...                 ${parent_viewability_extrapolate}=
+    ...                 ${parent_optimization}=VCR Optimization
+    ...                 ${parent_digital_conversion}=
+    ...                 ${parent_sale_lift1}=Other
+    ...                 ${parent_sale_lift2}=None
+    ...                 ${parent_target_hh}=
+    ...                 ${parent_target_device}=
+    ...                 ${parent_target_geofence}=
+    ...                 ${parent_data_partner}=None
+
+    Input Text         ${PARENT_NAME_TEXTBOX}        ${parent_name}
+    Input Text         ${PARENT_EXTERNAL_ID_TEXTBOX}        ${parent_external_id}
+    Input Text         ${PARENT_IO_TEXTBOX}        ${parent_io}
+    Select From List By Label            ${PARENT_TIMEZONE_SELECT}        ${parent_timezone}
+    Input Text             ${PARENT_START_DATE_TEXTBOX}        ${parent_start_date}
+    Select From List By Label             ${PARENT_START_TIME_SELECT}        ${parent_start_time}
+    Input Text             ${PARENT_END_DATE_TEXTBOX}        ${parent_end_date}
+    Select From List By Label             ${PARENT_END_TIME_SELECT}        ${parent_end_time}
+
+    Click Element            ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Input Text             ${PARENT_HH_FC_PER_DAY_TEXTBOX}        ${parent_hhfc_daily_cap}
+    Input Text             ${PARENT_HH_FC_PER_DAY2_TEXTBOX}        ${parent_hhfc_daily_days}
+    Click Element            ${PARENT_HH_FC_PER_DURATION_CHECKBOX}
+    Input Text             ${PARENT_HH_FC_PER_DURATION_TEXTBOX}        ${parent_hhfc_overall_cap}
+
+    Click Element         ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Input Text             ${PARENT_DEVICE_FC_PER_DAY_TEXTBOX}        ${parent_devicefc_daily_cap}
+    Input Text             ${PARENT_DEVICE_FC_PER_DAY2_TEXTBOX}        ${parent_devicefc_daily_days}
+    Click Element         ${PARENT_DEVICE_FC_PER_DURATION_CHECKBOX}
+    Input Text             ${PARENT_DEVICE_FC_PER_DURATION_TEXTBOX}        ${parent_devicefc_overall_cap}
+
+    Click Element         ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Input Text             ${PARENT_IP_FC_PER_DAY_TEXTBOX}        ${parent_ipfc_daily_cap}
+    Input Text             ${PARENT_IP_FC_PER_DAY2_TEXTBOX}        ${parent_ipfc_daily_days}
+    Click Element         ${PARENT_IP_FC_PER_DURATION_CHECKBOX}
+    Input Text             ${PARENT_IP_FC_PER_DURATION_TEXTBOX}        ${parent_ipfc_overall_cap}
+
+    Click Element            ${PARENT_VIEWABILITY_CHECKBOX}
+    Select From List By Label             ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    ${parent_viewability_customer}
+    Input Text             ${PARENT_VIEWABILITY_PERCENT_OF_IO_TEXTBOX}        ${parent_viewability_percent}
+    Click Element    ${PARENT_VIEWABILITY_EXTRAPOLATE_CHECKBOX}
+
+    Click Element         ${PARENT_CtrVcrOptimization_CHECKBOX}
+    Select From List By Label     ${PARENT_CtrVcrOptimization_SELECTION}    ${parent_optimization}
+
+    Click Element         ${PARENT_DIGITAL_COVERSION_CHECKBOX}
+
+    Select From List By Label    ${PARENT_SALES_LIFT1_SELECTION}    ${parent_sale_lift1}
+    Select From List By Label    ${PARENT_SALES_LIFT2_SELECTION}    ${parent_sale_lift2}
+
+    Click Element          ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Click Element    ${PARENT_TARGETING_HH_BOOST_CHECKBOX}
+    Select From List By Label    ${PARENT_TARGETING_DATA_PARTNER_SELECTION}    ${parent_data_partner}
+
+    Click Element         ${PARENT_TARGETING_DEVICE_ID_SEGMENT_CHECKBOX}
+
+    Click Element          ${PARENT_TARGETING_DEVICE_GEO_SEGMENT_CHECKBOX}
+
+
+Open Campaign summery page
+    [Arguments]    ${Advertiser_name}=00_QATEST_parent
+    ...            ${Campaign_name}=00_QATEST_child
+    Search Advertiser And Open    ADVERTISER_NAME=${Advertiser_name}
+
+
+Add General information for ChildAdGroup
+    [Arguments]     ${Child_AdGroup_Name}=QA_TEST_UI_CHILD
+    ...             ${Child_CPM}=10
+    ...             ${Child_Impression_Goal}=1000
+    ...             ${Child_Advertiser_Domain}=https://4info.com
+    ...             ${Child_Start_date_date}=10/30/2017
+    ...             ${Child_End_date_date}=08/15/2018
+    ...             ${Child_Start_Time}=1:00 AM
+    ...             ${Child_End_Time}=7:59 PM
+    ...             ${Child_Include_AdChoice_Icon}=On
+    Input Text      ${CHILD_NAME_TEXTBOX}               ${Child_AdGroup_Name}
+    Input Text      ${CPM_TEXTBOX}                      ${Child_CPM}
+    Input Text      ${IMPRESSION_CHILD_TEXTBOX}         ${Child_Impression_Goal}
+    Input Text      ${ADVERTISER_DOMAIN}                ${Child_Advertiser_Domain}
+    Clear Element Text      ${CHILD_START_DATE}
+    Clear Element Text      ${CHILD_END_DATE}
+    Input Text              ${CHILD_START_DATE}                 ${Child_Start_date_date}
+    Input Text              ${CHILD_END_DATE}                   ${Child_End_date_date}
+    Select From List        ${CHILD_START_DATE_TIME}            ${Child_Start_Time}
+    Select From List        ${CHILD_END_DATE_TIME}              ${Child_End_Time}
+    Select From List        ${ADCHOICE_ICON_DROPDOWN}           ${Child_Include_AdChoice_Icon}
+
+Remove Store Visit List
+    [Arguments]     ${STORE_VISIT_CATEGORY}=
+    Log         ${STORE_VISIT_CATEGORY}
+     :For   ${Item}    IN   @{STORE_VISIT_CATEGORY}
+    \       Mouse Over          xpath=(.//div[contains(normalize-space(.), '${Item}')])[last()]
+    \       Click Element       xpath=((.//div[contains(normalize-space(.), '${Item}')])[last()]/child::span)[1]
+    \       Sleep  1s
+
+
+#IAB ###################################################################
+Add Targeting IAB Content Category
+    [Arguments]     ${INC_IAB_CONTENT_LIST}=
+    ...             ${EXC_IAB_CONTENT_LIST}=
+    Click Element       ${TARGETING_IAB_CONTENT_CATEGORY}
+    Include IAB Content Types        ${INC_IAB_CONTENT_LIST}
+    Exclude IAB Content Types        ${EXC_IAB_CONTENT_LIST}
+
+
+Include IAB Content Types
+    [Arguments]     ${INC_IAB_CONTENT_LIST}=      ${Count}=0
+
+    Log      ${INC_IAB_CONTENT_LIST}
+    :For    ${Item}    IN   @{INC_IAB_CONTENT_LIST}
+    \       Input Text          ${FILTER_TEXTBOX}           ${Item}
+    \       Sleep    2s
+    # \     Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Click Element    xpath=//*[@id="available-segments-ul"]/li/div/label
+    \       Clear Element Text    ${FILTER_TEXTBOX}
+    \       Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+Exclude IAB Content Types
+    [Arguments]     ${EXC_IAB_CONTENT_LIST}=      ${Count}=0
+
+    Sleep   5s
+    Log      ${EXC_IAB_CONTENT_LIST}
+    :For    ${Item}    IN   @{EXC_IAB_CONTENT_LIST}
+    \       Input Text          ${FILTER_TEXTBOX}           ${Item}
+    \       Sleep    2s
+    # \     Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Click Element    xpath=//*[@id="available-segments-ul"]/li/div/label
+    \       Clear Element Text    ${FILTER_TEXTBOX}
+    \       Click Button        ${TARGETING_EXCLUDE_BUTTON}      #BUG logged for having id for this element
+    \       Sleep   2s
+
+#Traffic Type ######################################
+Add Targeting Traffic Type Category
+    [Arguments]      ${TARGETING_TRAFFIC_TYPE}=
+    Sleep   5s
+    ${Is_Checkbox_Selected}=    Run Keyword And Return Status    Checkbox Should Be Selected    ${TARGETING_TRAFFIC_TYPE}
+    ${Actual_Chkbx_Value}=      Run Keyword If    '${Is_Checkbox_Selected}'== 'True'    Set Variable    Yes
+    ...    ELSE IF    '${Is_Checkbox_Selected}'== 'False'    Set Variable    No
+    Log    ${Actual_Chkbx_Value}
+    Run Keyword Unless     "${Actual_Chkbx_Value}" == "Yes"     Click Element      ${TARGETING_TRAFFIC_TYPE}
+    Click Element                                                                  ${TARGETING_TRAFFIC_TYPE}
+    # Page Should Contain Image           Xpath=//img[@src='./assets/alert-icon.png']
+    Sleep      5s
+    # Click Element              ${TARGETING_TRAFFIC_TYPE}
+    Click Element              ${TRAFFIC_TYPE_MOBILE_WEB}
+    Click Element              ${TRAFFIC_TYPE_MOBILE_WEB}
+    Click Element              ${TRAFFIC_TYPE_MOBILE_APP}
+    Click Element              ${TRAFFIC_TYPE_MOBILE_APP}
+    # Unselect Checkbox       ${TRAFFIC_TYPE_DESKTOP}
+    # Select Checkbox         ${TRAFFIC_TYPE_DESKTOP}
+
+
+#CLUSTERS##################################################
+
+
+Add Targeting Clusters Category
+    [Arguments]     ${INC_CLUSTERS_CONTENT_LIST}=
+    ...             ${EXC_CLUSTERS_CONTENT_LIST}=
+    Click Element       ${TARGETING_CLUSTER}
+    Sleep   2s
+    Page Should Contain     INCLUDED CLUSTERS
+    Page Should Contain     EXCLUDED CLUSTERS
+    Include Clusters Types        ${INC_CLUSTERS_CONTENT_LIST}
+    Exclude Clusters Types        ${EXC_CLUSTERS_CONTENT_LIST}
+
+
+Include Clusters Types
+    [Arguments]     ${INC_CLUSTERS_CONTENT_LIST}=      ${Count}=0
+
+    Log      ${INC_CLUSTERS_CONTENT_LIST}
+    :For    ${Item}    IN   @{INC_CLUSTERS_CONTENT_LIST}
+    \       Input Text          ${FILTER_TEXTBOX}           ${Item}
+    \       Sleep   4s
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Clear Element Text    ${FILTER_TEXTBOX}
+    \       Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+Exclude Clusters Types
+    [Arguments]     ${EXC_CLUSTERS_CONTENT_LIST}=      ${Count}=0
+
+    Sleep   5s
+    Log      ${EXC_CLUSTERS_CONTENT_LIST}
+    :For    ${Item}    IN   @{EXC_CLUSTERS_CONTENT_LIST}
+    \       Input Text          ${FILTER_TEXTBOX}           ${Item}
+    \       Sleep   4s
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Clear Element Text    ${FILTER_TEXTBOX}
+    \       Click Button        ${TARGETING_EXCLUDE_BUTTON}      #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+Add Targeting Country Category
+    [Arguments]         ${COUNTRY_LIST}=
+    Sleep  2s
+    Click Element       ${COUNTRY_US}        #Becuase it is already checked state
+    Log      ${COUNTRY_LIST}
+    :For    ${Item}    IN   @{COUNTRY_LIST}
+    \    Run Keyword If     "${Item}"=="US"                 Click Element         ${COUNTRY_US}
+    \    Run Keyword If     "${Item}"=="Canada"             Click Element         ${COUNTRY_CANADA}
+    \    Run Keyword If     "${Item}"=="Guam"               Click Element         ${COUNTRY_GAUM}
+    \    Run Keyword If     "${Item}"=="Puerto Rico"        Click Element         ${COUNTRY_PUERTO_RICO}
+    \    Run Keyword If     "${Item}"=="Mexico"             Click Element         ${COUNTRY_MEXICO}
+    \    Run Keyword If     "${Item}"=="Brazil"             Click Element         ${COUNTRY_BRAZIL}
+    Sleep  4s
+
+Add Targeting Request state Category
+    [Arguments]         ${INC_REQUEST_STATE_CONTENT_LIST}=
+    ...                 ${EXC_REQUEST_STATE_CONTENT_LIST}=
+    Click Element       ${TARGETING_REQUEST_STATE}
+    Sleep   2s
+    Page Should Contain     INCLUDED STATES
+    Page Should Contain     EXCLUDED STATES
+    Include Request state Types        ${INC_REQUEST_STATE_CONTENT_LIST}
+    Exclude Request state Types        ${EXC_REQUEST_STATE_CONTENT_LIST}
+
+Include Request state Types
+    [Arguments]     ${INC_REQUEST_STATE_CONTENT_LIST}=      ${Count}=0
+
+    Log      ${INC_REQUEST_STATE_CONTENT_LIST}
+    :For    ${Item}    IN   @{INC_REQUEST_STATE_CONTENT_LIST}
+    \       Input Text          ${FILTER_TEXTBOX}           ${Item}
+    \       Sleep    3s
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Clear Element Text    ${FILTER_TEXTBOX}
+    \       Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+Exclude Request state Types
+    [Arguments]     ${EXC_REQUEST_STATE_CONTENT_LIST}=      ${Count}=0
+
+    Sleep   5s
+    Log      ${EXC_REQUEST_STATE_CONTENT_LIST}
+    :For    ${Item}    IN   @{EXC_REQUEST_STATE_CONTENT_LIST}
+    \       Input Text          ${FILTER_TEXTBOX}           ${Item}
+    \       Sleep    3s
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Clear Element Text    ${FILTER_TEXTBOX}
+    \       Click Button        ${TARGETING_EXCLUDE_BUTTON}      #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+
+Add Targeting Request DMA Category
+    [Arguments]         ${INC_REQUEST_DMA_CONTENT_LIST}=
+    ...                 ${EXC_REQUEST_DMA_CONTENT_LIST}=
+    Click Element       ${TARGETING_REQUEST_DMA}
+    Sleep    5s
+    Page Should Contain     INCLUDED DMAs
+    Page Should Contain     EXCLUDED DMAs
+    Include Request DMA Types        ${INC_REQUEST_DMA_CONTENT_LIST}
+    Exclude Request DMA Types        ${EXC_REQUEST_DMA_CONTENT_LIST}
+
+Include Request DMA Types
+    [Arguments]     ${INC_REQUEST_DMA_CONTENT_LIST}=      ${Count}=0
+
+    Log      ${INC_REQUEST_DMA_CONTENT_LIST}
+    :For    ${Item}    IN   @{INC_REQUEST_DMA_CONTENT_LIST}
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+Exclude Request DMA Types
+    [Arguments]     ${EXC_REQUEST_DMA_CONTENT_LIST}=      ${Count}=0
+
+    Sleep   5s
+    Log      ${EXC_REQUEST_DMA_CONTENT_LIST}
+    :For    ${Item}    IN   @{EXC_REQUEST_DMA_CONTENT_LIST}
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Click Button        ${TARGETING_EXCLUDE_BUTTON}      #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+
+Add Targeting Household state Category
+    [Arguments]         ${INC_HH_STATE_CONTENT_LIST}=
+    ...                 ${EXC_HH_STATE_CONTENT_LIST}=
+    Click Element       ${TARGETING_HOUSEHOLD_STATE}
+    Page Should Contain     INCLUDED STATES
+    Page Should Contain     EXCLUDED STATES
+    Include Household state Types        ${INC_HH_STATE_CONTENT_LIST}
+    Exclude Household state Types        ${EXC_HH_STATE_CONTENT_LIST}
+
+Include Household state Types
+    [Arguments]     ${INC_HH_STATE_CONTENT_LIST}=      ${Count}=0
+
+    Log      ${INC_HH_STATE_CONTENT_LIST}
+    :For    ${Item}    IN   @{INC_HH_STATE_CONTENT_LIST}
+    \       Input Text          ${FILTER_TEXTBOX}           ${Item}
+    \       Sleep   4s
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Clear Element Text    ${FILTER_TEXTBOX}
+    \       Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+Exclude Household state Types
+    [Arguments]     ${EXC_HH_STATE_CONTENT_LIST}=      ${Count}=0
+
+    Sleep   5s
+    Log      ${EXC_HH_STATE_CONTENT_LIST}
+    :For    ${Item}    IN   @{EXC_HH_STATE_CONTENT_LIST}
+    \       Input Text          ${FILTER_TEXTBOX}           ${Item}
+    \       Sleep   4s
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Clear Element Text    ${FILTER_TEXTBOX}
+    \       Click Button        ${TARGETING_EXCLUDE_BUTTON}      #BUG logged for having id for this element
+    \       Sleep   2s
+
+Add Targeting Household DMA Category
+    [Arguments]         ${INC_HH_DMA_CONTENT_LIST}=
+    ...                 ${EXC_HH_DMA_CONTENT_LIST}=
+    Click Element       ${TARGETING_REQUEST_DMA}
+    Page Should Contain     INCLUDED DMAs
+    Page Should Contain     EXCLUDED DMAs
+    Include Household DMA Types        ${INC_HH_DMA_CONTENT_LIST}
+    Exclude Household DMA Types        ${EXC_HH_DMA_CONTENT_LIST}
+
+Include Household DMA Types
+    [Arguments]     ${INC_HH_DMA_CONTENT_LIST}=      ${Count}=0
+
+    Log      ${INC_HH_DMA_CONTENT_LIST}
+    :For    ${Item}    IN   @{INC_HH_DMA_CONTENT_LIST}
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+Exclude Household DMA Types
+    [Arguments]     ${EXC_HH_DMA_CONTENT_LIST}=      ${Count}=0
+
+    Sleep   5s
+    Log      ${EXC_HH_DMA_CONTENT_LIST}
+    :For    ${Item}    IN   @{EXC_HH_DMA_CONTENT_LIST}
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Click Button        ${TARGETING_EXCLUDE_BUTTON}      #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+Select Device and OS
+    [Arguments]     ${device_OS}=
+    ...             ${device_version}=
+    Run Keyword If     "${device_OS}"=="iPhone OS"               Click Element           ${DEVICE_OS_IPHONE}
+    Run Keyword If     "${device_OS}"=="iPhone OS"               Select From List        ${DEVICE_OS_IPHONE_VERSION_DROPDOWN}    ${device_version}
+    Run Keyword If     "${device_OS}"=="Android"                 Click Element           ${DEVICE_OS_ANDROID}
+    Run Keyword If     "${device_OS}"=="Android"                 Select From List        ${DEVICE_OS_ANDROID_VERSION_DROPDOWN}    ${device_version}
+    Run Keyword If     "${device_OS}"=="Windows Phone OS"        Click Element           ${DEVICE_OS_WINDOWS}
+    Run Keyword If     "${device_OS}"=="Windows Phone OS"        Select From List        ${DEVICE_OS_WINDOWS_VERSION_DROPDOWN}    ${device_version}
+    Run Keyword If     "${device_OS}"=="RIM OS"                  Click Element           ${DEVICE_OS_RIM}
+    Run Keyword If     "${device_OS}"=="RIM OS"                  Select From List        ${DEVICE_OS_RIM_VERSION_DROPDOWN}    ${device_version}
+    Run Keyword If     "${device_OS}"=="Other"                   Click Element           ${DEVICE_OS_OTHER}
+    Run Keyword If     "${device_OS}"=="Other"                   Select From List        ${DEVICE_OS_OTHER_VERSION_DROPDOWN}    ${device_version}
+    Run Keyword If     "${device_OS}"=="BREW"                    Click Element           ${DEVICE_OS_BREW}
+    Run Keyword If     "${device_OS}"=="BREW"                    Select From List        ${DEVICE_OS_BREW_VERSION_DROPDOWN}    ${device_version}
+
+
+Add Targeting Device Type Category
+    [Arguments]         ${DEVICE_TYPE}=
+    Sleep  2s
+    Click Element       ${TARGETING_DEVICE_TYPE}        #Becuase it is already checked state
+    Sleep           5s
+    Log      ${DEVICE_TYPE}
+    :For    ${Item}    IN   @{DEVICE_TYPE}
+    \    Run Keyword If     "${Item}"=="phone"                 Click Element         ${DEVICE_TYPE_PHONE}
+    \    Run Keyword If     "${Item}"=="tablet"                Click Element         ${DEVICE_TYPE_TABLET}
+    \    Run Keyword If     "${Item}"=="other"                 Click Element         ${DEVICE_TYPE_OTHER}
+    Sleep  4s
+
+
+
+
+Add Targeting Days Of The Week Category
+    [Arguments]     ${DAYS}=
+    ...             ${Time_Zone}=
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Day of the week
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+    Sleep    3s
+    # Click Element            ${CARRIER_VARIZON}          #Becuase it is already checked state
+    Log      ${DAYS}
+    :For    ${Item}    IN   @{DAYS}
+    \    Run Keyword If     "${Item}"=="Sunday"                   Click Element            ${TARGET_DAY_OF_WEEK_SUN}
+    \    Run Keyword If     "${Item}"=="Monday"                   Click Element            ${TARGET_DAY_OF_WEEK_MON}
+    \    Run Keyword If     "${Item}"=="Tuesday"                  Click Element            ${TARGET_DAY_OF_WEEK_TUE}
+    \    Run Keyword If     "${Item}"=="Wednesday"                Click Element            ${TARGET_DAY_OF_WEEK_WED}
+    \    Run Keyword If     "${Item}"=="Thursday"                 Click Element            ${TARGET_DAY_OF_WEEK_THU}
+    \    Run Keyword If     "${Item}"=="Friday"                   Click Element            ${TARGET_DAY_OF_WEEK_FRI}
+    \    Run Keyword If     "${Item}"=="Saturday"                 Click Element            ${TARGET_DAY_OF_WEEK_SAT}
+    Select From List                    ${TARGET_DAY_OF_WEEK_TZ}        ${Time_Zone}
+
+
+
+Add Targeting Carrier Category
+    [Arguments]         ${Carrier}=
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Carrier
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+    Wait Until Page Contains            Sprint         timeout=10s
+    Wait Until Page Contains            Verizon         timeout=10s
+    Wait Until Page Contains            MetroPCS         timeout=10s
+    Log      ${Carrier}
+    :For    ${Item}    IN   @{Carrier}
+    \    Run Keyword If     "${Item}"=="AT&T"                       Click Element            ${CARRIER_AT&T}
+    \    Run Keyword If     "${Item}"=="T-Mobile"                   Click Element            ${CARRIER_T-MOBILE}
+    \    Run Keyword If     "${Item}"=="Sprint"                     Click Element            ${CARRIER_SPRINT}
+    \    Run Keyword If     "${Item}"=="Other OTA Cellular"         Click Element            ${CARRIER_OTHER}
+    \    Run Keyword If     "${Item}"=="MetroPCS"                   Click Element            ${CARRIER_METROPCS}
+    \    Run Keyword If     "${Item}"=="Verizon"                    Click Element            ${CARRIER_VARIZON}
+
+
+Add Targeting Language Category
+    [Arguments]         ${Language}=
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Language
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+    Sleep   3s
+    Log      ${Language}
+    :For    ${Item}    IN   @{Language}
+    \    Run Keyword If     "${Item}"=="English"                   Click Element            ${LANGUAGE_CHECK_ENG}
+    \    Run Keyword If     "${Item}"=="Spanish"                   Click Element            ${LANGUAGE_CHECK_SPA}
+
+
+
+
+Add Targeting Exchange Category
+    [Arguments]         ${INC_EXCHANGE_CONTENT_LIST}=
+    ...                 ${EXC_EXCHANGE_CONTENT_LIST}=
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Exchange
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+    Sleep   3s
+    Include Exchange Types        ${INC_EXCHANGE_CONTENT_LIST}
+    Exclude Exchange Types        ${EXC_EXCHANGE_CONTENT_LIST}
+
+Include Exchange Types
+    [Arguments]     ${INC_EXCHANGE_CONTENT_LIST}=      ${Count}=0
+
+    Log      ${INC_EXCHANGE_CONTENT_LIST}
+    :For    ${Item}    IN   @{INC_EXCHANGE_CONTENT_LIST}
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    \       Sleep   2s
+
+
+Exclude Exchange Types
+    [Arguments]     ${EXC_EXCHANGE_CONTENT_LIST}=      ${Count}=0
+
+    Sleep   5s
+    Log      ${EXC_EXCHANGE_CONTENT_LIST}
+    :For    ${Item}    IN   @{EXC_EXCHANGE_CONTENT_LIST}
+    \       Click Element       ${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Click Button        ${TARGETING_EXCLUDE_BUTTON}      #BUG logged for having id for this element
+    \       Sleep   2s
+
+Add Targeting Location Category
+    [Arguments]         ${LOCATION}=
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Location
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+    Sleep   3s
+    Log      ${LOCATION}
+    :For    ${Item}    IN   @{LOCATION}
+    \    Run Keyword If     "${Item}"=="Undetermined"           Click Element            ${LOCATION_UNDETERMINED}
+    \    Run Keyword If     "${Item}"=="Away"                   Click Element            ${LOCATION_AWAY}
+    \    Run Keyword If     "${Item}"=="Home"                   Click Element            ${LOCATION_HOME}
+
+
+Add Targeting Device MFC Category
+    [Arguments]     ${DEV_MFC}=      ${Count}=0
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Device manufacturer
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+    Log      ${DEV_MFC}
+    Sleep   4s
+    :For    ${Item}    IN   @{DEV_MFC}
+    \       Click Element       ${DEVICE_MFC_CHECKBOX}"${Item}"]
+    \       Click Button        ${DEV_MFC_SELECT_BUTTON}
+    \       Sleep   2s
+
+
+Add Targeting Private marketplaces Category
+    [Arguments]     ${EXHANGE}=      ${DEAL_ID}=
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Private marketplaces
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+    Sleep   4s
+    Select From List                    ${EXCHANGE_DROPDOWN}        ${EXHANGE}
+    Sleep   1s
+    Input Text              ${EXCHANGE_DEALSID}         ${DEAL_ID}
+
+
+Add Targeting Time of the day Category
+    [Arguments]     ${time_zone}=      ${from}=           ${to}=
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Time of the day
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+    Sleep    5s
+    Select From List                    ${TOD_TIME_ZONE}        ${time_zone}
+    Sleep   1s
+    Select From List                    ${TOD_TIME_FROM}        ${from}
+    Sleep   1s
+    Select From List                    ${TOD_TIME_TO}        ${to}
+
+
+Add Targeting ideo Streaming postion Category
+    [Arguments]         ${video_postions}=
+    Select From List                    ${ADDITIONAL_TARGETTING_DROPDOWN}        Video Streaming Position
+    Click Button                        ${ADDITIONAL_TARGETTING_BUTTON}
+    Sleep   3s
+    Log      ${video_postions}
+    :For    ${Item}    IN   @{video_postions}
+    \    Run Keyword If     "${Item}"=="Pre-roll"           Click Element            ${VIDEO_STR_PRE_ROLE}
+    \    Run Keyword If     "${Item}"=="Mid-roll"           Click Element            ${VIDEO_STR_MID_ROLE}
+    \    Run Keyword If     "${Item}"=="Post-roll"          Click Element            ${VIDEO_STR_POST_ROLE}
+    \    Run Keyword If     "${Item}"=="Interstitial"       Click Element            ${VIDEO_STR_INTERSTITIAL}
+
+
+##########################################################################################
+#PARENT AD GROUP TEST SCRIPTS
+##########################################################################################
+
+
+
+Add General information for ParentAdGroup
+    [Arguments]     ${Parent_AdGroup_Name}=QA_TEST_UI_PARENT
+    ...             ${Parent_External_id}=BVTFourinfo
+    ...             ${Parent_Impression_Goal}=1000
+    ...             ${Parent_Time_zone}=GMT
+    ...             ${Parent_Start_date_date}=02/02/2018
+    ...             ${Parent_End_date_date}=11/11/2018
+    ...             ${Parent_Start_Time}=1:00 AM
+    ...             ${Parent_End_Time}=7:59 PM
+    Focus                   ${CHILD_NAME_TEXTBOX}
+    Input Text              ${CHILD_NAME_TEXTBOX}               ${Parent_AdGroup_Name}
+    Sleep   3s
+    Focus                   ${PARENT_EXTERNAL_ID_TEXTBOX}
+    Sleep   1s
+    Input Text              ${PARENT_EXTERNAL_ID_TEXTBOX}       ${Parent_External_id}
+    Sleep   4s
+    Focus                   ${IMPRESSION_CHILD_TEXTBOX}
+    Sleep   1s
+    Input Text              ${IMPRESSION_CHILD_TEXTBOX}         ${Parent_Impression_Goal}
+    Sleep   4s
+    Select From List        ${PARENT_TIMEZONE_SELECT}           ${Parent_Time_zone}
+    Sleep   4s
+    Clear Element Text      ${PARENT_START_DATE_TEXTBOX}
+    Sleep   4s
+    Clear Element Text      ${PARENT_END_DATE_TEXTBOX}
+    Sleep   4s
+    Focus                   ${PARENT_START_DATE_TEXTBOX}
+    Sleep   1s
+    Input Text              ${PARENT_START_DATE_TEXTBOX}                 ${Parent_Start_date_date}
+    Sleep   4s
+    Focus                   ${PARENT_END_DATE_TEXTBOX}
+    Sleep   1s
+    Input Text              ${PARENT_END_DATE_TEXTBOX}                   ${Parent_End_date_date}
+    Sleep   4s
+    Select From List        ${PARENT_START_TIME_SELECT}            ${Parent_Start_Time}
+    Sleep   4s
+    Select From List        ${PARENT_END_TIME_SELECT}              ${Parent_End_Time}
+    Sleep   4s
+
+
+Add HouseHold Frequency Cap
+    [Arguments]         ${householdShowingTimeLimit}=0
+    ...                 ${householdShowingPerDay}=
+    ...                 ${householdNotMoreThanDuration}=
+    ...                 ${deviceShowingTimeLimit}=0
+    ...                 ${deviceShowingPerDay}=
+    ...                 ${deviceNotMoreThanDuration}=
+    ...                 ${ipShowingTimeLimit}=0
+    ...                 ${ipShowingPerDay}=
+    ...                 ${ipNotMoreThanDuration}=
+    Run Keyword Unless    "${householdShowingTimeLimit}"=="0"       Click Element       ${PARENT_HH_FC_PER_DAY_CHECKBOX}
+    Sleep    4s
+    Run Keyword Unless    "${householdShowingTimeLimit}"=="0"       Input Text          ${PARENT_HH_FC_PER_DAY_TEXTBOX}        ${householdShowingTimeLimit}
+    Run Keyword Unless    "${householdShowingTimeLimit}"=="0"       Input Text          ${PARENT_HH_FC_PER_DAY2_TEXTBOX}       ${householdShowingPerDay}
+    Clear Element Text          ${PARENT_HH_FC_PER_DURATION_TEXTBOX}
+    Sleep  2s
+    Input Text         ${PARENT_HH_FC_PER_DURATION_TEXTBOX}     ${householdNotMoreThanDuration}
+
+    Run Keyword Unless    "${deviceShowingTimeLimit}"=="0"       Click Element       ${PARENT_DEVICE_FC_PER_DAY_CHECKBOX}
+    Run Keyword Unless    "${deviceShowingTimeLimit}"=="0"       Input Text          ${PARENT_DEVICE_FC_PER_DAY_TEXTBOX}        ${deviceShowingTimeLimit}
+    Run Keyword Unless    "${deviceShowingTimeLimit}"=="0"       Input Text          ${PARENT_DEVICE_FC_PER_DAY2_TEXTBOX}       ${deviceShowingPerDay}
+    Run Keyword Unless    "${deviceShowingTimeLimit}"=="0"       Click Element       ${PARENT_DEVICE_FC_PER_DURATION_CHECKBOX}
+    Input Text         ${PARENT_DEVICE_FC_PER_DURATION_TEXTBOX}     ${deviceNotMoreThanDuration}
+
+    Run Keyword Unless    "${ipShowingTimeLimit}"=="0"       Click Element       ${PARENT_IP_FC_PER_DAY_CHECKBOX}
+    Run Keyword Unless    "${ipShowingTimeLimit}"=="0"       Input Text          ${PARENT_IP_FC_PER_DAY_TEXTBOX}        ${ipShowingTimeLimit}
+    Run Keyword Unless    "${ipShowingTimeLimit}"=="0"       Input Text          ${PARENT_IP_FC_PER_DAY2_TEXTBOX}       ${ipShowingPerDay}
+    Run Keyword Unless    "${ipShowingTimeLimit}"=="0"       Click Element       ${PARENT_IP_FC_PER_DURATION_CHECKBOX}
+    Input Text         ${PARENT_IP_FC_PER_DURATION_TEXTBOX}     ${ipNotMoreThanDuration}
+
+
+
+Add Measurement and performance parametes
+    [Arguments]         ${viewbilityOptimization}=0
+    ...                 ${customerRequirement}=Viewable Impressions
+    ...                 ${viewbleImpressionPercentage}=10
+    ...                 ${measarableGoal}=10
+    ...                 ${viewbleGoal}=10
+    ...                 ${viewableImpression}=10
+    ...                 ${extrapolateCheckbox}=0
+    ...                 ${optimization}=None
+    ...                 ${optimization_Goal}=30
+    ...                 ${digitalConversion}=0
+    ...                 ${eligibility}=0
+    ...                 ${digitalConversionText1}=None
+    ...                 ${digitalConversionText2}=None
+    ...                 ${exposureFileRecipient1}=ATT
+    ...                 ${exposureFileRecipient2}=Catalina
+    Run Keyword If      '${viewbilityOptimization}' == '1'        Click Element    ${PARENT_VIEWABILITY_CHECKBOX}
+    Sleep    1s
+    Run Keyword If      '${viewbilityOptimization}' == '1'        Page Should Contain     CUSTOMER REQUIREMENT
+    Run Keyword If      '${viewbilityOptimization}' == '1'        Page Should Contain     Viewable Impressions
+    Run Keyword If      '${viewbilityOptimization}' == '1'         Select From List      ${PARENT_VIEWABILITY_CUSTOMER_SELECTION}    ${customerRequirement}
+    Run Keyword If      '${viewbilityOptimization}' == '1'         Input Text            ${PARENT_VIEWABILITY_PERCENT_OF_IO_TEXTBOX}         ${viewbleImpressionPercentage}
+    Run Keyword If      '${customerRequirement}' == 'Measurable and Viewable Rates'     Input Text     ${PARENT_VIEWABILITY_MEASURABLE_GOAL_TEXTBOX}              ${measarableGoal}
+    Run Keyword If      '${customerRequirement}' == 'Custom'    Input Text     ${PARENT_VIEWABILITY_MEASURABLE_GOAL_TEXTBOX}              ${measarableGoal}
+    Run Keyword If      '${customerRequirement}' == 'Measurable and Viewable Rates'   Input Text     ${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}              ${viewbleGoal}
+    Run Keyword If      '${customerRequirement}' == 'Custom'    Input Text     ${PARENT_VIEWABILITY_VIEWABLE_GOAL_TEXTBOX}              ${viewbleGoal}
+    Run Keyword If      '${customerRequirement}' == 'Custom'    Input Text       ${PARENT_VIEWABILITY_VIEWABLE_IMPRESSION_TEXTBOX}              ${viewableImpression}
+    ${Is_Checkbox_Selected}  Run Keyword And Return Status  Checkbox Should Be Selected  ${extrapolateCheckbox}  True  Run Keyword If '${Is_Checkbox_Selected}'== 'True'  Set Variable  Yes  else if '${Is_Checkbox_Selected}'== 'False'  Set Variable  No  Log  ${Actual_Chkbx_Value}
+    Run Keyword If      '${extrapolateCheckbox}' == '1'        Run Keyword If    '${Is_Checkbox_Selected}'=='No'    Click Element     ${PARENT_VIEWABILITY_EXTRAPOLATE_CHECKBOX}
+    Run Keyword If      '${optimization}' == 'CTR Optimization'    Click Element        ${PARENT_CtrVcrOptimization_CHECKBOX}
+    Run Keyword If      '${optimization}' == 'CTR Optimization'    Select From List     ${PARENT_CtrVcrOptimization_SELECTION}     CTR Optimization
+    Run Keyword If      '${optimization}' == 'CTR Optimization'    Input Text           ${PARENT_CtrVcrOptimization_Goal}          ${optimization_Goal}
+    Run Keyword If      '${optimization}' == 'VCR Optimization'    Click Element        ${PARENT_CtrVcrOptimization_CHECKBOX}
+    Run Keyword If      '${optimization}' == 'VCR Optimization'    Select From List     ${PARENT_CtrVcrOptimization_SELECTION}      VCR Optimization
+    Run Keyword If      '${optimization}' == 'VCR Optimization'    Input Text           ${PARENT_CtrVcrOptimization_Goal}          ${optimization_Goal}
+    Run Keyword If      '${digitalConversion}' == '1'    Click Element       ${PARENT_CtrVcrOptimization_SELECTION}
+    Run Keyword If      '${eligibility}'== '1'           Click Element       ${PARENT_ELIGIBILITY_FILTER_CEHCKBOX}
+    Select From List            ${PARENT_SALES_LIFT1_SELECTION}     ${exposureFileRecipient1}
+    Select From List            ${PARENT_SALES_LIFT2_SELECTION}     ${exposureFileRecipient2}
+
+
+
+
+Add Targeting to parent ad group
+    [Arguments]         ${datapartner}=ATT
+    ...                 ${householdSegment}=0
+    ...                 ${boost}=1
+    ...                 ${HouseHoldSegmentInc}=
+    ...                 ${HouseHoldSegmentExc}=
+    Select From List    ${PARENT_TARGETING_DATA_PARTNER_SELECTION}          ${datapartner}
+    Run Keyword If      '${householdSegment}' == '1'     Click Element      ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Run Keyword If      '${boost}' == '0'                Click Element      ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Run Keyword If      '${householdSegment}' == '1'     Click Button       ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_ADD_BUTTON}
+    Sleep  4s
+    Run Keyword If      '${householdSegment}' == '1'     Include Targeting For Household Segment Parent Adgroup      ${HouseHoldSegmentInc}
+    Run Keyword If      '${householdSegment}' == '1'     Exclude Targeting For Household Segment Parent Adgroup      ${HouseHoldSegmentExc}
+    Run Keyword If      '${householdSegment}' == '1'     Click Button        ${PARENT_TARGETING_INCLUDE_EXCLUDE_SAVE_BUTTON}
+
+Include Targeting For Household Segment Parent Adgroup
+    [Arguments]     ${HouseHoldSegmentInc}=
+    Sleep     5s
+    Log      ${HouseHoldSegmentInc}
+    :For    ${Item}    IN   @{HouseHoldSegmentInc}
+    \       Input Text          ${FILTER_TEXTBOX}           ${Item}
+    \       Click Element       //md-checkbox[@ng-reflect-name="${Item}"]     #${FILTER_TEXTBOX_RESULT_CHECKBOX}'${Item}')]
+    \       Click Button        ${TARGETING_INCLUDE_BUTTON}       #BUG logged for having id for this element
+    \       Sleep   2s
+
+Exclude Targeting For Household Segment Parent Adgroup
+    [Arguments]     ${HouseHoldSegmentExc}=
+
+    Sleep   5s
+    Log      ${HouseHoldSegmentExc}
+    :For    ${Item}    IN   @{HouseHoldSegmentExc}
+    \       Input Text          ${FILTER_TEXTBOX}           ${Item}
+    \       Click Element      //md-checkbox[@ng-reflect-name="${Item}"]
+    \       Click Button        ${TARGETING_EXCLUDE_BUTTON}      #BUG logged for having id for this element
+    \       Sleep   2s
+
+Select Datapartner
+    [Arguments]     ${value}=ATT
+    Select From List        ${PARENT_TARGETING_DATA_PARTNER_SELECTION}          ${value}
+
+Save The Parent ad group
+    Click Button        ${PARENT_TOP_SAVE_BUTTON}
+
+Save The Parent ad group with bottom button
+    Click Button        ${PARENT_BOTTOM_SAVE_BUTTON}
+
+Add Sales Lift Measurements
+    [Arguments]     ${Rec1}=ATT
+    ...             ${Rec2}=Catalina
+    Select From List            ${PARENT_SALES_LIFT1_SELECTION}     ${Rec1}
+    Select From List            ${PARENT_SALES_LIFT2_SELECTION}     ${Rec2}
+
+#---------------------------------------------------------------------------------------
+Set Element The Desired Value
+    [Arguments]     ${xpath}=
+    ...             ${Value}=
+    Log    ${xpath} : ${Value}
+    Focus    ${xpath}
+
+    Clear Element Text    ${xpath}
+    Sleep    1s
+
+    Press Key   ${xpath}   ${Value}
+    Sleep    1s
+
+    Press Key   ${xpath}   \\09
+    Capture Page Screenshot With Timestamp
+
+
+
+Check Desired Error Populates
+    [Arguments]     ${message}=
+    ...             ${xpath}=NA
+    Log    ${message}
+    Run Keyword If    '${xpath}' != 'NA'    Element Should Contain    ${xpath}    ${message}
+    Run Keyword If    '${xpath}' == 'NA'    Page Should Contain    ${message}
+
+#---------------------------------------------------------------------------------------
+
+#Creative Ads search
+Search Creative and Ads
+    [Arguments]             ${searchItem}=
+    ...                     ${keyword}=
+    Select From List        ${TAB_SEARCH_SELECT}        ${searchItem}
+    Input Text              ${TAB_SEARCH_TEXTBOX}       ${keyword}
+    Sleep   3s
+    Click Element       xpath=(.//li[contains(normalize-space(.), '${keyword} (${DTO_id})')])[1]
+
+
+
+Add data for CM-2273 Optimization Goal Validations
+    [Arguments]    ${ParentName}
+    ...            ${optimization}
+    ...            ${goal}
+    ...            ${OptCheckboxCheckedOption}=Yes
+    Go To    ${Home_page}${campaign_Id}
+    Wait Until Element Is Visible    ${CAMPAIGN_MANAGE_CREATIVE_TEMPLATE}    timeout=20s
+    Click Button    ${PARENT_ADD_BUTTON}
+
+    Add General information for ParentAdGroup
+    ...    Parent_AdGroup_Name=${ParentName}
+    ...    Parent_Start_date_date=${START_DATE_TIME_PARENT}
+    ...    Parent_End_date_date=${END_DATE_TIME_PARENT}
+
+    Focus   ${PARENT_TARGETING_HOUSE_HOLD_SEGMENT_CHECKBOX}
+    Sleep    3s
+
+    Run Keyword If    '${OptCheckboxCheckedOption}' == 'Yes'
+    ...    Click Element    ${PARENT_CtrVcrOptimization_CHECKBOX}
+    Sleep    3s
+
+    Select From List By Label     ${PARENT_CtrVcrOptimization_SELECTION}    ${optimization}
+    Sleep    5s
+
+    Input Text    ${PARENT_CtrVcrOptimization_Goal}   ${goal}
+    Sleep    2s
+    Capture Page Screenshot With Timestamp
+
+    Add Measurement and performance parametes
+    ...    exposureFileRecipient1=NCS
+    ...    exposureFileRecipient2=None
+
+    Sleep    3s
+    Add Sales Lift Measurements
+    Select Datapartner
+    Save The Parent ad group
+    ${status}      Run Keyword And Return Status       Page Should Contain           Yes
+    Run Keyword If   '${status}'=='True'    Click Element    ${WITHOUT_HH_YES_BUTTON}
+    Sleep     15s
+
+
+
+
+##########################################################################
+#                  cretives UI
+##########################################################################
+Create Native Creative UI
+    [Arguments]         ${name}=
+    ...                 ${externalID}=BVPFourinfo
+    ...                 ${title}=NativeCreative
+    ...                 ${iconImage}=File80x80.png
+    ...                 ${largeImage}=File1200x627.jpg
+    ...                 ${textContent}=4INFO is an American corporation that provides mobile advertising technology for the placement and tracking of advertisements; including on computers, mobile phones
+    ...                 ${destinationURL}=https://www.4info.com
+    ...                 ${CTAText}=NA
+    ...                 ${secureTags}=Yes
+    Set Test Variable   ${dataFilePath}      ../test_datafiles/HydraFiles/
+    Input Text                      ${CREATIVE_NAME_TEXTBOX}                     ${name}
+    Input Text                      ${CREATIVE_EXTERNAL_ID_TEXTBOX}              ${externalID}
+    Input Text                      ${CREATIVE_NATIVE_TITLE}                     ${title}
+    Run Keyword Unless              '${iconImage}'=='${Empty}'       File Upload for Creative        file=${iconImage}     browsrLocator=${CREATIVE_NATIVE_ICON_BROWSE_BUTTON}
+    Run Keyword Unless              '${largeImage}'=='${Empty}'      File Upload for Creative        file=${largeImage}    browsrLocator=${CREATIVE_NATIVE_LARGE_BROWSE_BUTTON}
+    Input Text                      ${CREATIVE_NATIVE_TEXT_CONTENT_TEXTBOX}      ${textContent}
+    Input Text                      ${CREATIVE_NATIVE_DESTINATION_URL}           ${destinationURL}
+    Input Text                      ${CREATIVE_NATIVE_DESTINATION_URL}           ${destinationURL}
+    Input Text                      ${CREATIVE_NATIVE_DESTINATION_URL}           ${destinationURL}
+    Run Keyword Unless  '${CTAText}'=='NA'    Input Text      ${CREATIVE_NATIVE_CTA_TEXT_TEXTBOX}       ${CTAText}
+    Run Keyword Unless  '${secureTags}'=='Yes'    Select From List   ${CREATIVE_NATIVE_SECURE_TAGS_SELECT}       ${secureTags}
+
+
+Create Video Creative UI
+    [Arguments]         ${name}=
+    ...                 ${externalID}=BVPFourinfo
+    ...                 ${videoType}=
+    ...                 ${videoStillScreenShot}=headphones624x624.png
+    ...                 ${duration}=7
+    ...                 ${useVastTag}= <table style="margin-top: 1em; margin-left:1em;"><tbody><tr><td><img src="/static/31bc33ac/images/48x48/orange-square.png" style="width: 48px; height: 48px; " class="icon-orange-square icon-xlg"></td><td style="vertical-align:middle"><p><span>Started by user <a href="/user/vkatkar">Vaishali Katkar</a></span></p></td></tr><tr><td><img src="/static/31bc33ac/plugin/metrics/images/48x48/clock.png" alt="" style="width: 48px; height: 48px; margin-right:1em;"></td><td style="vertical-align:middle"><p>This run spent 1 sec waiting in the queue.</p></td></tr><tr><td><img src="/static/31bc33ac/plugin/git/icons/git-48x48.png" alt="" style="width: 48px; height: 48px; margin-right:1em;"></td><td style="vertical-align:middle"><b>Revision</b>: 861b6af99e7899d0b725459417e9fadfa25e2706<ul><li>develop</li></ul></td></tr></tbody></table>
+    ...                 ${clickThroughURL}=www.4info.com
+    ...                 ${uplodaVideo}=Video800KB.mp4
+    ...                 ${useVastWrapperURL}=www.4info.com
+    ...                 ${secureTags}=Yes
+    ...                 ${wrapperRedirections}=0
+    Set Test Variable   ${dataFilePath}      ../test_datafiles/HydraFiles/'
+    Input Text                      ${CREATIVE_NAME_TEXTBOX}            ${name}
+    Input Text                      ${CREATIVE_EXTERNAL_ID_TEXTBOX}     ${externalID}
+    Select From List                ${CREATIVE_VIDEO_TYPE}              ${videoType}
+    Sleep   1s
+    Run Keyword If      '${videoType}'=='VAST Tag'                  Run Keyword Unless           '${videoStillScreenShot}'=='MISSING'            File Upload for Creative        file=${videoStillScreenShot}           browsrLocator=${CREATIVE_VAST_TAG_SCREENSHOT_BROWSE_BUTTON}
+    Run Keyword If      '${videoType}'=='VAST Wrapper URL'          Run Keyword Unless           '${videoStillScreenShot}'=='MISSING'            File Upload for Creative        file=${videoStillScreenShot}           browsrLocator=${CREATIVE_VAST_TAG_SCREENSHOT_BROWSE_BUTTON}
+    Run Keyword If      '${videoType}'=='Uploaded Video'            Run Keyword Unless           '${uplodaVideo}'=='MISSING'                     File Upload for Creative        file=${uplodaVideo}                    browsrLocator=${CREATIVE_VIDEO_UPLOAD_BROWSE_BUTTON}
+    Run Keyword If      '${videoType}'=='VAST Tag'                  Run Keyword Unless           '${useVastTag}'=='MISSING'                      Input Text                      ${CREATIVE_VIDEO_VAST_TAG_TEXTBOX}   ${useVastTag}
+    Run Keyword If      '${videoType}'=='Uploaded Video'            Run Keyword Unless           '${clickThroughURL}'=='MISSING'                 Input Text                      ${CREATIVE_VIDEO_CLICK_THR_URL_TEXTBOX}      ${clickThroughURL}
+    Run Keyword Unless  '${duration}'=='MISSING'                    Input Text           ${CREATIVE_VIDEO_DURATION}          ${duration}
+    Run Keyword Unless  '${secureTags}'=='Yes'               Select From List                ${CREATIVE_VIDEO_SECURE_TAG_SELECT}             ${secureTags}
+    Run Keyword Unless  '${wrapperRedirections}'=='0'        Select From List                ${CREATIVE_VIDEO_WRAPPER_REDIRECTION_SELECT}    ${wrapperRedirections}
+    Run Keyword If      '${videoType}'=='VAST Wrapper URL'   Input Text                      ${CREATIVE_VIDEO_VAST_WRAPPER_URL}              ${useVastWrapperURL}
+    Run Keyword If      '${videoType}'=='VAST Wrapper URL'   Input Text                      ${CREATIVE_VIDEO_CLICK_THR_URL_TEXTBOX}         ${clickThroughURL}
+
+
+
+File Upload for Creative
+    [Arguments]         ${file}=
+    ...                 ${browsrLocator}=
+    ${NORMAL_PATH_UPLOAD_FILE_NAME}      Normalize Path         ${DataFiles}/${file}
+    Choose File         ${browsrLocator}        ${NORMAL_PATH_UPLOAD_FILE_NAME}
+    Sleep   3s
+
+
+Save The Creative
+    Click Button    ${CREATIVE_TOP_SAVE_BUTTON}
+
+Add Mime Types
+    [Arguments]          ${mimeType}=video/mp4
+    Run Keyword If     '${mimeType}'=='video/mp4'                                                Click Element       ${CREATIVE_VIDEO_MIME_TYPES_VIDEO_MP4_CHECKBOX}
+    Run Keyword If     '${mimeType}'=='application/javascript (VPAID 2 only)'                    Click Element       ${CREATIVE_VIDEO_MIME_TYPES_APPL_JAVASCRIPT_CHECKBOX}
+    Run Keyword If     '${mimeType}'=='application/shockwave-flash (VPAID 1 and VPAID 2)'        Click Element       ${CREATIVE_VIDEO_MIME_TYPES_APPL_SHOCKWAVE_FLASH_CHECKBOX}
+
+
+
+Create Banner Creative UI
+    [Arguments]         ${name}=
+    ...                 ${externalID}=BVPFourinfo1
+    ...                 ${bannerFormat}=Static image
+    ...                 ${isInAppExpandable}=No
+    ...                 ${size}=120x20
+    ...                 ${alternateLandingURL}=http://www.4info.com
+    ...                 ${uploadFile}=File120x20.jpg
+    ...                 ${destinationURL}=http://www.4info.com
+    ...                 ${secureTags}=Yes
+    ...                 ${richMediaMarkup}=SOMETHING
+    ...                 ${3rdpartyDestination}=destination
+    ...                 ${3rdPartyImpressionTracker}=http://dev.4info.net:7106/ad-engine/event/record?drId=1234&gAId=0000&gest=click
+    ...                 ${position}=unknown
+    ...                 ${adchoiceIconLocation}=Top Right
+    ...                 ${3rdPartyTags}=4infoTags
+    ...                 ${richMediaType}=MRAID-1.0
+    Input Text          ${CREATIVE_NAME_TEXTBOX}                        ${name}
+    Input Text          ${CREATIVE_EXTERNAL_ID_TEXTBOX}                 ${externalID}
+    Run Keyword If              '${bannerFormat}'=='3rd party tag'      Click Element           ${CREATIVE_BANNER_TYPE_3RD_PARTY_RADIO_INPUT}
+    Run Keyword If              '${isInAppExpandable}'=='Yes'           Click Element           ${CREATIVE_BANNER_3RD_PARTY_IN_APP_EXPANDABLE_CHECKBOX}
+    Select From List             ${CREATIVE_BANNER_SIZE_CREATIVE_LIST}           ${size}
+    Run Keyword If              '${bannerFormat}'=='3rd party tag'      Input Text              ${CREATIVE_BANNER_3RD_PARTY_DESTINATION}            ${3rdpartyDestination}
+    Run Keyword If              '${bannerFormat}'=='3rd party tag'      Input Text              ${CREATIVE_BANNER_ALTERNATE_LANDING_URL}            ${alternateLandingURL}
+    Run Keyword If              '${isInAppExpandable}'=='Yes'           Input Text              ${CREATIVE_BANNER_ALTERNATE_LANDING_URL}        ${alternateLandingURL}
+    Run Keyword If              '${isInAppExpandable}'=='Yes'           Input Text              ${CREATIVE_BANNER_RICH_MEDIA_MARKUP}        ${richMediaMarkup}
+    Run Keyword If              '${bannerFormat}'=='Static image'                               File Upload for Creative        file=${uploadFile}           browsrLocator=${CREATIVE_BANNER_UPLOAD_FILE_BROWSE_BUTTON}
+    Run Keyword If              '${bannerFormat}'=='Static image'       Input Text                  ${CREATIVE_BANNER_DESTINATION_URL_TEXTBOX}              ${destinationURL}
+    Run Keyword Unless          '${secureTags}'=='Yes'      Select From List                ${CREATIVE_BANNER_SECURE_TAGS}            ${secureTags}
+    Run Keyword Unless              '${bannerFormat}'=='Static image'       Input Text        ${CREATIVE_BANNER_3RD_PARTY_TAG}      ${3rdPartyTags}
+    Input Text          ${CREATIVE_BANNER_3RD_PARTY_IMPRESSION_TRACKER}             ${3rdPartyImpressionTracker}
+
+    Run Keyword If      '${position}' == 'unknown'          Click Element           ${CREATIVE_BANNER_POSITION_UNKNOWN}
+    Run Keyword If      '${position}' == 'above'            Click Element           ${CREATIVE_BANNER_POSITION_ABOVE}
+    Run Keyword If      '${position}' == 'below'            Click Element           ${CREATIVE_BANNER_POSITION_BELOW}
+    Select From List                    ${CREATIVE_BANNER_ADCHOICE_LOCATOR}         ${adchoiceIconLocation}
+    Run Keyword If          '${bannerFormat}'=='3rd party tag'              Select Rich Media Type    ${richMediaType}
+
+
+
+Select Rich Media Type
+    [Arguments]    ${richMediaType}=
+    Run Keyword If          '${richMediaType}'=='MRAID-1.0'             Click Element       ${CREATIVE_BANNER_RICH_MEDIA_MRAID1.0}
+    Run Keyword If          '${richMediaType}'=='MRAID-2.0'             Click Element       ${CREATIVE_BANNER_RICH_MEDIA_MRAID2.0}
+
+
+
+Add Creative Attributes For Creative
+    [Arguments]              ${CREATIVE_ATTRIBUTE_LIST}=
+    Sleep    4s
+    :For    ${Item}    IN   @{CREATIVE_ATTRIBUTE_LIST}
+    \       Click Element       ${sCREATIVE_VIDEO_CREATIVE_ATTRIBUTE_CHECKBOX} '${Item}')]
+    \       Sleep   2s
+
+
+Logout From CM2.0
+    Mouse Over      ${Header_setting-select}
+    Sleep    3s
+    Click Element       xpath=.//a[contains(normalize-space(.), 'Log Out')]
+    Wait Until Page Contains    SIGN IN
+    Wait Until Page Contains    Sign in
+
+Select Group After Login
+    [Arguments]         ${groupName}=4INFO
+    Page Should Contain List    ${GROUP_SELECT_DROPDOWN}
+    Select From List            ${GROUP_SELECT_DROPDOWN}        ${groupName}
+    Sleep    3s
+
+#---------------------------------------------------------------------------------------------
+Go To Manage Group Page
+    Mouse Over      ${Header_setting-select}
+    Sleep    3s
+    Click Element       xpath=.//a[contains(normalize-space(.), 'Manage Groups')]
+    Wait Until Page Contains    Manage groups           timeout=20s
+    Wait Until Page Contains    MANAGE GROUPS           timeout=20s
+    Verify Footer Element For Manage Group Page
+
+Verify Footer Element For Manage Group Page
+    Page Should Contain     PRIVACY
+    Page Should Contain     TERMS
+    Page Should Contain     © 2018 4INFO All rights reserved.
+    Element Should Be Visible       xpath=((.//div[contains(., '3')])[last()]/following::i)[2]
+    Element Should Be Visible       xpath=((.//div[contains(., '3')])[last()]/following::i)[3]
+    Element Should Be Visible       xpath=((.//div[contains(., '3')])[last()]/following::i)[4]
+    Element Should Be Visible       xpath=((.//div[contains(., '3')])[last()]/following::i)[5]
+    Element Should Be Visible       xpath=((.//div[contains(., '3')])[last()]/following::i)[last()]
+
+
+
+Scroll Page Location To
+    [Arguments]             ${x_location}=0
+    ...                     ${y_location}=
+    Execute JavaScript      window.scrollTo(${x_location},${y_location})
+
+Scroll To Element
+    [Arguments]             ${Element}=
+    ${Ver_position}=                                Get Vertical Position                           ${Element}
+    Log                                             ${Ver_position}
+    Scroll Page Location To                         y_location=${Ver_position}

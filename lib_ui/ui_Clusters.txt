@@ -1,0 +1,149 @@
+Library    phoenix_ui.txt
+Library    ui_common.txt
+
+*** Keywords ***
+#------------------------------------------------------------------------------------------
+# Cluster Details UI Automation
+
+Get Cluster Xpath
+    [Arguments]    ${clustername}
+    Set Test Variable    ${ClusterDetail_Link_ClusterName}    xpath=.//a[text()='${clustername}']
+
+Preconditions for Cluster Details
+    [Documentation]    Open UI, Login with Valid Credentials and click on Cluster
+    # Login To Phoenix UI2
+    Login To Adhaven UI    username=${QA_DEFAULT_USER}    password=${QA_DEFAULT_PASSWORD}
+    # Confirm Action
+    Wait Until Page Contains Element      ${ClusterDetail_Link_Clusters}
+    Click Link    ${ClusterDetail_Link_Clusters}
+    Sleep    3s
+
+Get Clusters Page
+    Click Link       ${ClusterDetail_Link_Clusters}
+    Sleep    7s
+    Click Element    ${Clusters_Sort_Name}
+    Sleep    7s
+
+
+Get Cluster in The List
+    [Arguments]    ${clusterName}=APPBundleCluster
+    Get Clusters Page
+    # Click Element    ${SEARCH_CLUSTER}
+    Input Text    ${SEARCH_CLUSTER}    ${clusterName}
+    Sleep    4s
+    Get Cluster Xpath    clustername=${clusterName}
+    Click Link       ${ClusterDetail_Link_ClusterName}
+    Sleep    2s
+
+
+Validate Cluster Detail Page Elements are present
+    Element Should Be Visible    ${ClusterDetail_Link_Clusters}
+    Element Should Be Visible    ${ClusterDetail_Label_CLUSTER_DETAIL}
+    Element Should Be Visible    ${ClusterDetail_Lable_ClusterName}
+    Element Should Be Visible    ${ClusterDetail_Label_ClusterName_Value}
+    Element Should Be Visible    ${ClusterDetail_Link_Edit}
+    Element Should Be Visible    ${ClusterDetail_Label_CreatedBy}
+    Element Should Be Visible    ${ClusterDetail_Label_CreatedBy_Value}
+    Element Should Be Visible    ${ClusterDetail_Label_CreatedOn}
+    Element Should Be Visible    ${ClusterDetail_Label_CreatedOn_Value}
+    Element Should Be Visible    ${ClusterDetail_Label_LastModifiedBy}
+    Element Should Be Visible    ${ClusterDetail_Label_LastModifiedBy_Value}
+    Element Should Be Visible    ${ClusterDetail_Label_LastModifiedOn}
+    Element Should Be Visible    ${ClusterDetail_Label_LastModifiedOn_Value}
+    Element Should Be Visible    ${ClusterDetail_Link_ClusterHistory}
+    Element Should Be Visible    ${ClusterDetail_Label_SitesApps}
+    Element Should Be Visible    ${ClusterDetail_Input_TypeToSearch}
+    Element Should Be Visible    ${ClusterDetail_Input_Sites}
+    Element Should Be Visible    ${ClusterDetail_Link_RemoveSitesApps}
+    Element Should Be Visible    ${ClusterDetail_Link_AddSitesApps}
+    Element Should Be Visible    ${ClusterDetail_Link_Export}
+    Element Should Be Visible    ${ClusterDetail_Button_Cancel}
+
+
+Validate Cluster Name Edit Page Elements are present
+    Element Should Be Visible    ${ClusterDetail_Label_ClusterEdit}
+    Element Should Be Visible    ${ClusterDetail_ClusterEdit_Label_ClusterName}
+    Element Should Be Visible    ${ClusterDetail_ClusterEdit_Input_ClusterName}
+    # Element Should Be Visible    ${ClusterDetail_ClusterEdit_DividerLine}
+    Element Should Be Visible    ${ClusterDetail_ClusterEdit_Button_Save}
+    Element Should Be Visible    ${ClusterDetail_ClusterEdit_Button_Close}
+
+
+Validate Cluster History popup window elements are present
+    Element Should Be Visible    ${ClusterDetail_Label_ClusterHistory}
+    Element Should Be Visible    ${ClusterDetail_ClusterHistory_Button_Close}
+    Element Should Be Visible    ${ClusterDetail_ClusterHistory_Label_ModifiedDate}
+    Element Should Be Visible    ${ClusterDetail_ClusterHistory_Label_ModifiedBy}
+    Element Should Be Visible    ${ClusterDetail_ClusterHistory_Label_Change}
+    Element Should Be Visible    ${ClusterDetail_ClusterHistory_Label_ModifiedDate_Value}
+    Element Should Be Visible    ${ClusterDetail_ClusterHistory_Label_ModifiedBy_Value}
+    Element Should Be Visible    ${ClusterDetail_ClusterHistory_Link_Change}
+
+
+Validate Cluster History Change page elements are present
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Label_ClusterHistory}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Label_ClusterName}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Text_ClusterName}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Label_ModifiedBy}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Text_ModifiedBy}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Label_ModifiedOn}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Text_ModifiedDate}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Label_Change}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Text_Change}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Label_SitesApps}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Link_ExportHistory}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_Button_OK}
+    Element Should Be Visible    ${ClusterDetail_HistoryPage_table_sites}
+
+
+Validate Cluster Remove Sites/Apps page elements are present
+    # Validate Header and footer elements are present
+    Check Header and Footer objects are present
+    Element Should Be Visible    ${ClusterDetail_RemoveSitesAppsPage_Label_RemoveSitesApps}
+    Element Should Be Visible    ${ClusterDetail_RemoveSitesAppsPage_Label_ClusterName}
+    Element Should Be Visible    ${ClusterDetail_RemoveSitesAppsPage_Span_ClusterName}
+    Element Should Be Visible    ${ClusterDetail_RemoveSitesAppsPage_Label_SitesApps}
+    Element Should Be Visible    ${ClusterDetail_RemoveSitesAppsPage_Input_TypeToSearch}
+    Element Should Be Visible    ${ClusterDetail_RemoveSitesAppsPage_Check_SitesApps}
+    Element Should Be Visible    ${ClusterDetail_RemoveSitesAppsPage_Listof_SitesApps}
+    Element Should Be Visible    ${ClusterDetail_RemoveSitesAppsPage_Button_Cancel}
+    Element Should Be Visible    ${ClusterDetail_RemoveSitesAppsPage_Button_Save}
+    ${cancel}    Get Text    ${ClusterDetail_RemoveSitesAppsPage_Button_Cancel}
+    Should be equal    ${cancel}    Cancel
+    ${save}    Get Text    ${ClusterDetail_RemoveSitesAppsPage_Button_Save}
+    Should be equal    ${save}    Remove Sites/Apps
+
+
+Validate Cluster Add Sites/Apps page elements are present
+    # Validate Header and footer elements are present
+    Check Header and Footer objects are present
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Label_AddSitesApps}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Label_ClusterName}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Span_ClusterName}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Label_Data}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Label_OneEntryPerRow}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Label_MaxAllowedPerCluster}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Label_AvailableEntries}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_TextArea_SitesApps}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Button_Cancel}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Button_Save}
+
+Validate Cluster Add Sites/Apps Error page elements are present
+    # Validate Header and footer elements are present
+    Check Header and Footer objects are present
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Label_AddSitesApps}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Label_ClusterName}
+    Element Should Be Visible    ${ClusterDetail_AddSitesAppsPage_Span_ClusterName}
+    Element Should Be Visible    ${ClusterDetail_AddSitesApps_Error_Results}
+    Element Should Be Visible    ${ClusterDetail_AddSitesApps_Error_notes}
+    Element Should Be Visible    ${ClusterDetail_AddSitesApps_Error_errorMessage}
+    Element Should Be Visible    ${ClusterDetail_AddSitesApps_Error_ButtonOK}
+
+    ${ErrorMessage}=       Get Text     ${ClusterDetail_AddSitesApps_Error_errorMessage}
+    Should Be Equal    ${ErrorMessage}    1 was not added because it already exists in the cluster
+    Click Button    ${ClusterDetail_AddSitesApps_Error_ButtonOK}
+
+
+
+#------------------------------------------------------------------------------------------
+

@@ -1,0 +1,41 @@
+
+
+# UI COMPONENTS FOR Placement.html
+
+*** Variables ****
+
+${CREATE_PLACEMENT_LINK}              Create placement
+
+#${PLACEMENT_STATUS_SELECT}           id=selLiveSite
+${PLACEMENT_STATUS_GROUP_RADIO}       statusString
+${PLACEMENT_STATUS_TEST}              placementStatusId1
+${PLACEMENT_STATUS_LIVE}              placementStatusId2
+${PLACEMENT_STATUS_DISABLED}          placementStatusId3
+
+${ALLOW_REM_BANNER_CHECKBOX}          id=chkRemnantBanner
+${ALLOW_REM_VIDEO_CHECKBOX}           id=chkRemnantVideo
+${ALLOW_REM_HTML5_CHECKBOX}           id=chkRemnantHtml5
+${PLACEMENT_NAME_FIELD}               id=placement
+
+${CATEGORIES_CHECKBOX}                  id=categoryList1  #1-20
+${SECRET_AES_KEY_FIELD}                 id=AESKey
+${PLACEMENT_ID_FIELD}                   xpath=(//input[@id='id'])[2]
+${PLACEMENT_TIER_SELECT}                id=placementTier
+
+${REVENUE_TYPE_CPM_CHECKBOX}            id=chkCPM
+${REVENUE_TYPE_CPM_FIELD}               id=remnantCPMFloor
+
+${REVENUE_TYPE_CPC_CHECKBOX}            id=chkCPC
+${REVENUE_TYPE_CPM_FIELD}               id=remnantCPCFloor
+
+${REMNANT_AD_RESOURCES_CHECKBOX}        id=remnantList1    # 1-7
+${JAVASCRIPT_AD_SETTINGS_RADIO}         id=placementType1  #1-3
+
+${PLACEMENT_CANCEL_BUTTON}              id=btnCancel
+${PLACEMENT_SAVE_BUTTON}                css=input.btnSave.whiteBorder
+
+
+${PLACEMENT_INFO_TABLE}                 ${PARTNERS_INFO_TABLE}
+${PLACEMENT_INFO_TABLE_ROW_XPATH}       ${ADVERTISER_TABLE_ROW_XPATH}
+${PLACEMENT_INFO_TABLE_COLUMN_XPATH}    ${PARTNERS_INFO_TABLE_COLUMN_XPATH}
+

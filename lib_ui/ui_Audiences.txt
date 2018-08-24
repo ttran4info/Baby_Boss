@@ -1,0 +1,111 @@
+Library    phoenix_ui.txt
+
+# Variables for page Audiences
+*** Keywords ***
+#------------------------------------------------------------------------------------------
+# Audiences 1.3 Convert Address to Lat/Long
+
+# Code to login and come at Audience Creator page
+Open Audience Creator Page with Valid Login Credentials
+    [Arguments]     ${username}=${QA_DEFAULT_USER}
+    ...             ${password}=${QA_DEFAULT_PASSWORD}
+    ...             ${url}=${LOGIN_URL}    #http://qa-dswarm-01:28082/phoenix/#/login
+    ...             ${browser}=Chrome
+    ...             ${waitTime}=20s
+    Log    ${QA_DEFAULT_USER}
+    Log    ${LOGIN_NAME_TEXTBOX}
+    Close All Browsers
+    Open Browser    url=${url}    browser=${browser}
+    Sleep    ${waitTime}
+    Wait Until Page Contains Element    ${LOGIN_NAME_TEXTBOX}
+    Maximize Browser Window
+    Input Text      ${LOGIN_NAME_TEXTBOX}        ${QA_DEFAULT_USER}
+    Input Text      ${LOGIN_PASSWORD_TEXTBOX}    ${password}
+    Click Button    ${LOGIN_BUTTON}
+    Sleep    ${waitTime}
+    Wait Until Page Contains Element      link=Audience Creator
+    Click Link    link=Audience Creator
+    Sleep    3s
+
+
+
+Preconditions for Audiences Convert to Latlong
+    [Documentation]    Open UI, Login with Valid Credentials and click on Audience Creator
+    Open Audience Creator Page with Valid Login Credentials
+
+
+
+Post Conditions for Audiences Convert to Latlong
+    [Documentation]    Close UI
+    Close Browser
+
+#------------------------------------------------------------------------------------------
+# Create Audience UI Page
+
+
+
+Go To Create Audience Phoenix UI Page
+    Click Element    ${Header_Link_AudienceCreator}
+    Wait Until Element Is Visible     ${button_CreateAudience}    timeout=250s
+    Click Element    ${button_CreateAudience}
+    Sleep    2s
+    Capture Page Screenshot With Timestamp
+
+
+Select Datasource Audience Type
+    [Arguments]     ${AudienceType}=
+    Log    ${AudienceType}
+    Run Keyword If    '${AudienceType}'=='Retargeting'    Click Element    ${radio_Retargeting}
+    Run Keyword If    '${AudienceType}'=='Trade Area'     Click Element    ${radio_TradeArea}
+    Run Keyword If    '${AudienceType}'=='Geofence'       Click Element    ${radio_Geofence}
+    Sleep    2s
+
+
+Select Datasource Input
+    [Arguments]    ${inputType}=
+    Run Keyword If    '${inputType}'=='Select points of interest'    Click Element    ${radio_SelectPointsOfInterest}
+    Run Keyword If    '${inputType}'=='Upload lat/long file'    Click Element    ${radio_Uploadlatlongfile}
+    Sleep    2s
+
+
+Fill General Information for Required Fields
+    [Arguments]     ${name}=
+    ...             ${email}=
+    Input Text    ${input_audienceName}     ${name}
+    Sleep    5s
+    Focus    ${input_emailId}
+    Sleep    3s
+    Input Text    ${input_emailId}          ${email}
+    Sleep    5s
+
+
+Select Data File to Upload Upload lat/lon File
+    [Arguments]    ${filename}=
+    choose file    ${input_FilePath}    ${filePath}/${filename}
+    Sleep   3s
+    Capture Page Screenshot With Timestamp
+
+
+Enter Radius for Creation of Audience
+    [Arguments]     ${minRadius}=-1
+    ...             ${Radius}=-1
+    Run Keyword If    '${minRadius}'>='0'    Input Text    ${input_MinRadius}    ${minRadius}
+    Sleep    2s
+    Run Keyword If    '${Radius}'>='0'       Input Text    ${input_Radius}    ${Radius}
+    Sleep    2s
+
+
+Save Newly Created Audience
+    Click Element    ${button_SaveAudience}
+    Sleep    15s
+    Capture Page Screenshot With Timestamp
+
+
+Search Newly Created Audience in Phoenix UI
+    [Arguments]    ${audienceName}=
+    Sleep    5s
+    Click Element    ${Search_Audience}
+    Page Should Contain    ${audienceName}
+    Capture Page Screenshot With Timestamp
+
+#------------------------------------------------------------------------------------------
