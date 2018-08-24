@@ -1,0 +1,40 @@
+<tr><td>4INFO_TP_DEST:</td><td id="4INFO_TP_DEST">[4INFO_TP_DEST]</td></tr>
+<tr><td><b>4INFO_INVENTORY_SOURCE:</b></td><td id="4INFO_INVENTORY_SOURCE">[4INFO_INVENTORY_SOURCE]</td></tr>
+<tr><td>4info_inventory_source:</td><td id="4info_inventory_source">[4info_inventory_source]</td></tr>
+<tr><td>4Info_Inventory_Source:</td><td id="4Info_Inventory_Source">[4Info_Inventory_Source]</td></tr>
+
+<tr><td>4INFO_PUBLISHER_NAME:</td><td id="4INFO_PUBLISHER_NAME">[4INFO_PUBLISHER_NAME]</td></tr>
+<tr><td>4info_publisher_name:</td><td id="4info_publisher_name">[4info_publisher_name]</td></tr>
+<tr><td>4Info_Publisher_Name:</td><td id="4Info_Publisher_Name">[4Info_Publisher_Name]</td></tr>
+
+<tr><td>4INFO_APPSITE_NAME:</td><td id="4INFO_APPSITE_NAME">[4INFO_APPSITE_NAME]</td></tr>
+<tr><td>4info_appsite_name:</td><td id="4info_appsite_name">[4info_appsite_name]</td></tr>
+<tr><td>4Info_AppSite_Name:</td><td id="4Info_AppSite_Name">[4Info_AppSite_Name]</td></tr>
+
+<tr><td><b>4info_hh_dma:</b></td><td id="4info_hh_dma">[4info_hh_dma]</td></tr>
+<tr><td>4INFO_HH_DMA:</td><td id="4INFO_HH_DMA">[4INFO_HH_DMA]</td></tr>
+<tr><td>4Info_Hh_dMa:</td><td id="4Info_Hh_dMa">[4Info_Hh_dMa]</td></tr>
+
+<tr><td><b>4info_hh_zip:</b></td><td id="4info_hh_zip">[4info_hh_zip]</td></tr>
+<tr><td>4INFO_HH_ZIP:</td><td id="4INFO_HH_ZIP">[4INFO_HH_ZIP]</td></tr>
+<tr><td>4Info_Hh_zIp:</td><td id="4Info_Hh_zIp">[4Info_Hh_zIp]</td></tr>
+
+<tr><td><b>4info_dma:</b></td><td id="4info_dma">[4info_dma]</td></tr>
+<tr><td>4INFO_DMA:</td><td id="4INFO_DMA">[4INFO_DMA]</td></tr>
+<tr><td>4Info_dMa:</td><td id="4Info_dMa">[4Info_dMa]</td></tr>
+
+<tr><td><b>4INFO_APP_BUNDLE:</b></td><td id="4INFO_APP_BUNDLE">[4INFO_APP_BUNDLE]</td></tr>
+<tr><td>4Info_App_Bundle:</td><td id="4Info_App_Bundle">[4Info_App_Bundle]</td></tr>
+<tr><td>4info_app_bundle:</td><td id="4info_app_bundle">[4info_app_bundle]</td></tr>
+
+<tr><td><b>4INFO_APPSTORE_URL:</b></td><td id="4INFO_APPSTORE_URL">[4INFO_APPSTORE_URL]</td></tr>
+<tr><td>4Info_AppStore_Url:</td><td id="4Info_AppStore_Url">[4Info_AppStore_Url]</td></tr>
+<tr><td>4info_appstore_url:</td><td id="4info_appstore_url">[4info_appstore_url]</td></tr>
+
+<tr><td><b>4INFO_CLIENT_IP:</b></td><td id="4INFO_CLIENT_IP">[4INFO_CLIENT_IP]</td></tr>
+<tr><td>4Info_Client_Ip:</td><td id="4Info_Client_Ip">[4Info_Client_Ip]</td></tr>
+<tr><td>4info_client_ip:</td><td id="4info_client_ip">[4info_client_ip]</td></tr>
+
+<tr><td><b>4INFO_CLIENT_UA:</b></td><td id="4INFO_CLIENT_UA">[4INFO_CLIENT_UA]</td></tr>
+<tr><td>4Info_Client_Ua:</td><td id="4Info_Client_Ua">[4Info_Client_Ua]</td></tr>
+<tr><td>4info_client_ua:</td><td id="4info_client_ua">[4info_client_ua]</td></tr>

@@ -1,0 +1,63 @@
+<tr><td>4INFO_TP_DEST:</td><td id="4INFO_TP_DEST">[4INFO_TP_DEST]</td></tr>
+<tr><td><b>4info_hhid:</b></td><td id="4info_hhid">[4info_hhid]</td></tr>
+<tr><td>4INFO_HHID:</td><td id="4INFO_HHID">[4INFO_HHID]</td></tr>
+<tr><td>4info_hhid_enc:</td><td id="4info_hhid_enc">[4info_hhid_enc]</td></tr>
+<tr><td>4iNFO_hhid_ENC:</td><td id="4iNFO_hhid_ENC">[4iNFO_hhid_ENC]</td></tr>
+<tr><td>4info_hhid_enc2:</td><td id="4info_hhid_enc2">[4info_hhid_enc2]</td></tr>
+<tr><td>4INFO_HHID_ENC2:</td><td id="4INFO_HHID_ENC2">[4INFO_HHID_ENC2]</td></tr>
+<tr><td>4info_hhid_md5:</td><td id="4info_hhid_md5">[4info_hhid_md5]</td></tr>
+
+<tr><td><b>4info_hhid_aes:</b></td><td id="4info_hhid_aes">[4info_hhid_aes]</td></tr>
+<tr><td>4info_hhid_AES:</td><td id="4info_hhid_AES">[4info_hhid_AES]</td></tr>
+<tr><td>4info_hhid_aes_enc:</td><td id="4info_hhid_aes_enc">[4info_hhid_aes_enc]</td></tr>
+<tr><td>4INFO_HHID_AES_ENC:</td><td id="4INFO_HHID_AES_ENC">[4INFO_HHID_AES_ENC]</td></tr>
+<tr><td>4info_hhid_aes_enc2:</td><td id="4info_hhid_aes_enc2">[4info_hhid_aes_enc2]</td></tr>
+<tr><td>4info_HHID_aes_ENC2:</td><td id="4info_HHID_aes_ENC2">[4info_HHID_aes_ENC2]</td></tr>
+<tr><td>4info_hhid_aes_md5:</td><td id="4info_hhid_aes_md5">[4info_hhid_aes_md5]</td></tr>
+
+
+<tr><td><b>4info_platform:</b></td><td id="4info_platform">[4info_platform]</td></tr>
+<tr><td>4INFO_platform:</td><td id="4INFO_platform">[4INFO_platform]</td></tr>
+<tr><td>4info_platform_enc:</td><td id="4info_platform_enc">[4info_platform_enc]</td></tr>
+<tr><td>4info_PLATFORM_enc:</td><td id="4info_PLATFORM_enc">[4info_PLATFORM_enc]</td></tr>
+<tr><td>4info_platform_enc2:</td><td id="4info_platform_enc2">[4info_platform_enc2]</td></tr>
+<tr><td>4INFO_platform_ENC2:</td><td id="4INFO_platform_ENC2">[4INFO_platform_ENC2]</td></tr>
+
+<tr><td><b>4info_devicemodel:</b></td><td id="4info_devicemodel">[4info_devicemodel]</td></tr>
+<tr><td>4INFO_DEVICEMODEL:</td><td id="4INFO_DEVICEMODEL">[4INFO_DEVICEMODEL]</td></tr>
+<tr><td>4info_devicemodel_enc:</td><td id="4info_devicemodel_enc">[4info_devicemodel_enc]</td></tr>
+<tr><td>4info_deviceMODEL_ENC:</td><td id="4info_deviceMODEL_ENC">[4info_deviceMODEL_ENC]</td></tr>
+<tr><td>4info_devicemodel_enc2:</td><td id="4info_devicemodel_enc2">[4info_devicemodel_enc2]</td></tr>
+<tr><td>4INFO_devicemodel_ENC2:</td><td id="4INFO_devicemodel_ENC2">[4INFO_devicemodel_ENC2]</td></tr>
+
+<tr><td><b>4info_appsite_id:</b></td><td id="4info_appsite_id">[4info_appsite_id]</td></tr>
+<tr><td>4INFO_APPSITE_ID_ENC:</td><td id="4INFO_APPSITE_ID_ENC">[4INFO_APPSITE_ID_ENC]</td></tr>
+<tr><td>4Info_Appsite_Id_Enc2:</td><td id="4Info_Appsite_Id_Enc2">[4Info_Appsite_Id_Enc2]</td></tr>
+
+<tr><td><b>4info_publisher_id:</b></td><td id="4info_publisher_id">[4info_publisher_id]</td></tr>
+<tr><td>4INFO_PUBLISHER_ID_ENC:</td><td id="4INFO_PUBLISHER_ID_ENC">[4INFO_PUBLISHER_ID_ENC]</td></tr>
+<tr><td>4Info_Publisher_Id_Enc2:</td><td id="4Info_Publisher_Id_Enc2">[4Info_Publisher_Id_Enc2]</td></tr>
+
+<tr><td><b>4info_placement_id:</b></td><td id="4info_placement_id">[4info_placement_id]</td></tr>
+<tr><td>4INFO_PLACEMENT_ID_ENC:</td><td id="4INFO_PLACEMENT_ID_ENC">[4INFO_PLACEMENT_ID_ENC]</td></tr>
+<tr><td>4Info_Placement_Id_Enc2:</td><td id="4Info_Placement_Id_Enc2">[4Info_Placement_Id_Enc2]</td></tr>
+
+<tr><td><b>4info_creative_id:</b></td><td id="4info_creative_id">[4info_creative_id]</td></tr>
+<tr><td>4INFO_CREATIVE_ID_ENC:</td><td id="4INFO_CREATIVE_ID_ENC">[4INFO_CREATIVE_ID_ENC]</td></tr>
+<tr><td>4Info_Creative_Id_Enc2:</td><td id="4Info_Creative_Id_Enc2">[4Info_Creative_Id_Enc2]</td></tr>
+
+<tr><td><b>4info_campaign_id:</b></td><td id="4info_campaign_id">[4info_campaign_id]</td></tr>
+<tr><td>4INFO_CAMPAIGN_ID_ENC:</td><td id="4INFO_CAMPAIGN_ID_ENC">[4INFO_CAMPAIGN_ID_ENC]</td></tr>
+<tr><td>4Info_Campaign_Id_Enc2:</td><td id="4Info_Campaign_Id_Enc2">[4Info_Campaign_Id_Enc2]</td></tr>
+
+<tr><td><b>4info_adgroup_id:</b></td><td id="4info_adgroup_id">[4info_adgroup_id]</td></tr>
+<tr><td>4INFO_ADGROUP_ID_ENC:</td><td id="4INFO_ADGROUP_ID_ENC">[4INFO_ADGROUP_ID_ENC]</td></tr>
+<tr><td>4Info_Adgroup_Id_Enc2:</td><td id="4Info_Adgroup_Id_Enc2">[4Info_Adgroup_Id_Enc2]</td></tr>
+
+<tr><td><b>4info_partner_hhid:</b></td><td id="4info_partner_hhid">[4info_partner_hhid]</td></tr>
+<tr><td>4INFO_PARTNER_HHID:</td><td id="4INFO_PARTNER_HHID">[4INFO_PARTNER_HHID]</td></tr>
+<tr><td>4Info_Partner_Hhid:</td><td id="4Info_Partner_Hhid">[4Info_Partner_Hhid]</td></tr>
+
+<tr><td><b>4info_device_id_sha1:</b></td><td id="4info_device_id_sha1">[4info_device_id_sha1]</td></tr>
+<tr><td>4INFO_DEVICE_ID_SHA1:</td><td id="4INFO_DEVICE_ID_SHA1">[4INFO_DEVICE_ID_SHA1]</td></tr>
+<tr><td>4Info_Device_Id_Sha1:</td><td id="4Info_Device_Id_Sha1">[4Info_Device_Id_Sha1]</td></tr>

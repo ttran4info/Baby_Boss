@@ -1,0 +1,28 @@
+<tr><td>4INFO_click:</td><td id="4INFO_click">[4INFO_click]</td></tr>
+<tr><td><b>4info_hhid:</b></td><td id="4info_hhid">[4info_hhid]</td></tr>
+<tr><td>4INFO_HHID:</td><td id="4INFO_HHID">[4INFO_HHID]</td></tr>
+<tr><td>4info_hhid_enc:</td><td id="4info_hhid_enc">[4info_hhid_enc]</td></tr>
+<tr><td>4iNFO_hhid_ENC:</td><td id="4iNFO_hhid_ENC">[4iNFO_hhid_ENC]</td></tr>
+<tr><td>4info_hhid_enc2:</td><td id="4info_hhid_enc2">[4info_hhid_enc2]</td></tr>
+<tr><td>4INFO_HHID_ENC2:</td><td id="4INFO_HHID_ENC2">[4INFO_HHID_ENC2]</td></tr>
+
+<tr><td><b>4info_hhid_aes:</b></td><td id="4info_hhid_aes">[4info_hhid_aes]</td></tr>
+<tr><td>4info_hhid_AES:</td><td id="4info_hhid_AES">[4info_hhid_AES]</td></tr>
+<tr><td>4info_hhid_aes_enc:</td><td id="4info_hhid_aes_enc">[4info_hhid_aes_enc]</td></tr>
+<tr><td>4INFO_HHID_AES_ENC:</td><td id="4INFO_HHID_AES_ENC">[4INFO_HHID_AES_ENC]</td></tr>
+<tr><td>4info_hhid_aes_enc2:</td><td id="4info_hhid_aes_enc2">[4info_hhid_aes_enc2]</td></tr>
+<tr><td>4info_HHID_aes_ENC2:</td><td id="4info_HHID_aes_ENC2">[4info_HHID_aes_ENC2]</td></tr>
+
+<tr><td><b>4info_platform:</b></td><td id="4info_platform">[4info_platform]</td></tr>
+<tr><td>4INFO_platform:</td><td id="4INFO_platform">[4INFO_platform]</td></tr>
+<tr><td>4info_platform_enc:</td><td id="4info_platform_enc">[4info_platform_enc]</td></tr>
+<tr><td>4info_PLATFORM_enc:</td><td id="4info_PLATFORM_enc">[4info_PLATFORM_enc]</td></tr>
+<tr><td>4info_platform_enc2:</td><td id="4info_platform_enc2">[4info_platform_enc2]</td></tr>
+<tr><td>4INFO_platform_ENC2:</td><td id="4INFO_platform_ENC2">[4INFO_platform_ENC2]</td></tr>
+
+<tr><td><b>4info_devicemodel:</b></td><td id="4info_devicemodel">[4info_devicemodel]</td></tr>
+<tr><td>4INFO_DEVICEMODEL:</td><td id="4INFO_DEVICEMODEL">[4INFO_DEVICEMODEL]</td></tr>
+<tr><td>4info_devicemodel_enc:</td><td id="4info_devicemodel_enc">[4info_devicemodel_enc]</td></tr>
+<tr><td>4info_deviceMODEL_ENC:</td><td id="4info_deviceMODEL_ENC">[4info_deviceMODEL_ENC]</td></tr>
+<tr><td>4info_devicemodel_enc2:</td><td id="4info_devicemodel_enc2">[4info_devicemodel_enc2]</td></tr>
+<tr><td>4INFO_devicemodel_ENC2:</td><td id="4INFO_devicemodel_ENC2">[4INFO_devicemodel_ENC2]</td></tr>

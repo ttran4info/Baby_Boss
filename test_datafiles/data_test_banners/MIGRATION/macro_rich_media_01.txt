@@ -1,0 +1,40 @@
+<!-- RICH MEDIA -->
+<tr>
+<td>4INFO_click:</td>
+<td><a href="[4INFO_click]http://www.google.com" target="_BLANK"><img src="http://bitcast-a.bitgravity.com/4info/ad/banner/qa/8711/320x50_ipad_banner.jpg" />
+<br>[4INFO_click]
+</td>
+</tr>
+<tr><td>4INFO_click:</td><td id="4INFO_click">[4INFO_click]</td></tr>
+<tr><td>4INFO_CLICK:</td><td id="4INFO_CLICK">[4INFO_CLICK]</td></tr>
+<tr><td>4INFO_click_ENC:</td><td id="4INFO_click_ENC">[4INFO_click_ENC]</td></tr>
+<tr><td>4INFO_click_ENC2:</td><td id="4INFO_click_ENC2">[4INFO_click_ENC2]</td></tr>
+
+<tr><td><b>drid:</b></td><td id="drid">[drid]</td></tr>
+<tr><td>DRID:</td><td id="DRID">[DRID]</td></tr>
+<tr><td>drid_enc:</td><td id="drid_enc">[drid_enc]</td></tr>
+<tr><td>DRID_ENC:</td><td id="DRID_ENC">[DRID_ENC]</td></tr>
+<tr><td>drid_enc2:</td><td id="drid_enc2">[drid_enc2]</td></tr>
+<tr><td>DRID_ENC2:</td><td id="DRID_ENC2">[DRID_ENC2]</td></tr>
+
+<tr><td><b>timestamp:</b></td><td id="timestamp">[timestamp]</td></tr>
+<tr><td>TIMESTAMP:</td><td id="TIMESTAMP">[TIMESTAMP]</td></tr>
+<tr><td>timestamp_enc:</td><td id="timestamp_enc">[timestamp_enc]</td></tr>
+<tr><td>timestamp_ENC:</td><td id="timestamp_ENC">[timestamp_ENC]</td></tr>
+<tr><td>timestamp_enc2:</td><td id="timestamp_enc2">[timestamp_enc2]</td></tr>
+<tr><td>TIMESTAMP_enc2:</td><td id="TIMESTAMP_enc2">[TIMESTAMP_enc2]</td></tr>
+
+<tr><td><b>4info_device_id:</b></td><td id="4info_device_id">[4info_device_id]</td></tr>
+<tr><td>4INFO_DEVICE_ID:</td><td id="4INFO_DEVICE_ID">[4INFO_DEVICE_ID]</td></tr>
+<tr><td>4info_device_id_enc:</td><td id="4info_device_id_enc">[4info_device_id_enc]</td></tr>
+<tr><td>4INFO_DEVICE_ID_ENC:</td><td id="4INFO_DEVICE_ID_ENC">[4INFO_DEVICE_ID_ENC]</td></tr>
+<tr><td>4info_device_id_enc2:</td><td id="4info_device_id_enc2">[4info_device_id_enc2]</td></tr>
+<tr><td>4INFO_DEVICE_ID_ENC2:</td><td id="4INFO_DEVICE_ID_ENC2">[4INFO_DEVICE_ID_ENC2]</td></tr>
+
+<tr><td><b>4info_id:</b></td><td id="4info_id">[4info_id]</td></tr>
+<tr><td>4INFO_ID:</td><td id="4INFO_ID">[4INFO_ID]</td></tr>
+<tr><td>4info_id_enc:</td><td id="4info_id_enc">[4info_id_enc]</td></tr>
+<tr><td>4INFO_ID_enc:</td><td id="4INFO_ID_enc">[4INFO_ID_enc]</td></tr>
+<tr><td>4info_id_enc2:</td><td id="4info_id_enc2">[4info_id_enc2]</td></tr>
+<tr><td>4info_id_ENC2:</td><td id="4info_id_ENC2">[4info_id_ENC2]</td></tr>
+<!-- END 01 -->
