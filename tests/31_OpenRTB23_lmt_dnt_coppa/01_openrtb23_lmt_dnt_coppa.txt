@@ -1,0 +1,114 @@
+*** Settings ***
+Resource             openrtb23_imports.txt
+Force Tags           BATCH3		OPENRTB23 	LMT 	DNT 	COPPA	TRACKING	PROD_BATCH1
+
+*** variables ***
+${app_id1}				REGRESSION TRACKING APP
+${no_tracking_ag}		35089
+#34898=qa, 30589=prod
+${limited_tracking_ag}	35088
+#34899=qa, 35088=prod
+#no tracking adgroup = Enable Behavior tracking, Country=USA, serve when lmt=0,1
+#limited tracking = Disable Behavior tracking, Country=CAN, serve when lmt=0
+
+*** Test Cases ***
+Tracking device.lmt=0, dnt missing, no tracking
+	Set Test Variable		${lmt}		0
+	Set Test Variable 		${country}	USA
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":2002,"gender":"M"}}	
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${no_tracking_ag}      submit_client_impression_event=NO
+	[Tags]		
+Tracking device.lmt=0, dnt=1, no tracking (ignore dnt)
+	Set Test Variable		${lmt}		0
+	Set Test Variable		${dnt}		1
+	Set Test Variable 		${country}	USA
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":2002,"gender":"M"}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${no_tracking_ag}      submit_client_impression_event=NO
+
+Tracking device.lmt=0, dnt=0, no tracking (ignore dnt)
+	Set Test Variable		${lmt}		0
+	Set Test Variable		${dnt}		0
+	Set Test Variable 		${country}	USA
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":2002,"gender":"M"}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${no_tracking_ag}      submit_client_impression_event=NO
+
+Tracking device.lmt=1, dnt missing, limited tracking
+	Set Test Variable		${lmt}		1
+	Set Test Variable 		${country}	CAN
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":2002,"gender":"M"}}	
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${limited_tracking_ag}      submit_client_impression_event=NO
+
+Tracking device.lmt=1, dnt=1, limited tracking (ignore dnt)
+	Set Test Variable		${lmt}		1
+	Set Test Variable		${dnt}		1
+	Set Test Variable 		${country}	CAN
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":2002,"gender":"M"}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${limited_tracking_ag}      submit_client_impression_event=NO
+
+Tracking device.lmt=1, dnt=0, limited tracking (ignore dnt)
+	Set Test Variable		${lmt}		1
+	Set Test Variable		${dnt}		0
+	Set Test Variable 		${country}	CAN
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":2002,"gender":"M"}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${limited_tracking_ag}      submit_client_impression_event=NO
+
+Tracking device.lmt missing, device.dnt=0, no tracking
+	Set Test Variable		${dnt}		0
+	Set Test Variable 		${country}	USA
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":2002,"gender":"M"}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${no_tracking_ag}      submit_client_impression_event=NO
+
+Tracking device.lmt missing, device.dnt=1, limited tracking
+	Set Test Variable		${dnt}		1
+	Set Test Variable 		${country}	CAN
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":2002,"gender":"M"}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${limited_tracking_ag}      submit_client_impression_event=NO
+
+#ad is limited if it has coppa=1 or age under 13
+COPPA - regs.coppa=1,under 13, limited tracking
+	Set Test Variable		${lmt}		0
+	Set Test Variable		${dnt}		0
+	Set Test Variable		${coppa}	1
+	Set Test Variable		${yob}		2010
+	Set Test Variable 		${country}	CAN
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":${yob},"gender":"M"},"regs":{"coppa":${coppa}}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${limited_tracking_ag}      submit_client_impression_event=NO
+
+COPPA - regs.coppa=1,over 13, limited tracking
+	Set Test Variable		${lmt}		0
+	Set Test Variable		${dnt}		0
+	Set Test Variable		${coppa}	1
+	Set Test Variable		${yob}		1980
+	Set Test Variable 		${country}	CAN
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":${yob},"gender":"M"},"regs":{"coppa":${coppa}}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${limited_tracking_ag}      submit_client_impression_event=NO
+
+COPPA - regs.coppa=0,under 13, limited tracking
+	Set Test Variable		${lmt}		0
+	Set Test Variable		${dnt}		0
+	Set Test Variable		${coppa}	0
+	Set Test Variable		${yob}		2011
+	Set Test Variable 		${country}	CAN
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":${yob},"gender":"M"},"regs":{"coppa":${coppa}}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${limited_tracking_ag}      submit_client_impression_event=NO
+
+COPPA - regs.coppa=0,over 13, no tracking
+	Set Test Variable		${lmt}		0
+	Set Test Variable		${dnt}		0
+	Set Test Variable		${coppa}	0
+	Set Test Variable		${yob}		1979
+	Set Test Variable 		${country}	USA
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":${yob},"gender":"M"},"regs":{"coppa":${coppa}}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${no_tracking_ag}      submit_client_impression_event=NO
+
+COPPA - regs.coppa missing,under13, limited tracking
+	Set Test Variable		${lmt}		0
+	Set Test Variable		${dnt}		0
+	Set Test Variable		${coppa}	1
+	Set Test Variable		${yob}		2011
+	Set Test Variable 		${country}	CAN
+	Set Test Variable 		${data}		{"id":"IxexyLDIIk","at":2,"bcat":["IAB25","IAB7-39","IAB8-18","IAB8-5","IAB9-9"],"badv":["apple.com","go-text.me","heywire.com"],"imp":[{"id":"1","bidfloor":0.05,"instl":0,"tagid":"bgltb3B1Yi1pbmNyDQsSBFNpdGUY7fD0FAw","banner":{"w":320,"h":50,"pos":1,"btype":[4],"battr":[14],"api":[3]}}],"app":{"id":"${app_id1}","name":"YahooWeather","cat":["IAB15","IAB15-10"],"ver":"1.0.2","bundle":"xcom.yahoo.wxapp","storeurl":"https://itunes.apple.com/id628677149","publisher":{"id":"agltb3B1Yi1pbmNyDAsSA0FwcBiJkfTUCV","name":"yahoo","domain":"www.yahoo.com"}},"device":{"dnt":${dnt},"ua":"Mozilla/5.0(iPhone;CPUiPhoneOS6_1likeMacOSX)AppleWebKit/534.46(KHTML,likeGecko)Version/5.1Mobile/9A334Safari/7534.48.3","ip":"123.145.167.189","ifa":"3fd92c7c-633b-4132-8351-1301e544c47a","carrier":"VERIZON","language":"en","make":"Apple","model":"iPhone","os":"iOS","osv":"6.1","js":1,"connectiontype":3,"devicetype":1,"lmt":${lmt},"geo":{"lat":35.012345,"lon":-115.12345,"country":"${country}","metro":"803","region":"CA","city":"LosAngeles","zip":"90049"}},"user":{"id":"ffffffd5135596709273b3a1a07e466ea2bf4fff","yob":${yob},"gender":"M"},"regs":{"nocoppa":${coppa}}}
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${limited_tracking_ag}      submit_client_impression_event=NO
+
+
+

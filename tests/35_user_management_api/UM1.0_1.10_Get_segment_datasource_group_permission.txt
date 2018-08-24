@@ -1,0 +1,114 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM    UM1.0    UM1.10    BATCH17
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: Get segment datasource group permission
+#Method: GET
+#URL: ...user-management-api/ui-acc-datasource/segment-datasource?groupId=:group_id
+#DESCRIPTION: None provided
+#userName = rhino.users
+#groupId = rhino.groups
+#groups_segment_datasource
+#segment_datasource
+
+#Request For segment-datasource
+
+UM1.10_TC_01 Validate 200 response and success=true is seen for all groups (group 1-17)
+	[Documentation]		Get measurement by Group id
+	Set Test Variable		${max_group}	17
+	#Set Test Variable 		${groupId}		1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/measurement-datasource?groupId=
+	:FOR	${groupId}	IN RANGE	1		${max_group}
+	\	USER MANAGEMENT API	uri=${uri_link}${groupId}	expected_status_code=200	success=true
+	[Tags]
+
+UM1.10_TC_02 Verify Total count api vs Database for group 1 (admin)
+	[Documentation]		Get measurement_datasource_db_count by Group id and compare with API results and DB results.
+	Set Test Variable 		${groupId}		1
+	Get Measurement Datasource From Group ID		group_id=${groupId}
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/measurement-datasource?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}
+	${measurement_datasource_api}=					Get Json Value						${body}										/measurement_datasources
+	@{measurement_datasource_list}=					String.Split String 				${measurement_datasource_api}			,
+	${measurement_datasource_api_count}=			Get Length 							${measurement_datasource_list}
+	Should Be Equal As Integers		${measurement_datasource_api_count}	${measurement_datasource_db_count}
+	[Tags]		ADMIN_USER
+
+
+UM1.10_TC_03 Verify Total count api vs Database for group 15 (Catalina)
+	[Documentation]		Get measurement_datasource_db_count by Group id 15
+	Set Test Variable 		${groupId}		15
+	Get Measurement Datasource From Group ID		group_id=${groupId}
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/measurement-datasource?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}
+	${measurement_datasource_api}=					Get Json Value						${body}										/measurement_datasources
+	@{measurement_datasource_list}=					String.Split String 				${measurement_datasource_api}			,
+	${measurement_datasource_api_count}=			Get Length 							${measurement_datasource_list}
+	Should Be Equal As Integers		${measurement_datasource_api_count}	${measurement_datasource_db_count}
+	[Tags]		ADMIN_USER
+
+UM1.10_TC_04 Verify request returns authorized measurement-datasource
+	[Documentation]		Get measurements by Group id 1
+	Set Test Variable 		${groupId}		1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/measurement-datasource?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}
+	Json Value Should Equal		${body}		/measurement_datasources/1			"None"
+	Json Value Should Equal		${body}		/measurement_datasources/2			"Other"
+	Json Value Should Equal		${body}		/measurement_datasources/3			"Acxiom"
+	Json Value Should Equal		${body}		/measurement_datasources/4			"Datalogix"
+	Json Value Should Equal		${body}		/measurement_datasources/5			"Experian"
+	Json Value Should Equal		${body}		/measurement_datasources/6			"NBI"
+	Json Value Should Equal		${body}		/measurement_datasources/7			"NCS"
+	Json Value Should Equal		${body}		/measurement_datasources/8			"Speedeon"
+	Json Value Should Equal		${body}		/measurement_datasources/9			"Walmart"
+	Json Value Should Equal		${body}		/measurement_datasources/10			"Crossix"
+	Json Value Should Equal		${body}		/measurement_datasources/11			"Catalina"
+	Json Value Should Equal		${body}		/measurement_datasources/12			"Datamyx"
+	Json Value Should Equal		${body}		/measurement_datasources/13			"TruSignal"
+	Json Value Should Equal		${body}		/measurement_datasources/14			"IXI"
+	Json Value Should Equal		${body}		/measurement_datasources/15			"Kantar"
+	Json Value Should Equal		${body}		/measurement_datasources/16			"ATT"
+	[Tags]		ADMIN_USER
+
+UM1.10_TC_05 Verify segment-datasource request returns correct error if Group id is not in 'groups' table
+	[Documentation]		Negative Test Get segments by Group id 99 that does not exist in db
+	Set Test Variable 		${groupId}		99
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/segment-datasource?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}				expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-101"
+	Should Be Equal As Strings   ${reason}	Group id is not in 'groups' table.
+	[Tags]		ADMIN_USER
+
+UM1.10_TC_06 Verify measurement-datasource request returns correct error if Group id is not an integer value (2.1)
+	[Documentation]		Negative Test Get measurements by Group id 2.1 that does not exist in db
+	Set Test Variable 		${groupId}		2.1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/measurement-datasource?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}					expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-102"
+	Should Be Equal As Strings   ${reason}	Group id requires an integer value.
+	[Tags]		ADMIN_USER
+
+UM1.10_TC_07 Verify measurement-datasource request returns correct error if Group id is not an integer value (9abc)
+	[Documentation]		Negative Test Get measurements by Group id in alpha numeric order
+	Set Test Variable 		${groupId}		9abc
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/measurement-datasource?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}					expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-102"
+	Should Be Equal As Strings   ${reason}	Group id requires an integer value.
+	[Tags]		ADMIN_USER
+
+
+

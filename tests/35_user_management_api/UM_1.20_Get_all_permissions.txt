@@ -1,0 +1,43 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM    UM1.20    BATCH17
+
+
+# wiki reference https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-1.20.Getallpermissions
+# API Name: 1.20. Get all permissions
+# Method: GET
+# URL: ...user-management-api/permissions-internal/permissions-all
+# DESCRIPTION: This request will get a list of all permissions.
+# userName = rhino.users
+# groupId = rhino.groups
+# permissions = rhino.permissions
+# User Permissions = rhino.user_permissions
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#---------------------------------------------------------------------------------
+UM1.20_TC_01 Get all permissions(Valid request, expected response 200)
+    [Documentation]      Get user product permission id list by username
+    Set Test Variable   ${uri_link}     user-management-api/permissions-internal/permissions-all
+    USER MANAGEMENT API   uri=${uri_link}    expected_status_code=200
+    Json Value Should Equal    ${body}    /options/0/id      1
+    Json Value Should Equal    ${body}    /options/0/name    "READ"
+    Json Value Should Equal    ${body}    /options/1/id      2
+    Json Value Should Equal    ${body}    /options/1/name    "WRITE"
+    Json Value Should Equal    ${body}    /options/2/id      3
+    Json Value Should Equal    ${body}    /options/2/name    "ADMIN"
+    [Tags]
+
+#---------------------------------------------------------------------------------
+UM1.20_TC_02 Get all permissions(Invalid request, expected response 400)
+    [Documentation]      Get user product permission id list by username
+    Set Test Variable   ${uri_link}     user-management-api/permissions_internal/permissions_all
+    USER MANAGEMENT API   uri=${uri_link}    expected_status_code=400
+    Json Value Should Equal    ${body}    /reason_code    "400-001"
+    Json Value Should Equal    ${body}    /reason_desc    "Invalid Request."
+    [Tags]
+
+#---------------------------------------------------------------------------------

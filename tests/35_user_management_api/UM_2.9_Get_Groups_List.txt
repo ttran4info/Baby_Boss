@@ -1,0 +1,74 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM    UM2.0    UM2.9    BATCH17    HTTP    OffshoreQA
+
+# wiki reference : https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.9.GetGroupsList
+# API Name: 2.9. Get Groups List
+# Description: This request will be called on Manage Groups tab to get group list  .Username is path parameter.
+# Method: GET
+# URL:     user-management-api/admin/groups?username=regression@catalina.com
+# userName = rhino.users
+# groupId = rhino.groups
+# campaign_groups.group_id
+# QA Task Jira ID : https://jira.adhaven.com/browse/CM-2297
+#                   https://jira.adhaven.com/browse/CM-2311
+# Dev Task Jira ID : https://jira.adhaven.com/browse/CM-2283
+#                    https://jira.adhaven.com/browse/CM-2306
+
+*** Variables ***
+
+
+*** Keywords ***
+
+*** Test Cases ***
+#-------------------------------------------------------------------------
+UM_2.9_TC_01.1_Get Groups List (valid URL for 4INFO Admin user, Accept)
+    [Documentation]    Expected: API will display all linked groups present for particular user
+    ...   ${\n} This will compare db record count as well as detailed records with api
+    Set Test Variable    ${username}    admin@4info.net
+    Get Groups List for particular user    
+    ...    username=${username}
+    Compare DB Records with API Response for Get Groups List
+    ...    username=${username}
+    Run Keyword If    ${groupscountAPI}==${groupscountDB}    Compare Values for Get Groups List DB with API
+    [Tags]   # CM-2311
+
+
+UM_2.9_TC_01.2_Get Groups List (valid URL for Non 4INFO Admin user, Don't Accept)
+    [Documentation]    Expected: API will not display all linked groups present for particular user. Expected error message.
+    Set Test Variable    ${username}    ${QA_CATALINA_USER3}
+    Get Groups List for particular user    
+    ...    username=${username}
+    ...    response_code=400
+
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    
+    [Tags]
+
+#-------------------------------------------------------------------------
+UM_2.9_TC_02.1_Get Groups List (valid URL for Read Only user, Don't Accept)
+    [Documentation]    Expected: API will not display all linked groups present for particular user. Expected error message.
+    Set Test Variable    ${username}    ${QA_READONLY_USER}
+
+    Get Groups List for particular user    
+    ...    username=${username}
+    ...    response_code=400
+
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+    
+
+UM_2.9_TC_02.2_Get Groups List (valid URL for WRITE Only user, Don't Accept)
+    [Documentation]    Expected: API will not display all linked groups present for particular user. Expected error message.
+    Set Test Variable    ${username}    regression2@catalina.com
+
+    Get Groups List for particular user    
+    ...    username=${username}
+    ...    response_code=400
+
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+#-------------------------------------------------------------------------

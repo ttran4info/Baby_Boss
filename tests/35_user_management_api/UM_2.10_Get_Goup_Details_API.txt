@@ -1,0 +1,211 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM    UM2.10    BATCH17
+
+
+# wiki reference https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.10.GetGroupsDetail
+# API Name: 2.10. Get Groups Detail
+# Method: GET
+# URL: /user-management-api/admin/groups?groupId=1
+# DESCRIPTION: This request will be called on Manage Groups tab to get group details . GroupId is path parameter.
+# userName = rhino.users
+# groupId = rhino.groups
+# permissions = rhino.permissions
+# User Permissions = rhino.user_permissions
+*** Variables ***
+
+
+*** Keywords ***
+GET Request For Group Details
+    # [Arguments]                     ${GroupId}=${group_id}
+    USER MANAGEMENT API             uri=/user-management-api/admin/groups?groupId=${group_id}
+
+Compare Group Details with DB
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT group_name,enabled,created_dt,modified_dt,max_bid_multiplier,metamarkets_securitypolicy_id,last_modified_by,goal_type FROM rhino.groups where id=${group_id};
+    Log Many            @{query_results}
+    ${GroupName} =              Convert To String     ${queryResults[0][0]}
+    Log                         ${GroupName}
+    Set Test Variable          ${GroupName}          ${GroupName}
+    ${Enable} =                 Convert To String     ${queryResults[0][1]}
+    Log                         ${Enable}
+    Set Test Variable          ${Enable}             ${Enable}
+    ${CreatedDate}=             Convert To String     ${queryResults[0][2]}
+    Log                         ${CreatedDate}
+    Set Test Variable          ${CreatedDate}        ${CreatedDate}
+    ${LastModifiedDate}=        Convert To String     ${queryResults[0][3]}
+    Log                         ${LastModifiedDate}
+    Set Test Variable          ${LastModifiedDate}   ${LastModifiedDate}
+    ${MaxBidMultiplier}=        Convert To String     ${queryResults[0][4]}
+    Log                         ${MaxBidMultiplier}
+    Set Test Variable          ${MaxBidMultiplier}   ${MaxBidMultiplier}
+    Run Keyword If             '${MaxBidMultiplier}'=='None'       Set Test Variable       ${MaxBidMultiplier}      null
+    ${MetaMarketsID}=           Convert To String     ${queryResults[0][5]}
+    Log                         ${MetaMarketsID}
+    Set Test Variable          ${MetaMarketsID}      ${MetaMarketsID}
+    Run Keyword If             '${MetaMarketsID}'=='None'       Set Test Variable       ${MetaMarketsID}      null
+    ${LastModifiedBy} =         Convert To String     ${queryResults[0][6]}
+    Log                         ${LastModifiedBy}
+    Set Test Variable          ${LastModifiedBy}     ${LastModifiedBy}
+    ${GoalType}=                Convert To String     ${queryResults[0][7]}
+    Log                         ${GoalType}
+    Set Test Variable          ${GoalType}           ${GoalType}
+    Disconnect From Database
+
+    Json Value Should Equal    ${body}    /group/groupName                      "${GroupName}"
+    Json Value Should Equal    ${body}    /group/enabled                        ${Enable}
+    # Json Value Should Equal    ${body}    /group/createdDate                    "${CreatedDate}"
+    # Json Value Should Equal    ${body}    /group/LastModifiedDate               "${LastModifiedDate}"
+    Json Value Should Equal    ${body}    /group/maxBidMultiplier               ${MaxBidMultiplier}
+    Json Value Should Equal    ${body}    /group/metaMarketsId                  ${MetaMarketsID}
+    Json Value Should Equal    ${body}    /group/lastModifiedBy                 "${LastModifiedBy}"
+    Json Value Should Equal    ${body}    /group/goalType                       ${GoalType}
+
+
+*** Test Cases ***
+TC_01_Get Group Details Compare with DB Records(GROUPID=1)
+    Set Test Variable              ${group_id}         1
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_02_Get Group Details Compare with DB Records(GROUPID=2)
+    Set Test Variable              ${group_id}         2
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_03_Get Group Details Compare with DB Records(GROUPID=3)
+    Set Test Variable              ${group_id}        3
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_04_Get Group Details Compare with DB Records(GROUPID=4)
+    Set Test Variable              ${group_id}         4
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_05_Get Group Details Compare with DB Records(GROUPID=5)
+    Set Test Variable              ${group_id}         5
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_06_Get Group Details Compare with DB Records(GROUPID=6)
+    Set Test Variable              ${group_id}        6
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_07_Get Group Details Compare with DB Records(GROUPID=7)
+    Set Test Variable              ${group_id}         7
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_08_Get Group Details Compare with DB Records(GROUPID=8)
+    Set Test Variable              ${group_id}         8
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_09_Get Group Details Compare with DB Records(GROUPID=9)
+    Set Test Variable              ${group_id}        9
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_10_Get Group Details Compare with DB Records(GROUPID=10)
+    Set Test Variable              ${group_id}         10
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_11_Get Group Details Compare with DB Records(GROUPID=11)
+    Set Test Variable              ${group_id}         11
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_12_Get Group Details Compare with DB Records(GROUPID=12)
+    Set Test Variable              ${group_id}        12
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_13_Get Group Details Compare with DB Records(GROUPID=13)
+    Set Test Variable              ${group_id}         13
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_14_Get Group Details Compare with DB Records(GROUPID=14)
+    Set Test Variable              ${group_id}        14
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_15_Get Group Details Compare with DB Records(GROUPID=15)
+    Set Test Variable              ${group_id}         15
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_16_Get Group Details Compare with DB Records(GROUPID=16)
+    Set Test Variable              ${group_id}         16
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_17_Get Group Details Compare with DB Records(GROUPID=17)
+    Set Test Variable              ${group_id}        17
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_18_Get Group Details Compare with DB Records(GROUPID=18)
+    Set Test Variable              ${group_id}         18
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_19_Get Group Details Compare with DB Records(GROUPID=19)
+    Set Test Variable              ${group_id}         19
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_20_Get Group Details Compare with DB Records(GROUPID=20)
+    Set Test Variable              ${group_id}        20
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_21_Get Group Details Compare with DB Records(GROUPID=21)
+    Set Test Variable              ${group_id}         21
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_22_Get Group Details Compare with DB Records(GROUPID=22)
+    Set Test Variable              ${group_id}         22
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_23_Get Group Details Compare with DB Records(GROUPID=23)
+    Set Test Variable              ${group_id}        23
+    GET Request For Group Details
+    Compare Group Details with DB
+    [Tags]
+
+TC_23_Get Group Details Invalid Group ID
+    Set Test Variable              ${group_id}        30
+    USER MANAGEMENT API             uri=/user-management-api/admin/groups?groupId=${group_id}      expected_status_code=400
+    Json Value Should Equal    ${body}    /success                  false
+    Json Value Should Equal    ${body}    /reason_code              "600-001"
+    Json Value Should Equal    ${body}    /reason_desc               "Group id is not in 'groups' table."
+    Json Value Should Equal    ${body}    /group                    null
+    [Tags]

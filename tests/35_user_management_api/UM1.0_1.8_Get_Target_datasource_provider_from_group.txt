@@ -1,0 +1,81 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.8	BATCH17
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: Get Target datasource provider from group permission
+#Method: GET
+#URL: ...user-management-api/ui-acc-datasource/target-datasource?groupId=:group_id&type=:type
+#DESCRIPTION: Type is optional. If type==null, return all target datasource access, else return all access of target datasource belongs to particular type.
+#userName = rhino.users
+#groupId = rhino.groups
+#groups_target_datasource_provider
+#target_datasource_provider
+
+#Request For target-datasource-provider
+UM1.8_TC_01 Validate 200 response and success=true is seen for all groups (group 1-22)
+	Set Test Variable		${max_group}	22
+	Set Test Variable 		${groupId}		1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-provider?groupId=${groupId}
+	:FOR	${groupId}	IN RANGE	1		${max_group}
+	\	USER MANAGEMENT API	uri=${uri_link}		expected_status_code=200	success=true
+	[Tags]
+
+UM1.8_TC_02 Compare the API vs database result (group1)
+	Set Test Variable 		${groupId}		1
+
+	Get Target Datasource Provider From Group ID		group_id=${groupId}
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-provider?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}
+	${target_datasource_providers_api}=						Get Json Value						${body}										/target_datasource_providers
+	@{target_datasource_providers_list}=					String.Split String 				${target_datasource_providers_api}			,
+	${target_datasource_providers_api_count}=				Get Length 							${target_datasource_providers_list}
+	Should Be Equal As Integers		${target_datasource_providers_api_count}	${target_datasource_providers_db_count}
+	[Tags]		ADMIN_USER
+
+UM1.8_TC_03 Compare the API vs database result (group15)
+	Set Test Variable 		${groupId}		15
+
+	Get Target Datasource Provider From Group ID		group_id=${groupId}
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-provider?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}
+	${target_datasource_providers_api}=						Get Json Value						${body}										/target_datasource_providers
+	@{target_datasource_providers_list}=					String.Split String 				${target_datasource_providers_api}			,
+	${target_datasource_providers_api_count}=				Get Length 							${target_datasource_providers_list}
+	Run Keyword Unless	'${target_datasource_providers_api_count}'=='1'		Should Be Equal As Integers		${target_datasource_providers_api_count}	${target_datasource_providers_db_count}
+	[Tags]		CATALINA_USER
+
+
+UM1.8_TC_04 Verify correct error when provide a group not within the table.
+	Set Test Variable 		${groupId}		99
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-provider?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}				expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-101"
+	Should Be Equal As Strings   ${reason}	Group id is not in 'groups' table.
+
+UM1.8_TC_05 Verify correct error when provide an invalid int as a group.
+	Set Test Variable 		${groupId}		2.1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-provider?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}				expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-102"
+	Should Be Equal As Strings   ${reason}	Group id requires an integer value.
+
+UM1.8_TC_06 Verify extra parameters are not seen
+	Set Test Variable 		${groupId}		1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-provider?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}
+	Should Not Match Regexp		${body}		"pages"
+	Should Not Match Regexp		${body}		"tabs"
+	Should Not Match Regexp		${body}		"sections"
+	Should Not Match Regexp		${body}		"fields"
+	[Tags]

@@ -1,0 +1,132 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM    UM1.0    UM2.7    BATCH17    #CM-2161
+
+# wiki reference https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.7.Getalluserslistacrossproducts
+# API Name: Get all users list across products
+# Description: This request will return a list of users, which will be displayed in new UI  and Dashboard when Manage Users is clicked .
+# Method: GET
+# URL: /user-management-api/admin/dashoard-users?currentUsername=:username&groupId=:groupid
+# userName = rhino.users
+# groupId = rhino.groups
+#
+
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#-------------------------------------------------------------------------
+UM_2.7_TC_01.1_Get all users list across products (4Info Admin user with group 1, Accept)
+    [Documentation]    Test Admin User with group 1, expected result 200
+    Set Test Variable    ${username}    ${QA_DEFAULT_USER}
+    Set Test Variable    ${groupid}    1
+    Set Test Variable    ${uri}    /user-management-api/admin/dashboard-users?currentUsername=${username}&groupId=${groupid}
+
+    USER MANAGEMENT API     uri=${uri}
+    ...                     request_type=GET
+    ...                     expected_status_code=200
+    ...                     success=true
+
+    Should Match Regexp     ${body}     {"userName":"${QA_DEFAULT_USER}","status":"Active","firstName":"admin","lastName":"net"
+
+    Compare Response 200 body with DB for UM2.7     currentUsername=${username}
+    ...                                             groupId=${groupid}
+    [Tags]
+
+UM_2.7_TC_01.2_Get all users list across products (Catalina Multiuser, Admin user with group 15, Accept)
+    [Documentation]    Test Admin User with group 1, expected result 200
+    Set Test Variable    ${username}    multiuser@4info.com
+    Set Test Variable    ${groupid}    15
+    Set Test Variable    ${uri}    /user-management-api/admin/dashboard-users?currentUsername=${username}&groupId=${groupid}
+
+    USER MANAGEMENT API     uri=${uri}
+    ...                     request_type=GET
+    ...                     expected_status_code=200
+    ...                     success=true
+
+    Compare Response 200 body with DB for UM2.7     currentUsername=${username}
+    ...                                             groupId=${groupid}
+    [Tags]
+
+
+#------------------------------------------------------------------------------------------------------
+UM_2.7_TC_02.1_Get all users list across products (4Info User with only READ permission with group 1, Don't Accept)
+    [Documentation]    Test Admin User with group 1, expected result 200
+    Set Test Variable    ${username}    ${QA_READONLY_USER}
+    Set Test Variable    ${groupid}    1
+    Set Test Variable    ${uri}    /user-management-api/admin/dashboard-users?currentUsername=${username}&groupId=${groupid}
+
+    USER MANAGEMENT API     uri=${uri}
+    ...                     request_type=GET
+    ...                     expected_status_code=400
+    ...                     success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+
+    [Tags]
+
+
+UM_2.7_TC_02.2_Get all users list across products (4Info User with only WRITE permission with group 1, Don't Accept)
+    [Documentation]    Test Admin User with group 1, expected result 200
+    Set Test Variable    ${username}    ${QA_READONLY_USER}
+    Set Test Variable    ${groupid}    1
+    Set Test Variable    ${uri}    /user-management-api/admin/dashboard-users?currentUsername=${username}&groupId=${groupid}
+
+    USER MANAGEMENT API     uri=${uri}
+    ...                     request_type=GET
+    ...                     expected_status_code=400
+    ...                     success=false
+
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+
+    [Tags]
+
+#------------------------------------------------------------------------------------------------------
+UM_2.7_TC_03.1_Get all users list across products (If current user is if 4 info admin, then that user's own record id visible in response)
+    Set Test Variable    ${username}    multiuser@4info.com
+    Set Test Variable    ${groupid}    1
+    Set Test Variable    ${uri}    /user-management-api/admin/dashboard-users?currentUsername=${username}&groupId=${groupid}
+
+    USER MANAGEMENT API     uri=${uri}
+    ...                     request_type=GET
+    ...                     expected_status_code=200
+    ...                     success=true
+
+    Should Match Regexp    ${body}    {"userName":"multiuser@4info.com","status":"Active","firstName":"QA","lastName":"Multi","lastModifiedBy":"HParihar@4info.com"
+    [Tags]
+
+
+UM_2.7_TC_03.2_Get all users list across products (If current user is non 4 info admin which has 4info group access, then that user's own record id not visible in response)
+    Set Test Variable    ${username}    multiuser@4info.com
+    Set Test Variable    ${groupid}    15
+    Set Test Variable    ${uri}    /user-management-api/admin/dashboard-users?currentUsername=${username}&groupId=${groupid}
+
+    USER MANAGEMENT API     uri=${uri}
+    ...                     request_type=GET
+    ...                     expected_status_code=200
+    ...                     success=true
+
+    Should Not Match Regexp    ${body}    {"userName":"multiuser@4info.com","status":"Active","firstName":"multi","lastName":"user","lastModifiedBy":"HParihar@4info.com"
+    [Tags]
+
+
+UM_2.7_TC_03.3_Get all users list across products (If current user is non 4info admin user who don't have access for 4info group, then that user's own record id is visible in response)
+    Set Test Variable    ${username}    ${QA_CATALINA_USER3}
+    Set Test Variable    ${groupid}    15
+    Set Test Variable    ${uri}    /user-management-api/admin/dashboard-users?currentUsername=${username}&groupId=${groupid}
+
+    USER MANAGEMENT API     uri=${uri}
+    ...                     request_type=GET
+    ...                     expected_status_code=200
+    ...                     success=true
+
+    Should Match Regexp    ${body}    {"userName":"regression3@catalina.com","status":"Active","firstName":"regression","lastName":"catalina3","lastModifiedBy":"ttran@4info.com"
+    [Tags]
+#------------------------------------------------------------------------------------------------------

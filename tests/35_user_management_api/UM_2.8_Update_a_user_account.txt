@@ -1,0 +1,631 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM      UM2.0   UM2.8   BATCH17     HTTP    OffshoreQA
+Suite Setup         Delete a user       username=regression@temp.com
+Suite Teardown      Delete a user       username=regression@temp.com
+
+# https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.8.Updateauseraccount
+# API Name: 2.8. Update a user account
+# Description: This request will be called on Admin tab for user updating. The different between create and update call is the username in path parameter.
+# Method: PUT
+# URL: 192.168.99.100:8380/user-management-api/admin/user-account?username=regression@catalina.com
+# rhino.users
+# rhino.user_product_permissions
+#
+# QA Task Jira ID : https://jira.adhaven.com/browse/CM-2292
+# Dev Task Jira ID : https://jira.adhaven.com/browse/CM-2125
+
+*** Variables ***
+${regular_username}                024-api-regular-regression@temp.com
+${regular_permissionsList}        [{"permissions": [1, 2], "groupId": 1, "productId": 1}, {"permissions": [1], "groupId": 1, "productId": 2}]
+${regular_authority}            USER
+
+${status}                       1
+${Pass}                         abcABC123!
+${firstName}                    Regression
+${lastName}                     Test
+${lastModifiedBy}               ${QA_DEFAULT_USER}
+
+${admin_username}                024-api-admin-regression@temp.com
+${admin_permissionsList}        [{"permissions": [1, 2], "groupId": 1, "productId": 1}, {"permissions": [1], "groupId": 1, "productId": 2}]
+${admin_authority}            ADMIN
+
+${newPass}    abcCCC222!
+
+*** Keywords ***
+
+*** Test Cases ***
+#----------------------------------------------------------------------------------
+UM_2.8_TC_00_Create Required Users for Modify User's Own Account Tests
+    [Documentation]   Create required users to be used in current script.
+    Comment    Create a regular user 
+
+    Create a user       userName="${regular_username}"
+    ...                 status=${status}
+    ...                 password="${Pass}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${regular_authority}"
+    ...                 permissionsList=${regular_permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    Comment    Create an Admin user 
+
+    Create a user       userName="${admin_username}"
+    ...                 status=${status}
+    ...                 password="${Pass}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${admin_authority}"
+    ...                 permissionsList=${admin_permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+
+
+    [Tags]    UM_2.8_TC_01.1    
+
+#----------------------------------------------------------------------------------
+UM_2.8_TC_01.1_Modify User's Own Account (Valid Request for Any User, Accept)
+    [Documentation]    The logged in user can modify his own profile details like first name, last name, password.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+    Set Test Variable    ${newPass}     abcABC456!
+
+    Modify User's Own Account    
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"    
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}"   
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=200
+    ...        success=true                    
+    [Tags]      UM_2.8_TC_01.1  
+
+
+
+UM_2.8_TC_01.2_Modify User's Own Account (Valid Request for Admin User, Accept)
+    [Documentation]    The logged in user can modify his own profile details like first name, last name, password.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+    Set Test Variable    ${newPass}     abcABC456!
+
+    Modify User's Own Account    
+    ...        userName=${admin_username}
+    ...        newUserName="${admin_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"    
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${admin_username}" 
+    ...        permissionsList=${admin_permissionsList}
+    ...        status=${status}
+    ...        authority="${admin_authority}"
+    ...        response_code=200
+    ...        success=true                    
+    [Tags]
+
+#----------------------------------------------------------------------------------
+
+UM_2.8_TC_02.1_Modify User's Own Account (Missing username in url Request, Don't Accept)
+    [Documentation]    When username is not passed in URL, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName="MISSING"
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"    
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}" 
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false                    
+    [Tags]
+
+
+UM_2.8_TC_02.2_Modify User's Own Account (Incorrect username in url Request, Don't Accept)
+    [Documentation]    When no user name passed in URL, then error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"    
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}" 
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false                    
+    [Tags]
+
+#----------------------------------------------------------------------------------
+UM_2.8_TC_03.1_Modify User's Own Account (Missing username in Request body, Don't Accept)
+    [Documentation]    When username is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+    Modify User's Own Account
+    ...        userName="${regular_username}"
+    ...        newUserName="MISSING"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"    
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}" 
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false
+
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Username can contain alphanumeric charaters, -, . and @ only"
+                      
+    [Tags]
+
+
+UM_2.8_TC_03.2_Modify User's Own Account (modify own username in Request body, Don't Accept)
+    [Documentation]    When username is not passed in URL, then an error message should populate.
+    Set Test Variable    ${newUserName}     Test.${regular_username}
+    Log    ${newUserName}
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${newUserName}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"    
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}" 
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false 
+
+    Should Match Regexp     ${body}     "reason_code":"700-012"
+    Should Match Regexp     ${body}     "reason_desc":"Username cannot be modified once created."
+                      
+    [Tags]
+
+
+UM_2.8_TC_03.3_Modify Different User's Account (another username in Request body and URL, Don't Accept)
+    [Documentation]    When username is not passed in URL, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"    
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${QA_DEFAULT_USER}" 
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false 
+    
+    Should Match Regexp     ${body}     "reason_code":"700-019"
+    Should Match Regexp     ${body}     "reason_desc":"User cannot modify a different account."
+                      
+    [Tags]
+#----------------------------------------------------------------------------------
+
+UM_2.8_TC_04.1_Modify User's Own Account (firstname contains except alphanumeric charaters,single space, _, -, ' and . characters in Request body, Don't Accept)
+    [Documentation]    When first name is passed unexpected characters, then an error message should populate.
+    Set Test Variable    ${firstName}    Test??#@    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"     
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}"
+    ...        permissionsList="${regular_permissionsList}"
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false                    
+    
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+                      
+    [Tags]
+
+
+UM_2.8_TC_04.2_Modify User's Own Account (firstname null, Don't Accept)
+    [Documentation]    When first name is passed as null value, then an error message should populate.
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName=null
+    ...        lastName="${lastName}"    
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false                    
+    
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+                      
+    [Tags]
+
+
+UM_2.8_TC_04.3_Modify User's Own Account (firstname blank, Don't Accept)
+    [Documentation]    When first name is passed as blank value, then an error message should populate.
+    Set Test Variable    ${firstName}    ${Empty}
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"     
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false                    
+    
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+                      
+    [Tags]
+
+#----------------------------------------------------------------------------------
+UM_2.8_TC_05.1_Modify User's Own Account (Missing lastName in Request body, Don't Accept)
+    [Documentation]    When first name is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="MISSING"    
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}" 
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false                    
+    
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+                      
+    [Tags]
+
+
+UM_2.8_TC_05.2_Modify User's Own Account (lastName contains except alphanumeric charaters,single space, _, -, ' and . characters in Request body, Don't Accept)
+    [Documentation]    When first name is passed unexpected characters, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression??#@
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"    
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}"  
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false                    
+    
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+                      
+    [Tags]
+
+
+UM_2.8_TC_05.3_Modify User's Own Account (lastName null, Don't Accept)
+    [Documentation]    When first name is passed as null value, then an error message should populate.
+    Set Test Variable    ${firstName}    Test 
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName=null   
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}"  
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false                    
+    
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+                      
+    [Tags]
+
+
+UM_2.8_TC_04.3_Modify User's Own Account (lastName blank, Don't Accept)
+    [Documentation]    When first name is passed as blank value, then an error message should populate.
+    Set Test Variable    ${firstName}    Test   
+    Set Test Variable    ${lastName}    ${Empty}
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"   
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false                    
+    
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+                      
+    [Tags]
+
+#----------------------------------------------------------------------------------
+UM_2.8_TC_05.1_Modify User's Own Account (Missing currentPassword in Request body, Accept)
+    [Documentation]    When currentPassword is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"   
+    ...        currentPassword="MISSING"  
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false
+
+    Should Match Regexp     ${body}     "reason_code":"700-020"
+    Should Match Regexp     ${body}     "reason_desc":"Current Password is invalid."
+                      
+    [Tags]
+
+
+UM_2.8_TC_05.2_Modify User's Own Account (currentPassword Blank in Request body, Accept)
+    [Documentation]    When currentPassword is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+    Set Test Variable    ${currentPassword}    ${Empty}
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"   
+    ...        currentPassword="${currentPassword}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false
+
+    Should Match Regexp     ${body}     "reason_code":"700-020"
+    Should Match Regexp     ${body}     "reason_desc":"Current Password is invalid."
+                      
+    [Tags]
+
+
+UM_2.8_TC_05.3_Modify User's Own Account (currentPassword null in Request body, Accept)
+    [Documentation]    When currentPassword is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+    Set Test Variable    ${currentPassword}    null
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"   
+    ...        currentPassword=${currentPassword}
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${regular_username}"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false
+                      
+    Should Match Regexp     ${body}     "reason_code":"700-020"
+    Should Match Regexp     ${body}     "reason_desc":"Current Password is invalid."
+                      
+    [Tags]
+
+#----------------------------------------------------------------------------------
+
+UM_2.8_TC_06.1_Modify User's Own Account (Missing newPassword in Request body, Accept)
+    [Documentation]    When newPassword is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"   
+    ...        currentPassword="${Pass}" 
+    ...        newPassword="MISSING"
+    ...        lastModifiedBy="${regular_username}"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=200
+    ...        success=true
+                      
+    [Tags]
+
+
+UM_2.8_TC_06.2_Modify User's Own Account (newPassword Blank in Request body, Accept)
+    [Documentation]    When newPassword is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"   
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${Empty}"
+    ...        lastModifiedBy="${regular_username}"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=200
+    ...        success=true
+                      
+    [Tags]
+
+
+UM_2.8_TC_06.3_Modify User's Own Account (newPassword null in Request body, Accept)
+    [Documentation]    When newPassword is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"   
+    ...        currentPassword=${Pass}
+    ...        newPassword=null
+    ...        lastModifiedBy="${regular_username}"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false
+                      
+    Should Match Regexp     ${body}     "reason_code":"400-001"
+    Should Match Regexp     ${body}     "reason_desc":"Invalid Request."
+                      
+    [Tags]
+
+
+
+#----------------------------------------------------------------------------------
+
+UM_2.8_TC_07.1_Modify User's Own Account (Missing lastModifiedBy in Request body, Accept)
+    [Documentation]    When lastModifiedBy is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"   
+    ...        currentPassword="${Pass}" 
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="MISSING"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false
+
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last Modified By username cannot be null or blank."
+                      
+    [Tags]
+
+
+UM_2.8_TC_07.2_Modify User's Own Account (lastModifiedBy Blank in Request body, Accept)
+    [Documentation]    When lastModifiedBy is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"   
+    ...        currentPassword="${Pass}"
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy="${Empty}"
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false
+
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last Modified By username cannot be null or blank."
+                      
+    [Tags]
+
+
+UM_2.8_TC_07.3_Modify User's Own Account (lastModifiedBy null in Request body, Accept)
+    [Documentation]    When lastModifiedBy is not passed in request body, then an error message should populate.
+    Set Test Variable    ${firstName}    Test    
+    Set Test Variable    ${lastName}    Regression
+
+    Modify User's Own Account
+    ...        userName=${regular_username}
+    ...        newUserName="${regular_username}"
+    ...        firstName="${firstName}"
+    ...        lastName="${lastName}"   
+    ...        currentPassword=${Pass}
+    ...        newPassword="${newPass}"
+    ...        lastModifiedBy=null
+    ...        permissionsList=${regular_permissionsList}
+    ...        status=${status}
+    ...        authority="${regular_authority}"
+    ...        response_code=400
+    ...        success=false
+                      
+    Should Match Regexp     ${body}     "reason_code":"400-001"
+    Should Match Regexp     ${body}     "reason_desc":"Invalid Request."
+                      
+    [Tags]
+
+
+#----------------------------------------------------------------------------------

@@ -1,0 +1,287 @@
+*** Settings ***
+Resource             placement_discovery_imports.txt
+Force Tags           PLACEMENT_DISCOVERY		AOL		BATCH3						
+
+*** variables ***
+${app_ag}				37332
+${mw_ag}				37333
+${online_ag}			37334
+*** Test Cases ***
+
+AOL - Placement Discovery via Bundle ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			App Bundle ID
+	Set Test Variable	${app_domain}			Nothing
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		Nothing
+	Set Test Variable	${app_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]	
+	
+AOL - Placement Discovery via App Domain
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			AppDomain.com
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		Nothing
+	Set Test Variable	${app_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]
+	
+AOL - Placement Discovery via IAB Category
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing
+	Set Test Variable	${app_cat}				App IAB Category
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		Nothing
+	Set Test Variable	${app_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]
+	
+AOL - Placement Discovery via App ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				App ID
+	Set Test Variable	${app_publisher_id}		Nothing
+	Set Test Variable	${app_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]
+	
+AOL - Placement Discovery via Publisher ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		App Publisher ID
+	Set Test Variable	${app_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]	Exclude    #placement is obsolete
+	
+AOL - Placement Discovery via App Store URL
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		Nothing
+	Set Test Variable	${app_storeurl}			App Store URL
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]
+AOL - Placement Discovery via Publisher ID only in Site,Online (not serve)
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		Publisher Not App
+	Set Test Variable	${app_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=204  	adgroup_expected=NA     submit_client_impression_event=NO
+	[Tags]	Exclude
+
+AOL - Placement Discovery via Publisher Not MW (Same Publisher as Online)
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		Publisher Not MW
+	Set Test Variable	${app_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]		
+
+AOL - Placement Discovery via Publisher Not Online (Same Publisher as MW)
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		Publisher Not Online
+	Set Test Variable	${app_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]		
+
+
+
+
+AOL - Placement Discovery via Site Domain
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_bundle}			Nothing
+	Set Test Variable	${site_domain}			SiteDomain.com
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				Nothing
+	Set Test Variable	${site_publisher_id}	Nothing
+	Set Test Variable	${site_storeurl}		Nothing
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${mw_ag}      submit_client_impression_event=NO
+	[Tags] 	
+
+AOL - Placement Discovery via Site IAB Category
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing
+	Set Test Variable	${site_cat}				Site IAB Category
+	Set Test Variable	${site_id}				Nothing
+	Set Test Variable	${site_publisher_id}	Nothing
+	Set Test Variable	${site_storeurl}		Nothing
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${mw_ag}      submit_client_impression_event=NO
+	[Tags] 	
+
+AOL - Placement Discovery via Site ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				Site ID
+	Set Test Variable	${site_publisher_id}	Nothing
+	Set Test Variable	${site_storeurl}		Nothing
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${mw_ag}      submit_client_impression_event=NO
+	[Tags] 	
+	
+AOL - Placement Discovery via Site Publisher ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				Nothing
+	Set Test Variable	${site_publisher_id}	Site Publisher ID
+	Set Test Variable	${site_storeurl}		Nothing
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${mw_ag}      submit_client_impression_event=NO
+	[Tags] 	
+	
+AOL - Placement Discovery via Publisher ID Not MW (not serve)
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				Nothing
+	Set Test Variable	${site_publisher_id}	Publisher Not MW
+	Set Test Variable	${site_storeurl}		Nothing
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=204  	adgroup_expected=NA    submit_client_impression_event=NO
+	[Tags] 	
+	
+AOL - Placement Discovery via Site Publisher Not App
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				Nothing
+	Set Test Variable	${site_publisher_id}	Publisher Not App
+	Set Test Variable	${site_storeurl}		Nothing
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${mw_ag}      submit_client_impression_event=NO
+	[Tags] 	
+
+AOL - Placement Discovery via Site Publisher Not Online
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				Nothing
+	Set Test Variable	${site_publisher_id}	Publisher Not Online
+	Set Test Variable	${site_storeurl}		Nothing
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${mw_ag}      submit_client_impression_event=NO
+	[Tags] 	
+
+
+AOL - Placement Discovery via Online Domain
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have online domain)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			OnlineDomain.com
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		Nothing
+	Set Test Variable	${online_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["11000","51000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"devicetype":2,"js":1,"os":"OS X","language":"en","ua":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:49.0) Gecko/20100101 Firefox/49.0","ip":"209.6.41.147"},"at":2,"user":{"id":"57EDB9446E6517241AF4D9CDFAAFC37D"},"site":{"publisher":{"id":"${online_publisher_id}"},"mobile":0,"cat":["${online_cat}"],"domain":"${online_domain}","page":"xhttp://whatmollymade.com/pumpkin-streusel-muffins/","id":"${online_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,10,11],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"105-1-2-1478694529487337"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${online_ag}      submit_client_impression_event=NO
+	[Tags] 		
+
+AOL - Placement Discovery via Online IAB Category
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have online domain)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing
+	Set Test Variable	${online_cat}				Online IAB Category
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		Nothing
+	Set Test Variable	${online_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["11000","51000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"devicetype":2,"js":1,"os":"OS X","language":"en","ua":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:49.0) Gecko/20100101 Firefox/49.0","ip":"209.6.41.147"},"at":2,"user":{"id":"57EDB9446E6517241AF4D9CDFAAFC37D"},"site":{"publisher":{"id":"${online_publisher_id}"},"mobile":0,"cat":["${online_cat}"],"domain":"${online_domain}","page":"xhttp://whatmollymade.com/pumpkin-streusel-muffins/","id":"${online_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,10,11],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"105-1-2-1478694529487337"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${online_ag}      submit_client_impression_event=NO
+	[Tags] 		
+
+AOL - Placement Discovery via Online ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have online domain)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Online ID
+	Set Test Variable	${online_publisher_id}		Nothing
+	Set Test Variable	${online_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["11000","51000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"devicetype":2,"js":1,"os":"OS X","language":"en","ua":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:49.0) Gecko/20100101 Firefox/49.0","ip":"209.6.41.147"},"at":2,"user":{"id":"57EDB9446E6517241AF4D9CDFAAFC37D"},"site":{"publisher":{"id":"${online_publisher_id}"},"mobile":0,"cat":["${online_cat}"],"domain":"${online_domain}","page":"xhttp://whatmollymade.com/pumpkin-streusel-muffins/","id":"${online_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,10,11],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"105-1-2-1478694529487337"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${online_ag}      submit_client_impression_event=NO
+	[Tags] 		
+	
+AOL - Placement Discovery via Online Publisher ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have online domain)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		Online Publisher ID
+	Set Test Variable	${online_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["11000","51000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"devicetype":2,"js":1,"os":"OS X","language":"en","ua":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:49.0) Gecko/20100101 Firefox/49.0","ip":"209.6.41.147"},"at":2,"user":{"id":"57EDB9446E6517241AF4D9CDFAAFC37D"},"site":{"publisher":{"id":"${online_publisher_id}"},"mobile":0,"cat":["${online_cat}"],"domain":"${online_domain}","page":"xhttp://whatmollymade.com/pumpkin-streusel-muffins/","id":"${online_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,10,11],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"105-1-2-1478694529487337"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${online_ag}      submit_client_impression_event=NO
+	[Tags] 		
+	
+AOL - Placement Discovery via Publisher ID Not Online
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have online domain)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		Publisher ID Not Online
+	Set Test Variable	${online_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["11000","51000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"devicetype":2,"js":1,"os":"OS X","language":"en","ua":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:49.0) Gecko/20100101 Firefox/49.0","ip":"209.6.41.147"},"at":2,"user":{"id":"57EDB9446E6517241AF4D9CDFAAFC37D"},"site":{"publisher":{"id":"${online_publisher_id}"},"mobile":0,"cat":["${online_cat}"],"domain":"${online_domain}","page":"xhttp://whatmollymade.com/pumpkin-streusel-muffins/","id":"${online_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,10,11],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"105-1-2-1478694529487337"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=204  	adgroup_expected=NA     submit_client_impression_event=NO
+	[Tags] 		
+
+AOL - Placement Discovery via Publisher Not MW
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have online domain)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		Publisher Not MW
+	Set Test Variable	${online_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["11000","51000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"devicetype":2,"js":1,"os":"OS X","language":"en","ua":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:49.0) Gecko/20100101 Firefox/49.0","ip":"209.6.41.147"},"at":2,"user":{"id":"57EDB9446E6517241AF4D9CDFAAFC37D"},"site":{"publisher":{"id":"${online_publisher_id}"},"mobile":0,"cat":["${online_cat}"],"domain":"${online_domain}","page":"xhttp://whatmollymade.com/pumpkin-streusel-muffins/","id":"${online_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,10,11],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"105-1-2-1478694529487337"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${online_ag}      submit_client_impression_event=NO
+	[Tags] 		
+AOL - Placement Discovery via Publisher Not App
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have online domain)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		Publisher Not App
+	Set Test Variable	${online_storeurl}			Nothing
+	Set Test Variable 	${data}			{"bcat":["11000","51000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"devicetype":2,"js":1,"os":"OS X","language":"en","ua":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:49.0) Gecko/20100101 Firefox/49.0","ip":"209.6.41.147"},"at":2,"user":{"id":"57EDB9446E6517241AF4D9CDFAAFC37D"},"site":{"publisher":{"id":"${online_publisher_id}"},"mobile":0,"cat":["${online_cat}"],"domain":"${online_domain}","page":"xhttp://whatmollymade.com/pumpkin-streusel-muffins/","id":"${online_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[1,3,6,7,8,10,11],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"105-1-2-1478694529487337"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${online_ag}      submit_client_impression_event=NO
+	[Tags] 					

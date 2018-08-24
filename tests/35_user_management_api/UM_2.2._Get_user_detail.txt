@@ -1,0 +1,67 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM      UM2.0   UM2.2   BATCH17     HTTP    OffshoreQA
+Suite Setup         Delete a user       username=Test-Regression-
+Suite Teardown      Delete a user       username=Test-Regression-
+
+# wiki reference : https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.2.Getuserdetail
+# API Name: 2.2. Get user detail
+# Description: This request will be called on Admin tab - user edit page
+# Method: GET
+# URL: 192.168.99.100:8380user-management-api/admin/users?username=yzhao@4info.com
+# rhino.users
+# rhino.user_product_permissions
+#
+# QA Task Jira ID : https://jira.adhaven.com/browse/CM-1861
+# Dev Task Jira ID : NA
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#-------------------------------------------------------------------------
+UM_2.2_TC_01.1_Get user detail (valid URL, 4info Admin user, Accept)
+    [Documentation]    Expected: API will display all the users which will be displayed in new UI admin list page.
+    Set Test Variable    ${username}     Test-Regression-22011@4info.com
+    Set Test Variable    ${status}       1
+    Set Test Variable    ${Pass}         abcABC123!
+    Set Test Variable    ${firstName}    Regression
+    Set Test Variable    ${lastName}     Test
+    Set Test Variable    ${authority}    USER
+    Set Test Variable    ${permissionsList}    [{"permissions": [1, 2], "groupId": 1, "productId": 1}, {"permissions": [1], "groupId": 1, "productId": 2}]
+    Set Test Variable    ${lastModifiedBy}           ${QA_DEFAULT_USER}
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password="${Pass}"
+    ...                 firstName="${firstName}"
+    ...                 lastName="${lastName}"
+    ...                 authority="${authority}"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${lastModifiedBy}"
+    ...                 response_code=200
+    ...                 success=true
+
+    ${username}=    Convert To Lowercase    ${username}
+
+    USER MANAGEMENT API
+    # ...    uri=user-management-api/admin/users?username=${QA_DEFAULT_USER}
+    ...    uri=user-management-api/admin/users?username=${username}&currentUsername=${username}
+    Json Value Should Equal    ${body}    /user/userName    "${username}"
+    Json Value Should Equal    ${body}    /user/status      1
+    Json Value Should Equal    ${body}    /user/authority   "${authority}"
+    Json Value Should Equal    ${body}    /user/firstName   "${firstName}"
+    Json Value Should Equal    ${body}    /user/lastName    "${lastName}"
+    Json Value Should Equal    ${body}    /user/permissionsList/0/groupId    1
+    Json Value Should Equal    ${body}    /user/permissionsList/0/productId    1
+    Json Value Should Equal    ${body}    /user/permissionsList/0/permissions    [1, 2]
+    Json Value Should Equal    ${body}    /user/permissionsList/1/groupId    1
+    Json Value Should Equal    ${body}    /user/permissionsList/1/productId    2
+    Json Value Should Equal    ${body}    /user/permissionsList/1/permissions    [1]
+    [Tags]
+
+
+#-------------------------------------------------------------------------

@@ -1,0 +1,108 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.4	BATCH17	
+
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: Update user's default group by username
+#Description: This request requires a username and a new group id. It will return the user object.
+#Method: PUT
+#URL: user-management-api/permissions-internal/default-group?username=:username&groupId=:group_id
+#userName = rhino.users
+#groupId = rhino.groups
+
+
+*** Variables ***
+	
+*** Keywords ***
+
+	
+*** Test Cases ***
+UM1.4_TC_04_01 Catalina_qa user default group to Catalina group
+	[Documentation]		Use API to change user-> ${QA_CATALINA_AND_QA_USER} default group to catalina group
+	Set Test Variable	${groupId}		15
+	Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/default-group?username=${username}&groupId=${groupId}
+	USER MANAGEMENT API		request_type=PUT	uri=${uri_link}		
+	Json Value Should Equal		${body}		/userName			"${username}"
+	Json Value Should Equal		${body}		/firstName			"regression"
+	Json Value Should Equal		${body}		/lastName			"catalina"
+	Json Value Should Equal		${body}		/timeZone			null
+	Json Value Should Equal		${body}		/profilePhoto		null
+	Json Value Should Equal		${body}		/groupId			${groupId}
+	Json Value Should Equal		${body}		/enabled			1
+	[Tags]		CATALINA_USER		QA_USER		
+	
+UM1.4_TC_04_02 Catalina_qa user default group to QA group
+	[Documentation]		Use API to change user-> ${QA_CATALINA_AND_QA_USER} default group to QA group
+	Set Test Variable	${groupId}		16
+	Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/default-group?username=${username}&groupId=${groupId}
+	USER MANAGEMENT API		request_type=PUT	uri=${uri_link}
+	Json Value Should Equal		${body}		/userName			"${username}"
+	Json Value Should Equal		${body}		/firstName			"regression"
+	Json Value Should Equal		${body}		/lastName			"catalina"
+	Json Value Should Equal		${body}		/timeZone			null
+	Json Value Should Equal		${body}		/profilePhoto		null
+	Json Value Should Equal		${body}		/groupId			${groupId}
+	Json Value Should Equal		${body}		/enabled			1
+	[Tags]		CATALINA_USER		QA_USER
+
+UM1.4_TC_04_03 Catalina_qa user default group to admin group (should not allow)
+	[Documentation]		Use API to change user-> ${QA_CATALINA_AND_QA_USER} default group to admin group (should not change)
+	Set Test Variable	${groupId}		1
+	Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/default-group?username=${username}&groupId=${groupId}
+	USER MANAGEMENT API		request_type=PUT	uri=${uri_link}	expected_status_code=400
+	[Tags]		CATALINA_USER		QA_USER		
+
+		
+UM1.4_TC_04_04 Catalina_qa user group change to Invalid Digit Group - Error code 400
+	[Documentation]		Change admin user to a group that does not exist (99), should not allow expecting code = 400
+	Set Test Variable	${groupId}		99
+	Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/default-group?username=${username}&groupId=${groupId}
+	USER MANAGEMENT API		request_type=PUT	uri=${uri_link}		expected_status_code=400
+	#Should Match Regexp			${body}		\\[\\]
+	[Tags]		NEGATIVE	
+
+
+	
+UM1.4_TC_04_05 Catalina QA user change to Invalid alphabet Group - Error code 400
+	[Documentation]		Change admin user to a group that is not valid (99abc), should not allow expecting code = 400
+	Set Test Variable	${groupId}		99abc
+	Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/default-group?username=${username}&groupId=${groupId}
+	USER MANAGEMENT API		request_type=PUT	uri=${uri_link}		expected_status_code=400
+	[Tags]		NEGATIVE		
+	
+UM1.4_TC_04_06 No Group parameter- Error code 400
+	[Documentation]		Change admin user , calling api with missing parameter groupid, expecting code 400
+	Set Test Variable	${groupId}		1
+	Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/default-group?username=${username}&groupId=	
+	USER MANAGEMENT API		request_type=PUT	uri=${uri_link}		expected_status_code=400
+	[Tags]		NEGATIVE		
+
+UM1.4_TC_04_07 Missing Command Group ID - 404 Not Found
+	[Documentation]		Make a request with missing options
+	Set Test Variable	${groupId}		15
+	Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/default-group?username=${username}	
+	USER MANAGEMENT API		request_type=PUT	uri=${uri_link}		expected_status_code=400
+	[Tags]		NEGATIVE		
+
+UM1.4_TC_04_08 Catalina_qa user default group to Catalina group
+	[Documentation]		Use API to change user-> ${QA_CATALINA_AND_QA_USER} default group to catalina group
+	Set Test Variable	${groupId}		15
+	Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/default-group?username=${username}&groupId=${groupId}
+	USER MANAGEMENT API		request_type=PUT	uri=${uri_link}
+	Json Value Should Equal		${body}		/userName			"${username}"
+	Json Value Should Equal		${body}		/firstName			"regression"
+	Json Value Should Equal		${body}		/lastName			"catalina"
+	Json Value Should Equal		${body}		/timeZone			null
+	Json Value Should Equal		${body}		/profilePhoto		null
+	Json Value Should Equal		${body}		/groupId			${groupId}
+	Json Value Should Equal		${body}		/enabled			1
+	[Tags]		CATALINA_USER		QA_USER	
+				

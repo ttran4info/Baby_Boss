@@ -1,0 +1,252 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM    UM2.14   BATCH17   OffshoreQA
+# Suite Setup         Clean UP Groups
+# Suite Teardown      Clean UP Groups
+
+# wiki reference https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.14.GetGroupAccessUIElementsList
+# API Name: 2.14. Get Group Access UI Elements List
+# Method: GET
+# URL: /user-management-api/ui-acc-element/group-elements?groupId={GroupID}
+# DESCRIPTION: This request will be called on Group Campaign Manager Setup page .It list the all UI elements the group has access to. It includes the elements which are mandatory/required and the elements which are hidden for specific group.
+# Reference table = rhino.groups_ui_element
+
+*** Variable ***
+
+*** Keywords ***
+
+Compare Api response with DB Records
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT id, ui_element_id FROM rhino.groups_ui_element where group_id=${GroupId} AND access = 1;
+    Log Many            @{query_results}
+    ${M_count}=           Get Length  ${query_results}
+    :FOR   ${i}  IN RANGE    0     ${M_count}
+    \           ${Mandatory_UIElements} =              Convert To String     ${queryResults[${i}][1]}
+    \           Log       ${Mandatory_UIElements}
+    \           Set Test Variable          ${Mandatory_UIElements}          ${Mandatory_UIElements}
+    \           Should Match Regexp         ${Mandatory_UIElements}         ${mandatoryElementsIds}
+    @{query_results}     Query      SELECT id, ui_element_id FROM rhino.groups_ui_element where group_id=${GroupId} AND access = 0;
+    Log Many            @{query_results}
+    ${E_count}=           Get Length  ${query_results}
+    :FOR   ${i}  IN RANGE    0     ${M_count}
+    \           ${Excluded_UIElements} =              Convert To String     ${queryResults[${i}][1]}
+    \           Log       ${Excluded_UIElements}
+    \           Set Test Variable          ${Excluded_UIElements}          ${Excluded_UIElements}
+    \           Should Match Regexp         ${Excluded_UIElements}         ${mandatoryElementsIds}
+    Disconnect From Database
+
+
+Compare datasource Api response with DB Records for Target DataSource
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      select datasource_name from rhino.target_datasource where enabled=2 and id in(select target_datasource_id from rhino.groups_target_datasource where group_id=${GroupId});
+    Log Many            @{query_results}
+    ${M_count}=           Get Length  ${query_results}
+    :FOR   ${i}  IN RANGE    0     ${M_count}
+    \           ${target_Datasource_DB} =              Convert To String     ${queryResults[${i}][0]}
+    \           Log       ${target_Datasource_DB}
+    # \           Run Keyword If              "${target_Datasource_DB}"=="P$YCLE"            Set Test Variable       ${target_Datasource_DB}            P\\$YCLE
+    # \           Run Keyword If              "${target_Datasource_DB}"=="P$YCLE 2016"            Set Test Variable       ${target_Datasource_DB}       P\\$YCLE 2016
+    \           ${target_Datasource_DB}=        Evaluate    '${target_Datasource_DB}'.replace("(",'\\(').replace(")",'\\)').replace("$",'\\$')
+    \           Set Test Variable          ${target_Datasource_DB}          ${target_Datasource_DB}
+    \           Should Match Regexp        ${body}                           ${target_Datasource_DB}
+    Disconnect From Database
+
+
+Compare datasource Api response with DB Records for Measurement DataSource
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      select measurement_name from rhino.measurement_datasource where id in(select measurement_datasource_id from rhino.groups_measurement_datasource where group_id=${GroupId});
+    Log Many            @{query_results}
+    ${M_count}=           Get Length  ${query_results}
+    :FOR   ${i}  IN RANGE    0     ${M_count}
+    \           ${Measurement_Datasource_DB} =              Convert To String     ${queryResults[${i}][0]}
+    \           Log       ${Measurement_Datasource_DB}
+    \           ${Measurement_Datasource_DB}=        Evaluate    '${Measurement_Datasource_DB}'.replace("(",'\\(').replace(")",'\\)').replace("$",'\\$')
+    \           Set Test Variable          ${Measurement_Datasource_DB}          ${Measurement_Datasource_DB}
+    \           Should Match Regexp        ${body}                           ${Measurement_Datasource_DB}
+    Disconnect From Database
+
+Compare datasource Api response with DB Records for Segment DataSource
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      select datasource_name from rhino.segment_datasource where id in(select segment_datasource_id from rhino.groups_segment_datasource where group_id=${GroupId});
+    Log Many            @{query_results}
+    ${M_count}=           Get Length  ${query_results}
+    :FOR   ${i}  IN RANGE    0     ${M_count}
+    \           ${segment_Datasource_DB} =              Convert To String     ${queryResults[${i}][0]}
+    \           Log       ${segment_Datasource_DB}
+    # \           Run Keyword If              "${segment_Datasource_DB}"=="Nielsen P$YCLE (20%)"            Set Test Variable       ${segment_Datasource_DB}            Nielsen P\\$YCLE (20%)
+    \           ${segment_Datasource_DB}=        Evaluate    '${segment_Datasource_DB}'.replace("(",'\\(').replace(")",'\\)').replace("$",'\\$')
+    \           Set Test Variable          ${segment_Datasource_DB}          ${segment_Datasource_DB}
+    \           Should Match Regexp        ${body}                           ${segment_Datasource_DB}
+    Disconnect From Database
+
+
+
+*** Test Cases ***
+TC_01_Get Group Access List For Group 1
+    Set Test Variable               ${GroupId}       1
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]   EXCLUDE
+
+TC_02_Get Group Access List For Group 2
+    Set Test Variable               ${GroupId}       2
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_03_Get Group Access List For Group 3
+    Set Test Variable               ${GroupId}       3
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_04_Get Group Access List For Group 4
+    Set Test Variable               ${GroupId}       4
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_05_Get Group Access List For Group 5
+    Set Test Variable               ${GroupId}       5
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_06_Get Group Access List For Group 6
+    Set Test Variable               ${GroupId}       6
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_07_Get Group Access List For Group 7
+    Set Test Variable               ${GroupId}       7
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_08_Get Group Access List For Group 8
+    Set Test Variable               ${GroupId}       8
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_09_Get Group Access List For Group 9
+    Set Test Variable               ${GroupId}       9
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_10_Get Group Access List For Group 10
+    Set Test Variable               ${GroupId}       10
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_11_Get Group Access List For Group 11
+    Set Test Variable               ${GroupId}       11
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_12_Get Group Access List For Group 12
+    Set Test Variable               ${GroupId}       12
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_13_Get Group Access List For Group 13
+    Set Test Variable               ${GroupId}       13
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_14_Get Group Access List For Group 14
+    Set Test Variable               ${GroupId}       14
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_15_Get Group Access List For Group 15
+    Set Test Variable               ${GroupId}       15
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_16_Get Group Access List For Group 16
+    Set Test Variable               ${GroupId}       16
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_17_Get Group Access List For Group 17
+    Set Test Variable               ${GroupId}       17
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_18_Get Group Access List For Group 18
+    Set Test Variable               ${GroupId}       18
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_19_Get Group Access List For Group 19
+    Set Test Variable               ${GroupId}       19
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_20_Get Group Access List For Group 20
+    Set Test Variable               ${GroupId}       20
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_21_Get Group Access List For Group 21
+    Set Test Variable               ${GroupId}       21
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_22_Get Group Access List For Group 22
+    Set Test Variable               ${GroupId}       22
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_23_Get Group Access List For Group 23
+    Set Test Variable               ${GroupId}       23
+    Get Request For Group Access UI Elements
+    Compare Api response with DB Records
+    [Tags]
+
+TC_24_Get Group Access List For invalid Group
+    Set Test Variable               ${GroupId}       100
+    USER MANAGEMENT API             uri=/user-management-api/ui-acc-element/group-elements?groupId=${GroupId}      expected_status_code=400
+    Json Value Should Equal    ${body}    /success           false
+    Json Value Should Equal    ${body}    /reason_code       "700-101"
+    Json Value Should Equal    ${body}    /reason_desc       "Group id is not found."
+
+    [Tags]
+
+
+
+TC_25_Get Segment DataSource API Vs DB (CM-2406) Target
+    Set Test Variable               ${GroupId}      1
+    USER MANAGEMENT API             uri=/user-management-api/ui-acc-datasource/all-target-datasource?groupId=${GroupId}
+    Compare datasource Api response with DB Records for Target DataSource
+    [Tags]
+
+TC_26_Get Segment DataSource API Vs DB (CM-2406) Measurement
+    Set Test Variable               ${GroupId}      1
+    USER MANAGEMENT API             uri=/user-management-api/ui-acc-datasource/measurement-datasource?groupId=${GroupId}
+    Compare datasource Api response with DB Records for Measurement DataSource
+
+    [Tags]
+
+TC_27_Get Segment DataSource API Vs DB (CM-2406) Segment
+    Set Test Variable               ${GroupId}      1
+    USER MANAGEMENT API             uri=/user-management-api/ui-acc-datasource/segment-datasource?groupId=${GroupId}
+    Compare datasource Api response with DB Records for Segment DataSource
+
+    [Tags]

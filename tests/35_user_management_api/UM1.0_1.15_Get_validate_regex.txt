@@ -1,0 +1,136 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.15	BATCH17			
+
+
+*** Variables ***
+	
+*** Keywords ***
+
+*** Test Cases ***
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: Get validation regex
+#Method: GET
+#URL: ...user-management-api/ui-acc-element/validation?groupIdListString=:group_id_list&pageUrl=:pageUrl/
+#DESCRIPTION: None provided
+#userName = rhino.users
+#groupId = rhino.groups
+#groups_segment_datasource
+#segment_datasource
+	
+#Request For segment-datasource
+
+UM1.15_TC_01 Validate 200 response and success=true is seen for all groups (group 1-16)
+	[Documentation]		Get validation regex by Group id
+	Set Test Variable		${max_group}	16
+	#Set Test Variable 		${groupId}		1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-element/validation?groupId=
+	:FOR	${groupId}	IN RANGE	1		${max_group}
+	\	USER MANAGEMENT API	uri=${uri_link}${groupId}&pageUrl=adGroupsAddEdit/	expected_status_code=200	success=true
+	[Tags]		
+
+	
+UM1.15_TC_02 Verify groups_validation_regex request returns for group 1 (admin)
+	[Documentation]		Get validation regex by Group id
+	Set Test Variable		${groupId}		1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-element/validation?groupId=1&pageUrl=adGroupsAddEdit/
+	USER MANAGEMENT API	uri=${uri_link}${groupId}	expected_status_code=200	success=true
+	[Tags]					
+
+
+UM1.15_TC_03 Verify Total count api vs Database for group 15 (Catalina)
+	[Documentation]		Get validation regex by Group id 15
+	Set Test Variable		${groupId}		15
+	Set Test Variable 		${uri_link}		user-management-api/ui-acc-element/validation?groupId=${groupId}&pageUrl=adGroupsAddEdit/
+	USER MANAGEMENT API	uri=${uri_link}			expected_status_code=200	success=true
+	${externalId}=		Get Json Value			${body}		/fieldRegex/externalId
+	Should Match Regexp			${body}		validationType":"mandatory","rule":null,"errorMsg":"External ID cannot be blank"	
+	Should Match Regexp			${body}		validationType":"charSet","rule":"\\^\\[a-zA-Z0-9\\]\\*\\$","errorMsg":"External ID must contain only letters and numbers"
+	[Tags]		
+
+UM1.15_TC_04 Verify groups_validation_regex request returns authorized measurement-datasource
+	[Documentation]		Get validation regex by Group id
+	Set Test Variable 		${groupId}		1
+	Set Test Variable 		${uri_link}		user-management-api/ui-acc-element/validation?groupId=${groupId}&pageUrl=adGroupsAddEdit/
+	USER MANAGEMENT API	uri=${uri_link}			expected_status_code=200	success=true
+	Should Match Regexp			${body}		{}	
+		[Tags]		
+
+UM1.15_TC_05 Verify groups_validation_regex request returns correct error if Group id is not in 'groups' table
+	[Documentation]		Negative Test Get segments by Group id 99 that does not exist in db
+	Set Test Variable 		${groupId}		99
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-element/validation?groupId=${groupId}&pageUrl=adGroupsAddEdit/
+	USER MANAGEMENT API	uri=${uri_link}				expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-101"
+	Should Be Equal As Strings   ${reason}	Group id is not in 'groups' table.
+	[Tags]		ADMIN_USER		
+	
+UM1.15_TC_06 Verify groups_validation_regex request returns correct error if Group id is not an integer value (2.1)
+	[Documentation]		Negative Test Get measurements by Group id 2.1 that does not exist in db
+	Set Test Variable 		${groupId}		2.1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/geofence-segment?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}					expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-102"
+	Should Be Equal As Strings   ${reason}	Group id requires an integer value.		
+	[Tags]		ADMIN_USER		
+	
+UM1.15_TC_07 Verify groups_validation_regex request returns correct error if Group id is not an integer value (9abc)
+	[Documentation]		Negative Test Get measurements by Group id in alpha numeric order
+	Set Test Variable 		${groupId}		9abc
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/geofence-segment?groupId=${groupId}
+	USER MANAGEMENT API	uri=${uri_link}					expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-102"
+	Should Be Equal As Strings   ${reason}	Group id requires an integer value.			
+	[Tags]		ADMIN_USER	
+	
+#######################################################################################
+#base on db table rhino.groups_validation_regex - Carry over from sanity
+#1. Match the group_id (can be multiple group id, if multiple match consider priority level)
+#2. Match page_url		
+#3. Return field, validation_type, rule, error message if both 1 and 2 match
+
+UM1.15_TC_10_01 Request for validation regex Admin
+	[Tags]	Exclude
+UM1.15_TC_10_01 Request for validation regex Catalina group (1 matching group, 1 matching url) - multiple result
+	Set Test Variable	${group_id}		6
+	Set Test Variable	${pageUrl}		adGroupsAddEdit
+	USER MANAGEMENT API	uri=user-management-api/ui-acc-element/validation?groupId=${group_id}&pageUrl=${pageUrl}/
+	#Should Match Regexp		${body}			"validationType":"regex","rule":"BVT\\*","errorMsg":"External ID must begin with BVT"
+	${result}=	Get Json Value	${body}		/fieldRegex/externalId/0/validationType
+	Log		Result: ${result}
+	Json Value Should Equal		${body}		/fieldRegex/externalId/0/validationType			"regex"
+	Json Value Should Equal		${body}		/fieldRegex/externalId/0/rule						"BVT*"
+	Json Value Should Equal		${body}		/fieldRegex/externalId/0/errorMsg					"External ID must begin with BVT"
+	[Tags]	Exclude
+
+UM1.15_TC_10_02 Request for validation regex (1 matching group, 2 url) - no match, blank result
+	Set Test Variable	${group_id}		6
+UM1.15_	Set Test Variable	${pageUrl}		adGroupsAddEdit_creativeAddEdit
+	USER MANAGEMENT API	uri=user-management-api/ui-acc-element/validation?groupId=${group_id}&pageUrl=${pageUrl}/	
+
+	Should Match Regexp		${body}			{}
+		[Tags]	Exclude	
+UM1.15_TC_10_03 Request for validation regex (1 non matching group, 1 url) - blank result
+	[Tags]	Exclude
+UM1.15_TC_10_04 Request for validation regex (2 groups, 1 match, 1 url) - result match group
+	[Tags]	Exclude
+UM1.15_TC_10_05 Request for validation regex (2 groups, 2 match, 1 url) - result with higher priority
+		[Tags]	Exclude
+UM1.15_TC_10_06 Request for validation regex (4 groups, 4 match, 1 url) - result with higher priority
+	[Tags]	Exclude
+UM1.15_TC_10_07 Request for validation regex (1 group, but not in table, 1 url) - group not in table error
+	[Tags]	Exclude
+UM1.15_TC_10_08 Request for validation regex (1 group using alpha, 1 url) - group require integer error
+	[Tags]	Exclude
+UM1.15_TC_10_09 Request for validation regex (0 group, 1 url) - group require integer error
+	[Tags]	Exclude
+UM1.15_TC_10_10 Request for validation regex (1 group, 0 url) - no result
+	[Tags]	Exclude
+UM1.15_TC_10_01 Request for validation regex (1 group, 1 url)
+	[Tags]	Exclude		

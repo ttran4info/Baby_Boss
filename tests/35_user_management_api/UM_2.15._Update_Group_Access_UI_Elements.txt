@@ -1,0 +1,171 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM    UM2.15   BATCH17   OffshoreQA
+Suite Setup         Clean UP Created Groups By Name       groupName=${QA_TEST_GROUP}
+Suite Teardown      Clean UP Created Groups By Name       groupName=${QA_TEST_GROUP}
+
+# wiki reference https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.15.UpdateGroupAccessUIElements
+# API Name: 2.15 Update Group Access UI Elements
+# Method: PUT
+# URL: /user-management-api/admin/groups
+# DESCRIPTION: This request will be called on Manage Groups tab to group creation.
+# userName = rhino.users
+# groupId = rhino.groups
+# permissions = rhino.permissions
+# User Permissions = rhino.user_permissions
+# Reference table = rhino.ui_element
+*** Variables ***
+${QA_TEST_GROUP}            00_QA_TEST_GROUPUM215
+${LAST_MDFD_BY}             "saff@4info.com"
+
+*** Keywords ***
+Clean UP Groups
+    Clean UP Created Groups By Id             id=${GroupID}
+
+
+
+Get Request For Group Access UI Elements
+    [Arguments]
+    USER MANAGEMENT API             uri=/user-management-api/ui-acc-element/group-elements?groupId=${GroupId}
+    ${excludedElementsIds}          Get Json Value    ${body}    /groupAccessElements/excludedElementsIds
+    Set Test Variable               ${excludedElementsIds}                  ${excludedElementsIds}
+    Log                             ${excludedElementsIds}
+    ${mandatoryElementsIds}         Get Json Value    ${body}    /groupAccessElements/mandatoryElementsIds
+    Set Test Variable               ${mandatoryElementsIds}                 ${mandatoryElementsIds}
+    Log                             ${mandatoryElementsIds}
+
+
+Get Created And Modified Date From DB
+    [Arguments]             ${id}=${GroupID}
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT created_dt, modified_dt from rhino.groups where id=${id};
+    Log Many    @{query_results}
+    ${Created_date} =     Convert To String       ${queryResults[0][0]}
+    Set Test Variable     ${Created_date}            ${Created_date}
+    ${Modified_date} =    Convert To String       ${queryResults[0][1]}
+    Set Test Variable     ${Modified_date}           ${Modified_date}
+    Log         ${Created_date}
+    Log         ${Modified_date}
+
+
+Update Group To Disable
+    [Arguments]              ${GroupId}=
+    Set Suite Variable       ${metaMarketsId}               200
+    USER MANAGEMENT API         request_type=PUT
+    ...                         data={"groupName":"${GroupName}","id":${GroupId},"enabled":0,"goalType":1,"lastModifiedBy":"admin@4info.net","metaMarketsId":${metaMarketsId}}
+    ...                         uri=/user-management-api/admin/groups/${GroupId}?groupId=1
+
+
+
+
+API Response Compare For CM-2384 UM2.15
+    [Arguments]                 ${GroupId}=
+    USER MANAGEMENT API         request_type=GET
+    ...                         uri=/user-management-api/admin/groups?groupId=${GroupId}
+    Json Value Should Equal     ${body}     /group/metaMarketsId             ${metaMarketsId}
+
+
+DB Compare For CM-2384
+    [Arguments]                 ${GroupId}=
+    Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+    @{query_results}     Query      SELECT metamarkets_securitypolicy_id from rhino.groups where id=${GroupId};
+    Log Many    @{query_results}
+    ${metaMarketsId_from_DB} =    Convert To String   ${queryResults[0][0]}
+    Set Test Variable               ${metaMarketsId_from_DB}      ${metaMarketsId_from_DB}
+    Should Be Equal                 ${metaMarketsId_from_DB}      ${metaMarketsId}
+
+
+
+
+*** Test Cases ***
+TC_00_Generate Data For UM2.15
+    [Documentation]             Normal Test case for creating
+    Set Suite Variable           ${GroupName}            ${QA_TEST_GROUP}
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                          uri=/user-management-api/admin/groups
+    ${GroupID}=                 Get JSON Value          ${body}             /group/id
+    Log   ${GroupID}
+    Set Suite Variable          ${GroupID}             ${GroupID}
+    Update Group Access UI Elements
+    [Tags]   kdnfsdf
+
+TC_01_Update Group UI Access(Normal)
+
+    Update Group Access UI Elements              mandatoryElements=[5,7,32,25,39]                       ExcludedElements=[58,70,72]
+    Get Request For Group Access UI Elements
+    Set Test Variable       ${excludedElementsIds2}                      ${excludedElementsIds}
+    Log                     ${excludedElementsIds2}
+    Set Test Variable       ${mandatoryElementsIds2}                     ${mandatoryElementsIds}
+    Log                     ${mandatoryElementsIds2}
+    ${Expected_Mandatory_Elements}          Get Json Value    ${body}    /groupAccessElements/mandatoryElementsIds
+    ${Expected_Excluded_Elements}           Get Json Value    ${body}    /groupAccessElements/excludedElementsIds
+    # ${type_ABC}    Evaluate    type(${Expected_Mandatory_Elements})
+    # Log    ${type_ABC}
+    # Sort List                               ${Expected_Mandatory_Elements}
+    Log             ${Expected_Mandatory_Elements}
+    # Sort List                               ${Expected_Excluded_Elements}
+    Log             ${Expected_Excluded_Elements}
+    List Should Contain Value                   ${Expected_Mandatory_Elements}              39
+    List Should Contain Value                   ${Expected_Mandatory_Elements}              25
+    List Should Contain Value                   ${Expected_Mandatory_Elements}              32
+    List Should Contain Value                   ${Expected_Mandatory_Elements}              7
+    List Should Contain Value                   ${Expected_Mandatory_Elements}              5
+    List Should Contain Value                   ${Expected_Excluded_Elements}               58
+    List Should Contain Value                   ${Expected_Excluded_Elements}               70
+    List Should Contain Value                   ${Expected_Excluded_Elements}               72
+    [Tags]
+
+TC_02_Update Group UI Access(All Access Blank Value)
+    Update Group Access UI Elements
+    Update Group Access UI Elements              mandatoryElements=[]                       ExcludedElements=[]
+    Get Request For Group Access UI Elements
+    Json Value Should Equal    ${body}    /groupAccessElements/mandatoryElementsIds            []
+    Json Value Should Equal    ${body}    /groupAccessElements/excludedElementsIds             []
+    [Tags]
+
+TC_03_Update Group UI Access(Update Access swap access)
+    Update Group Access UI Elements
+    Update Group Access UI Elements              mandatoryElements=[68]                       ExcludedElements=[75,74]
+    Get Request For Group Access UI Elements
+    ${Expected_Mandatory_Elements}          Get Json Value    ${body}    /groupAccessElements/mandatoryElementsIds
+    ${Expected_Excluded_Elements}           Get Json Value    ${body}    /groupAccessElements/excludedElementsIds
+    List Should Contain Value                   ${Expected_Mandatory_Elements}              68
+    List Should Contain Value                   ${Expected_Excluded_Elements}               74
+    List Should Contain Value                   ${Expected_Excluded_Elements}               75
+    [Tags]
+
+
+
+TC_04_Update Group UI Access(Invalid GroupId)
+    Update Group Access UI Elements        groupID=1000       Expected_resp_code=400
+    Json Value Should Equal    ${body}    /success             false
+    Json Value Should Equal    ${body}    /reason_code         "700-101"
+    Json Value Should Equal    ${body}    /reason_desc         "Group id is not found."
+    [Tags]
+
+
+TC_05_Update Group UI Access(Compare with DB)
+    Get Created And Modified Date From DB                   ${GroupID}
+    Set Test Variable     ${CR_DT1}          ${Created_date}
+    Set Test Variable     ${MD_DT1}          ${Modified_date}
+    Update Group Access UI Elements
+    Get Created And Modified Date From DB                   ${GroupID}
+    Set Test Variable     ${CR_DT2}          ${Created_date}
+    Set Test Variable     ${MD_DT2}          ${Modified_date}
+    Should Be Equal         ${CR_DT1}    ${CR_DT2}
+    Should Not Be Equal         ${MD_DT1}    ${MD_DT2}
+    Sleep    30s
+    Update Group Access UI Elements              mandatoryElements=[68]                       ExcludedElements=[75,74]
+    Get Created And Modified Date From DB                   ${GroupID}
+    [Tags]
+
+TC_06_Update Group UI Acess(CM-2364/CM-2389)
+    [Documentation]     TestAuto: MMX id gets set to NULL when Group status is changed.
+    ...                 Test case for raised bug
+    Update Group To Disable             GroupId=${GroupID}
+    API Response Compare For CM-2384 UM2.15         GroupId=${GroupID}
+    DB Compare For CM-2384                          GroupId=${GroupID}
+    [Tags]
+
+

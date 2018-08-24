@@ -1,0 +1,57 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.19		BATCH17
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: 1.19. Get user product permission id list by username
+#Method: GET
+#URL: ...user-management-api/permissions-internal/product-permissions?username=:username
+#DESCRIPTION: This request will give user-product permission based on username.
+#userName = rhino.users
+#groupId = rhino.groups
+#groups_segment_datasource
+#segment_datasource
+
+#Request For segment-datasource
+#TC_01_Get_user_product_permission (1 product)
+#TC_01_Get_user_product_permission (2 product)
+#TC_01_Get_user_product_permission (0 product)
+#TC_01_Get_user_product_permission (name does not exist, invalid name)
+
+UM1.19_TC_01 Validate 200 response for report users (1 product)
+	[Documentation]		 Get user product permission id list by username
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/product-permissions?username=abc@4info.com
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	Should Match Regexp		${body}		1
+	[Tags]		Known_bug	MED-2084	exclude
+
+
+UM1.19_TC_02 Validate 200 response for report users (2 products)
+	[Documentation]		 Get user product permission id list by username
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/product-permissions?username=hparihar@4info.com
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	Should Match Regexp		${body}		1,
+	Should Match Regexp		${body}		2
+	[Tags]		Known_bug	MED-2084	exclude
+
+UM1.19_TC_03 Validate 200 response for report users (0 products)
+	[Documentation]		 Get user product permission id list by username
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/product-permissions?username=qwerty@4info.com
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	Should Match Regexp		${body}		\\[\\]
+	[Tags]
+
+
+UM1.19_TC_04 Validate 400 response for invalid report users
+	[Documentation]		 Get user product permission id list by username as numeric
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/product-permissions?username=1234@4info.com
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=400
+	[Tags]
+
+

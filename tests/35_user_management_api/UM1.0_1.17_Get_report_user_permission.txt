@@ -1,0 +1,197 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.17	BATCH17
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: 1.17. For report group permission
+#Method: GET
+#URL: ...user-management-api/report/{username}/group/{groupId}
+#DESCRIPTION: This request is been used for request groups info by username.
+#userName = rhino.users
+#groupId = rhino.groups
+#groups_segment_datasource
+#segment_datasource
+
+#Request For segment-datasource
+
+UM1.17_TC_01 Validate 200 response for 4INFO(admin) report users
+	[Documentation]		Get report user permission
+	Set Test Variable	${username}			${QA_DEFAULT_USER}
+	Set Test Variable	${group_id}			1
+	Set Test Variable 	${uri_link}		user-management-api/report/${username}/group/${group_id}
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	Json Value Should Equal		${body}		/id				1
+	Json Value Should Equal		${body}		/name			"4INFO"
+	Json Value Should Equal		${body}		/metamarketsSecuritypolicyId			1552
+	[Tags]
+
+
+UM1.17_TC_02 Validate 200 response for catalina report users
+	[Documentation]		Get report user permission for two
+	Set Test Variable	${username}			${QA_CATALINA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/report/${username}/group/15
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	Json Value Should Equal		${body}		/id				15
+	Json Value Should Equal		${body}		/name			"Catalina Self Service"
+	Json Value Should Equal		${body}		/metamarketsSecuritypolicyId			4774
+	[Tags]
+
+
+UM1.17_TC_03 Validate response for user and group mismatch.
+	[Documentation]		Get report user permission for user and group id mismatch
+	Set Test Variable	${username}			${QA_CATALINA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/report/${username}/group/9
+	USER MANAGEMENT API	uri=${uri_link}					expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-107"
+	Should Be Equal As Strings   ${reason}	User does not have access to resource
+
+	[Tags]
+
+UM1.17_TC_04 Validate 200 response for invalid MMX report group
+	[Documentation]		Get report user permission for user none existing user
+	Set Test Variable	${username}			${QA_CATALINA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/report/${username}/group/77
+	USER MANAGEMENT API	uri=${uri_link}					expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-107"
+	Should Be Equal As Strings   ${reason}	User does not have access to resource
+	[Tags]
+
+UM1.17_TC_05 Validate 200 response for invalid (ABC) MMX report group
+	[Documentation]		Get report user permission for user none existing user
+	Set Test Variable	${username}			${QA_CATALINA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/report/${username}/group/ABC
+	USER MANAGEMENT API	uri=${uri_link}					expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-102"
+	Should Be Equal As Strings   ${reason}	Group id requires an integer value.
+	[Tags]
+
+	#UM1.17	 Carry over from previous sanity
+###########################################
+#https://wiki.4info.com/pages/viewpage.action?pageId=27394734
+#11. Request for Groups
+#user-management-api/report/{username}/groups
+
+#12. Request for Groups with groupId
+# user-management-api/report/{username}/group/{groupId}
+#
+UM1.17_TC_11_01_Request_All_Group_from_admin_user
+	Set Test Variable	${username}		admin@4info.net
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/groups
+	Should Match Regexp 		${body} 	"id":1,"name":"4INFO","displayName":null
+	#Json Value Should Equal		${body}		/0/metamarketsSecuritypolicyId			2583
+
+UM1.17_TC_11_02_Request_All_Group_from_Catalina_user
+	Set Test Variable	${username}		regression@catalina.com
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/groups
+	Json Value Should Equal		${body}		/0/id									15
+	Json Value Should Equal		${body}		/0/name									"Catalina Self Service"
+	Json Value Should Equal		${body}		/0/displayName							null
+	#Json Value Should Equal		${body}		/0/metamarketsSecuritypolicyId			4506
+
+UM1.17_TC_11_03_Request_All_Group_from_Catalina_and_QA_user
+	Set Test Variable	${username}		regression_catalina_and_qa@catalina.com
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/groups
+	Json Value Should Equal		${body}		/0/id									15
+	Json Value Should Equal		${body}		/0/name									"Catalina Self Service"
+	Json Value Should Equal		${body}		/0/displayName							null
+	#Json Value Should Equal		${body}		/0/metamarketsSecuritypolicyId			4506
+
+	Json Value Should Equal		${body}		/1/id									16
+	Json Value Should Equal		${body}		/1/name									"QA"
+	Json Value Should Equal		${body}		/1/displayName							null
+	#Json Value Should Equal		${body}		/1/metamarketsSecuritypolicyId			1454
+
+UM1.17_TC_11_04_Request_All_Group_from_QA_user
+	Set Test Variable	${username}		regression_qa@qa.com
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/groups
+	Json Value Should Equal		${body}		/0/id									16
+	Json Value Should Equal		${body}		/0/name									"QA"
+	Json Value Should Equal		${body}		/0/displayName							null
+	#Json Value Should Equal		${body}		/0/metamarketsSecuritypolicyId			1454
+
+UM1.17_TC_12_01_Request_1_Group_from_admin_user(group 1, 1match)
+	Set Test Variable	${username}		admin@4info.net
+	Set Test Variable	${groupId}		1
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/group/${groupId}
+	Json Value Should Equal		${body}		/id									1
+	Json Value Should Equal		${body}		/name									"4INFO"
+	Json Value Should Equal		${body}		/displayName							null
+	#Json Value Should Equal		${body}		/metamarketsSecuritypolicyId			2583
+
+
+UM1.17_TC_12_02_Request_1_Group_from_admin_user(group 99, 0 match)
+	Set Test Variable	${username}		admin@4info.net
+	Set Test Variable	${groupId}		99
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/group/${groupId}		expected_status_code=400
+	Should Match Regexp		${body}		"success":false
+	Should Match Regexp		${body}		"reason_code":"700-107"
+	Should Match Regexp		${body}		"reason_desc":"User does not have access to resource"
+UM1.17_TC_12_03_Request_1_Group_from_Catalina_user(group 15, 1match)
+	Set Test Variable	${username}		regression@catalina.com
+	Set Test Variable	${groupId}		15
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/group/${groupId}
+	Json Value Should Equal		${body}		/id									15
+	Json Value Should Equal		${body}		/name									"Catalina Self Service"
+	Json Value Should Equal		${body}		/displayName							null
+	#Json Value Should Equal		${body}		/metamarketsSecuritypolicyId			4506
+
+UM1.17_TC_12_04_Request_1_Group_from_Catalina_user(group 99, 0 match)
+	Set Test Variable	${username}		regression@catalina.com
+	Set Test Variable	${groupId}		99
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/group/${groupId}		expected_status_code=400
+	Should Match Regexp		${body}		"success":false
+	Should Match Regexp		${body}		"reason_code":"700-107"
+	Should Match Regexp		${body}		"reason_desc":"User does not have access to resource"
+
+
+TC_12_05_Request_1_Group_from_Catalina_qa_user(group 15, 1 match)
+	Set Test Variable	${username}		regression_catalina_and_qa@catalina.com
+	Set Test Variable	${groupId}		15
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/group/${groupId}
+	Json Value Should Equal		${body}		/id									15
+	Json Value Should Equal		${body}		/name									"Catalina Self Service"
+	Json Value Should Equal		${body}		/displayName							null
+	#Json Value Should Equal		${body}		/metamarketsSecuritypolicyId			4506
+UM1.17_TC_12_06_Request_1_Group_from_Catalina_qa_user(group 16, 1 match)
+	Set Test Variable	${username}		regression_catalina_and_qa@catalina.com
+	Set Test Variable	${groupId}		16
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/group/${groupId}
+	Json Value Should Equal		${body}		/id									16
+	Json Value Should Equal		${body}		/name									"QA"
+	Json Value Should Equal		${body}		/displayName							null
+	#Json Value Should Equal		${body}		/metamarketsSecuritypolicyId			1454
+UM1.17_TC_12_07_Request_1_Group_from_Catalina_qa_user(group 99, 0 match)
+	Set Test Variable	${username}		regression_catalina_and_qa@catalina.com
+	Set Test Variable	${groupId}		99
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/group/${groupId}		expected_status_code=400
+	Should Match Regexp		${body}		"success":false
+	Should Match Regexp		${body}		"reason_code":"700-107"
+	Should Match Regexp		${body}		"reason_desc":"User does not have access to resource"
+
+UM1.17_TC_12_08_Request_1_Group_from_qa_user(group 16, 1 match)
+	Set Test Variable	${username}		regression_qa@qa.com
+	Set Test Variable	${groupId}		16
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/group/${groupId}
+	Json Value Should Equal		${body}		/id									16
+	Json Value Should Equal		${body}		/name									"QA"
+	Json Value Should Equal		${body}		/displayName							null
+	#Json Value Should Equal		${body}		/metamarketsSecuritypolicyId			1454
+UM1.17_TC_12_09_Request_1_Group_from_qa_user(group 99, 0 match)
+	Set Test Variable	${username}		regression_qa@qa.com
+	Set Test Variable	${groupId}		99
+	USER MANAGEMENT API	uri=user-management-api/report/${username}/group/${groupId}		expected_status_code=400
+	Should Match Regexp		${body}		"success":false
+	Should Match Regexp		${body}		"reason_code":"700-107"
+	Should Match Regexp		${body}		"reason_desc":"User does not have access to resource"

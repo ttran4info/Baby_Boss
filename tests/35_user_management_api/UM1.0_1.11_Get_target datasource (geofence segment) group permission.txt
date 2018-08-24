@@ -1,0 +1,146 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.11	BATCH17			
+
+
+*** Variables ***
+	
+*** Keywords ***
+
+*** Test Cases ***
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: 1.11. Get target datasource (geofence segment) group permission
+#Method: GET
+#URL: ...user-management-api/ui-acc-datasource/target-datasource-subset?groupId=:group_id&set=geofence
+#DESCRIPTION: Note: The only supported set is geofence. (i.e. set always equals geofence)
+#userName = rhino.users
+#groupId = rhino.groups
+#groups_segment_datasource
+#segment_datasource
+	
+#Request For segment-datasource
+
+UM1.11_TC_01 Validate 200 response and success=true is seen for all groups (group 1-16)
+	[Documentation]		Get target datasource (geofence segment) group permission
+	Set Test Variable		${max_group}	16
+	Set Test Variable 		${groupId}		1
+	:FOR	${groupId}	IN RANGE	1		${max_group} 
+	\	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	\	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200	success=true
+	[Tags]		
+	
+UM1.11_TC_02 Verify Total count api vs Database for group 6
+	[Documentation]		Get target_datasource_db_count by Group id and compare with API results and DB results.
+	Set Test Variable 		${groupId}		6
+	Get target Datasource		group_id=${groupId}
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}
+	${target_datasource_api}=					Get Json Value						${body}										/target_datasources
+	@{target_datasource_list}=					String.Split String 				${target_datasource_api}			,
+	${target_datasource_api_count}=			Get Length 							${target_datasource_list}
+	Should Be Equal As Integers		${target_datasource_api_count}	${target_datasource_db_count}
+	[Tags]		ADMIN_USER		
+	
+
+UM1.11_TC_03 Verify Total count api vs Database for group ID random
+	[Documentation]		Get target_datasource_db_count by Group id and compare with API results and DB results.
+	${groupId}=		Generate Random String				1		123456789
+	
+	Get target Datasource		group_id=${groupId}
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}
+	Count Result Target Datasource
+	Get target Datasource	group_id=${groupId}
+	#${target_datasource_api}=					Get Json Value						${body}										/target_datasources
+	#@{target_datasource_list}=					String.Split String 				${target_datasource_api}			,
+	#${target_datasource_api_count}=			Get Length 							${target_datasource_list}
+	Log		 ${target_datasource_api_count}
+	Log		${target_datasource_db_count}
+	Should Be Equal As Integers		${target_datasource_api_count}	${target_datasource_db_count} 
+	[Tags]		ADMIN_USER		
+	
+		
+UM1.11_TC_04 Verify Total count api vs Database for group 15 (Catalina DB count not sending 15)
+		[Documentation]		Get target_datasource_db_count by Group id and compare with API results and DB results.
+	Set Test Variable 		${groupId}		15
+	Get target Datasource		group_id=${groupId}
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}
+	${target_datasource_api}=					Get Json Value						${body}										/target_datasources
+	@{target_datasource_list}=					String.Split String 				${target_datasource_api}			,
+	${target_datasource_api_count}=			Get Length 							${target_datasource_list}
+	Should Be Equal As Integers		${target_datasource_api_count}	${target_datasource_db_count} 
+	[Tags]		ADMIN_USER	
+
+UM1.11_TC_05 Verify request returns target datasource
+	[Documentation]		Get target datasource by Group id
+	Set Test Variable 		${groupId}		1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}
+		
+	[Tags]		ADMIN_USER		
+UM1.11_TC_06 Verify target datasource request returns correct error if Group id is not in 'groups' table
+	[Documentation]		Negative Test Get target datasource by Group id 99 that does not exist in db
+	Set Test Variable 		${groupId}		99
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}				expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-101"
+	Should Be Equal As Strings   ${reason}	Group id is not in 'groups' table.
+	[Tags]		ADMIN_USER		
+	
+UM1.11_TC_07 Verify target datasource request returns correct error if Group id is not an integer value (2.1)
+	[Documentation]		Negative Test Get target datasource by Group id 2.1 that does not exist in db
+	Set Test Variable 		${groupId}		2.1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}					expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-102"
+	Should Be Equal As Strings   ${reason}	Group id requires an integer value.		
+	[Tags]		ADMIN_USER		
+	
+UM1.11_TC_08 Verify measurement-datasource request returns correct error if Group id is not an integer value (9abc)
+	[Documentation]		Negative Test Get target datasource by Group id in alpha numeric order
+	Set Test Variable 		${groupId}		9abc
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}					expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-102"
+	Should Be Equal As Strings   ${reason}	Group id requires an integer value.			
+	[Tags]		ADMIN_USER	
+
+#Request For target-datasource (Geofence segment) - Carry over from sanity
+UM1.11_TC_020 Verify request returns an authorized target-datasource Geofence for excluded elements
+	Set Test Variable 		${groupId}		6
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}
+	
+UM1.11_TC_021 Verify target-datasource Geofence request returns correct error if Group id is not in 'groups' table
+	Set Test Variable 		${groupId}		99
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}		expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-101"
+	Should Be Equal As Strings   ${reason}	Group id is not in 'groups' table.
+	
+UM1.11_TC_022 Verify target-datasource Geofence request returns correct error if Group id is not an integer value
+	Set Test Variable 		${groupId}		6.1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}		expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-102"
+
+UM1.11_TC_23 Verify extra parameters are not seen
+	Set Test Variable 		${groupId}		1
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource-subset?groupId=${groupId}&set=geofence
+	USER MANAGEMENT API	uri=${uri_link}
+	Should Not Match Regexp		${body}		"pages"	
+	Should Not Match Regexp		${body}		"tabs"	
+	Should Not Match Regexp		${body}		"sections"	
+	Should Not Match Regexp		${body}		"fields"	
+	[Tags]						

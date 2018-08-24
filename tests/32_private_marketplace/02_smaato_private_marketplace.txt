@@ -1,0 +1,505 @@
+*** Settings ***
+Resource             private_marketplace_imports.txt
+Force Tags           BATCH9		PRIVATE		AUCTION		SMAATO
+
+*** variables ***
+${app_id}				REGRESSION SMAATO PRIVATE AUCTION
+${private_ag}		36386    #We use 2nd identifier Country = CAN
+${public_ag}		36387	 #We use 2nd identifier Country = USA
+
+
+*** Test Cases ***
+
+#Serve ad base on matching deal id
+private_auction=0, Normal ad (serve public)
+		Set Test Variable		${country}				USA
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${public_ag}     submit_client_impression_event=NO
+	[Tags]		
+private_auction=0, Ad with matching deal id 1/1(serve private)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id 1/3(serve private)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}},{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}2","wseat":${private_wseat},"wadomain":${private_wadomain}},{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}3","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 			API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+		
+private_auction=0, Ad without matching deal id (serve public)
+		Set Test Variable		${country}				USA
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 			API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${public_ag}     submit_client_impression_event=NO
+	
+private_auction=1, Normal Ad (not serve)
+		Set Test Variable		${country}				USA
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 			API=${RTB_SMAATO_API}          data=${data}		response_code=204     submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id 1/1(serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id 1/3(serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}},{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}2","wseat":${private_wseat},"wadomain":${private_wadomain}},{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}3","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 			API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=1, Ad without matching deal id (not serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 			API=${RTB_SMAATO_API}          data=${data}		response_code=204     submit_client_impression_event=NO
+
+#Test Bidfloor, depending on if we match deal id match.
+private_auction=0, Normal ad, imp.banner.bidfloor honored (serve public)
+		Set Test Variable		${country}				USA
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${public_bidfloor}		0.5
+		Set Test Variable		${private_bidfloor}		25.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"bidfloor": ${public_bidfloor},"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${public_ag}     submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, pmp.deal.bidfloor honored (serve private)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${public_bidfloor}		25.5
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"bidfloor": ${public_bidfloor},"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, pmp.deal.bidfloor missing, honored imp.banner.bidfloor(serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${public_bidfloor}		0.5
+		Set Test Variable		${private_bidfloor}		25.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"bidfloor": ${public_bidfloor},"pmp":{"deals":[{"at":${private_at},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, pmp.deal.bidfloor honored (serve private)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${public_bidfloor}		25.5
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"bidfloor": ${public_bidfloor},"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, pmp.deal.bidfloor missing, honored imp.banner.bidfloor(serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${public_bidfloor}		0.5
+		Set Test Variable		${private_bidfloor}		25.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"bidfloor": ${public_bidfloor},"pmp":{"deals":[{"at":${private_at},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+	[Tags]	
+#Test Auction Type
+private_auction=0, Normal ad, dont care about AT=1 (serve public)
+		Set Test Variable		${country}				USA
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			1	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${public_ag}     submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, first price AT=1 (don't serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			1	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=204  	   submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, second price AT=2 (serve private)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, fixed price AT=3 (don't serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			1	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=204  	   submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, second price AT missing (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		#Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, first price AT=1 (don't serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			1	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=204  	   submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, second price AT=2 (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, fixed price AT=3 (don't serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			1	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=204  	   submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, second price AT missing (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		#Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+	[Tags]	
+#Test wadomain
+private_auction=0, Normal ad, dont care about wadomain (serve)
+		Set Test Variable		${country}				USA
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.comxx","abc.comxx"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${public_ag}     submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, wadomain match 0/3 (not serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.comxx","abc.com","def.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 			API=${RTB_SMAATO_API}          data=${data}		response_code=204  	    submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, wadomain match 1/2 (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, wadomain unmatch by case sensitive (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4InFo.cOm","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+	[Tags]	MED-1447	Known_Bug	Exclude
+private_auction=0, Ad with matching deal id, wadomain missing (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		#Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, wadomain match 0/2 (not serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.comxx","abc.com","def.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 			API=${RTB_SMAATO_API}          data=${data}		response_code=204  	    submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, wadomain match 1/2 (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, wadomain unmatch by case sensitive (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4InFo.cOm","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+	[Tags]	MED-1447	Known_Bug	Exclude
+private_auction=1, Ad with matching deal id, wadomain missing (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		#Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+#Test wseat
+private_auction=0, Normal ad, dont care about wseat (serve)
+		Set Test Variable		${country}				USA
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		["what","seat"]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${public_ag}     submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, wseat match (serve private)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, wseat unmatch (not serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		["what","seat"]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=204  	submit_client_impression_event=NO
+
+private_auction=0, Ad with matching deal id, wseat missing (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		#Set Test Variable		${private_wseat}		["what","seat"]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=204  	submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, wseat match (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, wseat unmatch (not serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		["what","seat"]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=204  	submit_client_impression_event=NO
+
+private_auction=1, Ad with matching deal id, wseat missing (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		#Set Test Variable		${private_wseat}		["what","seat"]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=204  	submit_client_impression_event=NO
+
+private_auction=0, Normal ad, validate response without deal id (serve)
+		Set Test Variable		${country}				USA
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_IDx
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${public_ag}     submit_client_impression_event=NO
+		Should Not Match Regexp		${response_content}		"dealid"
+
+private_auction=0, Matching Deal ID, validate response with deal id (serve private)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+		Should Match Regexp		${response_content}		"dealid":"${private_deal_id}"
+
+private_auction=1, Matching Deal ID, validate response with deal id (serve)
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=NO
+		Should Match Regexp		${response_content}		"dealid":"${private_deal_id}"
+
+private_auction=0, Matching Deal ID, events log contain private parameter=0 (serve)
+		${device_id}=		Generate Clear Device ID
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		0
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=CDATA
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Should Match Regexp 			${output}  				36=${private_deal_id}
+	[Tags]		
+private_auction=1, Matching Deal ID, events log contain private parameter=1 (serve)
+		${device_id}=		Generate Clear Device ID
+		Set Test Variable		${country}				CAN
+		Set Test Variable		${private_auction}		1
+		Set Test Variable		${private_deal_id}		Private_Auction_ID
+		Set Test Variable		${private_bidfloor}		0.5
+		Set Test Variable		${private_at}			2	
+		Set Test Variable		${private_wadomain}		["4info.com","abc.com"]
+		Set Test Variable		${private_wseat}		[]
+		Set Test Variable 		${data}		{"app":{"cat":["IAB3"],"domain":"www.smaato.com","id":"${app_id}","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3","publisher":{"id":"1001000000","name":"PreferredDeal_PreferredDealSingleAuctionSuccessUATestCase_iOS_XXLARGE_320x50_IAB3"}},"badv":["8anch.com"],"bcat":["IAB7-28","IAB17-18","IAB26","IAB25","IAB7-42","IAB9-9","IAB24","IAB23","IAB11"],"device":{"connectiontype":0,"devicetype":1,"dnt":0,"ifa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","didsha1":"03791cf87e352da6434e4d964f54f0f64db933aa","didmd5":"68b329da9893e34099c7d8ad5cb9c940","dpisha1":"bfc523f83fa54a19e7b2d8bdf8acd687a09fba09","dpimd5":"223632c428784fecaaa3e2a6aaaf6d8e","geo":{"city":"Hamburg","country":"${country}","lat":53.550003,"lon":10.0,"metro":"0","region":"04","type":2,"zip":"20099"},"ip":"95.90.255.47","js":0,"make":"Apple","model":"iPhone","os":"iOS","osv":"4.3.2","ua":"Mozilla/5.0(iPhone;U;CPUiPhoneOS4_3_2likeMacOSX;en-us)AppleWebKit/533.17.9(KHTML,likeGecko)Version/5.0.2Mobile/8H7Safari/6533.18.5"},"ext":{"carriername":"unknown-probablyWLAN","operaminibrowser":0,"udi":{"atuid":"edc22bd4-aa58-f32a-63b7-8c7fcadfb1b7","idfa":"F585B1EF-D543-4F9C-A39F-A204BD9C1E33","idfatracking":1}},"id":"FVdBNIomFK","imp":[{"banner":{"btype":[1,3],"h":50,"mimes":["image/png","image/jpeg","image/gif"],"pos":0,"w":320},"displaymanager":"SOMA","id":"1","instl":0,"pmp":{"deals":[{"at":${private_at},"bidfloor":${private_bidfloor},"bidfloorcur":"USD","id":"${private_deal_id}","wseat":${private_wseat},"wadomain":${private_wadomain}}],"private_auction":${private_auction}},"secure":0}],"regs":{"coppa":0},"user":{}}
+		RTB Request 				API=${RTB_SMAATO_API}          data=${data}		response_code=200  	adgroup_expected=${private_ag}     submit_client_impression_event=CDATA
+	   Start Read Event Logs For Reqid		host=${EVENT_ENGINE}	reqid=${reqid}
+	   Should Match Regexp 			${output}  				36=${private_deal_id}
+
+

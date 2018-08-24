@@ -1,0 +1,116 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          BATCH17     UM    UM1.0    UM0.0    UM_SANITY    #  Known_bug    CM-1959
+
+*** Variables ***
+
+
+*** Keywords ***
+xxxAPI Test
+    [Arguments]    ${connection_type}=http
+    ...            ${server}=
+    ...            ${port}=
+    ...            ${uri}=
+    ...            ${expected_status_code}=200
+    ...            ${success}=NA
+    Create Session   docker    ${connection_type}://${server}:${port}
+    #Create Session   docker    http://10.34.64.120:8080/
+    ${headers}    Create Dictionary     Accept=application/json
+    ${resp}=    Get Request    docker    ${uri}    headers=${headers}
+    Set Test Variable    ${resp}    ${resp}
+    ${resp}    RequestsLibrary.Get Request    docker   ${uri}    headers=${headers}
+    Log    Response: '${resp.content}'
+    Set Suite Variable       ${body}     ${resp.content}
+    Should Be Valid Json    ${body}
+    Should Be Equal As Strings    ${resp.status_code}    ${expected_status_code}
+    Run Keyword Unless 	'${success}'=='NA'    Should Match Regexp    ${body}    "success":${success}
+
+
+*** Test Cases ***
+UM0.0_TC_01 Testing External End point (https)
+    [Documentation]    Make a request for admin user -> ${QA_DEFAULT_USER} and check the result group id, name, permission
+    Set Test Variable    ${username}    ${QA_DEFAULT_USER}
+    Set Test Variable    ${uri_link}    user-management-api/permissions-internal/groups-and-default?userId=${username}
+    USER MANAGEMENT API    connection_type=https    server=${QA_USER_MANAGEMENT}    port=${QA_USER_MANAGEMENT_PORT}    uri=${uri_link}
+    Json Value Should Equal    ${body}    /groupPermission/defaultGroup                                     1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/groupId                            1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/name                               "4INFO"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/productId                          1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/permission                         "READ,WRITE,ADMIN,ADMIN,ADMIN,ADMIN"     # "READ,WRITE,ADMIN"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/permissionIdList                   [1, 2, 3, 3, 3, 3]
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/groupId                            1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/name                               "4INFO"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/productId                          2
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/permission                         "READ,ADMIN"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/permissionIdList                   [1, 3]
+    [Tags]    F5    EXTERNAL    HTTPS   known_bug   CM-2327
+    #We will run this after deployment
+
+
+UM0.0_TC_02 Testing Kong End point
+    [Documentation]		Make a request for admin user -> ${QA_DEFAULT_USER} and check the result group id, name, permission
+    Set Test Variable	${username}			${QA_DEFAULT_USER}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/groups-and-default?userId=${username}
+    USER MANAGEMENT API	connection_type=http	server=${QA_KONG}	port=${QA_KONG_PORT}	uri=${uri_link}
+    Json Value Should Equal    ${body}    /groupPermission/defaultGroup    1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/groupId    1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/name    "4INFO"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/productId    1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/permission     "READ,WRITE,ADMIN"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/permissionIdList     [1, 2, 3]
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/groupId    1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/name    "4INFO"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/productId    2
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/permission     "READ,ADMIN"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/permissionIdList     [1, 3]
+    [Tags]		KONG	Exclude
+
+
+UM0.0_TC_03 Testing Local Docker End point
+    [Documentation]		Make a request for admin user -> ${QA_DEFAULT_USER} and check the result group id, name, permission
+    Set Test Variable	${username}			${QA_DEFAULT_USER}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/groups-and-default?userId=${username}
+    USER MANAGEMENT API	connection_type=http	server=${QA_USER_MANAGEMENT_HTTP}	port=${QA_USER_MANAGEMENT_PORT_HTTP}	uri=${uri_link}
+    Json Value Should Equal    ${body}    /groupPermission/defaultGroup    1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/groupId    1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/name    "4INFO"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/productId    1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/permission     "READ,WRITE,ADMIN"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/0/permissionIdList     [1, 2, 3]
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/groupId    1
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/name    "4INFO"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/productId    2
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/permission     "READ,ADMIN"
+    Json Value Should Equal    ${body}    /groupPermission/permissions/1/permissionIdList     [1, 3]
+    [Tags]		DOCKER		exclude
+
+
+UM0.0_TC_032 Verify API call returns correct number of geofence reports in JSON
+	[Documentation]		MED-1778. Currently fails due to some missing reports. Should PASS once JIRA # resolved.
+	#PROD_DB
+	#Set Test Variable  ${DB_PROD}	10.34.84.180
+	#Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_PROD}   ${DB_PORT}
+	#QA_DB
+	Connect To Database     ${DB_API_MODULE_NAME}    ${DB_NAME_RHINO}    ${DB_USER}    ${DB_PASSWORD}    ${DB_HOST}   ${DB_PORT}
+	#${ACE_REPORTS_N}		Query 	select count(segment_data_map) from ace_report where datasource_id IN (9,10,24,25,31,32,33,34,35,36)
+	${ACE_REPORTS_N}		Query 	select count(segment_data_map) from ace_report where datasource_id IN (9,10,24,25,31,33,34,35,36)
+	#32 is ATT and it's no longer seen
+	#user_id=1
+	#segment_data_map like ("gf=%")
+    Disconnect From Database
+	${NUM_REPORTS_DB}=   retrieve number 	'${ACE_REPORTS_N}'
+	Log 	number of reports:${NUM_REPORTS_DB}
+	USER MANAGEMENT API		uri=${UI_ACC_DATASOURCE}
+	${ACE_REPORTS_JSON}=		extract_matching_regex	'${resp.content}'	"ace_reports":(.+?)]
+	Log Many  ace_reports: ${ACE_REPORTS_JSON}
+	@{REPORTS_LIST}=  	Create List
+	@{REPORTS_LIST}=	retrieve list	 '${ACE_REPORTS_JSON}'
+	Log	reports: @{REPORTS_LIST}
+	${REPORTS_LIST_API}=	Get Length	${REPORTS_LIST}
+	Should Be Equal As Strings  ${NUM_REPORTS_DB}	${REPORTS_LIST_API}
+	[Tags]   known_bug	Exclude
+
+
+
+
+

@@ -1,0 +1,7 @@
+*** Settings ***
+Resource	um_api.txt
+Resource    advertisers.txt
+Resource	pegasus.txt
+Resource	ui_pegasus.txt
+Library		Selenium2Library
+Library		Collections

@@ -1,0 +1,52 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	BATCH17     UM		UM1.5			UM1.0
+
+
+*** Variables ***
+${4Info_group_id}					1
+${catalina_group_id}	15
+${qA_group_id}						16
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#5. Get permitted groups by campaign
+#https://wiki.4info.com/pages/viewpage.action?pageId=27394734
+#This request requires a campaign id
+#...user-management-api/permissions-internal/groups?campaignId=:campaignId
+#groupId = rhino.groups
+#rhino.campaign_groups
+
+UM1.5_TC_05_01 Campaign with 0 group (admin access)
+	[Documentation]		Make a request using campaingn id without any group (admin only)
+	Get Groups access from campaign		campaign_id=1907	 	expected_group_id=${4Info_group_id}
+	[Tags]
+
+UM1.5_TC_05_02 Campaign with 1 group (Catalina)
+	[Documentation]		Make a request using campaingn id that allow catalina to see (return catalina and admin group id)
+	Get Groups access from campaign		campaign_id=2041	 	expected_group_id=${catalina_group_id},${4Info_group_id}
+	[Tags]
+
+UM1.5_TC_05_03 Campaign with 1 group (QA)
+	[Documentation]		Make a request using campaingn id that allow qa group to see (return qa and admin group id)
+	Get Groups access from campaign		campaign_id=2138
+	...									expected_group_id=${qa_group_id},${4Info_group_id}
+	[Tags]    Known_bug    CM-2097
+
+UM1.5_TC_05_04 Invalid campaign id 999999 (return blank)
+	[Documentation]		Make a request using campaingn id that does not exist (return no group, blank result)
+	USER MANAGEMENT API		uri=user-management-api/permissions-internal/groups?campaignId=9999999		expected_status_code=200
+	Should Match Regexp		${body}		\\[\\]
+	[Tags]
+
+UM1.5_TC_05_05 Missing campaign id (return 400 )
+	[Documentation]		Make a request using campaingn id that does not exist (return 400)
+	USER MANAGEMENT API		uri=user-management-api/permissions-internal/groups?campaignId=		expected_status_code=400
+	[Tags]
+
+UM1.5_TC_05_06 Invalid campaign id not an integer 99abc (return 400 bad request)
+	[Documentation]		Make a request using campaingn id that does not exist (return 400)
+	USER MANAGEMENT API		uri=user-management-api/permissions-internal/groups?campaignId=99abc		expected_status_code=400
+	[Tags]

@@ -1,0 +1,315 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM    UM2.13    BATCH17
+
+
+# wiki reference https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.11.GetAllUIElementsList
+# API Name: 2.13. Get All UI Elements List
+# Method: GET
+# URL: user-management-api/ui-acc-element/tab-elements
+# DESCRIPTION: This request will be called on Group Campaign Manager Setup page .It list the all UI elements .
+# userName = rhino.users
+# groupId = rhino.groups
+# permissions = rhino.permissions
+# User Permissions = rhino.user_permissions
+# Reference table = rhino.ui_element
+*** Variables ***
+
+
+*** Keywords ***
+
+
+*** Test Cases ***
+
+Get All UI Elements List
+    USER MANAGEMENT API                      uri=user-management-api/ui-acc-element/tab-elements
+    Json Value Should Equal    ${body}    /success                                  true
+    Json Value Should Equal    ${body}    /tabs/0/id                                5
+    Json Value Should Equal    ${body}    /tabs/0/name                              "Demand"
+    Json Value Should Equal    ${body}    /tabs/0/identifier                        "tabAdv"
+    Json Value Should Equal    ${body}    /tabs/0/type                              1
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/0/id                     1
+    Json Value Should Equal    ${body}    /tabs/0/elements/0/name                   "Create campaign link"
+    Json Value Should Equal    ${body}    /tabs/0/elements/0/identifier             "createCampaignLink"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/1/id                     10
+    Json Value Should Equal    ${body}    /tabs/0/elements/1/name                   "Advertiser list"
+    Json Value Should Equal    ${body}    /tabs/0/elements/1/identifier             "advertisersList"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/2/id                     11
+    Json Value Should Equal    ${body}    /tabs/0/elements/2/name                   "Advertiser edit"
+    Json Value Should Equal    ${body}    /tabs/0/elements/2/identifier             "advertisersView"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/3/id                     12
+    Json Value Should Equal    ${body}    /tabs/0/elements/3/name                   "Campaign list"
+    Json Value Should Equal    ${body}    /tabs/0/elements/3/identifier             "campaignsView"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/4/id                     13
+    Json Value Should Equal    ${body}    /tabs/0/elements/4/name                   "Campaign edit"
+    Json Value Should Equal    ${body}    /tabs/0/elements/4/identifier             "campaignsAddEdit"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/5/id                     14
+    Json Value Should Equal    ${body}    /tabs/0/elements/5/name                   "Parent Adgroup edit"
+    Json Value Should Equal    ${body}    /tabs/0/elements/5/identifier             "adGroupsAddEdit"
+
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/6/id                     15
+    Json Value Should Equal    ${body}    /tabs/0/elements/6/name                   "Child Adgroup edit"
+    Json Value Should Equal    ${body}    /tabs/0/elements/6/identifier             "adGroupsAddEditChild"
+
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/7/id                     16
+    Json Value Should Equal    ${body}    /tabs/0/elements/7/name                   "Ads page"
+    Json Value Should Equal    ${body}    /tabs/0/elements/7/identifier             "adsAddEdit"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/8/id                     17
+    Json Value Should Equal    ${body}    /tabs/0/elements/8/name                   "Audit Trail"
+    Json Value Should Equal    ${body}    /tabs/0/elements/8/identifier             "auditTrail"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/9/id                     18
+    Json Value Should Equal    ${body}    /tabs/0/elements/9/name                   "Report history"
+    Json Value Should Equal    ${body}    /tabs/0/elements/9/identifier             "reportHistory"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/10/id                     19
+    Json Value Should Equal    ${body}    /tabs/0/elements/10/name                   "Summary"
+    Json Value Should Equal    ${body}    /tabs/0/elements/10/identifier             "summaryCampaign"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/11/id                     43
+    Json Value Should Equal    ${body}    /tabs/0/elements/11/name                   "Error Page"
+    Json Value Should Equal    ${body}    /tabs/0/elements/11/identifier             "errorPage"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/12/id                     44
+    Json Value Should Equal    ${body}    /tabs/0/elements/12/name                   "Web 404 Error Page"
+    Json Value Should Equal    ${body}    /tabs/0/elements/12/identifier             "web404"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/13/id                     45
+    Json Value Should Equal    ${body}    /tabs/0/elements/13/name                   "Web 500 Error Page"
+    Json Value Should Equal    ${body}    /tabs/0/elements/13/identifier             "web500"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/14/id                     46
+    Json Value Should Equal    ${body}    /tabs/0/elements/14/name                   "Advertisers Add Edit Page"
+    Json Value Should Equal    ${body}    /tabs/0/elements/14/identifier             "advertisersAddEdit"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/15/id                     55
+    Json Value Should Equal    ${body}    /tabs/0/elements/15/name                   "Creatives Page"
+    Json Value Should Equal    ${body}    /tabs/0/elements/15/identifier             "creatives"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/16/id                     56
+    Json Value Should Equal    ${body}    /tabs/0/elements/16/name                   "Ads Page"
+    Json Value Should Equal    ${body}    /tabs/0/elements/16/identifier             "ads"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/17/id                     60
+    Json Value Should Equal    ${body}    /tabs/0/elements/17/name                   "Audit Trail"
+    Json Value Should Equal    ${body}    /tabs/0/elements/17/identifier             "auditLog"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/18/id                     61
+    Json Value Should Equal    ${body}    /tabs/0/elements/18/name                   "Report History"
+    Json Value Should Equal    ${body}    /tabs/0/elements/18/identifier             "reportHistory"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/19/id                     62
+    Json Value Should Equal    ${body}    /tabs/0/elements/19/name                   "Summary Campaign"
+    Json Value Should Equal    ${body}    /tabs/0/elements/19/identifier             "summaryCampaign"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/20/id                     24
+    Json Value Should Equal    ${body}    /tabs/0/elements/20/name                   "Campaign edit-Details"
+    Json Value Should Equal    ${body}    /tabs/0/elements/20/identifier             "campaignDetails"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/21/id                     25
+    Json Value Should Equal    ${body}    /tabs/0/elements/21/name                   "Campaign edit-Access Control"
+    Json Value Should Equal    ${body}    /tabs/0/elements/21/identifier             "campaignAccessControl"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/22/id                     26
+    Json Value Should Equal    ${body}    /tabs/0/elements/22/name                   "Campaign edit-Reporting-Store Visits"
+    Json Value Should Equal    ${body}    /tabs/0/elements/22/identifier             "campaignStoreVisits"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/23/id                     27
+    Json Value Should Equal    ${body}    /tabs/0/elements/23/name                   "Campaign edit-Reporting-Audience Insights"
+    Json Value Should Equal    ${body}    /tabs/0/elements/23/identifier             "campaignAudienceInsights"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/24/id                     31
+    Json Value Should Equal    ${body}    /tabs/0/elements/24/name                   "Parent Adg edit-Reporting-Audience Insights"
+    Json Value Should Equal    ${body}    /tabs/0/elements/24/identifier             "adgroupReporting"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/25/id                     32
+    Json Value Should Equal    ${body}    /tabs/0/elements/25/name                   "Parent Adg edit-External Id"
+    Json Value Should Equal    ${body}    /tabs/0/elements/25/identifier             "parentExternalId"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/26/id                     33
+    Json Value Should Equal    ${body}    /tabs/0/elements/26/name                   "Parent Adg edit-Household Targeting: Boost"
+    Json Value Should Equal    ${body}    /tabs/0/elements/26/identifier             "clsBoost"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/27/id                     35
+    Json Value Should Equal    ${body}    /tabs/0/elements/27/name                   "Child Adg edit-Margin"
+    Json Value Should Equal    ${body}    /tabs/0/elements/27/identifier             "adgroupMargin"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/28/id                     39
+    Json Value Should Equal    ${body}    /tabs/0/elements/28/name                   "Campaign edit-External Id"
+    Json Value Should Equal    ${body}    /tabs/0/elements/28/identifier             "campaignExternalId"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/29/id                     58
+    Json Value Should Equal    ${body}    /tabs/0/elements/29/name                   "Creatives-External Id"
+    Json Value Should Equal    ${body}    /tabs/0/elements/29/identifier             "creativeExternalId"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/30/id                     59
+    Json Value Should Equal    ${body}    /tabs/0/elements/30/name                   "Ads-External Id"
+    Json Value Should Equal    ${body}    /tabs/0/elements/30/identifier             "adsExternalId"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/31/id                     64
+    Json Value Should Equal    ${body}    /tabs/0/elements/31/name                   "Margin Column"
+    Json Value Should Equal    ${body}    /tabs/0/elements/31/identifier             "marginDetails"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/32/id                     67
+    Json Value Should Equal    ${body}    /tabs/0/elements/32/name                   "Child Adg Target Cluster"
+    Json Value Should Equal    ${body}    /tabs/0/elements/32/identifier             "targetCluster"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/33/id                     70
+    Json Value Should Equal    ${body}    /tabs/0/elements/33/name                   "Campaign edit Data-Sources"
+    Json Value Should Equal    ${body}    /tabs/0/elements/33/identifier             "campaignDataSources"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/34/id                     73
+    Json Value Should Equal    ${body}    /tabs/0/elements/34/name                   "Campaign edit-Sales Channel"
+    Json Value Should Equal    ${body}    /tabs/0/elements/34/identifier             "campaignChannelId"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/35/id                     74
+    Json Value Should Equal    ${body}    /tabs/0/elements/35/name                   "Campaign summary-Spend"
+    Json Value Should Equal    ${body}    /tabs/0/elements/35/identifier             "summaryCampaignSpend"
+
+    Json Value Should Equal    ${body}    /tabs/0/elements/36/id                     75
+    Json Value Should Equal    ${body}    /tabs/0/elements/36/name                   "Campaign summary-eCPM"
+    Json Value Should Equal    ${body}    /tabs/0/elements/36/identifier             "summaryCampaigneCPM"
+#######################################################################################################################################
+
+    Json Value Should Equal    ${body}    /tabs/1/id                                  6
+    Json Value Should Equal    ${body}    /tabs/1/name                                "Supply"
+    Json Value Should Equal    ${body}    /tabs/1/identifier                          "tabPub"
+    Json Value Should Equal    ${body}    /tabs/1/type                                1
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/0/id                       20
+    Json Value Should Equal    ${body}    /tabs/1/elements/0/name                    "Site & Apps"
+    Json Value Should Equal    ${body}    /tabs/1/elements/0/identifier              "clsPartnerLink"
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/1/id                       21
+    Json Value Should Equal    ${body}    /tabs/1/elements/1/name                     "Tags"
+    Json Value Should Equal    ${body}    /tabs/1/elements/1/identifier               "tagAddEdit"
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/2/id                       37
+    Json Value Should Equal    ${body}    /tabs/1/elements/2/name                     "Create bar for Partners/Site-Apps"
+    Json Value Should Equal    ${body}    /tabs/1/elements/2/identifier               "clsCreatePartnerSite"
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/3/id                       40
+    Json Value Should Equal    ${body}    /tabs/1/elements/3/name                     "Partners List"
+    Json Value Should Equal    ${body}    /tabs/1/elements/3/identifier               "partnersList"
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/4/id                       42
+    Json Value Should Equal    ${body}    /tabs/1/elements/4/name                     "Tags List Page"
+    Json Value Should Equal    ${body}    /tabs/1/elements/4/identifier               "tagList"
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/5/id                       47
+    Json Value Should Equal    ${body}    /tabs/1/elements/5/name                     "Exchanges"
+    Json Value Should Equal    ${body}    /tabs/1/elements/5/identifier               "partner"
+
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/6/id                       48
+    Json Value Should Equal    ${body}    /tabs/1/elements/6/name                     "Partner Details"
+    Json Value Should Equal    ${body}    /tabs/1/elements/6/identifier               "partnerDetails"
+
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/7/id                       49
+    Json Value Should Equal    ${body}    /tabs/1/elements/7/name                     "Site Details"
+    Json Value Should Equal    ${body}    /tabs/1/elements/7/identifier               "siteDetails"
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/8/id                       50
+    Json Value Should Equal    ${body}    /tabs/1/elements/8/name                     "Site"
+    Json Value Should Equal    ${body}    /tabs/1/elements/8/identifier               "site"
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/9/id                      51
+    Json Value Should Equal    ${body}    /tabs/1/elements/9/name                    "Placement"
+    Json Value Should Equal    ${body}    /tabs/1/elements/9/identifier              "placement"
+
+    Json Value Should Equal    ${body}    /tabs/1/elements/10/id                      52
+    Json Value Should Equal    ${body}    /tabs/1/elements/10/name                    "Tags Add Edit"
+    Json Value Should Equal    ${body}    /tabs/1/elements/10/identifier              "tagAddEdit"
+
+
+#######################################################################################################################################
+
+
+    Json Value Should Equal    ${body}    /tabs/2/id                                  7
+    Json Value Should Equal    ${body}    /tabs/2/name                                "Audience"
+    Json Value Should Equal    ${body}    /tabs/2/identifier                          "tabACE"
+    Json Value Should Equal    ${body}    /tabs/2/type                                1
+
+    Json Value Should Equal    ${body}    /tabs/2/elements/0/id                       53
+    Json Value Should Equal    ${body}    /tabs/2/elements/0/name                     "Targeting Sets List"
+    Json Value Should Equal    ${body}    /tabs/2/elements/0/identifier               "targetingSetsList"
+
+    Json Value Should Equal    ${body}    /tabs/2/elements/1/id                       57
+    Json Value Should Equal    ${body}    /tabs/2/elements/1/name                     "Audience Creation Page"
+    Json Value Should Equal    ${body}    /tabs/2/elements/1/identifier               "audienceCreate"
+
+    Json Value Should Equal    ${body}    /tabs/2/elements/2/id                       63
+    Json Value Should Equal    ${body}    /tabs/2/elements/2/name                     "Segment Details"
+    Json Value Should Equal    ${body}    /tabs/2/elements/2/identifier               "segmentDetails"
+
+    Json Value Should Equal    ${body}    /tabs/2/elements/3/id                       66
+    Json Value Should Equal    ${body}    /tabs/2/elements/3/name                     "Segment Details"
+    Json Value Should Equal    ${body}    /tabs/2/elements/3/identifier               "segmentDetails"
+
+    Json Value Should Equal    ${body}    /tabs/2/elements/4/id                       71
+    Json Value Should Equal    ${body}    /tabs/2/elements/4/name                     "Audience List"
+    Json Value Should Equal    ${body}    /tabs/2/elements/4/identifier               "audienceList"
+
+    Json Value Should Equal    ${body}    /tabs/2/elements/5/id                       72
+    Json Value Should Equal    ${body}    /tabs/2/elements/5/name                     "Convert Lat Lon link"
+    Json Value Should Equal    ${body}    /tabs/2/elements/5/identifier               "convertLatLonLink"
+
+    ################################################################################################################################################
+
+    Json Value Should Equal    ${body}    /tabs/3/id                                  8
+    Json Value Should Equal    ${body}    /tabs/3/name                                "Admin"
+    Json Value Should Equal    ${body}    /tabs/3/identifier                          "tabAdmin"
+    Json Value Should Equal    ${body}    /tabs/3/type                                1
+
+    Json Value Should Equal    ${body}    /tabs/3/elements/0/id                       22
+    Json Value Should Equal    ${body}    /tabs/3/elements/0/name                     "Change Password"
+    Json Value Should Equal    ${body}    /tabs/3/elements/0/identifier               "userPassword"
+
+    Json Value Should Equal    ${body}    /tabs/3/elements/1/id                       23
+    Json Value Should Equal    ${body}    /tabs/3/elements/1/name                     "Manage Users"
+    Json Value Should Equal    ${body}    /tabs/3/elements/1/identifier               "userAdmin"
+
+    Json Value Should Equal    ${body}    /tabs/3/elements/2/id                       41
+    Json Value Should Equal    ${body}    /tabs/3/elements/2/name                     "Users Edit Page"
+    Json Value Should Equal    ${body}    /tabs/3/elements/2/identifier               "usersAddEdit"
+
+    Json Value Should Equal    ${body}    /tabs/3/elements/3/id                       54
+    Json Value Should Equal    ${body}    /tabs/3/elements/3/name                     "Manage Users"
+    Json Value Should Equal    ${body}    /tabs/3/elements/3/identifier               "admin"
+
+    ################################################################################################################################################
+
+    Json Value Should Equal    ${body}    /tabs/4/id                                  9
+    Json Value Should Equal    ${body}    /tabs/4/name                                "SMB"
+    Json Value Should Equal    ${body}    /tabs/4/identifier                          "tabSMB"
+    Json Value Should Equal    ${body}    /tabs/4/type                                1
+
+    Json Value Should Equal    ${body}    /tabs/4/elements/0/id                       65
+    Json Value Should Equal    ${body}    /tabs/4/elements/0/name                     "Creatives List SMB"
+    Json Value Should Equal    ${body}    /tabs/4/elements/0/identifier               "creativeList"
+
+    ################################################################################################################################################
+
+    Json Value Should Equal    ${body}    /tabs/5/id                                  68
+    Json Value Should Equal    ${body}    /tabs/5/name                                "Forecasting"
+    Json Value Should Equal    ${body}    /tabs/5/identifier                          "tabForecasting"
+    Json Value Should Equal    ${body}    /tabs/5/type                                1
+    ################################################################################################################################################
+    ################################################################################################################################################
+
+    Json Value Should Equal    ${body}    /tabs/6/id                                  69
+    Json Value Should Equal    ${body}    /tabs/6/name                                "Clusters"
+    Json Value Should Equal    ${body}    /tabs/6/identifier                          "tabClusters"
+    Json Value Should Equal    ${body}    /tabs/6/type                                1
+    ################################################################################################################################################
+    [Tags]

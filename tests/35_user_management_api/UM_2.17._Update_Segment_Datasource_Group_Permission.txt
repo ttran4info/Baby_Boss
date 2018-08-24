@@ -1,0 +1,76 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM    UM2.17  BATCH17   OffshoreQA
+Suite Setup         Clean UP Created Groups By Name       groupName=00_QA_TEST_GROUP_UM217
+Suite Teardown      Clean UP Created Groups By Name       groupName=00_QA_TEST_GROUP_UM217
+
+# wiki reference https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.17.UpdateSegmentDatasourceGroupPermission
+# API Name: 2.17. Update Segment Datasource Group Permission
+# Method: PUT
+# URL: user-management-api/ui-acc-datasource/measurement-datasource?groupId=43
+# DESCRIPTION: This request will be called on Group Campaign Manager Setup page .This API update the Measurement Datasource Group Permission for group Id passed in parameter.
+# userName = rhino.users
+# groupId = rhino.groups
+# permissions = rhino.permissions
+# User Permissions = rhino.user_permissions
+# Reference table = rhino.ui_element
+
+*** Variables ***
+${QA_TEST_GROUP}            00_QA_TEST_GROUP_UM217
+${LAST_MDFD_BY}             "saff@4info.com"
+
+*** Keywords ***
+
+
+*** Test Cases ***
+TC_00_Generate Data For UM2.17
+    [Documentation]             Normal Test case for creating
+    Set Test Variable           ${GroupName}            ${QA_TEST_GROUP}
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    ${GroupID}=                 Get JSON Value          ${body}             /group/id
+    Log   ${GroupID}
+    Set Suite Variable          ${GroupID}             ${GroupID}
+    Sleep    10s
+    Update Segment Datasource Group Permission
+    [Tags]
+
+TC_01_Update Segment Datasource Group Permissions(Normal)
+    Update Segment Datasource Group Permission      groupID=${GroupID}
+    ...                                                 SegmentDatasourceIds=[1,2,3,4,5]
+    Should Match Regexp             ${body}             "1":"None"
+    Should Match Regexp             ${body}             "2":"Other"
+    Should Match Regexp             ${body}             "3":"Acxiom CRM.+(25.+)"
+    Should Match Regexp             ${body}             "4":"Acxiom InfoBase.+(12.+)"
+    Should Match Regexp             ${body}             "5":"Acxiom Personix.+(17.+)"
+    Json Value Should Equal         ${body}              /full_access         false
+    [Tags]
+
+
+
+TC_02_Update Segment Datasource Group Permissions(blank)
+    Update Segment Datasource Group Permission      groupID=${GroupID}
+    ...                                                 SegmentDatasourceIds=[]
+    Json Value Should Equal         ${body}              /full_access         false
+    [Tags]
+
+
+
+TC_03_Update Segment Datasource Group Permissions(invalid Segment-datasource id)
+    Update Segment Datasource Group Permission      groupID=${GroupID}
+    ...                                                 SegmentDatasourceIds=[70]
+    Json Value Should Equal         ${body}              /full_access         false
+    [Tags]   known_bug   CM-2366
+
+
+
+TC_04_Update Segment Datasource Group Permissions(invalid Group ID)
+    Update Segment Datasource Group Permission      groupID=70
+    ...                                                 SegmentDatasourceIds=[]
+    ...                                                 Expected_resp_code=400
+    Json Value Should Equal         ${body}              /success         false
+    Json Value Should Equal         ${body}              /reason_code     "700-101"
+    Json Value Should Equal         ${body}              /reason_desc     "Group id is not found."
+    Json Value Should Equal         ${body}              /full_access         false
+    [Tags]

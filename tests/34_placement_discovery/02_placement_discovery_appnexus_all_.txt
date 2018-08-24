@@ -1,0 +1,356 @@
+*** Settings ***
+Resource             placement_discovery_imports.txt
+Force Tags           PLACEMENT_DISCOVERY		APPNEXUS		BATCH3	EXCLUDE						
+#Suite Setup			Open Browser        ${DEFAULT_BROWSER_HOME}		${BROWSER}
+#Suite Teardown		Run Keywords		Close All Browsers
+
+*** variables ***
+${app_ag_banner}			56260470
+${mw_ag_banner}				56260471
+${online_ag_banner}			56260472
+*** Test Cases ***
+
+Appnexus - Placement Discovery via Bundle ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (appnexus does not use bundle id)
+	Set Test Variable	${app_bundle}			App Bundle ID
+	Set Test Variable	${app_domain}			Nothing
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		Nothing
+	Set Test Variable	${app_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	${random_device_id}=			Generate Clear Device ID 
+	#Set Test Variable    ${data}   		  {"id":"1234534625254","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${app_id}","bundle":"${app_bundle}","cat":["${app_cat}"],"publisher":{"id":"${app_publisher_id}"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":28011,"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}
+	Set Test Variable    ${data}   		{"id":"${auction_id}","at":2,"tmax":120,"imp":[{"id":"1","banner":{"w":320,"h":50,"pos":1,"battr":[13]}}],"badv":["company1.com","company2.com"],"app":{"id":"${placement_id}","bundle":"com.rovio.angrybirds","cat":["IAB2-1","IAB2-2"],"publisher":{"id":"pub12345"}},"device":{"ifa":"${random_device_id}","ip":"64.124.253.1","ua":"Mozilla/5.0(Macintosh;U;IntelMacOSX10.6;en-US;rv:1.9.2.16)Gecko/20110319Firefox/3.6.16","os":"OSX"},"ext":{"appnexus":{"seller_member_id":${seller_member_id},"spend_protection":true}},"user":{"id":"45asdf987656789adfad4678rew656789"}}		  
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${app_ag_banner}		
+	[Tags]	Exclude	
+
+#appnexus does not have app domain, site domain is available	
+Appnexus - Placement Discovery via App Domain
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (domain is AppDomain.com)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			AppDomain.com
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		1000000
+	Set Test Variable	${app_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-07-17 00:12:18","bidder_timeout_ms":350,"members": [{"id":2049}],"member_ad_profile_id":23349,"excluded_technical_attributes":[2,36],"tags": [{"auction_id_64": ${random_auction_id_64},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "wp7","supply_type": "mobile_app","site_id": 670274,"creative_formats_map": "111111111111","creative_formats": ["unknown","html-url","js-url","flash","image","js-raw","html-raw","html-iframe","vast-url","text","xml-url","file-url"],"ad_profile_id": 535543,"visibility_profile_id": 1323,"venue_id": 681692,"pop_max_width": 320,"pop_max_height": 50,"pop_is_prepop": false,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":2.07900,"estimated_average_price":1.0560,"id":2916478}],"bid_info": {"user_id_64": 6329836781646259027,"no_cookies": false,"payment_rule_id": 400244,"no_flash": true,"certified_supply": true,"user_agent": "WindowsAdClient/6.1.30629.0 (Windows; XAML)","browser": 0,"operating_system_extended": 93,"operating_system_family": 5,"carrier": 1,"device_type": 1,"language": 1,"session_freq": 1,"pub_session_freq": 1,"ip_address": "99.169.4.191","country": "US","region": "FL","city": "Miami","postal_code": "33193","dma": 528,"time_zone": "America/New_York","inventory_class": "unaudited","within_iframe": false,"device_ids": {"windowsadid": "24840e992684ec99767d7270c5d1ec15"},"selling_member_id":28011,"publisher_id":${app_publisher_id},"app_id":"${app_id}","mobile_app_instance_id":853705,"url":"${app_storeurl}","domain":"${app_domain}","userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23938339}]}}}   
+    RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${app_ag_banner}		
+    #Set Test Variable      ${ad_request_url}		${AD_PICKUP_URL}/${appnexus_auction_id}?price=0.81
+    #Validate Ad Serving  ad_url=${ad_request_url}    	image_name=banner_67689_image_4INFO_320x50.gif   location=${DEFAULT_BROWSER_HOME}
+    #Capture Page Screenshot With Timestamp
+
+	[Tags]		Exclude
+Appnexus - Placement Discovery via IAB Category
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (Appnexus does not have IAB category)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing.com
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		1000000
+	Set Test Variable	${app_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-07-17 00:12:18","bidder_timeout_ms":350,"members": [{"id":2049}],"member_ad_profile_id":23349,"excluded_technical_attributes":[2,36],"tags": [{"auction_id_64": ${random_auction_id_64},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "wp7","supply_type": "mobile_app","site_id": 670274,"creative_formats_map": "111111111111","creative_formats": ["unknown","html-url","js-url","flash","image","js-raw","html-raw","html-iframe","vast-url","text","xml-url","file-url"],"ad_profile_id": 535543,"visibility_profile_id": 1323,"venue_id": 681692,"pop_max_width": 320,"pop_max_height": 50,"pop_is_prepop": false,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":2.07900,"estimated_average_price":1.0560,"id":2916478}],"bid_info": {"user_id_64": 6329836781646259027,"no_cookies": false,"payment_rule_id": 400244,"no_flash": true,"certified_supply": true,"user_agent": "WindowsAdClient/6.1.30629.0 (Windows; XAML)","browser": 0,"operating_system_extended": 93,"operating_system_family": 5,"carrier": 1,"device_type": 1,"language": 1,"session_freq": 1,"pub_session_freq": 1,"ip_address": "99.169.4.191","country": "US","region": "FL","city": "Miami","postal_code": "33193","dma": 528,"time_zone": "America/New_York","inventory_class": "unaudited","within_iframe": false,"device_ids": {"windowsadid": "24840e992684ec99767d7270c5d1ec15"},"selling_member_id":28011,"publisher_id":${app_publisher_id},"app_id":"${app_id}","mobile_app_instance_id":853705,"url":"${app_storeurl}","domain":"${app_domain}","userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23938339}]}}}   
+    RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${app_ag_banner}		
+	[Tags]	Exclude
+	
+Appnexus - Placement Discovery via App ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery 
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing.com
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				App ID
+	Set Test Variable	${app_publisher_id}		1000000
+	Set Test Variable	${app_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-07-17 00:12:18","bidder_timeout_ms":350,"members": [{"id":2049}],"member_ad_profile_id":23349,"excluded_technical_attributes":[2,36],"tags": [{"auction_id_64": ${random_auction_id_64},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "wp7","supply_type": "mobile_app","site_id": 670274,"creative_formats_map": "111111111111","creative_formats": ["unknown","html-url","js-url","flash","image","js-raw","html-raw","html-iframe","vast-url","text","xml-url","file-url"],"ad_profile_id": 535543,"visibility_profile_id": 1323,"venue_id": 681692,"pop_max_width": 320,"pop_max_height": 50,"pop_is_prepop": false,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":2.07900,"estimated_average_price":1.0560,"id":2916478}],"bid_info": {"user_id_64": 6329836781646259027,"no_cookies": false,"payment_rule_id": 400244,"no_flash": true,"certified_supply": true,"user_agent": "WindowsAdClient/6.1.30629.0 (Windows; XAML)","browser": 0,"operating_system_extended": 93,"operating_system_family": 5,"carrier": 1,"device_type": 1,"language": 1,"session_freq": 1,"pub_session_freq": 1,"ip_address": "99.169.4.191","country": "US","region": "FL","city": "Miami","postal_code": "33193","dma": 528,"time_zone": "America/New_York","inventory_class": "unaudited","within_iframe": false,"device_ids": {"windowsadid": "24840e992684ec99767d7270c5d1ec15"},"selling_member_id":28011,"publisher_id":${app_publisher_id},"app_id":"${app_id}","mobile_app_instance_id":853705,"url":"${app_storeurl}","domain":"${app_domain}","userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23938339}]}}}   
+    RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${app_ag_banner}		
+ 	[Tags]	
+	
+Appnexus - Placement Discovery via Publisher ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (Publisher ID is 333333)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing.com
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		333333
+	Set Test Variable	${app_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-07-17 00:12:18","bidder_timeout_ms":350,"members": [{"id":2049}],"member_ad_profile_id":23349,"excluded_technical_attributes":[2,36],"tags": [{"auction_id_64": ${random_auction_id_64},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "wp7","supply_type": "mobile_app","site_id": 670274,"creative_formats_map": "111111111111","creative_formats": ["unknown","html-url","js-url","flash","image","js-raw","html-raw","html-iframe","vast-url","text","xml-url","file-url"],"ad_profile_id": 535543,"visibility_profile_id": 1323,"venue_id": 681692,"pop_max_width": 320,"pop_max_height": 50,"pop_is_prepop": false,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":2.07900,"estimated_average_price":1.0560,"id":2916478}],"bid_info": {"user_id_64": 6329836781646259027,"no_cookies": false,"payment_rule_id": 400244,"no_flash": true,"certified_supply": true,"user_agent": "WindowsAdClient/6.1.30629.0 (Windows; XAML)","browser": 0,"operating_system_extended": 93,"operating_system_family": 5,"carrier": 1,"device_type": 1,"language": 1,"session_freq": 1,"pub_session_freq": 1,"ip_address": "99.169.4.191","country": "US","region": "FL","city": "Miami","postal_code": "33193","dma": 528,"time_zone": "America/New_York","inventory_class": "unaudited","within_iframe": false,"device_ids": {"windowsadid": "24840e992684ec99767d7270c5d1ec15"},"selling_member_id":28011,"publisher_id":${app_publisher_id},"app_id":"${app_id}","mobile_app_instance_id":853705,"url":"${app_storeurl}","domain":"${app_domain}","userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23938339}]}}}   
+    RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${app_ag_banner}		
+ 	[Tags]
+
+#Appnexus does not have store url	
+Appnexus - Placement Discovery via App Store URL
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (app storeurl does not exist for appnexus)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing.com
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		1000000
+	Set Test Variable	${app_storeurl}			App Store URL
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-07-17 00:12:18","bidder_timeout_ms":350,"members": [{"id":2049}],"member_ad_profile_id":23349,"excluded_technical_attributes":[2,36],"tags": [{"auction_id_64": ${random_auction_id_64},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "wp7","supply_type": "mobile_app","site_id": 670274,"creative_formats_map": "111111111111","creative_formats": ["unknown","html-url","js-url","flash","image","js-raw","html-raw","html-iframe","vast-url","text","xml-url","file-url"],"ad_profile_id": 535543,"visibility_profile_id": 1323,"venue_id": 681692,"pop_max_width": 320,"pop_max_height": 50,"pop_is_prepop": false,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":2.07900,"estimated_average_price":1.0560,"id":2916478}],"bid_info": {"user_id_64": 6329836781646259027,"no_cookies": false,"payment_rule_id": 400244,"no_flash": true,"certified_supply": true,"user_agent": "WindowsAdClient/6.1.30629.0 (Windows; XAML)","browser": 0,"operating_system_extended": 93,"operating_system_family": 5,"carrier": 1,"device_type": 1,"language": 1,"session_freq": 1,"pub_session_freq": 1,"ip_address": "99.169.4.191","country": "US","region": "FL","city": "Miami","postal_code": "33193","dma": 528,"time_zone": "America/New_York","inventory_class": "unaudited","within_iframe": false,"device_ids": {"windowsadid": "24840e992684ec99767d7270c5d1ec15"},"selling_member_id":28011,"publisher_id":${app_publisher_id},"app_id":"${app_id}","mobile_app_instance_id":853705,"url":"${app_storeurl}","domain":"${app_domain}","userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23938339}]}}}   
+    RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${app_ag_banner}		
+ 	[Tags]		Exclude
+
+Appnexus - Placement Discovery via Publisher ID only in Site,Online (not serve)
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (publisher id must be a number - 2233445566778899)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing.com
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		2233445566778899
+	Set Test Variable	${app_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-07-17 00:12:18","bidder_timeout_ms":350,"members": [{"id":2049}],"member_ad_profile_id":23349,"excluded_technical_attributes":[2,36],"tags": [{"auction_id_64": ${random_auction_id_64},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "wp7","supply_type": "mobile_app","site_id": 670274,"creative_formats_map": "111111111111","creative_formats": ["unknown","html-url","js-url","flash","image","js-raw","html-raw","html-iframe","vast-url","text","xml-url","file-url"],"ad_profile_id": 535543,"visibility_profile_id": 1323,"venue_id": 681692,"pop_max_width": 320,"pop_max_height": 50,"pop_is_prepop": false,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":2.07900,"estimated_average_price":1.0560,"id":2916478}],"bid_info": {"user_id_64": 6329836781646259027,"no_cookies": false,"payment_rule_id": 400244,"no_flash": true,"certified_supply": true,"user_agent": "WindowsAdClient/6.1.30629.0 (Windows; XAML)","browser": 0,"operating_system_extended": 93,"operating_system_family": 5,"carrier": 1,"device_type": 1,"language": 1,"session_freq": 1,"pub_session_freq": 1,"ip_address": "99.169.4.191","country": "US","region": "FL","city": "Miami","postal_code": "33193","dma": 528,"time_zone": "America/New_York","inventory_class": "unaudited","within_iframe": false,"device_ids": {"windowsadid": "24840e992684ec99767d7270c5d1ec15"},"selling_member_id":28011,"publisher_id":${app_publisher_id},"app_id":"${app_id}","mobile_app_instance_id":853705,"url":"${app_storeurl}","domain":"${app_domain}","userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23938339}]}}}   
+    #RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    #RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${app_ag_banner}		
+ 	RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+ 	[Tags]	
+
+Appnexus - Placement Discovery via Publisher Not MW (Same Publisher as Online)
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (Publisher ID must be a number 22334455667788)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing.com
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		22334455667788
+	Set Test Variable	${app_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-07-17 00:12:18","bidder_timeout_ms":350,"members": [{"id":2049}],"member_ad_profile_id":23349,"excluded_technical_attributes":[2,36],"tags": [{"auction_id_64": ${random_auction_id_64},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "wp7","supply_type": "mobile_app","site_id": 670274,"creative_formats_map": "111111111111","creative_formats": ["unknown","html-url","js-url","flash","image","js-raw","html-raw","html-iframe","vast-url","text","xml-url","file-url"],"ad_profile_id": 535543,"visibility_profile_id": 1323,"venue_id": 681692,"pop_max_width": 320,"pop_max_height": 50,"pop_is_prepop": false,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":2.07900,"estimated_average_price":1.0560,"id":2916478}],"bid_info": {"user_id_64": 6329836781646259027,"no_cookies": false,"payment_rule_id": 400244,"no_flash": true,"certified_supply": true,"user_agent": "WindowsAdClient/6.1.30629.0 (Windows; XAML)","browser": 0,"operating_system_extended": 93,"operating_system_family": 5,"carrier": 1,"device_type": 1,"language": 1,"session_freq": 1,"pub_session_freq": 1,"ip_address": "99.169.4.191","country": "US","region": "FL","city": "Miami","postal_code": "33193","dma": 528,"time_zone": "America/New_York","inventory_class": "unaudited","within_iframe": false,"device_ids": {"windowsadid": "24840e992684ec99767d7270c5d1ec15"},"selling_member_id":28011,"publisher_id":${app_publisher_id},"app_id":"${app_id}","mobile_app_instance_id":853705,"url":"${app_storeurl}","domain":"${app_domain}","userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23938339}]}}}   
+    RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${app_ag_banner}		
+ 	#RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+	[Tags]			
+
+Appnexus - Placement Discovery via Publisher Not Online (Same Publisher as MW)
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (Publisher ID must be a number 112233445566)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${app_domain}			Nothing.com
+	Set Test Variable	${app_cat}				Nothing
+	Set Test Variable	${app_id}				Nothing
+	Set Test Variable	${app_publisher_id}		223344556677889900
+	Set Test Variable	${app_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2015-07-17 00:12:18","bidder_timeout_ms":350,"members": [{"id":2049}],"member_ad_profile_id":23349,"excluded_technical_attributes":[2,36],"tags": [{"auction_id_64": ${random_auction_id_64},"size": "320x50","sizes" : ["320x50"],"smaller_sizes_allowed": false,"position": "unknown","tag_format": "wp7","supply_type": "mobile_app","site_id": 670274,"creative_formats_map": "111111111111","creative_formats": ["unknown","html-url","js-url","flash","image","js-raw","html-raw","html-iframe","vast-url","text","xml-url","file-url"],"ad_profile_id": 535543,"visibility_profile_id": 1323,"venue_id": 681692,"pop_max_width": 320,"pop_max_height": 50,"pop_is_prepop": false,"allowed_media_types": [1],"media_subtypes": ["banner"],"estimated_clear_price":2.07900,"estimated_average_price":1.0560,"id":2916478}],"bid_info": {"user_id_64": 6329836781646259027,"no_cookies": false,"payment_rule_id": 400244,"no_flash": true,"certified_supply": true,"user_agent": "WindowsAdClient/6.1.30629.0 (Windows; XAML)","browser": 0,"operating_system_extended": 93,"operating_system_family": 5,"carrier": 1,"device_type": 1,"language": 1,"session_freq": 1,"pub_session_freq": 1,"ip_address": "99.169.4.191","country": "US","region": "FL","city": "Miami","postal_code": "33193","dma": 528,"time_zone": "America/New_York","inventory_class": "unaudited","within_iframe": false,"device_ids": {"windowsadid": "24840e992684ec99767d7270c5d1ec15"},"selling_member_id":28011,"publisher_id":${app_publisher_id},"app_id":"${app_id}","mobile_app_instance_id":853705,"url":"${app_storeurl}","domain":"${app_domain}","userdata_json":"{}","segments": [{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":23938339}]}}}   
+    RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${app_ag_banner}		
+ 	#RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+	[Tags]			
+
+
+
+
+Appnexus - Placement Discovery via Site Domain
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (SiteDomain.com, site id must be a number)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${site_domain}			SiteDomain.com
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				100000
+	Set Test Variable	${site_publisher_id}		1000000
+	Set Test Variable	${site_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-15 21:52:51","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":163870,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"unknown","tag_format":"iframe","ad_profile_id":928663,"visibility_profile_id":8181,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.21,"size":"320x50","sizes":["320x50","320x100"],"estimated_clear_price":6.20000,"estimated_average_price":2.0800,"id":9852411,"site_id":"${site_id}","venue_id":1511282,"inventory_audits":[{"auditor_member_id":1908,"intended_audience":"general","content_categories":[32424,32429,32430,36102]}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":true,"payment_rule_id":1101471,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":12,"operating_system":8,"operating_system_extended":160,"operating_system_family":3,"carrier":1,"device_make":26,"device_type":2,"language":1,"session_freq":1,"pub_session_freq":1,"country":"US","within_iframe":false,"selling_member_id":1908,"publisher_id":${site_publisher_id},"user_id_64":0,"ip_address":"174.59.130.115","user_agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 10_1_1 like Mac OS X) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0 Mobile/14B100 Safari/602.1","accepted_languages":"en-us","region":"PA","city":"Elizabethville","postal_code":"17023","postal_code_id":12355,"dma":566,"time_zone":"America/Indiana/Vevay","url":"http://colleges.startclass.com/compare/3624-3683/Elizabethtown-College-vs-Lebanon-Valley-College","domain":"${site_domain}","device_model":301,"inventory_url_id":1367861,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","content_categories":[17,8302]}],"userdata_json":"{}"}}}	
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${mw_ag_banner}		
+    #Set Test Variable      ${ad_request_url}		${AD_PICKUP_URL}/${appnexus_auction_id}?price=0.81
+    #Validate Ad Serving  ad_url=${ad_request_url}    	image_name=banner_67689_image_4INFO_320x50.gif   location=${DEFAULT_BROWSER_HOME}
+    #Capture Page Screenshot With Timestamp
+    
+	[Tags] 		
+
+Appnexus - Placement Discovery via Site IAB Category
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (Appnexus does not have IAB cat)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${site_domain}			SiteDomain.com
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				100000
+	Set Test Variable	${site_publisher_id}		1000000
+	Set Test Variable	${site_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-15 21:52:51","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":163870,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"unknown","tag_format":"iframe","ad_profile_id":928663,"visibility_profile_id":8181,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.21,"size":"320x50","sizes":["320x50","320x100"],"estimated_clear_price":6.20000,"estimated_average_price":2.0800,"id":9852411,"site_id":"${site_id}","venue_id":1511282,"inventory_audits":[{"auditor_member_id":1908,"intended_audience":"general","content_categories":[32424,32429,32430,36102]}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":true,"payment_rule_id":1101471,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":12,"operating_system":8,"operating_system_extended":160,"operating_system_family":3,"carrier":1,"device_make":26,"device_type":2,"language":1,"session_freq":1,"pub_session_freq":1,"country":"US","within_iframe":false,"selling_member_id":1908,"publisher_id":${site_publisher_id},"user_id_64":0,"ip_address":"174.59.130.115","user_agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 10_1_1 like Mac OS X) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0 Mobile/14B100 Safari/602.1","accepted_languages":"en-us","region":"PA","city":"Elizabethville","postal_code":"17023","postal_code_id":12355,"dma":566,"time_zone":"America/Indiana/Vevay","url":"http://colleges.startclass.com/compare/3624-3683/Elizabethtown-College-vs-Lebanon-Valley-College","domain":"${site_domain}","device_model":301,"inventory_url_id":1367861,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","content_categories":[17,8302]}],"userdata_json":"{}"}}}	
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${mw_ag_banner}		
+    #Set Test Variable      ${ad_request_url}		${AD_PICKUP_URL}/${appnexus_auction_id}?price=0.81
+    #Validate Ad Serving  ad_url=${ad_request_url}    	image_name=banner_67689_image_4INFO_320x50.gif   location=${DEFAULT_BROWSER_HOME}
+    #Capture Page Screenshot With Timestamp
+ 	[Tags] 		Exclude
+
+Appnexus - Placement Discovery via Site ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (appnexus site_id must be a number 112233445566)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing.com
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				112233445566
+	Set Test Variable	${site_publisher_id}		1000000
+	Set Test Variable	${site_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-15 21:52:51","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":163870,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"unknown","tag_format":"iframe","ad_profile_id":928663,"visibility_profile_id":8181,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.21,"size":"320x50","sizes":["320x50","320x100"],"estimated_clear_price":6.20000,"estimated_average_price":2.0800,"id":9852411,"site_id":"${site_id}","venue_id":1511282,"inventory_audits":[{"auditor_member_id":1908,"intended_audience":"general","content_categories":[32424,32429,32430,36102]}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":true,"payment_rule_id":1101471,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":12,"operating_system":8,"operating_system_extended":160,"operating_system_family":3,"carrier":1,"device_make":26,"device_type":2,"language":1,"session_freq":1,"pub_session_freq":1,"country":"US","within_iframe":false,"selling_member_id":1908,"publisher_id":${site_publisher_id},"user_id_64":0,"ip_address":"174.59.130.115","user_agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 10_1_1 like Mac OS X) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0 Mobile/14B100 Safari/602.1","accepted_languages":"en-us","region":"PA","city":"Elizabethville","postal_code":"17023","postal_code_id":12355,"dma":566,"time_zone":"America/Indiana/Vevay","url":"http://colleges.startclass.com/compare/3624-3683/Elizabethtown-College-vs-Lebanon-Valley-College","domain":"${site_domain}","device_model":301,"inventory_url_id":1367861,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","content_categories":[17,8302]}],"userdata_json":"{}"}}}	
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${mw_ag_banner}		
+    #Set Test Variable      ${ad_request_url}		${AD_PICKUP_URL}/${appnexus_auction_id}?price=0.81
+    #Validate Ad Serving  ad_url=${ad_request_url}    	image_name=banner_67689_image_4INFO_320x50.gif   location=${DEFAULT_BROWSER_HOME}
+    #Capture Page Screenshot With Timestamp
+ 	[Tags] 		
+	
+Appnexus - Placement Discovery via Site Publisher ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (publisher_id must be a number 223344556677)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing.com
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				1000000
+	Set Test Variable	${site_publisher_id}		223344556677
+	Set Test Variable	${site_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-15 21:52:51","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":163870,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"unknown","tag_format":"iframe","ad_profile_id":928663,"visibility_profile_id":8181,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.21,"size":"320x50","sizes":["320x50","320x100"],"estimated_clear_price":6.20000,"estimated_average_price":2.0800,"id":9852411,"site_id":"${site_id}","venue_id":1511282,"inventory_audits":[{"auditor_member_id":1908,"intended_audience":"general","content_categories":[32424,32429,32430,36102]}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":true,"payment_rule_id":1101471,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":12,"operating_system":8,"operating_system_extended":160,"operating_system_family":3,"carrier":1,"device_make":26,"device_type":2,"language":1,"session_freq":1,"pub_session_freq":1,"country":"US","within_iframe":false,"selling_member_id":1908,"publisher_id":${site_publisher_id},"user_id_64":0,"ip_address":"174.59.130.115","user_agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 10_1_1 like Mac OS X) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0 Mobile/14B100 Safari/602.1","accepted_languages":"en-us","region":"PA","city":"Elizabethville","postal_code":"17023","postal_code_id":12355,"dma":566,"time_zone":"America/Indiana/Vevay","url":"http://colleges.startclass.com/compare/3624-3683/Elizabethtown-College-vs-Lebanon-Valley-College","domain":"${site_domain}","device_model":301,"inventory_url_id":1367861,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","content_categories":[17,8302]}],"userdata_json":"{}"}}}	
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${mw_ag_banner}		
+ 	[Tags] 	
+	
+Appnexus - Placement Discovery via Publisher ID Not MW (not serve)
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (publisher id must be a number 22334455667788)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing.com
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				100000
+	Set Test Variable	${site_publisher_id}		22334455667788
+	Set Test Variable	${site_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-15 21:52:51","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":163870,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"unknown","tag_format":"iframe","ad_profile_id":928663,"visibility_profile_id":8181,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.21,"size":"320x50","sizes":["320x50","320x100"],"estimated_clear_price":6.20000,"estimated_average_price":2.0800,"id":9852411,"site_id":"${site_id}","venue_id":1511282,"inventory_audits":[{"auditor_member_id":1908,"intended_audience":"general","content_categories":[32424,32429,32430,36102]}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":true,"payment_rule_id":1101471,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":12,"operating_system":8,"operating_system_extended":160,"operating_system_family":3,"carrier":1,"device_make":26,"device_type":2,"language":1,"session_freq":1,"pub_session_freq":1,"country":"US","within_iframe":false,"selling_member_id":1908,"publisher_id":${site_publisher_id},"user_id_64":0,"ip_address":"174.59.130.115","user_agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 10_1_1 like Mac OS X) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0 Mobile/14B100 Safari/602.1","accepted_languages":"en-us","region":"PA","city":"Elizabethville","postal_code":"17023","postal_code_id":12355,"dma":566,"time_zone":"America/Indiana/Vevay","url":"http://colleges.startclass.com/compare/3624-3683/Elizabethtown-College-vs-Lebanon-Valley-College","domain":"${site_domain}","device_model":301,"inventory_url_id":1367861,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","content_categories":[17,8302]}],"userdata_json":"{}"}}}	
+	RTB Appnexus Request 				API=${RTB_APPNEXUS_API}          data=${data}		response_code=no_bid        submit_client_impression_event=NO
+	[Tags] 	
+
+Appnexus - Placement Discovery via Site Publisher Not App
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery ( pbulisher id: 2233445566778899)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing.com
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				100000
+	Set Test Variable	${site_publisher_id}		2233445566778899
+	Set Test Variable	${site_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-15 21:52:51","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":163870,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"unknown","tag_format":"iframe","ad_profile_id":928663,"visibility_profile_id":8181,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.21,"size":"320x50","sizes":["320x50","320x100"],"estimated_clear_price":6.20000,"estimated_average_price":2.0800,"id":9852411,"site_id":"${site_id}","venue_id":1511282,"inventory_audits":[{"auditor_member_id":1908,"intended_audience":"general","content_categories":[32424,32429,32430,36102]}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":true,"payment_rule_id":1101471,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":12,"operating_system":8,"operating_system_extended":160,"operating_system_family":3,"carrier":1,"device_make":26,"device_type":2,"language":1,"session_freq":1,"pub_session_freq":1,"country":"US","within_iframe":false,"selling_member_id":1908,"publisher_id":${site_publisher_id},"user_id_64":0,"ip_address":"174.59.130.115","user_agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 10_1_1 like Mac OS X) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0 Mobile/14B100 Safari/602.1","accepted_languages":"en-us","region":"PA","city":"Elizabethville","postal_code":"17023","postal_code_id":12355,"dma":566,"time_zone":"America/Indiana/Vevay","url":"http://colleges.startclass.com/compare/3624-3683/Elizabethtown-College-vs-Lebanon-Valley-College","domain":"${site_domain}","device_model":301,"inventory_url_id":1367861,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","content_categories":[17,8302]}],"userdata_json":"{}"}}}	
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${mw_ag_banner}		
+ 	[Tags] 	
+
+Appnexus - Placement Discovery via Site Publisher Not Online
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (publisher ID:  223344556677889900)
+	Set Test Variable	${app_bundle}			Nothing
+	Set Test Variable	${site_domain}			Nothing.com
+	Set Test Variable	${site_cat}				Nothing
+	Set Test Variable	${site_id}				100000
+	Set Test Variable	${site_publisher_id}		223344556677889900
+	Set Test Variable	${site_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-15 21:52:51","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":163870,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"unknown","tag_format":"iframe","ad_profile_id":928663,"visibility_profile_id":8181,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.21,"size":"320x50","sizes":["320x50","320x100"],"estimated_clear_price":6.20000,"estimated_average_price":2.0800,"id":9852411,"site_id":"${site_id}","venue_id":1511282,"inventory_audits":[{"auditor_member_id":1908,"intended_audience":"general","content_categories":[32424,32429,32430,36102]}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":true,"payment_rule_id":1101471,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":12,"operating_system":8,"operating_system_extended":160,"operating_system_family":3,"carrier":1,"device_make":26,"device_type":2,"language":1,"session_freq":1,"pub_session_freq":1,"country":"US","within_iframe":false,"selling_member_id":1908,"publisher_id":${site_publisher_id},"user_id_64":0,"ip_address":"174.59.130.115","user_agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 10_1_1 like Mac OS X) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0 Mobile/14B100 Safari/602.1","accepted_languages":"en-us","region":"PA","city":"Elizabethville","postal_code":"17023","postal_code_id":12355,"dma":566,"time_zone":"America/Indiana/Vevay","url":"http://colleges.startclass.com/compare/3624-3683/Elizabethtown-College-vs-Lebanon-Valley-College","domain":"${site_domain}","device_model":301,"inventory_url_id":1367861,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","content_categories":[17,8302]}],"userdata_json":"{}"}}}	
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${mw_ag_banner}		
+ 	[Tags] 	
+
+
+
+Appnexus - Placement Discovery via Online Domain
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (OnlineDomain.com)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			OnlineDomain.com
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				100000
+	Set Test Variable	${online_publisher_id}		100000
+	Set Test Variable	${online_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-16 02:22:56","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":135907,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"above","ad_profile_id":845416,"visibility_profile_id":779,"pop_max_width":300,"pop_max_height":250,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.09,"size":"320x50","sizes":["320x50"],"estimated_clear_price":1.50000,"estimated_average_price":1.2600,"id":6191137,"site_id":${online_id},"venue_id":1487157,"inventory_audits":[{"auditor_member_id":1705,"intended_audience":"general"}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":false,"payment_rule_id":896824,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":7,"operating_system":5,"operating_system_extended":137,"operating_system_family":5,"carrier":358,"device_type":1,"language":1,"session_freq":381,"pub_session_freq":281,"country":"US","within_iframe":false,"selling_member_id":2801,"user_id_64":7442994412279874583,"ip_address":"107.13.141.210","user_agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0","accepted_languages":"en-US,en;q=0.5","region":"NC","city":"Durham","postal_code":"27713","postal_code_id":20483,"dma":560,"time_zone":"America/Indiana/Vevay","url":"http://live.cricket.com.au/","domain":"${online_domain}","inventory_url_id":873873,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[4,8,16],"content_categories":[29,8536]}],"userdata_json":"{}","segments":[{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":24696769}]}}}
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${online_ag_banner}		
+	[Tags] 		
+
+Appnexus - Placement Discovery via Online IAB Category
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (appnexus does not have iab cat)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			OnlineDomain.com
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		100000
+	Set Test Variable	${online_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-16 02:22:56","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":135907,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"above","ad_profile_id":845416,"visibility_profile_id":779,"pop_max_width":300,"pop_max_height":250,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.09,"size":"320x50","sizes":["320x50"],"estimated_clear_price":1.50000,"estimated_average_price":1.2600,"id":6191137,"site_id":${online_id},"venue_id":1487157,"inventory_audits":[{"auditor_member_id":1705,"intended_audience":"general"}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":false,"payment_rule_id":896824,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":7,"operating_system":5,"operating_system_extended":137,"operating_system_family":5,"carrier":358,"device_type":1,"language":1,"session_freq":381,"pub_session_freq":281,"country":"US","within_iframe":false,"selling_member_id":2801,"user_id_64":7442994412279874583,"ip_address":"107.13.141.210","user_agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0","accepted_languages":"en-US,en;q=0.5","region":"NC","city":"Durham","postal_code":"27713","postal_code_id":20483,"dma":560,"time_zone":"America/Indiana/Vevay","url":"http://live.cricket.com.au/","domain":"${online_domain}","inventory_url_id":873873,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[4,8,16],"content_categories":[29,8536]}],"userdata_json":"{}","segments":[{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":24696769}]}}}
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${online_ag_banner}		
+	[Tags] 		Exclude
+
+Appnexus - Placement Discovery via Online ID (Still using Site ID)
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (id must be a number)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing.com
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				334455
+	Set Test Variable	${online_publisher_id}		100000
+	Set Test Variable	${online_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-16 02:22:56","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":135907,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"above","ad_profile_id":845416,"visibility_profile_id":779,"pop_max_width":300,"pop_max_height":250,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.09,"size":"320x50","sizes":["320x50"],"estimated_clear_price":1.50000,"estimated_average_price":1.2600,"id":6191137,"site_id":${online_id},"venue_id":1487157,"inventory_audits":[{"auditor_member_id":1705,"intended_audience":"general"}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":false,"payment_rule_id":896824,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":7,"operating_system":5,"operating_system_extended":137,"operating_system_family":5,"carrier":358,"device_type":1,"language":1,"session_freq":381,"pub_session_freq":281,"country":"US","within_iframe":false,"selling_member_id":2801,"user_id_64":7442994412279874583,"ip_address":"107.13.141.210","user_agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0","accepted_languages":"en-US,en;q=0.5","region":"NC","city":"Durham","postal_code":"27713","postal_code_id":20483,"dma":560,"time_zone":"America/Indiana/Vevay","url":"http://live.cricket.com.au/","domain":"${online_domain}","inventory_url_id":873873,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[4,8,16],"content_categories":[29,8536]}],"userdata_json":"{}","segments":[{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":24696769}]}}}
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${online_ag_banner}		
+	[Tags] 		
+	
+Appnexus - Placement Discovery via Online Publisher ID
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (Online does not use publisher ID. Publisher ID must be a number 3333222211111)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing.com
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		3333222211111
+	Set Test Variable	${online_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-16 02:22:56","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":135907,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"above","ad_profile_id":845416,"visibility_profile_id":779,"pop_max_width":300,"pop_max_height":250,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.09,"size":"320x50","sizes":["320x50"],"estimated_clear_price":1.50000,"estimated_average_price":1.2600,"id":6191137,"site_id":${online_id},"venue_id":1487157,"inventory_audits":[{"auditor_member_id":1705,"intended_audience":"general"}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":false,"payment_rule_id":896824,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":7,"operating_system":5,"operating_system_extended":137,"operating_system_family":5,"carrier":358,"device_type":1,"language":1,"session_freq":381,"pub_session_freq":281,"country":"US","within_iframe":false,"selling_member_id":2801,"user_id_64":7442994412279874583,"ip_address":"107.13.141.210","user_agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0","accepted_languages":"en-US,en;q=0.5","region":"NC","city":"Durham","postal_code":"27713","postal_code_id":20483,"dma":560,"time_zone":"America/Indiana/Vevay","url":"http://live.cricket.com.au/","domain":"${online_domain}","inventory_url_id":873873,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[4,8,16],"content_categories":[29,8536]}],"userdata_json":"{}","segments":[{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":24696769}]}}}
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${online_ag_banner}		
+	[Tags] 		EXCLUDE
+	
+Appnexus - Placement Discovery via Publisher ID Not Online
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery( Online does not use publisher id.  publisher id must be a number 223344556677889900
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing.com
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		223344556677889900
+	Set Test Variable	${online_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-16 02:22:56","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":135907,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"above","ad_profile_id":845416,"visibility_profile_id":779,"pop_max_width":300,"pop_max_height":250,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.09,"size":"320x50","sizes":["320x50"],"estimated_clear_price":1.50000,"estimated_average_price":1.2600,"id":6191137,"site_id":${online_id},"venue_id":1487157,"inventory_audits":[{"auditor_member_id":1705,"intended_audience":"general"}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":false,"payment_rule_id":896824,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":7,"operating_system":5,"operating_system_extended":137,"operating_system_family":5,"carrier":358,"device_type":1,"language":1,"session_freq":381,"pub_session_freq":281,"country":"US","within_iframe":false,"selling_member_id":2801,"user_id_64":7442994412279874583,"ip_address":"107.13.141.210","user_agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0","accepted_languages":"en-US,en;q=0.5","region":"NC","city":"Durham","postal_code":"27713","postal_code_id":20483,"dma":560,"time_zone":"America/Indiana/Vevay","url":"http://live.cricket.com.au/","domain":"${online_domain}","inventory_url_id":873873,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[4,8,16],"content_categories":[29,8536]}],"userdata_json":"{}","segments":[{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":24696769}]}}}
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${online_ag_banner}		
+	[Tags] 		exclude	
+
+Appnexus - Placement Discovery via Publisher Not MW
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery(publisher id must be a number 22334455667788)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing.com
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		22334455667788
+	Set Test Variable	${online_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-16 02:22:56","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":135907,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"above","ad_profile_id":845416,"visibility_profile_id":779,"pop_max_width":300,"pop_max_height":250,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.09,"size":"320x50","sizes":["320x50"],"estimated_clear_price":1.50000,"estimated_average_price":1.2600,"id":6191137,"site_id":${online_id},"venue_id":1487157,"inventory_audits":[{"auditor_member_id":1705,"intended_audience":"general"}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":false,"payment_rule_id":896824,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":7,"operating_system":5,"operating_system_extended":137,"operating_system_family":5,"carrier":358,"device_type":1,"language":1,"session_freq":381,"pub_session_freq":281,"country":"US","within_iframe":false,"selling_member_id":2801,"user_id_64":7442994412279874583,"ip_address":"107.13.141.210","user_agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0","accepted_languages":"en-US,en;q=0.5","region":"NC","city":"Durham","postal_code":"27713","postal_code_id":20483,"dma":560,"time_zone":"America/Indiana/Vevay","url":"http://live.cricket.com.au/","domain":"${online_domain}","inventory_url_id":873873,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[4,8,16],"content_categories":[29,8536]}],"userdata_json":"{}","segments":[{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":24696769}]}}}
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${online_ag_banner}		
+	[Tags] 		exclude
+Appnexus - Placement Discovery via Publisher Not App
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (publisher id must be a number 2233445566778899)
+	Set Test Variable	${online_bundle}			Nothing
+	Set Test Variable	${online_domain}			Nothing.com
+	Set Test Variable	${online_cat}				Nothing
+	Set Test Variable	${online_id}				Nothing
+	Set Test Variable	${online_publisher_id}		2233445566778899
+	Set Test Variable	${online_storeurl}			Nothing
+	${random_auction_id_64}=         Generate Random String 		15		123456789
+	Set Test Variable    ${data}   		  {"bid_request":{"timestamp":"2016-12-16 02:22:56","bidder_timeout_ms":100,"members":[{"id":2049}],"member_ad_profile_id":135907,"excluded_technical_attributes":[33],"tags":[{"auction_id_64":${random_auction_id_64},"smaller_sizes_allowed":false,"position":"above","ad_profile_id":845416,"visibility_profile_id":779,"pop_max_width":300,"pop_max_height":250,"allowed_media_types":[1],"media_subtypes":["banner"],"predicted_view_rate":0.09,"size":"320x50","sizes":["320x50"],"estimated_clear_price":1.50000,"estimated_average_price":1.2600,"id":6191137,"site_id":${online_id},"venue_id":1487157,"inventory_audits":[{"auditor_member_id":1705,"intended_audience":"general"}],"deals_only":false,"predicted_engagement_rates":[{"engagement_rate_type":"video_completion","rate":1.00}]}],"bid_info":{"no_cookies":false,"payment_rule_id":896824,"no_flash":false,"certified_supply":true,"spend_protection":true,"browser":7,"operating_system":5,"operating_system_extended":137,"operating_system_family":5,"carrier":358,"device_type":1,"language":1,"session_freq":381,"pub_session_freq":281,"country":"US","within_iframe":false,"selling_member_id":2801,"user_id_64":7442994412279874583,"ip_address":"107.13.141.210","user_agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0","accepted_languages":"en-US,en;q=0.5","region":"NC","city":"Durham","postal_code":"27713","postal_code_id":20483,"dma":560,"time_zone":"America/Indiana/Vevay","url":"http://live.cricket.com.au/","domain":"${online_domain}","inventory_url_id":873873,"inventory_audits":[{"auditor_member_id":null,"intended_audience":"general","inventory_attributes":[4,8,16],"content_categories":[29,8536]}],"userdata_json":"{}","segments":[{"id":1,"member_id":0,"code":"cookie_birthday","provider":"Appnexus","last_seen_min":24696769}]}}}
+	RTB Appnexus Request             ${RTB_APPNEXUS_API}         ${data}   
+    RTB Basic Validation Appnexus			auction_id=${random_auction_id_64}			creative_id=${online_ag_banner}		
+	[Tags] 					exclude	

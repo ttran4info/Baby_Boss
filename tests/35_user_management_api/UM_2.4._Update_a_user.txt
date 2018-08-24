@@ -1,0 +1,983 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM      UM2.0   UM2.4   BATCH17     HTTP    OffshoreQA
+Suite Setup         Delete a user       username=regression@temp.com
+Suite Teardown      Delete a user       username=regression@temp.com
+
+# https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.4.Updateauser
+# API Name: 2.4. Update a user
+# Description: This request will be called on Admin tab for user updating.
+#              The different between create and update call is the
+#              username in path parameter.
+#              If password field is null or empty, no change will be made for password.
+# Method: PUT
+# URL: 192.168.99.100:8380/user-management-api/admin/users?username=zzz-test-username
+# rhino.users
+# rhino.user_product_permissions
+#
+# QA Task Jira ID : https://jira.adhaven.com/browse/CM-1862
+# Dev Task Jira ID : NA
+
+
+*** Variables ***
+${username}     011regression@temp.com
+${status}       1
+${Pass}         "abcABC123!"
+${firstName}    "Regression"
+${lastName}     "Test"
+${authority}    "USER"
+${permissionsList}    [{"permissions": [1, 2], "groupId": 1, "productId": 1}, {"permissions": [1], "groupId": 1, "productId": 2}]
+${lastModifiedBy}           "${QA_DEFAULT_USER}"
+# ${password_Invalid_ErrorMessage}    "Password must be minimum 8 characters including ${Space}one uppercase letter, one lowercase letter,one digit and one special character. "
+${password_Invalid_ErrorMessage}    "Password must be minimum 8 characters including ${Space}one uppercase letter, one lowercase letter,one digit and one special character."
+
+
+
+*** Keywords ***
+
+
+
+*** Test Cases ***
+#----------------------------------------------------------------------------------
+UM_2.4_TC_01.1_Update a user (valid data and valid URL for User with read permission, Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${username}    011regression@temp.com
+    Set Test Variable    ${status}       1
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${firstName}    "Regression_Update"
+    Set Test Variable    ${lastName}     "Test_Update"
+    Set Test Variable    ${authority}    "ADMIN"
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Validate response data for Update a user
+    ...                 userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    [Tags]
+
+
+#----------------------------------------------------------------------------------
+UM_2.4_TC_02.1_Update a user (Update user name, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${username}    021regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${usernameUpdated}    update_021regression@temp.com
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${usernameUpdated}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    JSON Value Should Equal    ${updated_body}    /reason_code    "700-099"
+    JSON Value Should Equal    ${updated_body}    /reason_desc    "Username can contain alphanumeric charaters, -, . and @ only"
+    [Tags]  #  Known_bug    CM-1880
+
+#----------------------------------------------------------------------------------
+UM_2.4_TC_03.1_Update a user (Update status to zero, Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${status}    0
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    Validate response data for Update a user
+    ...                 userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    [Tags]  #  Known_bug    CM-1880
+
+
+UM_2.4_TC_03.2_Update a user (status contains negative value, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${status}    -1
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+UM_2.4_TC_03.3_Update a user (status contains greater than 1 value, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${status}    3
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+UM_2.4_TC_03.4_Update a user (status contains non numeric value, Don't Accept)
+    [Documentation]     Input : Update a user with status contains non numeric value
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${status}    "abc!@#"
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"400-001"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Invalid Request."
+    [Tags]
+
+
+UM_2.4_TC_03.5_Update a user (status contains null value, Don't Accept)
+    [Documentation]     Input : Update a user with status contains null value
+    ...                 Expected : response 400.
+    Set Test Variable    ${status}    null
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+UM_2.4_TC_03.6_Update a user (status contains blank value, Don't Accept)
+    [Documentation]     Input : Update a user with status contains blank value
+    ...                 Expected : response 400.
+    Set Test Variable    ${status}    ""
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+
+UM_2.4_TC_03.7_Update a user (status missing, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=MISSING
+    ...                 password="abcABC123!"
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+#----------------------------------------------------------------------------------
+
+UM_2.4_TC_04.1_Update a user (Password missing, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    041regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="MISSING"
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]   # Known_bug    CM-1928    # CM-1884
+
+
+UM_2.4_TC_04.2_Create a user (password format : no lowercase character, Don't Accept)
+    [Documentation]     Input : Create a user password without lower case letters
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    042regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${Pass}      "ABC869!!"
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${updated_body}     /reason_code     "700-017"
+    Json Value Should Equal     ${updated_body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.4_TC_04.3_Create a user (password format : no uppercase character, Don't Accept)
+    [Documentation]     Input : Create a user password without upper case letters
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    043regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${Pass}       "abc869!!"
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${updated_body}     /reason_code     "700-017"
+    Json Value Should Equal     ${updated_body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.4_TC_04.4_Create a user (password format : no number, Don't Accept)
+    [Documentation]     Input : Create a user password without any number
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    044regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${Pass}       "abcABC!!"
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${updated_body}     /reason_code     "700-017"
+    Json Value Should Equal     ${updated_body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.4_TC_04.5_Create a user (password format : no special character, Don't Accept)
+    [Documentation]     Input : Create a user password without any special character
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    045regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${Pass}       "abcABC123"
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${updated_body}     /reason_code     "700-017"
+    Json Value Should Equal     ${updated_body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.4_TC_04.6_Create a user (password format : with whitespaces, Don't Accept)
+    [Documentation]     Input : Create a user password with any whitespaces
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    046regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${Pass}       "abcABC 123!"
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${updated_body}     /reason_code     "700-017"
+    Json Value Should Equal     ${updated_body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.4_TC_04.7_Create a user (password format : with length less than 8 characters, Don't Accept)
+    [Documentation]     Input : Create a user password with length less than 8 characters
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    047regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${Pass}       "aA123!"
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${updated_body}     /reason_code     "700-017"
+    Json Value Should Equal     ${updated_body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.4_TC_04.8_Create a user (password format : with length more than 20 characters, Don't Accept)
+    [Documentation]     Input : Create a user password with length more than 20 characters
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    048regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${Pass}       "abcdefghijklmnopqrstuvA123!"
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName="Regression"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+
+    Json Value Should Equal     ${updated_body}     /reason_code     "700-017"
+    Json Value Should Equal     ${updated_body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+#----------------------------------------------------------------------------------
+
+UM_2.4_TC_05.1_Update a user (firstName missing, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="abcde"
+    ...                 firstName="MISSING"
+    ...                 lastName="Test"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]  #  Known_bug    CM-1884
+
+
+UM_2.4_TC_05.2_Update a user (firstName contains null value, Don't Accept)
+    [Documentation]     Input : Update a user with firstName contains null value
+    ...                 Expected : response 400.
+    Set Test Variable    ${firstName}    null
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]
+
+
+UM_2.4_TC_05.3_Update a user (firstName contains blank value, Don't Accept)
+    [Documentation]     Input : Update a user with firstName contains null value
+    ...                 Expected : response 400.
+    Set Test Variable    ${firstName}    ""
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]
+
+
+#----------------------------------------------------------------------------------
+UM_2.4_TC_06.1_Update a user (lastName missing, Don't Accept)
+    [Documentation]     Input : Update a user with lastName missing
+    ...                 Expected : Request should process successfully with response 400.
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="abcde"
+    ...                 firstName="firstname"
+    ...                 lastName="MISSING"
+    ...                 authority="USER"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]
+
+
+UM_2.4_TC_06.2_Update a user (lastName contains null value, Don't Accept)
+    [Documentation]     Input : Update a user with lastName contains null value
+    ...                 Expected : response 400.
+    Set Test Variable    ${lastName}    null
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]       # Known_bug    CM-1928
+
+
+UM_2.4_TC_06.3_Update a user (lastName contains blank value, Don't Accept)
+    [Documentation]     Input : Update a user with lastName contains null value
+    ...                 Expected : response 400.
+    Set Test Variable    ${lastName}    ""
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]      #  Known_bug    CM-1928
+
+#----------------------------------------------------------------------------------
+UM_2.4_TC_07.1_Update a user (Authority contains value as ABCDEFG, Don't Accept)
+    [Documentation]     Input : Update a user with Authority contains value as ABCDEFG
+    ...                 Expected : response 400.
+    Set Test Variable    ${authority}    "ABCDEFG"
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+
+UM_2.4_TC_07.2_Update a user (Authority contains null, Don't Accept)
+    [Documentation]     Input : Update a user with Authority contains null
+    ...                 Expected : response 400.
+    Set Test Variable    ${authority}    null
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+
+UM_2.4_TC_07.3_Update a user (Authority contains blank, Don't Accept)
+    [Documentation]     Input : Update a user with Authority contains blank
+    ...                 Expected : response 400.
+    Set Test Variable    ${authority}    ""
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+
+UM_2.4_TC_07.4_Update a user (authority missing, Don't Accept)
+    [Documentation]     Input : Update a user with authority missing
+    ...                 Expected : response 400.
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password="abcde"
+    ...                 firstName="firstname"
+    ...                 lastName="last"
+    ...                 authority="MISSING"
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="${QA_DEFAULT_USER}"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+#----------------------------------------------------------------------------------
+
+UM_2.4_TC_08.1_Update a user (permissionsList contains value blank, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${permissionsList}    ""
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    [Tags]
+
+
+UM_2.4_TC_08.2_Update a user (permissionsList contains value null, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${permissionsList}    null
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    # Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    # Should Match Regexp     ${updated_body}     "reason_desc":"Permissions list cannot be null or empty."
+    [Tags]
+
+
+UM_2.4_TC_08.3_Update a user (permissionsList contains value 99999, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${permissionsList}   [99999]
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"400-001"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Invalid Request."
+    [Tags]    # Known_bug    CM-1928
+
+
+UM_2.4_TC_08.4_Update a user (permissionsList MISSING, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${permissionsList}    [MISSING]
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList="MISSING"
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    # Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    # Should Match Regexp     ${updated_body}     "reason_desc":"Permissions list cannot be null or empty."
+    [Tags]
+
+#----------------------------------------------------------------------------------
+
+UM_2.4_TC_09.1_Update a user (campaignGroupList contains value blank, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${campaignGroupList}    ""
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    [Tags]    EXCLUDE  # Exclude reason : Field removed from wiki document
+
+
+UM_2.4_TC_09.2_Update a user (campaignGroupList contains value null, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${campaignGroupList}    null
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Campaign group list cannot be empty."
+    [Tags]    Known_bug    CM-1928    EXCLUDE  # Exclude reason : Field removed from wiki document
+
+
+UM_2.4_TC_09.3_Update a user (campaignGroupList MISSING, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${campaignGroupList}    MISSING
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Campaign group list cannot be empty."
+    [Tags]    Known_bug    CM-1928    EXCLUDE  # Exclude reason : Field removed from wiki document
+
+#----------------------------------------------------------------------------------
+
+UM_2.4_TC_010.1_Update a user (groupId MISSING, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${permissionsList}   [{"productId":1,"permissions": [1]}]
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Group Id cannot be null."
+    [Tags]
+
+
+UM_2.4_TC_010.2_Update a user (groupId invalid, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${permissionsList}   [{"groupId": 999,"productId":1,"permissions": [1]}]
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-101"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Group id is not in 'groups' table."
+    [Tags]    # Known_bug    CM-1928
+#------------------------------------------------------------------------------
+
+UM_2.4_TC_011.1_Update a user (permissions MISSING, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${permissionsList}   [{"groupId": 1,"productId":1}]
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Permissions cannot be null or empty."
+    [Tags]
+
+
+UM_2.4_TC_011.2_Update a user (permissions invalid, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    0112regression@temp.com
+    Set Test Variable    ${status}       1
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+
+    Set Test Variable    ${permissionsList}   [{"groupId": 1,"productId":1,"permissions": [999]}]
+
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-006"
+    Should Match Regexp     ${updated_body}     "reason_desc":"User permission is invalid."
+    [Tags]   # Known_bug    CM-1928
+
+#-------------------------------------------------------------------------
+
+UM_2.4_TC_012.1_Update a user (lastModifiedBy MISSING, Don't Accept)
+    [Documentation]     Input : Update a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Update a user       userName=${username}
+    ...                 usernameUpdated="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy="MISSING"
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${updated_body}     "reason_code":"700-099"
+    Should Match Regexp     ${updated_body}     "reason_desc":"Last Modified By username cannot be null or blank."
+    [Tags]   # Known_bug    CM-1928
+
+#-------------------------------------------------------------------------

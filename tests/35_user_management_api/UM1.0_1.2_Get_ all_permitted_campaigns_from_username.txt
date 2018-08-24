@@ -1,0 +1,235 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.2	BATCH17
+
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: Get all permitted campaigns from username (exclude archived/deleted campaign)
+#Description: Username is the primary key of `users` table. This api will get all permitted campaigns including read-only campaigns and read-write campaigns.
+#Method: GET
+#URL: user-management-api/permissions-internal/campaigns?userId=:username
+#userName = rhino.users
+#groupId = rhino.groups
+
+
+*** Variables ***
+${Catalina_campaign_validation}			2041
+${QA_campaign_validation}				2138
+
+*** Keywords ***
+
+*** Test Cases ***
+
+UM1.2_TC_02_01 Admin user - Validate a few campaign ID
+    [Documentation]		Make a request for admin user -> ${QA_DEFAULT_USER} and check certain regression campaign ID exist
+    Set Test Variable	${username}			${QA_DEFAULT_USER}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Should Match Regexp		${body}				1907			# 05_RTB_Mopub
+    Should Match Regexp		${body}				1976			# 05_RTB_Nexage
+    Should Match Regexp		${body}				1977
+    Should Match Regexp		${body}				1910
+    Should Match Regexp		${body}				1911
+    Should Match Regexp		${body}				1978
+    Should Match Regexp		${body}				1981
+    Should Match Regexp		${body}				1983
+    Should Match Regexp		${body}				1984
+    Should Match Regexp		${body}				1987
+    Should Match Regexp		${body}				2059
+    Should Match Regexp		${body}				1912
+    Should Match Regexp		${body}				1956
+    Should Match Regexp		${body}				2071
+    Should Match Regexp		${body}				1913
+    Should Match Regexp		${body}				2012
+    Should Match Regexp		${body}				2065
+    Should Match Regexp		${body}				${Catalina_campaign_validation}
+    [Tags]    ADMIN_USER
+
+
+UM1.2_TC_02_02 Admin user - Total count Campaign match database count
+    [Documentation]    Make a request for admin user -> ${QA_DEFAULT_USER} and check the result total against db
+    Set Test Variable    ${username}    ${QA_DEFAULT_USER}
+    Set Test Variable    ${uri_link}    user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API    uri=${uri_link}
+    @{campaign_list}=    String.Split String    ${body}    ,
+    Log    ${campaign_list}
+    ${campaign_count_api}=    Get Length    ${campaign_list}
+    ${campaign_count_api}=    Evaluate      ${campaign_count_api} + 1
+    Log    Api List Lenght is -> ${campaign_count_api}
+    Get Campaign Total From Username    username=${username}
+    Should Be Equal As Integers    ${campaign_count_api}    ${campaign_count_db}
+    [Tags]    ADMIN_USER    #Known_bug    CM-1931
+
+
+UM1.2_TC_02_03 Catalina Editor Permission - Validate total campaign count match database
+    [Documentation]    Make a request for catalina user -> ${QA_CATALINA_USER} and check the result total against db
+    Set Test Variable    ${username}    ${QA_CATALINA_USER}
+    Set Test Variable    ${uri_link}    user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API    uri=${uri_link}
+    Should Match Regexp    ${body}    ${Catalina_campaign_validation}
+    @{campaign_list}=    String.Split String    ${body}    ,
+    ${campaign_count_api}=    Get Length    ${campaign_list}
+    Log    Api List Lenght is -> ${campaign_count_api}
+    Get Campaign Total From Username    username=${username}
+    Should Be Equal As Integers    ${campaign_count_api}    ${campaign_count_db}
+    [Tags]    CATALINA_USER
+
+
+UM1.2_TC_02_04 Catalina2 Basic Permission - Validate total campaign and few known campaign ID
+    [Documentation]    Make a request for catalina user -> ${QA_CATALINA_USER2} and check the result total against db
+    Set Test Variable    ${username}    ${QA_CATALINA_USER2}
+    Set Test Variable    ${uri_link}    user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API    uri=${uri_link}
+    Should Match Regexp    ${body}    ${Catalina_campaign_validation}
+    @{campaign_list}=    String.Split String    ${body}    ,
+    ${campaign_count_api}=    Get Length    ${campaign_list}
+    Log    Api List Lenght is -> ${campaign_count_api}
+    Get Campaign Total From Username    username=${username}
+    Should Be Equal As Integers    ${campaign_count_api}    ${campaign_count_db}
+    [Tags]    CATALINA_USER
+
+
+UM1.2_TC_02_05 Catalina3 Custom Permission - Validate total campaign and few known campaign ID
+    [Documentation]		Make a request for catalina user -> ${QA_CATALINA_USER3} and check the result total against db
+    Set Test Variable	${username}			${QA_CATALINA_USER3}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Should Match Regexp		${body}				${Catalina_campaign_validation}
+    @{campaign_list}=					String.Split String 					${body}				,
+    ${campaign_count_api}=				Get Length 								${campaign_list}
+    Log		Api List Lenght is -> ${campaign_count_api}
+    Get Campaign Total From Username	username=${username}
+    Should Be Equal As Integers		${campaign_count_api}	${campaign_count_db}
+    [Tags]		CATALINA_USER
+
+
+UM1.2_TC_02_06 All Catalina User (Editor, Basic, Custom Permission) see the same Campaign - Validate number count
+    [Documentation]		Make a request for CATALINA user -> ${QA_CATALINA_USER2} and check the result total against db
+    Set Test Variable	${username}			${QA_CATALINA_USER}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Set Test Variable	${campaign1}		${body}
+
+    Set Test Variable	${username}			${QA_CATALINA_USER2}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Set Test Variable	${campaign2}		${body}
+
+    Set Test Variable	${username}			${QA_CATALINA_USER3}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Set Test Variable	${campaign3}		${body}
+
+    Should Be Equal As Strings		${campaign1}	${campaign2}
+    Should Be Equal As Strings		${campaign2}	${campaign3}
+    [Tags]    CATALINA_USER
+
+
+UM1.2_TC_02_08 Catalina and QA, Editor and Editor Permission - Validate total campaign and few known campaign ID
+    [Documentation]		Make a request for catalina and qa user -> ${QA_CATALINA_AND_QA_USER} and check the result total against db
+    Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Should Match Regexp		${body}				${Catalina_campaign_validation}
+    Should Match Regexp		${body}				${QA_campaign_validation}
+    @{campaign_list}=					String.Split String 					${body}				,
+    ${campaign_count_api}=				Get Length 								${campaign_list}
+    Log		Api List Lenght is -> ${campaign_count_api}
+    Get Campaign Total From Username	username=${username}
+
+    Should Be Equal As Integers		${campaign_count_api}	${campaign_count_db}
+    [Tags]    CATALINA_USER 	QA_USER
+
+
+UM1.2_TC_02_09 Catalina and QA, Editor and Basic Permission - Validate total campaign and few known campaign ID
+    [Documentation]		Make a request for catalina and qa user -> ${QA_CATALINA_AND_QA_USER2} and check the result total against db
+    Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER2}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Should Match Regexp		${body}				${Catalina_campaign_validation}
+    Should Match Regexp		${body}				${QA_campaign_validation}
+    @{campaign_list}=					String.Split String 					${body}				,
+    ${campaign_count_api}=				Get Length 								${campaign_list}
+    Log		Api List Lenght is -> ${campaign_count_api}
+    Get Campaign Total From Username	username=${username}
+
+    Should Be Equal As Integers		${campaign_count_api}	${campaign_count_db}
+    [Tags]		CATALINA_USER 	QA_USER
+
+
+UM1.2_TC_02_10 Catalina and QA, Basic and Custom Permission - Validate total campaign and few known campaign ID
+    [Documentation]		Make a request for catalina and qa user -> ${QA_CATALINA_AND_QA_USER3} and check the result total against db
+    Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER3}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Should Match Regexp		${body}				${Catalina_campaign_validation}
+    Should Match Regexp		${body}				${QA_campaign_validation}
+    @{campaign_list}=					String.Split String 					${body}				,
+    ${campaign_count_api}=				Get Length 								${campaign_list}
+    Log		Api List Lenght is -> ${campaign_count_api}
+    Get Campaign Total From Username	username=${username}
+
+    Should Be Equal As Integers		${campaign_count_api}	${campaign_count_db}
+    [Tags]    CATALINA_USER 	QA_USER
+
+
+UM1.2_TC_02_11 Catalina and QA, All permission see the same number of campaign
+    [Documentation]		Make a request for CATALINA and QA user -> ${QA_CATALINA_USER2} and check the result total against db
+    Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Set Test Variable	${campaign1}		${body}
+
+    Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER2}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Set Test Variable	${campaign2}		${body}
+
+    Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER3}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Set Test Variable	${campaign3}		${body}
+
+    Should Be Equal As Strings		${campaign1}	${campaign2}
+    Should Be Equal As Strings		${campaign2}	${campaign3}
+    [Tags]    CATALINA_USER 	QA_USER
+
+
+UM1.2_TC_02_12 QA, Editor Permission - Validate total campaign and few known campaign ID
+    [Documentation]		Make a request for qa user -> ${QA_QA_USER} and check the result total against db
+    Set Test Variable	${username}			${QA_QA_USER}
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Should Match Regexp		${body}				${QA_campaign_validation}
+    @{campaign_list}=					String.Split String 					${body}				,
+    ${campaign_count_api}=				Get Length 								${campaign_list}
+    Log		Api List Lenght is -> ${campaign_count_api}
+    Get Campaign Total From Username	username=${username}
+
+    Should Be Equal As Integers		${campaign_count_api}	${campaign_count_db}
+    [Tags]		 	QA_USER
+
+
+UM1.2_TC_02_13 Invalid User - Empty result, no campaign
+    [Documentation]		Make a request for user that does not exist -> xxxyyyzzz@catalina.com and check the result blank
+    Set Test Variable	${username}			xxxyyyzzz@catalina.com
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=${username}
+    USER MANAGEMENT API	uri=${uri_link}
+    Should Match Regexp			${body}		\\[\\]
+    [Tags]		NEGATIVE
+
+
+UM1.2_TC_02_14 No User - Empty result, no campaign
+    [Documentation]		Make a request for user that does not exist -> xxxyyyzzz@catalina.com and check the result blank
+    Set Test Variable	${username}			xxxyyyzzz@catalina.com
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?userId=
+    USER MANAGEMENT API	uri=${uri_link}
+    Should Match Regexp			${body}		\\[\\]
+    [Tags]		NEGATIVE
+
+
+UM1.2_TC_02_15 Missing Command - 400 Bad request
+    [Documentation]		Make a request with missing options
+    Set Test Variable 	${uri_link}		user-management-api/permissions-internal/campaigns?
+    USER MANAGEMENT API	uri=${uri_link}		expected_status_code=400
+    [Tags]		NEGATIVE
+

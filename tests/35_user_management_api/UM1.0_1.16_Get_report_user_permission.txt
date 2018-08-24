@@ -1,0 +1,91 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.16	BATCH17
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: 1.16. For report group permission
+#Method: GET
+#URL: ...user-management-api/report/{username}/groups
+#DESCRIPTION: None provided
+#userName = rhino.users
+#groupId = rhino.groups
+#groups_segment_datasource
+#segment_datasource
+
+#Request For segment-datasource
+
+UM1.16_TC_01 Validate 200 response for report users
+	[Documentation]		Get report user permission
+	Set Test Variable	${username}			${QA_CATALINA_USER2}
+	Set Test Variable 	${uri_link}		user-management-api/report/${username}/groups
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	Json Value Should Equal		${body}		/0/id				15
+	Json Value Should Equal		${body}		/0/name			"Catalina Self Service"
+	Json Value Should Equal		${body}		/0/metamarketsSecuritypolicyId			4774
+
+
+UM1.16_TC_02 Verify Total count api vs Database for group 1 (admin)
+	[Documentation]		Get report user permission for two
+	Set Test Variable	${username}			${QA_CATALINA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/report/${username}/groups
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	Json Value Should Equal		${body}		/0/id				15
+	Json Value Should Equal		${body}		/0/name			"Catalina Self Service"
+	Json Value Should Equal		${body}		/0/metamarketsSecuritypolicyId			4774
+
+	${user_group_api_count}=    Get Count    ${body}   "id"
+	Get User Group From User Name    username=${username}
+	#Generate ${user_group_db_count}
+	Should Be Equal As Integers    ${user_group_api_count}    ${user_group_db_count}
+	[Tags]
+
+
+UM1.16_TC_03 Verify Total count api vs Database for multi group
+	[Documentation]		Get report user permission for multiple
+	Set Test Variable	${username}			${QA_CATALINA_AND_QA_USER}
+	Set Test Variable 	${uri_link}		user-management-api/report/${username}/groups
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	#Json Value Should Equal		${body}		/0/id				9
+	#Json Value Should Equal		${body}		/0/name			"EXPERIAN"
+	#Json Value Should Equal		${body}		/0/metamarketsSecuritypolicyId			null
+	#Json Value Should Equal		${body}		/1/id				15
+	#Json Value Should Equal		${body}		/1/name			"Catalina Self Service"
+	#Json Value Should Equal		${body}		/1/metamarketsSecuritypolicyId			4774
+	#Json Value Should Equal		${body}		/2/id				8
+	#Json Value Should Equal		${body}		/2/name			"ACXIOM"
+	#Json Value Should Equal		${body}		/2/metamarketsSecuritypolicyId			2860
+	#Json Value Should Equal		${body}		/3/id				1
+	#Json Value Should Equal		${body}		/3/name			"4INFO"
+	#Json Value Should Equal		${body}		/3/metamarketsSecuritypolicyId			1552
+	###Should Match Regexp				${body}		{"id":8,"name":"ACXIOM","displayName":null,"metamarketsSecuritypolicyId":2860}
+	###Should Match Regexp				${body}		{"id":9,"name":"EXPERIAN","displayName":null,"metamarketsSecuritypolicyId":null}
+	# Should Match Regexp				${body}		{"id":1,"name":"4INFO","displayName":null,"metamarketsSecuritypolicyId":1552}
+	Should Match Regexp				${body}		"id":15,"name":"Catalina Self Service","displayName":null,"metamarketsSecuritypolicyId":4774
+	Should Match Regexp				${body}		"id":16,"name":"QA","displayName":null,"metamarketsSecuritypolicyId":1454
+	${user_group_api_count}=    Get Count    ${body}    "id"
+	Get User Group From User Name    username=${username}
+	Should Be Equal As Integers    ${user_group_api_count}    ${user_group_db_count}
+	[Tags]
+
+UM1.16_TC_04 Verify request returns authorized measurement-datasource
+	[Documentation]		Get report user permission for user none existing user
+	Set Test Variable	${username}			catoo@catalina.com
+	Set Test Variable 	${uri_link}		user-management-api/report/${username}/groups
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	Should Match Regexp			${body}		\\[\\]
+	[Tags]
+
+UM1.16_TC_05 Verify segment-datasource request returns correct error if Group id is not in 'groups' table
+	[Documentation]		Get report user permission for invalid user email
+	Set Test Variable	${username}			hparihar@4info.
+	Set Test Variable 	${uri_link}		user-management-api/report/${username}/groups
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	Should Match Regexp			${body}		\\[\\]
+	[Tags]
+

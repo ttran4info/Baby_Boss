@@ -1,0 +1,165 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags             BATCH17     UM    UM1.0    UM1.6
+
+#1.6. USER MANAGEMENT API
+#https://wiki.4info.com/pages/viewpage.action?pageId=27394734
+#Get UI element (i.e. Tabs/Page/Sections/Fields) accesses in page level.
+#Page is been identified by its url. User's group id is required.
+#We have three types of access.
+#'Exclude' means Not be displayed.
+#'Normal' means displayed.
+#'Mandatory' only for fields means it is a mandatory field in form.
+#user-management-api/ui-acc-element?groupId=:group_id&pageUrl=:page_url/
+#groupId = rhino.groups
+#rhino.ui_element
+
+*** Variables ***
+${4Info_group_id}    1
+${catalina_group_id}    15
+${qA_group_id}    16
+
+*** Keywords ***
+
+*** Test Cases ***
+UM1.6_TC_01_01 admin, all access granted
+    [Documentation]    Request for access permission using group 1(admin) and page url -
+    ...                Return pages, tabs, sections, fields that are exclude or is mandatory
+    ...                (anything not listed is consider Normal permission=allowed)
+    Set Test Variable         ${groupId}        1
+    Set Test Variable        ${pageUrl}        adsAddEdit
+    Set Test Variable        ${uri_link}        user-management-api/ui-acc-element?groupId=${groupId}&pageUrl=${pageUrl}/
+    USER MANAGEMENT API    uri=${uri_link}
+
+    Should Match Regexp            ${body}        "pages":\\[\\],
+    Should Match Regexp            ${body}        "tabs":\\[\\],
+    Should Match Regexp            ${body}        "sections":\\[\\],
+    #TBD pending jira
+    # Should Match Regexp            ${body}        {"name":"Child Adg Target Cluster","identifier":"targetCluster","access":"EXCLUDE"}
+    Should Match Regexp    ${body}     "name":"Campaign edit-Sales Channel","identifier":"campaignChannelId","access":"MANDATORY"
+    # Should Match Regexp            ${body}        "fields":\\[\\]
+
+    #Should Not Match Regexp        ${body}        "EXCLUDE"
+    # Should Not Match Regexp        ${body}        "MANDATORY"
+    [Tags]
+
+UM1.6_TC_01_02 catalina, some access excluded
+        [Documentation]    Request for access permission using group 15(Catalina) and page url -
+    ...                Return pages, tabs, sections, fields that are exclude or is mandatory
+    ...                (anything not listed is consider Normal permission=allowed)
+    Set Test Variable         ${groupId}        15
+    Set Test Variable        ${pageUrl}        campaignsAddEdit
+    Set Test Variable        ${uri_link}        user-management-api/ui-acc-element?groupId=${groupId}&pageUrl=${pageUrl}/
+    USER MANAGEMENT API    uri=${uri_link}
+    Should Not Match Regexp            ${body}        "NORMAL"
+    ${pages}=    Get Json Value            ${body}            /pages
+    ${tabs}=    Get Json Value            ${body}            /tabs
+    ${sections}=    Get Json Value        ${body}            /sections
+    ${fields}=    Get Json Value            ${body}            /fields
+
+    Json Value Should Equal    ${body}    /pages/0/name          "Site & Apps"
+    Json Value Should Equal    ${body}    /pages/0/identifier    "clsPartnerLink"
+    Json Value Should Equal    ${body}    /pages/0/access        "EXCLUDE"
+
+    Json Value Should Equal    ${body}    /pages/1/name          "Partners List"
+    Json Value Should Equal    ${body}    /pages/1/identifier    "partnersList"
+    Json Value Should Equal    ${body}    /pages/1/access        "EXCLUDE"
+
+    Json Value Should Equal    ${body}    /pages/2/name          "Users Edit Page"
+    Json Value Should Equal    ${body}    /pages/2/identifier    "usersAddEdit"
+    Json Value Should Equal    ${body}    /pages/2/access        "EXCLUDE"
+
+    Json Value Should Equal    ${body}    /tabs/0/name          "Forecasting"
+    Json Value Should Equal    ${body}    /tabs/0/identifier    "tabForecasting"
+    Json Value Should Equal    ${body}    /tabs/0/access        "EXCLUDE"
+
+    Json Value Should Equal    ${body}    /tabs/1/name          "SMB"
+    Json Value Should Equal    ${body}    /tabs/1/identifier    "tabSMB"
+    Json Value Should Equal    ${body}    /tabs/1/access        "EXCLUDE"
+
+
+    ${sections_tab}=    Get Json Value    ${body}    /sections
+    Should Not Match Regexp    ${sections_tab}    "identifier":"adgroupMargin"
+    Should Not Match Regexp    ${sections_tab}    "identifier":"marginDetails"
+    Should Not Match Regexp    ${sections_tab}    "identifier":"clsCreatePartnerSite"
+    Should Not Match Regexp    ${sections_tab}    "identifier":"targetCluster"
+    Should Not Match Regexp    ${sections_tab}    "identifier":"campaignAccessControl"
+    Should Not Match Regexp    ${sections_tab}    "identifier":"campaignAudienceInsights"
+    Should Not Match Regexp    ${sections_tab}    "identifier":"adgroupReporting"
+
+    Should Not Match Regexp    ${sections}    {"name":"Margin Column","identifier":"marginDetails","access":"EXCLUDE"}
+    Should Not Match Regexp    ${sections}    {"name":"Child Adg Target Cluster","identifier":"targetCluster","access":"EXCLUDE"}
+    Should Not Match Regexp    ${sections}    {"name":"Child Adg edit-Margin","identifier":"adgroupMargin","access":"EXCLUDE"}
+    Should Not Match Regexp    ${sections}    {"name":"Create bar for Partners/Site-Apps","identifier":"clsCreatePartnerSite","access":"EXCLUDE"}
+    Should Not Match Regexp    ${sections}    {"name":"Campaign edit-Access Control","identifier":"campaignAccessControl","access":"EXCLUDE"}
+    Should Not Match Regexp    ${sections}    {"name":"Campaign edit-Reporting-Audience Insights","identifier":"campaignAudienceInsights","access":"EXCLUDE"}
+    Should Not Match Regexp    ${sections}    {"name":"Parent Adg edit-Reporting-Audience Insights","identifier":"adgroupReporting","access":"EXCLUDE"}
+
+    Should Match Regexp    ${body}    "name":"Parent Adg edit-External Id","identifier":"parentExternalId","access":"MANDATORY"
+    Should Match Regexp    ${body}    "name":"Parent Adg edit-Household Targeting: Boost","identifier":"clsBoost","access":"EXCLUDE"
+    Should Match Regexp    ${body}    "name":"Campaign edit-External Id","identifier":"campaignExternalId","access":"MANDATORY"
+    Should Match Regexp    ${body}    "name":"Creatives-External Id","identifier":"creativeExternalId","access":"MANDATORY"
+    Should Match Regexp    ${body}    "name":"Ads-External Id","identifier":"adsExternalId","access":"MANDATORY"
+
+    Json Value Should Equal    ${body}    /full_access    false
+    [Tags]      #  Known_bug    CM-2235
+
+
+
+UM1.6_TC_003 Verify UI element can access pages, tabs, sections & fields if element is not in Exclude table
+    Set Test Variable         ${groupId}        2
+    Set Test Variable        ${pageUrl}        campaignsAddEdit
+    Set Test Variable        ${uri_link}        user-management-api/ui-acc-element?groupId=${groupId}&pageUrl=${pageUrl}/
+    USER MANAGEMENT API    uri=${uri_link}
+
+
+UM1.6_TC_004 Verify UI element can access only pages & tabs if element in Exclude table
+    Set Test Variable         ${groupId}        6
+    Set Test Variable        ${pageUrl}        campaignAccessControl
+    Set Test Variable        ${uri_link}        user-management-api/ui-acc-element?groupId=${groupId}&pageUrl=${pageUrl}/
+    USER MANAGEMENT API    uri=${uri_link}
+
+
+UM1.6_TC_005 Verify UI element is not acccessible if Group id is not in 'groups' table
+    Set Test Variable         ${groupId}        99
+    Set Test Variable        ${pageUrl}        campaignAccessControl
+    Set Test Variable        ${uri_link}        user-management-api/ui-acc-element?groupId=${groupId}&pageUrl=${pageUrl}/
+    USER MANAGEMENT API    uri=${uri_link}                expected_status_code=400        success=false
+    ${reason}=        extract_matching_regex    '${resp.content}'    "reason_desc":"(.*)"
+    ${code}=        extract_matching_regex    '${resp.content}'    "reason_code":(.+?),
+    Should Be Equal As Strings   ${code}    "700-101"
+    Should Be Equal As Strings   ${reason}    Group id is not in 'groups' table.
+    [Tags]
+
+UM1.6_TC_0041 Verify Error message if Group id is not an integer value
+    Set Test Variable         ${groupId}        2.1
+    Set Test Variable        ${pageUrl}        campaignsAddEdit
+    Set Test Variable        ${uri_link}        user-management-api/ui-acc-element?groupId=${groupId}&pageUrl=${pageUrl}/
+    USER MANAGEMENT API    uri=${uri_link}                expected_status_code=400        success=false
+    ${reason}=        extract_matching_regex    '${resp.content}'    "reason_desc":"(.*)"
+    ${code}=        extract_matching_regex    '${resp.content}'    "reason_code":(.+?),
+    Should Be Equal As Strings   ${code}    "700-102"
+    Should Be Equal As Strings   ${reason}    Group id requires an integer value.
+    [Tags]
+
+UM1.6_TC_0051 Verify Error message if Page url is not in 'ui_element' table
+    Set Test Variable         ${groupId}        2
+    Set Test Variable        ${pageUrl}        campaignsAddEdit_Spare
+    Set Test Variable        ${uri_link}        user-management-api/ui-acc-element?groupId=${groupId}&pageUrl=${pageUrl}/
+    USER MANAGEMENT API    uri=${uri_link}        expected_status_code=400            success=false
+    ${reason}=        extract_matching_regex    '${resp.content}'    "reason_desc":"(.*)"
+    ${code}=        extract_matching_regex    '${resp.content}'    "reason_code":(.+?),
+    Should Be Equal As Strings   ${code}    "700-105"
+    Should Be Equal As Strings   ${reason}    Page url is not in 'ui_element' table.
+    [Tags]
+
+UM1.6_TC_0061 Verify Error message if Page url is missing
+    Set Test Variable         ${groupId}        2
+    Set Test Variable        ${pageUrl}        campaignsAddEdit
+    Set Test Variable        ${uri_link}        user-management-api/ui-acc-element?groupId=${groupId}
+    USER MANAGEMENT API    uri=${uri_link}        expected_status_code=400        success=false
+    ${reason}=        extract_matching_regex    '${resp.content}'    "reason_desc":"(.*)"
+    ${code}=        extract_matching_regex    '${resp.content}'    "reason_code":(.+?),
+    Should Be Equal As Strings   ${code}    "700-106"
+    Should Be Equal As Strings   ${reason}    Page url is required.
+    [Tags]

@@ -1,0 +1,35 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.18	BATCH17
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: 1.18. Get all products
+#Method: GET
+#URL: ...user-management-api/permissions-internal/product
+#DESCRIPTION: This request will get a list of all products
+#userName = rhino.users
+#groupId = rhino.groups
+#groups_segment_datasource
+#segment_datasource
+
+#Request For segment-datasource
+
+UM1.18_TC_01 Validate 200 response for report users
+	[Documentation]		Get all products
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/product
+	USER MANAGEMENT API	uri=${uri_link}	expected_status_code=200
+	Json Value Should Equal		${body}		/0/id			1
+	Json Value Should Equal		${body}		/0/name			"Campaign Manager"
+	Json Value Should Equal		${body}		/1/id			2
+	Json Value Should Equal		${body}		/1/name			"Per4mance Trax"
+	Json Value Should Equal		${body}		/2/id			3
+	Json Value Should Equal		${body}		/2/name			"Audience Solutions"
+	[Tags]
+
+

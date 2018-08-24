@@ -1,0 +1,151 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM    UM2.11   BATCH17   OffshoreQA
+Suite Setup         Clean UP Groups
+Suite Teardown      Clean UP Groups
+
+# wiki reference https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.11.GetAllUIElementsList
+# API Name: 2.11. Create A Group
+# Method: Post
+# URL: /user-management-api/admin/groups
+# DESCRIPTION: This request will be called on Manage Groups tab to group creation.
+# userName = rhino.users
+# groupId = rhino.groups
+# permissions = rhino.permissions
+# User Permissions = rhino.user_permissions
+# Reference table = rhino.ui_element
+*** Variables ***
+${QA_TEST_GROUP}            00_QA_TEST_GROUP
+${LAST_MDFD_BY}             "saff@4info.com"
+
+*** Keywords ***
+Clean UP Groups
+    Clean UP Created Groups By Name             groupName=${QA_TEST_GROUP}01
+    Clean UP Created Groups By Name             groupName=${QA_TEST_GROUP}05
+    Clean UP Created Groups By Name             groupName=${QA_TEST_GROUP}06
+
+
+
+*** Test Cases ***
+TC_01_Create Group Normal Conditions
+    [Documentation]             Normal Test case for creating
+    Set Test Variable           ${GroupName}            ${QA_TEST_GROUP}01
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    Json Value Should Equal    ${body}    /success                 true
+    Json Value Should Equal    ${body}    /group/groupName         "${QA_TEST_GROUP}01"
+    Json Value Should Equal    ${body}    /group/lastModifiedBy     ${LAST_MDFD_BY}
+    Json Value Should Equal    ${body}    /group/enabled            1
+
+    [Tags]    SANITY
+
+TC_02_Create Group Name Validations(Special Chars)
+    [Documentation]             Input :  Name contains special chars
+    ...                         Output : Should raise Error with response code 400
+    Set Test Variable           ${GroupName}            ${QA_TEST_GROUP}*$#@
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    ...                         expected_status_code=400
+    Json Value Should Equal    ${body}    /success                 false
+    Json Value Should Equal    ${body}    /reason_code             "700-104"
+    Json Value Should Equal    ${body}    /reason_desc             "Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed."
+    [Tags]
+
+TC_03_Create Group Name Validations(Group Name as Integer)
+    [Documentation]             Input :  Name as integer
+    ...                         Output : Should raise Error with response code 400
+    Set Test Variable           ${GroupName}            123123
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    ...                         expected_status_code=400
+    [Tags]     EXCLUDE
+
+TC_04_Create Group Name Validations(Blank Name)
+    [Documentation]             Input :  Name blank
+    ...                         Output : Should raise Error with responce code 400
+    Set Test Variable           ${GroupName}            "${Empty}"
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    ...                         expected_status_code=400
+    Json Value Should Equal    ${body}    /success                 false
+    Json Value Should Equal    ${body}    /reason_code             "400-001"
+    Json Value Should Equal    ${body}    /reason_desc             "Invalid Request."
+
+    [Tags]
+
+
+TC_05_Create Group Enable = 0
+    [Documentation]             Input :  Enable as 0 means group disabled
+    ...                         Output : Group should successfully created
+    Set Test Variable           ${GroupName}            ${QA_TEST_GROUP}05
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 0,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    ...                         expected_status_code=200
+    Json Value Should Equal    ${body}    /success                 true
+    Json Value Should Equal    ${body}    /group/groupName         "${QA_TEST_GROUP}05"
+    Json Value Should Equal    ${body}    /group/lastModifiedBy     ${LAST_MDFD_BY}
+    Json Value Should Equal    ${body}    /group/enabled            0
+    [Tags]
+
+TC_06_Create Group Enable = 1
+    [Documentation]             Input :  Enable as 1 means group enabled
+    ...                         Output : Group should successfully created
+    Set Test Variable           ${GroupName}            ${QA_TEST_GROUP}06
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    ...                         expected_status_code=200
+    Json Value Should Equal    ${body}    /success                 true
+    Json Value Should Equal    ${body}    /group/groupName         "${QA_TEST_GROUP}06"
+    Json Value Should Equal    ${body}    /group/lastModifiedBy     ${LAST_MDFD_BY}
+    Json Value Should Equal    ${body}    /group/enabled            1
+    [Tags]
+
+TC_07_Create Group Enable = invalid
+    [Documentation]             Input :  enble as other than 0 or 1
+    ...                         Output : Should raise Error with responce code 400
+    Set Test Variable           ${GroupName}            ${QA_TEST_GROUP}07
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 10,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    ...                         expected_status_code=400
+    Json Value Should Equal    ${body}    /success                 false
+    Json Value Should Equal    ${body}    /reason_code       "700-104"
+    Json Value Should Equal    ${body}    /reason_desc     "enabled Type must be between 0 and 2."
+    [Tags]
+
+
+TC_08_Create Group Already Exist
+    [Documentation]             Input :  Group Name already exist
+    ...                         Output : Should raise Error with responce code 400
+    Set Test Variable           ${GroupName}            4INFO_ADMIN
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":"${GroupName}","enabled": 1,"lastModifiedBy":${LAST_MDFD_BY}}
+    ...                         uri=/user-management-api/admin/groups
+    ...                         expected_status_code=400
+    Json Value Should Equal    ${body}    /success                  false
+    Json Value Should Equal    ${body}    /reason_code              "700-103"
+    Json Value Should Equal    ${body}    /reason_desc              ""Group name already exists."
+    [Tags]
+
+
+
+TC_09_Create Group (Blank name and blank lastModified By)
+    [Documentation]             Input :  Blank name and blank lastModified By
+    ...                         Output : Should raise Error with responce code 400
+    Set Test Variable           ${GroupName}            "${Empty}${Space}${Empty}"
+    USER MANAGEMENT API         request_type=POST
+    ...                         data={"groupName":${GroupName},"enabled": 1,"lastModifiedBy":"${Empty}"}
+    ...                         uri=/user-management-api/admin/groups
+    ...                         expected_status_code=400
+    Json Value Should Equal    ${body}    /success                  false
+    Json Value Should Equal    ${body}    /reason_code              "700-104"
+    Json Value Should Equal    ${body}    /reason_desc              "Only letters, numbers, underscores (_), hyphens (-), period(.) and single spaces are allowed."
+    [Tags]
+
+

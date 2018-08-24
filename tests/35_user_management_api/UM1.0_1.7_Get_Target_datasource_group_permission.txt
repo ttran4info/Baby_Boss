@@ -1,0 +1,63 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.7	BATCH17
+
+
+*** Variables ***
+
+*** Keywords ***
+
+*** Test Cases ***
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: Get Target datasource group permission
+#Method: GET
+#URL: ...user-management-api/ui-acc-datasource/target-datasource?groupId=:group_id&type=:type
+#DESCRIPTION: Type is optional. If type==null, return all target datasource access, else return all access of target datasource belongs to particular type.
+#userName = rhino.users
+#groupId = rhino.groups
+#target_datasource
+#groups_target_datasource
+
+#Request For target-datasource
+
+UM1.7_TC_007 Verify request returns an authorized target datasource for included elements
+	Set Test Variable 		${groupId}		2
+	Set Test Variable		${type}			3
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource?groupId=${groupId}&type=${type}
+	USER MANAGEMENT API	uri=${uri_link}
+
+UM1.7_TC_008 Verify request returns an authorized target datasource for excluded elements
+	Set Test Variable 		${groupId}		6
+	Set Test Variable		${type}			2
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource?groupId=${groupId}&type=${type}
+
+UM1.7_TC_009 Verify target-datasource request returns correct error if Group id is not in 'groups' table
+	Set Test Variable 		${groupId}		99
+	Set Test Variable		${type}			3
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource?groupId=${groupId}&type=${type}
+	USER MANAGEMENT API	uri=${uri_link}			expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-101"
+	Should Be Equal As Strings   ${reason}	Group id is not in 'groups' table.
+
+UM1.7_TC_010 Verify target-datasource request returns correct error if Group id is not an integer value
+	Set Test Variable 		${groupId}		2.1
+	Set Test Variable		${type}			3
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource?groupId=${groupId}&type=${type}
+	USER MANAGEMENT API	uri=${uri_link}				expected_status_code=400		success=false
+	${reason}=    	extract_matching_regex	'${resp.content}'	"reason_desc":"(.*)"
+	${code}=    	extract_matching_regex	'${resp.content}'	"reason_code":(.+?),
+	Should Be Equal As Strings   ${code}	"700-102"
+	Should Be Equal As Strings   ${reason}	Group id requires an integer value.
+
+UM1.7_TC_011 Verify extra parameters are not seen
+	Set Test Variable 		${groupId}		2
+	Set Test Variable		${type}			3
+	Set Test Variable		${uri_link}		user-management-api/ui-acc-datasource/target-datasource?groupId=${groupId}&type=${type}
+	USER MANAGEMENT API	uri=${uri_link}
+	Should Not Match Regexp		${body}		"pages"
+	Should Not Match Regexp		${body}		"tabs"
+	Should Not Match Regexp		${body}		"sections"
+	Should Not Match Regexp		${body}		"fields"
+	[Tags]

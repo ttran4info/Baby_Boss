@@ -1,0 +1,67 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM    UM2.0    UM2.1    BATCH17    HTTP    OffshoreQA
+
+# wiki reference : https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.1.Getalluserslist
+# API Name: 2.1. Get all users list
+# Description: This request will return a list of users, which will be displayed in new UI admin list page.
+# Method: GET
+# URL: user-management-api/admin/users?currentUsername=rsoni@4info.com&groupId=1&productId=1
+# userName = rhino.users
+# groupId = rhino.groups
+# campaign_groups.group_id
+# QA Task Jira ID : https://jira.adhaven.com/browse/CM-1860
+# Dev Task Jira ID : NA
+
+
+
+
+# A list of user info
+
+# The Possible value for status will be "Active" and "Inactive"
+
+# Authentication rules:
+
+# If currentUsername path variable has admin permissions
+# for the groupid and productid path variables then:
+# a. If the groupid=1 , display all users in the system
+# b. if groupId<>1 ,
+# 	i. Get all groupid and productid combinations, for which
+# 	   currentUsername has admin permissions (except groupid=1)
+# 	ii. Get all users having any permissions to any of the above
+# 	    groupid and productid combinations, but not having any permission
+# 	   for groupid=1, irrespective of the product.
+#  	   else If currentUsername path variable has NO admin permissions
+# 	   for the groupid and productid path variables, display error message
+
+# if currentUsername path variable has NO admin permissions
+# for the groupid and productid path variables, display error message
+
+*** Variables ***
+
+
+*** Keywords ***
+
+*** Test Cases ***
+#-------------------------------------------------------------------------
+UM_2.1_TC_01.1_Request list of users (valid URL for Admin user, Accept)
+    [Documentation]    Expected: API will display all the users which will be displayed in new UI admin list page.
+    Get all users list    currentUsername=${QA_DEFAULT_USER}
+    ...                   groupId=1
+    ...                   productId=1
+    Should Match Regexp    ${body}    {"userName":"1har@4info.com","status":"Active","firstName":"har","lastName":"Preet"
+    Should Match Regexp    ${body}    {"userName":"qa@4info.com","status":"Active","firstName":"qa","lastName":"test"
+    [Tags]    Known_bug    CM-2304
+
+#-------------------------------------------------------------------------
+UM_2.1_TC_02.1_Request list of users (valid URL for Non Admin user, Don't Accept)
+    [Documentation]    Expected: API will display all the users which will be displayed in new UI admin list page.
+    Get all users list    currentUsername=1har@4info.com
+    ...                   groupId=1
+    ...                   productId=1
+    ...                   response_code=400
+    Json Value Should Equal    ${body}    /reason_code    "700-014"
+    Json Value Should Equal    ${body}    /reason_desc    "The user does not have required admin permissions for certain groupId and productId."
+    [Tags]
+
+#-------------------------------------------------------------------------

@@ -1,0 +1,1183 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags          UM      UM2.0   UM2.3   BATCH17     HTTP    OffshoreQA
+Suite Setup         Delete a user       username=regression@temp.com
+# Suite Teardown      Delete a user       username=regression@temp.com
+
+# wiki reference : https://wiki.4info.com/display/Software/User+management+API#UsermanagementAPI-2.3.Createauser
+# API Name: 2.3. Create a user
+# Description: This request will be called on Admin tab for user creation
+# Method: POST
+# URL: 192.168.99.100:8380/user-management-api/admin/users
+# rhino.users
+# rhino.user_product_permissions
+#
+# QA Task Jira ID : https://jira.adhaven.com/browse/CM-1862
+# Dev Task Jira ID : NA
+
+
+*** Variables ***
+# ${campaignGroupList}    [{"groupId": 1, "permissions": ["READ"]}]
+${username}     011regressionregression@temp.com
+${status}       1
+${Pass}         "abcABC123!"
+${firstName}    "Regression"
+${lastName}     "Test"
+${authority}    "USER"
+${permissionsList}    [{"permissions": [1, 2], "groupId": 1, "productId": 1}, {"permissions": [3], "groupId": 1, "productId": 2}]
+${lastModifiedBy}           "${QA_DEFAULT_USER}"
+# ${password_Invalid_ErrorMessage}    "Password must be minimum 8 characters including ${Space}one uppercase letter, one lowercase letter,one digit and one special character. "
+${password_Invalid_ErrorMessage}    "Password must be minimum 8 characters including ${Space}one uppercase letter, one lowercase letter,one digit and one special character."
+
+*** Keywords ***
+
+
+*** Test Cases ***
+#-------------------------------------------------------------------------
+UM_2.3_TC_01.1_Create a user (valid data and valid URL for User with read permission, Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${username}    011regression@temp.com
+    Set Test Variable    ${status}       1
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    Validate response data for Create a user
+    ...             "${userName}"
+    ...             ${status}
+    ...             ${password}
+    ...             ${firstName}
+    ...             ${lastName}
+    ...             ${authority}
+    ...             ${permissionsList}
+    ...             ${lastModifiedBy}
+    [Tags]
+
+
+UM_2.3_TC_01.2_Create a user (valid data and valid URL for User with write permission, Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${username}    012regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+UM_2.3_TC_01.3_Create a user (valid data and valid URL for User with read and write permission, Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${username}    013regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+UM_2.3_TC_01.4_Create a user (valid data and valid URL for Admin with read permission, Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${username}    014regression@temp.com
+   Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+UM_2.3_TC_01.5_Create a user (valid data and valid URL for Admin with write permission, Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${username}    015regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+UM_2.3_TC_01.6_Create a user (valid data and valid URL for ADMIN with read and write permission, Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 200.
+    Set Test Variable    ${username}    016regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+#-------------------------------------------------------------------------
+UM_2.3_TC_02.1_Create a user (Existing user name, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    021regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    Sleep    200s
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-002"
+    Should Match Regexp     ${body}     "reason_desc":"Username already exists."
+    [Tags]
+
+
+UM_2.3_TC_02.2_Create a user (user name contains special characters apart from @ sign, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    !#$%regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Username can contain alphanumeric charaters, -, . and @ only"
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_02.3_Create a user (user name contains double spaces, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    023${Space}${Space}regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Username can contain alphanumeric charaters, -, . and @ only"
+    [Tags]   #   Known_bug    CM-1927
+
+
+UM_2.3_TC_02.4_Create a user (user name contains null value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    null
+    Create a user       userName=${username}
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Username can contain alphanumeric charaters, -, . and @ only"
+    # Should Match Regexp     ${body}     "reason_desc":"Username cannot be null."
+    [Tags]
+
+
+UM_2.3_TC_02.5_Create a user (user name contains blank value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    ""
+    Create a user       userName=${username}
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Username can contain alphanumeric charaters, -, . and @ only"
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_02.6_Create a user (user name contains single space, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    026${Space}regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    # Should Match Regexp     ${body}     "reason_code":"700-002"
+    # Should Match Regexp     ${body}     "reason_desc":"Username already exists."
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_02.7_Create a user (user name Missing, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    MISSING
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Username can contain alphanumeric charaters, -, . and @ only"
+    # Should Match Regexp     ${body}     "reason_desc":"Username cannot be null."
+    [Tags]
+
+#-------------------------------------------------------------------------
+
+UM_2.3_TC_03.1_Create a user (status contains zero value, Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    031regression@temp.com
+    Set Test Variable    ${status}      0
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]
+
+
+UM_2.3_TC_03.2_Create a user (status contains negative value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    032regression@temp.com
+    Set Test Variable    ${status}      -1
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+UM_2.3_TC_03.3_Create a user (status contains greater than 1 value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    032regression@temp.com
+    Set Test Variable    ${status}      3
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+UM_2.3_TC_03.4_Create a user (status contains non numeric value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    032regression@temp.com
+    Set Test Variable    ${status}      "abc!@#"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"400-001"
+    Should Match Regexp     ${body}     "reason_desc":"Invalid Request."
+    [Tags]
+
+
+UM_2.3_TC_03.5_Create a user (status contains null value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    032regression@temp.com
+    Set Test Variable    ${status}      null
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+
+UM_2.3_TC_03.6_Create a user (status contains blank value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    032regression@temp.com
+    Set Test Variable    ${status}      ""
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+
+UM_2.3_TC_03.7_Create a user (status missing, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    037regression@temp.com
+    Set Test Variable    ${status}      MISSING
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Status must be 0 or 1."
+    [Tags]
+
+#-------------------------------------------------------------------------
+
+UM_2.3_TC_04.1_Create a user (password missing, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    041regression@temp.com
+    Set Test Variable    ${Pass}      "MISSING"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-007"
+    Should Match Regexp     ${body}     "reason_desc":"Password can not be empty"
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_04.2_Create a user (password format : no lowercase character, Don't Accept)
+    [Documentation]     Input : Create a user password without lower case letters
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    042regression@temp.com
+    Set Test Variable    ${Pass}      "ABC869!!"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-017"
+    Json Value Should Equal     ${body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.3_TC_04.3_Create a user (password format : no uppercase character, Don't Accept)
+    [Documentation]     Input : Create a user password without upper case letters
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    043regression@temp.com
+    Set Test Variable    ${Pass}      "abc869!!"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-017"
+    Json Value Should Equal     ${body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.3_TC_04.4_Create a user (password format : no number, Don't Accept)
+    [Documentation]     Input : Create a user password without any number
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    044regression@temp.com
+    Set Test Variable    ${Pass}      "abcABC!!"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-017"
+    Json Value Should Equal     ${body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.3_TC_04.5_Create a user (password format : no special character, Don't Accept)
+    [Documentation]     Input : Create a user password without any special character
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    045regression@temp.com
+    Set Test Variable    ${Pass}      "abcABC123"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-017"
+    Json Value Should Equal     ${body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]   # Known_bug     CM-1952
+
+
+UM_2.3_TC_04.6_Create a user (password format : with whitespaces, Don't Accept)
+    [Documentation]     Input : Create a user password with any whitespaces
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    046regression@temp.com
+    Set Test Variable    ${Pass}      "abcABC 123!"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-017"
+    Json Value Should Equal     ${body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.3_TC_04.7_Create a user (password format : with length less than 8 characters, Don't Accept)
+    [Documentation]     Input : Create a user password with length less than 8 characters
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    047regression@temp.com
+    Set Test Variable    ${Pass}      "aA123!"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-017"
+    Json Value Should Equal     ${body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+
+UM_2.3_TC_04.8_Create a user (password format : with length more than 20 characters, Don't Accept)
+    [Documentation]     Input : Create a user password with length more than 20 characters
+    ...                 ${SPACE}Expected : Request should provide response 400.
+    Set Test Variable    ${username}    048regression@temp.com
+    Set Test Variable    ${Pass}      "abcdefghijklmnopqrstuvA123!"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Json Value Should Equal     ${body}     /reason_code     "700-017"
+    Json Value Should Equal     ${body}     /reason_desc    ${password_Invalid_ErrorMessage}
+    [Tags]    # Known_bug    CM-1952
+
+#-------------------------------------------------------------------------
+
+UM_2.3_TC_05.1_Create a user (first name contains special characters apart from @ sign, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    051regression@temp.com
+    Set Test Variable    ${firstName}      "@$%^&&"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    # Should Match Regexp     ${body}     "reason_code":"700-002"
+    # Should Match Regexp     ${body}     "reason_desc":"Username already exists."
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_05.2_Create a user (first name contains double spaces, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}        052regression@temp.com
+    Set Test Variable    ${firstName}       "Regression${Space}${Space}asfase"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    # Should Match Regexp     ${body}     "reason_code":"700-002"
+    # Should Match Regexp     ${body}     "reason_desc":"Username already exists."
+    [Tags]  #  Known_bug    CM-1927
+
+
+UM_2.3_TC_05.3_Create a user (first name contains null value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    053regression@temp.com
+    Set Test Variable    ${firstName}       null
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+    # Should Match Regexp     ${body}     "reason_desc":"First name cannot be null."
+    [Tags]
+
+
+UM_2.3_TC_05.4_Create a user (first name contains blank value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    054regression@temp.com
+    Set Test Variable    ${firstName}       ""
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+    # Should Match Regexp     ${body}     "reason_desc":"First name cannot be null."
+    [Tags]
+
+
+UM_2.3_TC_05.5_Create a user (first name contains single space, Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    055-regression@temp.com
+    Set Test Variable    ${firstName}       "Regression Test"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_05.6_Create a user (first name missing, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    056regression@temp.com
+    Set Test Variable    ${firstName}       "MISSING"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"First name can contain alphanumeric charaters,single space, _, -, ' and ."
+    # Should Match Regexp     ${body}     "reason_desc":"First name cannot be null."
+    [Tags]   # Known_bug    CM-1927
+
+#-------------------------------------------------------------------------
+
+UM_2.3_TC_06.1_Create a user (last name contains special characters apart from @ sign, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    061regression@temp.com
+    Set Test Variable    ${lastName}       "@$%^&&"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    # Should Match Regexp     ${body}     "reason_code":"700-002"
+    # Should Match Regexp     ${body}     "reason_desc":"Username already exists."
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_06.2_Create a user (last name contains double spaces, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    062regression@temp.com
+    Set Test Variable    ${lastName}       "Regression${Space}${Space}asfase"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    # Should Match Regexp     ${body}     "reason_code":"700-002"
+    # Should Match Regexp     ${body}     "reason_desc":"Username already exists."
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_06.3_Create a user (last name contains null value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    063regression@temp.com
+    Set Test Variable    ${lastName}       null
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_06.4_Create a user (last name contains blank value, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    064regression@temp.com
+    Set Test Variable    ${lastName}       ""
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_06.5_Create a user (last name contains single space, Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    065-regression@temp.com
+    Set Test Variable    ${lastName}       "Regression Test"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    # Should Match Regexp     ${body}     "reason_code":"700-099"
+    # Should Match Regexp     ${body}     "reason_desc":"Last name can contain alphabets and - only."
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_06.6_Create a user (last name missing, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    066regression@temp.com
+    Set Test Variable    ${lastName}       "MISSING"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last name can contain alphanumeric charaters,single space, _, -, ' and ."
+    [Tags]   # Known_bug    CM-1927
+
+#-------------------------------------------------------------------------
+UM_2.3_TC_07.1_Create a user (Authority contains value as ABCDEFG, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    071regression@temp.com
+    Set Test Variable    ${authority}       "ABCDEFG"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+
+UM_2.3_TC_07.2_Create a user (Authority contains value null, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    072regression@temp.com
+    Set Test Variable    ${authority}       null
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+
+UM_2.3_TC_07.3_Create a user (Authority contains value blank, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    073regression@temp.com
+    Set Test Variable    ${authority}       ""
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+
+UM_2.3_TC_07.4_Create a user (Authority missing, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    074regression@temp.com
+    Set Test Variable    ${authority}       "MISSING"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]
+
+#-------------------------------------------------------------------------
+UM_2.3_TC_08.1_Create a user (permissionsList contains value blank, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    081regression@temp.com
+    Set Test Variable    ${permissionsList}   []
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    # Should Match Regexp     ${body}     "reason_code":"700-099"
+    # Should Match Regexp     ${body}     "reason_desc":"Authority has to be USER or ADMIN."
+    [Tags]    # Known_bug    CM-2093      # CM-1872
+
+
+UM_2.3_TC_08.2_Create a user (permissionsList contains value null, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    082regression@temp.com
+    Set Test Variable    ${permissionsList}   null
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    # Should Match Regexp     ${body}     "reason_code":"700-099"
+    # Should Match Regexp     ${body}     "reason_desc":"Permissions list cannot be null or empty."
+    [Tags]   # Known_bug    CM-1872
+
+
+UM_2.3_TC_08.3_Create a user (permissionsList contains value 99999, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    083regression@temp.com
+    Set Test Variable    ${permissionsList}   [99999]
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"400-001"
+    Should Match Regexp     ${body}     "reason_desc":"Invalid Request."
+    [Tags]   # Known_bug    CM-1927
+
+
+UM_2.3_TC_08.4_Create a user (permissionsList MISSING, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    084regression@temp.com
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList="MISSING"
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    # Should Match Regexp     ${body}     "reason_code":"700-099"
+    # Should Match Regexp     ${body}     "reason_desc":"Permissions list cannot be null or empty."
+    [Tags]   # Known_bug    CM-1872
+
+#-------------------------------------------------------------------------
+
+UM_2.3_TC_09.1_Create a user (campaignGroupList MISSING, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    091regression@temp.com
+    Set Test Variable    ${campaignGroupList}   MISSING
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Campaign group list cannot be null."
+    [Tags]   EXCLUDE    # Known_bug    CM-1927     # Exclude reason : Field removed from wiki document
+
+
+UM_2.3_TC_09.2_Create a user (campaignGroupList null, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}            092regression@temp.com
+    Set Test Variable    ${campaignGroupList}   null
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Campaign group list cannot be empty."
+    [Tags]      EXCLUDE     # Known_bug    CM-1927      # Exclude reason : Field removed from wiki document
+
+
+
+UM_2.3_TC_09.3_Create a user (campaignGroupList blank, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    093regression@temp.com
+    Set Test Variable    ${campaignGroupList}   ""
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"400-001"
+    Should Match Regexp     ${body}     "reason_desc":"Invalid Request."
+    [Tags]    EXCLUDE  # Exclude reason : Field removed from wiki document
+
+#----------------------------------------------------------------------------------
+UM_2.3_TC_010.1_Create a user (groupId MISSING, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    0101regression@temp.com
+    Set Test Variable    ${permissionsList}   [{"productId":1,"permissions": [1]}]
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Group Id cannot be null."
+    [Tags]
+
+
+UM_2.3_TC_010.2_Create a user (groupId invalid, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    0102regression@temp.com
+    Set Test Variable    ${permissionsList}   [{"groupId": 999,"productId":1,"permissions": [1]}]
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-101"
+    Should Match Regexp     ${body}     "reason_desc":"Group id is not in 'groups' table."
+    [Tags]
+#------------------------------------------------------------------------------
+
+UM_2.3_TC_011.1_Create a user (permissions MISSING, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    0111regression@temp.com
+    Set Test Variable    ${permissionsList}   [{"groupId": 1,"productId":1}]
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Permissions cannot be null or empty."
+    [Tags]
+
+
+UM_2.3_TC_011.2_Create a user (permissions as [9999], Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    0112regression@temp.com
+    Set Test Variable    ${permissionsList}   [{"groupId": 1,"productId":1,"permissions": [999]}]
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-006"
+    Should Match Regexp     ${body}     "reason_desc":"User permission is invalid."
+    [Tags]  #  Known_bug    CM-1927
+
+#-------------------------------------------------------------------------
+
+UM_2.3_TC_012.1_Create a user (lastModifiedBy MISSING, Don't Accept)
+    [Documentation]     Input : Create a user with valid data, ${Space}
+    ...                 Expected : Request should process successfully with response 400.
+    Set Test Variable    ${username}    0121regression@temp.com
+    Set Test Variable    ${lastModifiedBy}    "MISSING"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=400
+    ...                 success=false
+    Should Match Regexp     ${body}     "reason_code":"700-099"
+    Should Match Regexp     ${body}     "reason_desc":"Last Modified By username cannot be null or blank."
+    [Tags]   # Known_bug    CM-1927
+
+#-------------------------------------------------------------------------
+
+UM_2.3_TC_013.1_Create a user (Read Permission is not saved twice)
+    [Documentation]     Input : Create a user and validate Read Permission is not saved twice by comparing db records
+    ...                 Expected : no permissions are saved twice for particular group and product.
+    Set Test Variable    ${username}    0131regression@temp.com
+    Set Test Variable    ${permissionsList}    [{"groupId": 1,"productId":1,"permissions": [1]},{"groupId": 1,"productId":1,"permissions": [2]},{"groupId": 1,"productId":2,"permissions": [1, 2]},{"groupId": 1,"productId":3,"permissions": [1, 2, 3]}]
+    Set Test Variable    ${lastModifiedBy}    "abc@4info.com"
+    Create a user       userName="${username}"
+    ...                 status=${status}
+    ...                 password=${Pass}
+    ...                 firstName=${firstName}
+    ...                 lastName=${lastName}
+    ...                 authority=${authority}
+    ...                 permissionsList=${permissionsList}
+    ...                 lastModifiedBy=${lastModifiedBy}
+    ...                 response_code=200
+    ...                 success=true
+    Validate DB Records for user for read permission is not saved twice
+    ...     username=${username}
+    [Tags]  # Known_bug    CM-2078
+
+#-------------------------------------------------------------------------

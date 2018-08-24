@@ -1,0 +1,136 @@
+*** Settings ***
+Resource            user_management_api_imports.txt
+Force Tags         	UM		UM1.0	UM1.3	BATCH17
+
+#wiki reference https://wiki.4info.com/display/Software/User+management+API
+#API Name: Get all non-deleted campaigns from groupId
+#Description: This request requires a group id. It will return all the permitted non-deleted campaigns as a list.
+#Method: GET
+#URL: user-management-api/permissions-internal/groupId/:groupId
+#userName = rhino.users
+#groupId = rhino.groups
+#campaign_groups.group_id
+
+
+*** Variables ***
+
+*** Keywords ***
+
+
+*** Test Cases ***
+
+UM1.3_TC_03_01 Admin user - Validate a few campaign ID
+	[Documentation]		Make a request for admin user -> ${QA_DEFAULT_USER} and check the result total and campaign ID matching
+	Set Test Variable	${group_id}			1
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/groupId/${group_id}
+	USER MANAGEMENT API	uri=${uri_link}
+	Should Match Regexp		${body}				{"campaignId":1907,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1976,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1977,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1910,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1911,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1978,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1981,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1983,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1984,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1987,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":2054,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1912,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1956,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":2075,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":1913,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":2012,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":2086,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":2041,"partnerId":670}
+	Should Match Regexp		${body}				{"campaignId":2138,"partnerId":670}
+	[Tags]		ADMIN_USER
+
+
+UM1.3_TC_03_02 Admin Group id=1 - Total count Campaigns matching API call using username
+	[Documentation]		Make a request for user group 1, compare to API call for admin user -> ${QA_DEFAULT_USER}
+	Set Test Variable	${group_id}			1
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/groupId/${group_id}
+	USER MANAGEMENT API	uri=${uri_link}
+	@{campaign_list}=					String.Split String 					${body}				},{
+	${campaign_count_api}=				Get Length 								${campaign_list}
+	Log		Api List Lenght is -> ${campaign_count_api}
+
+	Set Test Variable	${username}			${QA_DEFAULT_USER}
+	Set Test Variable 	${uri_link2}		user-management-api/permissions-internal/campaigns?userId=${username}
+	USER MANAGEMENT API	uri=${uri_link2}
+	@{campaign_list2}=					String.Split String 					${body}				,
+	${campaign_count_api2}=				Get Length 								${campaign_list2}
+	Log		Api List Lenght is -> ${campaign_count_api2}
+
+	Should Be Equal As Integers		${campaign_count_api}	${campaign_count_api2}
+	[Tags]		ADMIN_USER
+
+
+UM1.3_TC_03_03 Catalina Group ID 15 - Validate against username api which matched database count
+	[Documentation]		Make a request for group 15 vs api request by username: catalina user -> ${QA_CATALINA_USER} (same campaign result)
+	Set Test Variable	${group_id}			15
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/groupId/${group_id}
+	USER MANAGEMENT API	uri=${uri_link}
+	Should Match Regexp		${body}				{"campaignId":2041,"partnerId":670}
+	@{campaign_list}=					String.Split String 					${body}				},{
+	${campaign_count_api}=				Get Length 								${campaign_list}
+	Log		Api List Lenght is -> ${campaign_count_api}
+
+	Set Test Variable	${username}			${QA_CATALINA_USER}
+	Set Test Variable 	${uri_link2}		user-management-api/permissions-internal/campaigns?userId=${username}
+	USER MANAGEMENT API	uri=${uri_link2}
+	@{campaign_list2}=					String.Split String 					${body}				,
+	${campaign_count_api2}=				Get Length 								${campaign_list2}
+	Log		Api List Lenght is -> ${campaign_count_api2}
+
+	Should Be Equal As Integers		${campaign_count_api}	${campaign_count_api2}
+	[Tags]		CATALINA_USER
+
+
+UM1.3_TC_03_04 QA Group ID 16 - Validate against username api
+	[Documentation]		Make a request for group 16 vs. Make a request for qa user -> ${QA_QA_USER} (same campaign result)
+	Set Test Variable	${group_id}			16
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/groupId/${group_id}
+	USER MANAGEMENT API	uri=${uri_link}
+	Should Match Regexp		${body}				{"campaignId":2138,"partnerId":670}
+	@{campaign_list}=					String.Split String 					${body}				},{
+	${campaign_count_api}=				Get Length 								${campaign_list}
+	Log		Api List Lenght is -> ${campaign_count_api}
+
+	Set Test Variable	${username}			${QA_QA_USER}
+	Set Test Variable 	${uri_link2}		user-management-api/permissions-internal/campaigns?userId=${username}
+	USER MANAGEMENT API	uri=${uri_link2}
+	@{campaign_list2}=					String.Split String 					${body}				,
+	${campaign_count_api2}=				Get Length 								${campaign_list2}
+	Log		Api List Lenght is -> ${campaign_count_api2}
+
+	Should Be Equal As Integers		${campaign_count_api}	${campaign_count_api2}
+	[Tags]		 	QA_USER
+
+
+UM1.3_TC_03_13 Invalid Group - Empty result, no campaign
+	[Documentation]		Make a request for user that does not exist -> xxxyyyzzz@catalina.com and check the result blank
+	Set Test Variable	${group_id}			99
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/groupId/${group_id}
+	USER MANAGEMENT API	uri=${uri_link}
+	...				expected_status_code=400
+	#Should Match Regexp			${body}		\\[\\]
+	[Tags]		NEGATIVE
+
+
+UM1.3_TC_03_14 No Group - Empty result, no campaign
+	[Documentation]		Make a request for user that does not exist -> xxxyyyzzz@catalina.com and check the result blank
+	Set Test Variable	${group_id}			xxx
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/groupId/
+	USER MANAGEMENT API	uri=${uri_link}
+	...				expected_status_code=200
+	Should Match Regexp			${body}		\\[\\]
+	[Tags]		NEGATIVE
+
+
+UM1.3_TC_03_15 Missing Command - 404 Not Found
+	[Documentation]		Make a request with missing options
+	Set Test Variable 	${uri_link}		user-management-api/permissions-internal/
+	USER MANAGEMENT API	uri=${uri_link}		expected_status_code=400
+	[Tags]		NEGATIVE
+

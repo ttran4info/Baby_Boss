@@ -1,0 +1,133 @@
+*** Settings ***
+Resource             placement_discovery_imports.txt
+Force Tags           PLACEMENT_DISCOVERY		AOL		BATCH3						
+
+*** variables ***
+${app_ag}				37332
+${mw_ag}				37333
+${online_ag}			37334
+*** Test Cases ***
+#1	App Bundle ID (exchange agnostic)
+#2	App Store URL (exchange agnostic)
+#3	Site Domain (exchange agnostic)
+#4	App Domain (exchange agnostic)
+#5	App ID (exchange specific)
+#6	Site ID (exchange specific)
+#7	Publisher ID (exchange specific)
+#8	IAB/iTunes Content Category (exchange agnostic)
+
+#The requirement is that we need to create adgroup with these placement.
+AOL - Placement Discovery via Bundle ID #1
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			App Bundle ID
+	Set Test Variable	${app_storeurl}			App Store URL	
+	Set Test Variable	${app_domain}			AppDomain.com
+	Set Test Variable	${app_id}				App ID	
+	Set Test Variable	${app_publisher_id}		App Publisher ID
+	Set Test Variable	${app_cat}				App IAB Category
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"x${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]		
+
+AOL - Placement Discovery via App Store Url #2
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			xApp Bundle ID
+	Set Test Variable	${app_storeurl}			App Store URL	
+	Set Test Variable	${app_domain}			AppDomain.com
+	Set Test Variable	${app_id}				App ID	
+	Set Test Variable	${app_publisher_id}		App Publisher ID
+	Set Test Variable	${app_cat}				App IAB Category
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"x${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]
+
+AOL - Placement Discovery via App Domain #3
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			xApp Bundle ID
+	Set Test Variable	${app_storeurl}			xApp Store URL	
+	Set Test Variable	${app_domain}			AppDomain.com
+	Set Test Variable	${app_id}				App ID	
+	Set Test Variable	${app_publisher_id}		App Publisher ID
+	Set Test Variable	${app_cat}				App IAB Category
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"x${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]
+
+AOL - Placement Discovery via App ID #4
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			xApp Bundle ID
+	Set Test Variable	${app_storeurl}			xApp Store URL	
+	Set Test Variable	${app_domain}			xAppDomain.com
+	Set Test Variable	${app_id}				App ID	
+	Set Test Variable	${app_publisher_id}		App Publisher ID
+	Set Test Variable	${app_cat}				App IAB Category
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"x${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}     submit_client_impression_event=NO
+	[Tags]
+
+AOL - Placement Discovery via App Publisher ID #5
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			xApp Bundle ID
+	Set Test Variable	${app_storeurl}			xApp Store URL	
+	Set Test Variable	${app_domain}			xAppDomain.com
+	Set Test Variable	${app_id}				xApp ID	
+	Set Test Variable	${app_publisher_id}		App Publisher ID
+	Set Test Variable	${app_cat}				App IAB Category
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"x${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}     submit_client_impression_event=NO
+	[Tags]
+
+AOL - Placement Discovery via IAB Category #6
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have app domain, cat, storeurl)
+	Set Test Variable	${app_bundle}			xApp Bundle ID
+	Set Test Variable	${app_storeurl}			xApp Store URL	
+	Set Test Variable	${app_domain}			xAppDomain.com
+	Set Test Variable	${app_id}				xApp ID	
+	Set Test Variable	${app_publisher_id}		xApp Publisher ID
+	Set Test Variable	${app_cat}				App IAB Category
+	Set Test Variable 	${data}			{"bcat":["50000","51000","52000","53000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"lmt":0,"ifa":"1747506b-bef3-4cec-bb58-6c32198a0054","flashver":"0","devicetype":4,"connectiontype":2,"js":1,"osv":"6.0.1","os":"Android","model":"SM-G930P","make":"Sprint","language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G930P Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36","ip":"66.168.56.105"},"at":2,"app":{"publisher":{"id":"${app_publisher_id}"},"name":"Sudoku","bundle":"x${app_bundle}","id":"${app_id}","domain":"${app_domain}","cat":["${app_cat}"],"storeurl":"${app_storeurl}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"171-1-1-1478699961537368"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${app_ag}      submit_client_impression_event=NO
+	[Tags]
+
+#####Required that we create the adgroup first, we'll share the same adgroup		
+AOL - Placement Discovery via Site Domain #1
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_domain}			SiteDomain.com
+	Set Test Variable	${site_id}				Site ID
+	Set Test Variable	${site_publisher_id}	Site Publisher ID
+	Set Test Variable	${site_cat}				Site IAB Category
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${mw_ag}      submit_client_impression_event=NO
+	[Tags] 		
+
+AOL - Placement Discovery via Site ID #2
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_domain}			xSiteDomain.com
+	Set Test Variable	${site_id}				Site ID
+	Set Test Variable	${site_publisher_id}	Site Publisher ID
+	Set Test Variable	${site_cat}				Site IAB Category
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${mw_ag}      submit_client_impression_event=NO
+	[Tags] 		
+
+AOL - Placement Discovery via Site Publisher ID #3
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_domain}			xSiteDomain.com
+	Set Test Variable	${site_id}				xSite ID
+	Set Test Variable	${site_publisher_id}	Site Publisher ID
+	Set Test Variable	${site_cat}				Site IAB Category
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${mw_ag}      submit_client_impression_event=NO
+	[Tags] 		
+
+AOL - Placement Discovery via Site IAB category #4
+	[Documentation]		QA_REGRESSION_TESTS>34_Placement_Discovery (aol does not have site domain, cat)
+	Set Test Variable	${site_domain}			xSiteDomain.com
+	Set Test Variable	${site_id}				xSite ID
+	Set Test Variable	${site_publisher_id}	xSite Publisher ID
+	Set Test Variable	${site_cat}				Site IAB Category
+	Set Test Variable 	${data}			{"bcat":["26000","50000","52000","54000"],"cur":["USD"],"device":{"geo":{"type":2,"country":"usa"},"js":1,"language":"en","ua":"Mozilla/5.0 (Linux; Android 6.0.1; SM-G925P Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/54.0.2840.85 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/103.0.0.20.72;]","ip":"73.82.184.114"},"at":2,"user":{"id":"581E647C6E651F4435CF5BC4F3B03A3B"},"site":{"publisher":{"id":"${site_publisher_id}"},"domain":"${site_domain}","cat":["${site_cat}"],"mobile":1,"id":"${site_id}"},"imp":[{"ext":{"secure":0},"secure":0,"banner":{"api":[3,4,5],"battr":[6,8,9,10],"btype":[1,2],"format":[{"w":320,"h":50}],"h":50,"w":320},"id":"1"}],"id":"010-1-2-1478684835123058"}
+    RTB Request 				API=${RTB_AOL_API}          data=${data}		response_code=200  	adgroup_expected=${mw_ag}      submit_client_impression_event=NO
+	[Tags] 		
+
+				

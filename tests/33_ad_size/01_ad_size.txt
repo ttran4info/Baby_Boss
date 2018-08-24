@@ -1,0 +1,124 @@
+*** Settings ***
+Resource             ad_size_imports.txt
+Force Tags           AD_SIZE		MOPUB	BATCH3				
+
+*** variables ***
+${app_id}				REGRESSION MOPUB AD SIZE
+${static_ag}			37210
+${mraid_ag}				37211
+${3rdparty_ag}			37212
+*** Test Cases ***
+Mopub - Static Banner, Ad Size (120x20)
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		120
+	Set Test Variable	${height}		20
+	Set Test Variable	${banner_id}	B68633
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"USA","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":1,"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+	[Tags]	
+Mopub - Static Banner, Ad Size (168x28)
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		168
+	Set Test Variable	${height}		28
+	Set Test Variable	${banner_id}	B68634
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"USA","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":1,"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+
+Mopub - Static Banner, Ad Size (216x36)
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		216
+	Set Test Variable	${height}		36
+	Set Test Variable	${banner_id}	B68635
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"USA","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":1,"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+
+Mopub - Static Banner, Ad Size (300x50)
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		300
+	Set Test Variable	${height}		50
+	Set Test Variable	${banner_id}	B68636
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"USA","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":1,"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+
+Mopub - Static Banner, Ad Size (320x50)
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		320
+	Set Test Variable	${height}		50
+	Set Test Variable	${banner_id}	B68637
+	Set Test Variable	${mraid}		5
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"USA","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[${mraid}],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":1,"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}    
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+
+Mopub - Static Banner, Ad Size (300x250)
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		300
+	Set Test Variable	${height}		250
+	Set Test Variable	${banner_id}	B68638
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"USA","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":1,"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}    
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+
+Mopub - Static Banner, Ad Size (728x90)
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		728
+	Set Test Variable	${height}		90
+	Set Test Variable	${banner_id}	B68639
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"USA","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":1,"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}    
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+
+
+Mopub - Ad Size Serving 300x50 if 320x50 not available (filter via battr)
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		320
+	Set Test Variable	${height}		50
+	Set Test Variable	${banner_id}	B68636
+	Set Test Variable	${battr}		13
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"USA","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[${battr}],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":1,"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}    
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${static_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+
+#country = canada
+Mopub - Ad Size Serving 300x50 if 320x50 not available (filter via Mraid)
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		320
+	Set Test Variable	${height}		50
+	Set Test Variable	${banner_id}	B68668
+	Set Test Variable	${mraid}		3
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"CAN","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[${mraid}],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":1,"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}    
+	RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${mraid_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+
+#Banner Position parameter does not work.Jira opened and probably won't be fix.
+Mopub - Ad Size Serving 300x50 if 320x50 not available (filter via Position Above)
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		320
+	Set Test Variable	${height}		50
+	Set Test Variable	${banner_id}	68668
+	Set Test Variable	${position}		1
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"GUAM","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":${position},"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${3rdparty_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+	[Tags] 	MED-1204	EXCLUDE
+Mopub - Ad Size Serving 120x20 position unknown
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		120
+	Set Test Variable	${height}		20
+	Set Test Variable	${banner_id}	67824
+	Set Test Variable	${position}		0
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"GUAM","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":${position},"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${3rdparty_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+	[Tags] 	MED-1204	EXCLUDE
+Mopub - Ad Size Serving 120x20 position above
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		120
+	Set Test Variable	${height}		20
+	Set Test Variable	${banner_id}	67825
+	Set Test Variable	${position}		1
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"GUAM","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":${position},"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${3rdparty_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+	[Tags]		MED-1204	EXCLUDE
+Mopub - Ad Size Serving 120x20 position below
+	[Documentation]		QA_REGRESSION_TESTS>05_RTB_Mopub>
+	Set Test Variable	${width}		120
+	Set Test Variable	${height}		20
+	Set Test Variable	${banner_id}	67826
+	Set Test Variable	${position}		3
+	Set Test Variable 	${data}			{"app":{"bundle":"xcom.apalon.myclock","cat":["IAB3","utilities"],"id":"${app_id}","name":"AlarmClockGP","publisher":{"id":"agltb3B1Yi1pbmNyEAsSB0FjY291bnQY_pG0Egw","name":"IACSearch&MediaEuropeLtd"},"ver":"2.13"},"at":2,"bcat":["IAB25","IAB26","IAB7-39","IAB8-18","IAB8-5","IAB9-9","IAB3-7"],"device":{"carrier":"311-480","connectiontype":3,"devicetype":1,"dnt":0,"dpidmd5":"e4c14888eeef74e447a59c3003e10e95","dpidsha1":"ad44184712ce9fa6930fea7498b97ac243558fb3","ifa":"b89c4b49-8a64-44f0-9504-f756d84d3441","geo":{"city":"Downingtown","country":"GUAM","lat":38.610256,"lon":-75.225609,"metro":"504","region":"PA","zip":"19335"},"ip":"70.215.64.103","js":1,"language":"en","make":"motorola","model":"XT907","os":"Android","osv":"4.4.2","ua":"Mozilla/5.0(Linux;Android4.4.2;XT907Build/KDA20.62-15)AppleWebKit/537.36(KHTML,likeGecko)Version/4.0Chrome/30.0.0.0MobileSafari/537.36"},"id":"2df83805-da59-4346-9b79-b6a0c348c536","imp":[{"banner":{"api":[4],"battr":[100],"btype":[4],"ext":{"nativebrowserclick":1},"h":${height},"pos":${position},"w":${width}},"bidfloor":0.01,"displaymanager":"mopub","displaymanagerver":"3.8.0","ext":{"secure":0},"id":"1","instl":0,"tagid":"9772ec203e52441b9d0303e283ab76fc"}]}
+    RTB Request 				API=${RTB_MOPUB_API}          data=${data}		response_code=200  	adgroup_expected=${3rdparty_ag}      banner_expected=${banner_id}	submit_client_impression_event=NO
+	[Tags]		MED-1204	EXCLUDE
